@@ -14,6 +14,8 @@ interface Staff {
   _id: string;
   fullName: string;
   email: string;
+  phone?: string;
+  hallIds?: string[];
 }
 
 const StaffContent = () => {
@@ -94,10 +96,45 @@ const StaffContent = () => {
   };
 
   const handleUpdateStaff = async (formData: Record<string, unknown>) => {
-    // The API schema does not seem to support staff updates, but this is how you would do it.
-    console.log("Updating staff not yet supported by this UI.", formData);
-    closeStaffModal();
-  }
+    if (!editingStaff) return;
+
+    Swal.fire({
+      title: 'Updating Staff Member...',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
+    try {
+      // API expects: fullName, phone, hallIds
+      const payload = {
+        fullName: formData.fullName,
+        phone: formData.phone,
+        hallIds: formData.hallIds,
+      };
+
+      await api.patch(`/users/staff/${editingStaff._id}`, payload);
+      await fetchStaff();
+      closeStaffModal();
+      setEditingStaff(undefined);
+
+      Swal.fire({
+        title: 'Success!',
+        text: 'Staff member updated successfully.',
+        icon: 'success',
+        confirmButtonColor: '#4F46E5',
+      });
+    } catch (error) {
+      console.error('Failed to update staff:', error);
+      Swal.fire({
+        title: 'Error!',
+        text: 'Failed to update staff member. Please try again.',
+        icon: 'error',
+        confirmButtonColor: '#4F46E5',
+      });
+    }
+  };
 
   const handleRemoveStaff = async (staffId: string) => {
     const result = await Swal.fire({
