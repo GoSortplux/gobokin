@@ -160,8 +160,8 @@ const ApplicationDetailsModal = ({
 }: {
   application: HallOwnerApplication;
   onClose: () => void;
-  onApprove: (applicationId: string) => void;
-  onReject: (applicationId: string) => void;
+  onApprove: (userId: string) => void;
+  onReject: (userId: string) => void;
 }) => {
   if (!application) return null;
 
@@ -240,13 +240,13 @@ const ApplicationDetailsModal = ({
         {application.status === 'pending' && (
           <div className="p-6 bg-gray-50/50 border-t flex gap-4">
             <button
-              onClick={() => onReject(application._id)}
+              onClick={() => application.user?._id && onReject(application.user._id)}
               className="flex-1 py-4 bg-white border-2 border-red-500 text-red-500 rounded-2xl font-black uppercase italic tracking-widest hover:bg-red-50 transition-all shadow-lg shadow-red-500/10"
             >
               Reject Application
             </button>
             <button
-              onClick={() => onApprove(application._id)}
+              onClick={() => application.user?._id && onApprove(application.user._id)}
               className="flex-1 py-4 bg-primary text-white rounded-2xl font-black uppercase italic tracking-widest hover:bg-primary/90 transition-all shadow-xl shadow-primary/20"
             >
               Approve Application
@@ -453,7 +453,7 @@ const PendingApplicationsTab = () => {
     return applications.filter(app => app.status === statusFilter);
   }, [applications, statusFilter]);
 
-  const handleApprove = async (applicationId: string) => {
+  const handleApprove = async (userId: string) => {
     const result = await Swal.fire({
       title: "Approve Application?",
       text: "Are you sure you want to approve this hall owner application?",
@@ -474,7 +474,7 @@ const PendingApplicationsTab = () => {
         },
       });
       try {
-        await api.patch(`/admin/hall-owner-applications/${applicationId}/approve`);
+        await api.patch(`/admin/hall-owner-applications/${userId}/approve`);
         Swal.fire("Approved!", "The application has been approved.", "success");
         fetchApplications(); // Refresh data
       } catch (error) {
@@ -484,7 +484,7 @@ const PendingApplicationsTab = () => {
     }
   };
 
-  const handleReject = async (applicationId: string) => {
+  const handleReject = async (userId: string) => {
     const result = await Swal.fire({
       title: "Reject Application?",
       text: "Are you sure you want to reject this application? This action cannot be undone.",
@@ -505,7 +505,7 @@ const PendingApplicationsTab = () => {
         },
       });
       try {
-        await api.patch(`/admin/hall-owner-applications/${applicationId}/reject`);
+        await api.patch(`/admin/hall-owner-applications/${userId}/reject`);
         Swal.fire("Rejected!", "The application has been rejected.", "success");
         fetchApplications(); // Refresh data
       } catch (error) {
@@ -574,13 +574,13 @@ const PendingApplicationsTab = () => {
                     {app.status === 'pending' && (
                       <>
                         <button
-                          onClick={() => handleApprove(app._id)}
+                          onClick={() => app.user?._id && handleApprove(app.user._id)}
                           className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-xl mr-2 transition-all"
                         >
                           Approve
                         </button>
                         <button
-                          onClick={() => handleReject(app._id)}
+                          onClick={() => app.user?._id && handleReject(app.user._id)}
                           className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-xl transition-all"
                         >
                           Reject
