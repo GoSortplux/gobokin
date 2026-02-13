@@ -1,0 +1,151 @@
+"use client";
+import { useEffect, useState } from "react";
+import api from "@/services/api";
+import { useAuth } from "@/context/AuthContext";
+import Link from "next/link";
+import { Check, Circle } from "lucide-react";
+import { Notification } from "@/types";
+
+const NotificationDropdown = () => {
+  const { user } = useAuth();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchNotifications = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get("/notifications");
+      setNotifications(response.data.data.notifications || []);
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchNotifications();
+    }
+  }, [user]);
+
+  const handleMarkAsRead = async (notificationId: string) => {
+    try {
+      await api.patch(`/notifications/${notificationId}/read`);
+      fetchNotifications();
+    } catch (error) {
+      console.error("Failed to mark notification as read:", error);
+    }
+  };
+
+  const handleMarkAsUnread = async (notificationId: string) => {
+    try {
+      await api.patch(`/notifications/${notificationId}/unread`);
+      fetchNotifications();
+    } catch (error) {
+      console.error("Failed to mark notification as unread:", error);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      await api.patch("/notifications/read-all");
+      fetchNotifications();
+    } catch (error) {
+      console.error("Failed to mark all notifications as read:", error);
+    }
+  };
+
+  return (
+    <div
+      className="absolute right-0 w-80 mt-2 origin-top-right bg-white rounded-md shadow-lg z-50"
+      data-testid="notification-dropdown"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="p-4 border-b">
+        <h3 className="text-lg font-semibold">Notifications</h3>
+        <button onClick={handleMarkAllAsRead} className="text-sm text-primary hover:underline">
+          Mark all as read
+        </button>
+      </div>
+      <div className="py-1 max-h-96 overflow-y-auto">
+        {loading ? (
+          <p className="p-4">Loading...</p>
+        ) : notifications.length > 0 ? (
+          notifications.map((notification) => {
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            const match = notification.message.match(urlRegex);
+            const urlSlug = notification.hallSlug || notification.hallId || "";
+
+            const finalLink = notification.link || (match ? match[0] : null) || (urlSlug ? `/halls/${urlSlug}/review` : null);
+            const isReview = finalLink?.includes('/review') || notification.message.toLowerCase().includes('review');
+
+            return (
+              <div
+                key={notification._id}
+                className={`flex items-start p-4 ${
+                  notification.read ? "bg-gray-50" : "bg-white"
+                }`}
+              >
+                <div className="flex-shrink-0">
+                  {notification.read ? (
+                    <Check className="w-5 h-5 text-green-500" />
+                  ) : (
+                    <Circle className="w-5 h-5 text-blue-500" />
+                  )}
+                </div>
+                <div className="ml-3 flex-grow">
+                  <p className="text-sm text-gray-800">{notification.message.replace(urlRegex, '').trim()}</p>
+                  <p className="text-xs text-gray-500">
+                    {new Date(notification.createdAt).toLocaleString()}
+                  </p>
+
+                  {finalLink && (
+                    <Link
+                      href={notification.read ? "#" : finalLink}
+                      onClick={(e) => {
+                        if (notification.read) {
+                          e.preventDefault();
+                          return;
+                        }
+                        handleMarkAsRead(notification._id);
+                      }}
+                      className={`mt-1 inline-block text-xs font-bold hover:underline ${
+                        notification.read
+                          ? "text-gray-400 cursor-not-allowed"
+                          : isReview ? "text-[#B68945]" : "text-primary"
+                      }`}
+                    >
+                      {isReview ? "Write Review" : "View Details"}
+                    </Link>
+                  )}
+
+                  <div className="mt-1 flex items-center space-x-2">
+                    {!notification.read ? (
+                      <button onClick={() => handleMarkAsRead(notification._id)} className="text-xs text-primary hover:underline">
+                        Mark as read
+                      </button>
+                    ) : (
+                      <button onClick={() => handleMarkAsUnread(notification._id)} className="text-xs text-gray-500 hover:underline">
+                        Mark as unread
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <p className="p-4 text-center text-gray-500">No notifications</p>
+        )}
+      </div>
+      <div className="p-2 text-center border-t">
+        <Link href="/notifications" className="text-sm text-primary hover:underline">
+          View all notifications
+        </Link>
+      </div>
+    </div>
+  );
+};
+
+export default NotificationDropdown;
