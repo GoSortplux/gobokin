@@ -18,7 +18,7 @@ interface Hall {
   slug?: string;
   name: string;
   location: string;
-  owner: {
+  owner?: {
     fullName: string;
   };
   isOnlineBookingEnabled: boolean;
@@ -96,9 +96,9 @@ const HallManagementContent = () => {
         return true;
       })
       .filter(hall =>
-        hall.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        hall.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        hall.owner.fullName.toLowerCase().includes(searchTerm.toLowerCase())
+        (hall.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (hall.location || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (hall.owner?.fullName || "").toLowerCase().includes(searchTerm.toLowerCase())
       );
   }, [halls, searchTerm, statusFilter]);
 
@@ -563,7 +563,7 @@ const HallManagementContent = () => {
                         <tr key={hall._id}>
                         <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{hall.name}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{hall.location}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{hall.owner.fullName}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{hall.owner?.fullName || 'No Owner'}</td>
                         <td className="px-6 py-4 whitespace-nowrap space-x-2">
                             <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                                 hall.isOnlineBookingEnabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
