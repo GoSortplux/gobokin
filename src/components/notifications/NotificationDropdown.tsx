@@ -3,8 +3,9 @@ import { useEffect, useState } from "react";
 import api from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
-import { Check, Circle } from "lucide-react";
+import { Check, Circle, Bell, BellOff, MoreVertical, Trash2 } from "lucide-react";
 import { Notification } from "@/types";
+import { motion, AnimatePresence } from "framer-motion";
 
 const NotificationDropdown = () => {
   const { user } = useAuth();
@@ -56,95 +57,138 @@ const NotificationDropdown = () => {
     }
   };
 
+  const unreadCount = notifications.filter(n => !n.read).length;
+
   return (
-    <div
-      className="absolute right-0 w-80 mt-2 origin-top-right bg-white rounded-md shadow-lg z-50"
+    <motion.div
+      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+      transition={{ duration: 0.2 }}
+      className="absolute right-[-10px] sm:right-0 w-[calc(100vw-2rem)] sm:w-96 mt-3 origin-top-right bg-white rounded-2xl shadow-2xl z-50 border border-gray-100 overflow-hidden"
       data-testid="notification-dropdown"
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="p-4 border-b">
-        <h3 className="text-lg font-semibold">Notifications</h3>
-        <button onClick={handleMarkAllAsRead} className="text-sm text-primary hover:underline">
+      <div className="p-4 bg-white border-b border-gray-50 flex items-center justify-between">
+        <div>
+          <h3 className="text-md font-bold text-gray-900 flex items-center gap-2">
+            Notifications
+            {unreadCount > 0 && (
+              <span className="bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-full font-bold">
+                {unreadCount} new
+              </span>
+            )}
+          </h3>
+          <p className="text-[11px] text-gray-500">Stay updated with your activities</p>
+        </div>
+        <button
+          onClick={handleMarkAllAsRead}
+          className="text-xs font-bold text-primary hover:text-primary-dark transition-colors px-2 py-1 rounded-lg hover:bg-primary/5"
+        >
           Mark all as read
         </button>
       </div>
-      <div className="py-1 max-h-96 overflow-y-auto">
+
+      <div className="max-h-[450px] overflow-y-auto no-scrollbar">
         {loading ? (
-          <p className="p-4">Loading...</p>
+          <div className="p-10 flex flex-col items-center justify-center space-y-3">
+             <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+             <p className="text-xs text-gray-400 font-medium">Fetching updates...</p>
+          </div>
         ) : notifications.length > 0 ? (
-          notifications.map((notification) => {
-            const urlRegex = /(https?:\/\/[^\s]+)/g;
-            const match = notification.message.match(urlRegex);
-            const urlSlug = notification.hallSlug || notification.hallId || "";
+          <div className="divide-y divide-gray-50">
+            {notifications.map((notification) => {
+              const urlRegex = /(https?:\/\/[^\s]+)/g;
+              const match = notification.message.match(urlRegex);
+              const urlSlug = notification.hallSlug || notification.hallId || "";
 
-            const finalLink = notification.link || (match ? match[0] : null) || (urlSlug ? `/halls/${urlSlug}/review` : null);
-            const isReview = finalLink?.includes('/review') || notification.message.toLowerCase().includes('review');
+              const finalLink = notification.link || (match ? match[0] : null) || (urlSlug ? `/halls/${urlSlug}/review` : null);
+              const isReview = finalLink?.includes('/review') || notification.message.toLowerCase().includes('review');
 
-            return (
-              <div
-                key={notification._id}
-                className={`flex items-start p-4 ${
-                  notification.read ? "bg-gray-50" : "bg-white"
-                }`}
-              >
-                <div className="flex-shrink-0">
-                  {notification.read ? (
-                    <Check className="w-5 h-5 text-green-500" />
-                  ) : (
-                    <Circle className="w-5 h-5 text-blue-500" />
-                  )}
-                </div>
-                <div className="ml-3 flex-grow">
-                  <p className="text-sm text-gray-800">{notification.message.replace(urlRegex, '').trim()}</p>
-                  <p className="text-xs text-gray-500">
-                    {new Date(notification.createdAt).toLocaleString()}
-                  </p>
-
-                  {finalLink && (
-                    <Link
-                      href={notification.read ? "#" : finalLink}
-                      onClick={(e) => {
-                        if (notification.read) {
-                          e.preventDefault();
-                          return;
-                        }
-                        handleMarkAsRead(notification._id);
-                      }}
-                      className={`mt-1 inline-block text-xs font-bold hover:underline ${
-                        notification.read
-                          ? "text-gray-400 cursor-not-allowed"
-                          : isReview ? "text-[#B68945]" : "text-primary"
-                      }`}
-                    >
-                      {isReview ? "Write Review" : "View Details"}
-                    </Link>
-                  )}
-
-                  <div className="mt-1 flex items-center space-x-2">
+              return (
+                <div
+                  key={notification._id}
+                  className={`group flex items-start p-4 transition-all duration-200 hover:bg-gray-50/80 ${
+                    notification.read ? "opacity-75" : "bg-white"
+                  }`}
+                >
+                  <div className="flex-shrink-0 mt-1">
                     {!notification.read ? (
-                      <button onClick={() => handleMarkAsRead(notification._id)} className="text-xs text-primary hover:underline">
-                        Mark as read
-                      </button>
+                      <div className="w-2.5 h-2.5 bg-primary rounded-full shadow-[0_0_8px_rgba(41,95,167,0.5)]" />
                     ) : (
-                      <button onClick={() => handleMarkAsUnread(notification._id)} className="text-xs text-gray-500 hover:underline">
-                        Mark as unread
-                      </button>
+                      <div className="w-2.5 h-2.5 bg-gray-200 rounded-full" />
                     )}
                   </div>
+                  <div className="ml-4 flex-grow">
+                    <p className={`text-sm leading-relaxed ${notification.read ? "text-gray-500" : "text-gray-800 font-medium"}`}>
+                      {notification.message.replace(urlRegex, '').trim()}
+                    </p>
+                    <p className="text-[10px] text-gray-400 mt-1.5 flex items-center gap-2">
+                      <Circle size={4} className="fill-gray-300 border-none" />
+                      {new Date(notification.createdAt).toLocaleString(undefined, {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+
+                    <div className="mt-3 flex items-center gap-3">
+                      {finalLink && (
+                        <Link
+                          href={notification.read ? "#" : finalLink}
+                          onClick={(e) => {
+                            if (notification.read) {
+                              e.preventDefault();
+                              return;
+                            }
+                            handleMarkAsRead(notification._id);
+                          }}
+                          className={`text-[11px] font-bold px-3 py-1 rounded-md transition-all ${
+                            notification.read
+                              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                              : isReview
+                                ? "bg-[#B68945] text-white hover:shadow-lg hover:shadow-[#B68945]/20"
+                                : "bg-primary text-white hover:shadow-lg hover:shadow-primary/20"
+                          }`}
+                        >
+                          {isReview ? "Write Review" : "View Details"}
+                        </Link>
+                      )}
+
+                      <button
+                        onClick={() => notification.read ? handleMarkAsUnread(notification._id) : handleMarkAsRead(notification._id)}
+                        className="text-[10px] font-bold text-gray-400 hover:text-primary transition-colors"
+                      >
+                        {notification.read ? "Mark unread" : "Mark read"}
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            );
-          })
+              );
+            })}
+          </div>
         ) : (
-          <p className="p-4 text-center text-gray-500">No notifications</p>
+          <div className="p-12 flex flex-col items-center justify-center text-center">
+            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+              <BellOff className="w-8 h-8 text-gray-300" />
+            </div>
+            <p className="text-sm font-bold text-gray-900">All caught up!</p>
+            <p className="text-xs text-gray-500 mt-1">No new notifications at the moment.</p>
+          </div>
         )}
       </div>
-      <div className="p-2 text-center border-t">
-        <Link href="/notifications" className="text-sm text-primary hover:underline">
+
+      <div className="p-3 bg-gray-50/50 text-center border-t border-gray-50">
+        <Link
+          href="/notifications"
+          className="text-xs font-bold text-primary hover:text-primary-dark transition-all flex items-center justify-center gap-1.5"
+        >
           View all notifications
+          <MoreVertical size={12} className="rotate-90" />
         </Link>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

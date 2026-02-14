@@ -177,7 +177,9 @@ const Header = () => {
                   >
                     <NotificationIcon />
                   </button>
-                  {notificationDropdownOpen && <NotificationDropdown />}
+                  <AnimatePresence>
+                    {notificationDropdownOpen && <NotificationDropdown />}
+                  </AnimatePresence>
                 </div>
                 <div className="flex items-center space-x-2 relative" ref={dropdownRef}>
                   <button
@@ -283,11 +285,11 @@ const Header = () => {
                   >
                     <NotificationIcon />
                   </button>
-                  {notificationDropdownOpen && (
-                    <div className="absolute right-0 mt-2 z-[60]">
+                  <AnimatePresence>
+                    {notificationDropdownOpen && (
                        <NotificationDropdown />
-                    </div>
-                  )}
+                    )}
+                  </AnimatePresence>
               </div>
             )}
             <button
