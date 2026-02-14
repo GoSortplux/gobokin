@@ -57,21 +57,21 @@ const Carousel = ({
   if (halls.length === 0) return null;
 
   return (
-    <div className="relative group mt-4 md:mt-0" data-testid="carousel-container">
+    <div className="relative group mt-12 md:mt-0" data-testid="carousel-container">
       {/* Arrows: Controlled by CSS visibility and length-based logic */}
-      <div className="absolute -top-10 md:-top-12 right-0 space-x-2 z-10 flex">
+      <div className="absolute -top-14 md:-top-12 right-0 space-x-3 z-10 flex">
         {/* Desktop Arrows: show only if length > propSlidesToShow on large screens */}
         <div className={halls.length > propSlidesToShow ? 'hidden lg:flex space-x-2' : 'hidden'}>
            <PrevArrow onClick={goToPrev} />
            <NextArrow onClick={goToNext} />
         </div>
         {/* Tablet/Large Mobile Arrows: show if length > 4 on medium screens */}
-        <div className={halls.length > 4 ? 'hidden md:flex lg:hidden space-x-2' : 'hidden'}>
+        <div className={halls.length > 4 ? 'hidden md:flex lg:hidden space-x-3' : 'hidden'}>
            <PrevArrow onClick={goToPrev} />
            <NextArrow onClick={goToNext} />
         </div>
         {/* Mobile Arrows: show if length > 2 on small screens */}
-        <div className={halls.length > 2 ? 'flex md:hidden space-x-2' : 'hidden'}>
+        <div className={halls.length > 2 ? 'flex md:hidden space-x-3' : 'hidden'}>
            <PrevArrow onClick={goToPrev} />
            <NextArrow onClick={goToNext} />
         </div>

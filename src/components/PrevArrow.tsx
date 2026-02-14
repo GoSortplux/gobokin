@@ -6,12 +6,14 @@ interface PrevArrowProps {
 
 const PrevArrow = ({ onClick }: PrevArrowProps) => {
   return (
-    <div
+    <button
       className="custom-arrow prev-arrow"
       onClick={onClick}
+      aria-label="Previous slide"
+      type="button"
     >
       <ChevronLeft size={24} />
-    </div>
+    </button>
   );
 };
 

@@ -6,12 +6,14 @@ interface NextArrowProps {
 
 const NextArrow = ({ onClick }: NextArrowProps) => {
   return (
-    <div
+    <button
       className="custom-arrow next-arrow"
       onClick={onClick}
+      aria-label="Next slide"
+      type="button"
     >
       <ChevronRight size={24} />
-    </div>
+    </button>
   );
 };
 

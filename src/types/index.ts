@@ -182,6 +182,8 @@ export interface Hall {
   rules?: string[] | string;
   views?: number;
   directionUrl?: string;
+  createdAt?: string;
+  distance?: number;
 }
 
 export interface Notification {
