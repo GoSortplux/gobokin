@@ -174,13 +174,13 @@ const HomePage = () => {
         {!loading && !error && (
           <div className="space-y-8 md:space-y-12">
             <section>
-              <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Featured Locations</h2>
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Featured Venue</h2>
               <Carousel halls={allHalls.slice(0, 7)} />
             </section>
 
             {popularHalls.length > 0 && (
               <section>
-                <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Popular Halls</h2>
+                <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Popular Venue</h2>
                 <Carousel halls={popularHalls} />
               </section>
             )}
@@ -208,7 +208,7 @@ const HomePage = () => {
 
             {largeCapacityHalls.length > 0 && (
               <section>
-                <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Large Capacity Halls</h2>
+                <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Large Capacity Venue</h2>
                 <Carousel halls={largeCapacityHalls} />
               </section>
             )}
