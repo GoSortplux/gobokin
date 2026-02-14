@@ -94,6 +94,13 @@ const BookingsPage = () => {
     return refunded >= refundable && refundable > 0;
   };
 
+  const hasBeenRefunded = (item: any) => {
+    if (item.isGroup && item.groupBookings) {
+      return item.groupBookings.some((b: Booking) => (b.refundDetails?.totalRefundedAmount || 0) > 0);
+    }
+    return (item.refundDetails?.totalRefundedAmount || 0) > 0;
+  };
+
   const fetchHalls = useCallback(async () => {
     try {
       const response = await api.get("/halls/by-owner");
@@ -783,7 +790,8 @@ const BookingsPage = () => {
                                 e.stopPropagation();
                                 openRescheduleModal(booking, booking.isReservation ? 'reservation' : 'booking');
                               }}
-                              className="text-xs font-bold text-blue-600 hover:text-blue-800 bg-blue-50 px-3 py-1.5 rounded-lg transition-colors border border-blue-100"
+                              disabled={hasBeenRefunded(booking)}
+                              className="text-xs font-bold text-blue-600 hover:text-blue-800 bg-blue-50 px-3 py-1.5 rounded-lg transition-colors border border-blue-100 disabled:opacity-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 disabled:cursor-not-allowed"
                             >
                               Reschedule
                             </button>
@@ -955,7 +963,8 @@ const BookingsPage = () => {
                         )}
                         <button
                           onClick={() => openRescheduleModal(booking, booking.isReservation ? 'reservation' : 'booking')}
-                          className="p-2.5 text-blue-600 bg-blue-50 rounded-lg border border-blue-100"
+                          disabled={hasBeenRefunded(booking)}
+                          className="p-2.5 text-blue-600 bg-blue-50 rounded-lg border border-blue-100 disabled:opacity-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 disabled:cursor-not-allowed"
                         >
                           Reschedule
                         </button>
@@ -1077,7 +1086,8 @@ const BookingsPage = () => {
                           )}
                           <button
                             onClick={() => openRescheduleModal(reservation, 'reservation')}
-                            className="text-xs font-bold text-blue-600 hover:text-blue-800 bg-blue-50 px-3 py-1.5 rounded-lg transition-colors border border-blue-100"
+                            disabled={hasBeenRefunded(reservation)}
+                            className="text-xs font-bold text-blue-600 hover:text-blue-800 bg-blue-50 px-3 py-1.5 rounded-lg transition-colors border border-blue-100 disabled:opacity-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 disabled:cursor-not-allowed"
                           >
                             Reschedule
                           </button>
@@ -1167,7 +1177,8 @@ const BookingsPage = () => {
                       )}
                       <button
                         onClick={() => openRescheduleModal(res, 'reservation')}
-                        className="flex-1 py-2 text-xs font-bold text-blue-600 bg-blue-50 rounded-lg border border-blue-100"
+                        disabled={hasBeenRefunded(res)}
+                        className="flex-1 py-2 text-xs font-bold text-blue-600 bg-blue-50 rounded-lg border border-blue-100 disabled:opacity-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 disabled:cursor-not-allowed"
                       >
                         Reschedule
                       </button>
