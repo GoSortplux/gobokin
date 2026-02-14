@@ -94,7 +94,7 @@ const BookingsPage = () => {
     return refunded >= refundable && refundable > 0;
   };
 
-  const hasBeenRefunded = (item: any) => {
+  const hasBeenRefunded = (item: (Booking | Reservation) & { isGroup?: boolean; groupBookings?: Booking[] }) => {
     if (item.isGroup && item.groupBookings) {
       return item.groupBookings.some((b: Booking) => (b.refundDetails?.totalRefundedAmount || 0) > 0);
     }

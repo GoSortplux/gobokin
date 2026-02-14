@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 import api from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
-import { Check, Circle, Bell, BellOff, MoreVertical, Trash2 } from "lucide-react";
+import { Check, Circle, BellOff, MoreVertical } from "lucide-react";
 import { Notification } from "@/types";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 const NotificationDropdown = () => {
   const { user } = useAuth();

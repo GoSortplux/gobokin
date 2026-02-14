@@ -35,7 +35,6 @@ const BookingsPage = () => {
   const [selectedHall, setSelectedHall] = useState(hallIdFromQuery || '');
   const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
 
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
