@@ -65,7 +65,7 @@ const NotificationDropdown = () => {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 10, scale: 0.95 }}
       transition={{ duration: 0.2 }}
-      className="absolute right-[-10px] sm:right-0 w-[calc(100vw-2rem)] sm:w-96 mt-3 origin-top-right bg-white rounded-2xl shadow-2xl z-50 border border-gray-100 overflow-hidden"
+      className="fixed inset-x-4 top-20 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:w-96 sm:mt-3 origin-top bg-white rounded-2xl shadow-2xl z-50 border border-gray-100 overflow-hidden"
       data-testid="notification-dropdown"
       onClick={(e) => e.stopPropagation()}
     >
@@ -158,9 +158,19 @@ const NotificationDropdown = () => {
 
                       <button
                         onClick={() => notification.read ? handleMarkAsUnread(notification._id) : handleMarkAsRead(notification._id)}
-                        className="text-[10px] font-bold text-gray-400 hover:text-primary transition-colors"
+                        className="text-[10px] font-bold text-gray-400 hover:text-primary transition-colors flex items-center gap-1"
                       >
-                        {notification.read ? "Mark unread" : "Mark read"}
+                        {notification.read ? (
+                          <>
+                            <Circle size={8} className="text-gray-300" />
+                            Mark unread
+                          </>
+                        ) : (
+                          <>
+                            <Check size={10} className="text-primary" />
+                            Mark read
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>
@@ -179,10 +189,10 @@ const NotificationDropdown = () => {
         )}
       </div>
 
-      <div className="p-3 bg-gray-50/50 text-center border-t border-gray-50">
+      <div className="p-3 bg-white text-center border-t border-gray-50">
         <Link
           href="/notifications"
-          className="text-xs font-bold text-primary hover:text-primary-dark transition-all flex items-center justify-center gap-1.5"
+          className="text-xs font-bold text-primary hover:text-primary-dark transition-all flex items-center justify-center gap-2 py-2 hover:bg-primary/5 rounded-xl"
         >
           View all notifications
           <MoreVertical size={12} className="rotate-90" />
