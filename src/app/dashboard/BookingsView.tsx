@@ -131,6 +131,10 @@ const BookingsView = () => {
     }
 
     return activeTab === "past" ? isPast : !isPast;
+  }).sort((a, b) => {
+    const timeA = a.bookingDates?.[0]?.startTime ? new Date(a.bookingDates[0].startTime).getTime() : 0;
+    const timeB = b.bookingDates?.[0]?.startTime ? new Date(b.bookingDates[0].startTime).getTime() : 0;
+    return timeA - timeB;
   });
 
   return (
