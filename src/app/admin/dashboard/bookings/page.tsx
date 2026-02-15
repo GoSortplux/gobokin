@@ -757,7 +757,7 @@ const BookingsPage = () => {
                         <div className="bg-gray-50/50 p-5 border-t border-gray-50 space-y-5">
                             <div>
                               <p className="text-[10px] font-black text-gray-400 uppercase mb-2">Event Scope</p>
-                              <p className="text-xs text-gray-700 bg-white p-3 rounded-lg border border-gray-100">{booking.eventDetails || 'Generic Hall Booking'}</p>
+                              <p className="text-xs text-gray-700 bg-white p-3 rounded-lg border border-gray-100">{booking.eventDetails || 'Generic Venue Booking'}</p>
                             </div>
                             {booking.isGroup && (
                               <div>

@@ -103,7 +103,7 @@ const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
           })}
           <li className="flex items-start">
               <CheckCircle className="text-green-500 w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
-              <span className="text-sm font-medium">Up to {tier.maxHalls} halls</span>
+              <span className="text-sm font-medium">Up to {tier.maxHalls} venues</span>
           </li>
         </ul>
       </div>

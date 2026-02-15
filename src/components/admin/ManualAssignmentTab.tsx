@@ -128,7 +128,7 @@ const ManualAssignmentTab = () => {
         {/* User Selection */}
         <div className="relative">
           <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1 flex items-center gap-2">
-            <UserIcon size={14} /> Find Hall Owner
+            <UserIcon size={14} /> Find Venue Owner
           </label>
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -160,7 +160,7 @@ const ManualAssignmentTab = () => {
                     </div>
                     {hallCounts[user._id] > 0 && (
                       <span className="text-[10px] font-black uppercase tracking-widest bg-primary/10 text-primary px-2 py-1 rounded-lg">
-                        {hallCounts[user._id]} {hallCounts[user._id] === 1 ? 'Hall' : 'Halls'}
+                        {hallCounts[user._id]} {hallCounts[user._id] === 1 ? 'Venue' : 'Venues'}
                       </span>
                     )}
                   </div>
@@ -171,7 +171,7 @@ const ManualAssignmentTab = () => {
 
           {searchTerm && !formData.userId && filteredUsers.length === 0 && (
             <div className="absolute z-10 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl p-6 text-center text-gray-400 text-sm">
-              No hall owners found matching &quot;{searchTerm}&quot;
+              No venue owners found matching &quot;{searchTerm}&quot;
             </div>
           )}
 
@@ -182,7 +182,7 @@ const ManualAssignmentTab = () => {
               </div>
               {hallCounts[selectedUser._id] > 0 && (
                 <div className="text-xs text-primary font-bold bg-primary/5 w-fit px-3 py-1 rounded-full border border-primary/10">
-                  {hallCounts[selectedUser._id]} {hallCounts[selectedUser._id] === 1 ? 'Hall' : 'Halls'} Owned
+                  {hallCounts[selectedUser._id]} {hallCounts[selectedUser._id] === 1 ? 'Venue' : 'Venues'} Owned
                 </div>
               )}
             </div>

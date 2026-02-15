@@ -822,9 +822,9 @@ const HallModal: React.FC<HallModalProps> = ({ isOpen, onClose, onSubmit, hall }
         <div className="mb-8">
           <h2 className="text-2xl font-black text-gray-900 tracking-tighter uppercase italic">
             {hall ? (
-              <>Edit <span className="text-primary not-italic">Hall</span></>
+              <>Edit <span className="text-primary not-italic">Venue</span></>
             ) : (
-              <>Create <span className="text-primary not-italic">Hall</span></>
+              <>Create <span className="text-primary not-italic">Venue</span></>
             )}
           </h2>
           <p className="text-sm text-gray-500 font-medium">
@@ -854,8 +854,8 @@ const HallModal: React.FC<HallModalProps> = ({ isOpen, onClose, onSubmit, hall }
             <>
               {/* Render all fields for editing */}
               <div>
-                <label className="block text-sm font-medium text-gray-800">Hall Name</label>
-                <input type="text" name="name" placeholder="Enter Hall Name" value={formData.name} onChange={handleChange} className={`w-full px-4 py-2 border ${errors.name ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-900 placeholder-gray-500`} required />
+                <label className="block text-sm font-medium text-gray-800">Venue Name</label>
+                <input type="text" name="name" placeholder="Enter Venue Name" value={formData.name} onChange={handleChange} className={`w-full px-4 py-2 border ${errors.name ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-900 placeholder-gray-500`} required />
                 {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
               </div>
               <div>
@@ -932,14 +932,14 @@ const HallModal: React.FC<HallModalProps> = ({ isOpen, onClose, onSubmit, hall }
                   {errors.carParkCapacity && <p className="text-red-500 text-xs mt-1">{errors.carParkCapacity}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-800">Hall Size</label>
-                  <input type="text" name="hallSize" placeholder="Enter Hall Size (e.g., 100 sqm)" value={formData.hallSize} onChange={handleChange} className={`w-full px-4 py-2 border ${errors.hallSize ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-900 placeholder-gray-500`} />
+                  <label className="block text-sm font-medium text-gray-800">Venue Size</label>
+                  <input type="text" name="hallSize" placeholder="Enter Venue Size (e.g., 100 sqm)" value={formData.hallSize} onChange={handleChange} className={`w-full px-4 py-2 border ${errors.hallSize ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-900 placeholder-gray-500`} />
                   {errors.hallSize && <p className="text-red-500 text-xs mt-1">{errors.hallSize}</p>}
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-800">Rules (one rule per line)</label>
-                <textarea name="rules" placeholder="Enter Hall Rules" value={formData.rules} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500" rows={3} />
+                <textarea name="rules" placeholder="Enter Venue Rules" value={formData.rules} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500" rows={3} />
               </div>
 
               <div className="flex items-center space-x-6">
@@ -1230,8 +1230,8 @@ const HallModal: React.FC<HallModalProps> = ({ isOpen, onClose, onSubmit, hall }
                 <>
                   {/* Step 1 fields */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-800">Hall Name</label>
-                    <input type="text" name="name" placeholder="Enter Hall Name" value={formData.name} onChange={handleChange} className={`w-full px-4 py-2 border ${errors.name ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-900 placeholder-gray-500`} required />
+                    <label className="block text-sm font-medium text-gray-800">Venue Name</label>
+                    <input type="text" name="name" placeholder="Enter Venue Name" value={formData.name} onChange={handleChange} className={`w-full px-4 py-2 border ${errors.name ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-900 placeholder-gray-500`} required />
                     {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
                   </div>
                   <div>
@@ -1314,14 +1314,14 @@ const HallModal: React.FC<HallModalProps> = ({ isOpen, onClose, onSubmit, hall }
                       {errors.carParkCapacity && <p className="text-red-500 text-xs mt-1">{errors.carParkCapacity}</p>}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-800">Hall Size</label>
-                      <input type="text" name="hallSize" placeholder="Enter Hall Size (e.g., 100 sqm)" value={formData.hallSize} onChange={handleChange} className={`w-full px-4 py-2 border ${errors.hallSize ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-900 placeholder-gray-500`} />
+                      <label className="block text-sm font-medium text-gray-800">Venue Size</label>
+                      <input type="text" name="hallSize" placeholder="Enter Venue Size (e.g., 100 sqm)" value={formData.hallSize} onChange={handleChange} className={`w-full px-4 py-2 border ${errors.hallSize ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-900 placeholder-gray-500`} />
                       {errors.hallSize && <p className="text-red-500 text-xs mt-1">{errors.hallSize}</p>}
                     </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-800">Rules (one rule per line)</label>
-                    <textarea name="rules" placeholder="Enter Hall Rules" value={formData.rules} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500" rows={3} />
+                    <textarea name="rules" placeholder="Enter Venue Rules" value={formData.rules} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500" rows={3} />
                   </div>
 
                   <div className="flex items-center space-x-6">

@@ -32,7 +32,7 @@ const AdminBookingDetailsModal: React.FC<AdminBookingDetailsModalProps> = ({ isO
             <p className="text-gray-900">{booking.bookingId}</p>
           </div>
           <div>
-            <h3 className="font-semibold text-gray-800">Hall</h3>
+            <h3 className="font-semibold text-gray-800">Venue</h3>
             <p className="text-gray-900">{hallName}</p>
           </div>
           <div>

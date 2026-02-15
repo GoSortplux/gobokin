@@ -110,7 +110,7 @@ const LicenseTiersTab = () => {
                     <div className="flex justify-between items-start">
                         <h2 className="text-2xl font-bold text-gray-800">{tier.name}</h2>
                         <span className="bg-primary/10 text-primary font-semibold text-xs px-3 py-1 rounded-full">
-                            {tier.minHalls === tier.maxHalls ? `${tier.minHalls} Hall${tier.minHalls > 1 ? 's' : ''}` : `${tier.minHalls}-${tier.maxHalls} Halls`}
+                            {tier.minHalls === tier.maxHalls ? `${tier.minHalls} Venue${tier.minHalls > 1 ? 's' : ''}` : `${tier.minHalls}-${tier.maxHalls} Venues`}
                         </span>
                     </div>
                     <p className="text-4xl font-extrabold text-primary my-4">₦{tier.price}<span className="text-lg font-medium text-gray-500">/{tier.durationInDays} days</span></p>

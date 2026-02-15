@@ -319,7 +319,7 @@ const SubaccountsTab = () => {
               <h2 className="text-xl font-bold text-gray-800 mb-4">Create New Subaccount</h2>
               <form onSubmit={handleCreateSubaccount} className="space-y-4">
                   <div>
-                      <label htmlFor="hallOwner" className="block text-sm font-medium text-gray-700">Hall Owner</label>
+                      <label htmlFor="hallOwner" className="block text-sm font-medium text-gray-700">Venue Owner</label>
                       <select
                           id="hallOwner"
                           value={selectedUserId}
@@ -327,7 +327,7 @@ const SubaccountsTab = () => {
                           className="mt-1 block w-full p-2 border border-gray-300 rounded-md text-gray-600"
                           required
                       >
-                          <option value="" disabled>Select a hall owner</option>
+                          <option value="" disabled>Select a venue owner</option>
                           {users.map(user => (
                               <option key={user._id} value={user._id}>{user.fullName}</option>
                           ))}

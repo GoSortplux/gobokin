@@ -126,10 +126,10 @@ const HallManagementContent = () => {
   const handleUnlistRelist = async (hallId: string, isListed: boolean) => {
     if (isListed) {
       const { value: reason } = await Swal.fire({
-        title: 'Unlist Hall',
+        title: 'Unlist Venue',
         input: 'textarea',
         inputLabel: 'Reason for unlisting',
-        inputPlaceholder: 'The hall is under renovation...',
+        inputPlaceholder: 'The venue is under renovation...',
         inputAttributes: {
           'aria-label': 'Type your reason here'
         },
@@ -144,17 +144,17 @@ const HallManagementContent = () => {
       if (reason) {
         try {
           await api.patch(`/admin/halls/${hallId}/unlist`, { reason });
-          Swal.fire('Success!', 'The hall has been unlisted.', 'success');
+          Swal.fire('Success!', 'The venue has been unlisted.', 'success');
           fetchHalls();
         } catch (error) {
-          console.error("Error unlisting hall:", error);
-          Swal.fire('Error', 'Could not unlist the hall.', 'error');
+          console.error("Error unlisting venue:", error);
+          Swal.fire('Error', 'Could not unlist the venue.', 'error');
         }
       }
     } else {
       const result = await Swal.fire({
-        title: 'Relist Hall',
-        text: "Are you sure you want to relist this hall?",
+        title: 'Relist Venue',
+        text: "Are you sure you want to relist this venue?",
         icon: 'question',
         showCancelButton: true,
         confirmButtonText: 'Yes, relist it!'
@@ -163,11 +163,11 @@ const HallManagementContent = () => {
       if (result.isConfirmed) {
         try {
           await api.patch(`/admin/halls/${hallId}/relist`);
-          Swal.fire('Success!', 'The hall has been relisted.', 'success');
+          Swal.fire('Success!', 'The venue has been relisted.', 'success');
           fetchHalls();
         } catch (error) {
-          console.error("Error relisting hall:", error);
-          Swal.fire('Error', 'Could not relist the hall.', 'error');
+          console.error("Error relisting venue:", error);
+          Swal.fire('Error', 'Could not relist the venue.', 'error');
         }
       }
     }
@@ -176,7 +176,7 @@ const HallManagementContent = () => {
   const handleDeleteHall = async (hallId: string) => {
     const result = await Swal.fire({
       title: 'Are you sure?',
-      text: "This will permanently delete the hall and all its data!",
+      text: "This will permanently delete the venue and all its data!",
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
@@ -186,19 +186,19 @@ const HallManagementContent = () => {
     if (result.isConfirmed) {
       try {
         await api.delete(`/halls/${hallId}`);
-        Swal.fire('Deleted!', 'The hall has been deleted.', 'success');
+        Swal.fire('Deleted!', 'The venue has been deleted.', 'success');
         fetchHalls();
       } catch (error) {
-        console.error("Error deleting hall:", error);
-        Swal.fire('Error', 'Could not delete the hall.', 'error');
+        console.error("Error deleting venue:", error);
+        Swal.fire('Error', 'Could not delete the venue.', 'error');
       }
     }
   };
 
   const handleCreateHall = async (formData: Record<string, unknown>) => {
     Swal.fire({
-      title: 'Creating Hall...',
-      text: 'Please wait while we set up the new hall.',
+      title: 'Creating Venue...',
+      text: 'Please wait while we set up the new venue.',
       allowOutsideClick: false,
       didOpen: () => {
         Swal.showLoading();
@@ -209,8 +209,8 @@ const HallManagementContent = () => {
       const response = await api.post('/halls', formData);
       Swal.fire({
         icon: 'success',
-        title: 'Hall Created!',
-        text: 'The new hall has been created successfully.',
+        title: 'Venue Created!',
+        text: 'The new venue has been created successfully.',
         timer: 2000,
         showConfirmButton: false,
       });
@@ -231,7 +231,7 @@ const HallManagementContent = () => {
     if (!editingHall) return;
 
     Swal.fire({
-      title: 'Updating Hall...',
+      title: 'Updating Venue...',
       text: 'Please wait while we save the changes.',
       allowOutsideClick: false,
       didOpen: () => {
@@ -243,8 +243,8 @@ const HallManagementContent = () => {
       const response = await api.patch(`/halls/${editingHall._id}`, formData);
       Swal.fire({
         icon: 'success',
-        title: 'Hall Updated!',
-        text: 'The hall details have been successfully updated.',
+        title: 'Venue Updated!',
+        text: 'The venue details have been successfully updated.',
         timer: 2000,
         showConfirmButton: false,
       });
@@ -457,7 +457,7 @@ const HallManagementContent = () => {
   }
 
   const tabs = [
-      { label: "Halls", value: "halls" },
+      { label: "Venues", value: "halls" },
       { label: "Facilities", value: "facilities" },
       { label: "Suitabilities", value: "suitabilities" },
   ];
@@ -487,14 +487,14 @@ const HallManagementContent = () => {
       )}
 
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-3xl font-bold text-primary">Hall Management</h1>
+        <h1 className="text-3xl font-bold text-primary">Venue Management</h1>
         {activeTab === 'halls' && (
              <button
                 onClick={handleOpenCreateModal}
                 className="bg-primary text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-opacity-90"
              >
                 <PlusCircle size={20} />
-                <span>Create Hall</span>
+                <span>Create Venue</span>
              </button>
         )}
         {activeTab === 'facilities' && (
@@ -578,9 +578,9 @@ const HallManagementContent = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <Link href={`/halls/${createHallSlug(hall.name, hall._id, hall.slug)}`} passHref>
-                                <button title="View Hall" className="text-blue-600 hover:text-blue-900 mr-3"><Eye size={18} /></button>
+                                <button title="View Venue" className="text-blue-600 hover:text-blue-900 mr-3"><Eye size={18} /></button>
                             </Link>
-                            <button onClick={() => openEditModal(hall)} title="Edit Hall" className="text-indigo-600 hover:text-indigo-900 mr-3"><Edit size={18} /></button>
+                            <button onClick={() => openEditModal(hall)} title="Edit Venue" className="text-indigo-600 hover:text-indigo-900 mr-3"><Edit size={18} /></button>
                             <button
                                 onClick={() => handleToggleBooking(hall._id, hall.isOnlineBookingEnabled)}
                                 title={hall.isOnlineBookingEnabled ? "Disable Booking" : "Enable Booking"}
@@ -590,7 +590,7 @@ const HallManagementContent = () => {
                             </button>
                             <button
                                 onClick={() => handleUnlistRelist(hall._id, hall.isListed)}
-                                title={hall.isListed ? "Unlist Hall" : "Relist Hall"}
+                                title={hall.isListed ? "Unlist Venue" : "Relist Venue"}
                                 className={`${hall.isListed ? 'text-orange-600 hover:text-orange-900' : 'text-green-600 hover:text-green-900'} mr-3`}
                             >
                                 {hall.isListed ? <Ban size={18} /> : <CheckCircle size={18} />}
@@ -598,7 +598,7 @@ const HallManagementContent = () => {
                             <button onClick={() => openReservationModal(hall._id)} title="Block Dates" className="text-green-600 hover:text-green-900 mr-3">
                                 <CalendarIcon size={18} />
                             </button>
-                            <button onClick={() => handleDeleteHall(hall._id)} title="Delete Hall" className="text-red-600 hover:text-red-900">
+                            <button onClick={() => handleDeleteHall(hall._id)} title="Delete Venue" className="text-red-600 hover:text-red-900">
                                 <Trash size={18} />
                             </button>
                         </td>
@@ -608,7 +608,7 @@ const HallManagementContent = () => {
                 </table>
                 {filteredHalls.length === 0 && (
                     <div className="text-center py-8 text-gray-500">
-                        No halls found.
+                        No venues found.
                     </div>
                 )}
                 </div>

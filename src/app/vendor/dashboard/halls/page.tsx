@@ -60,7 +60,7 @@ const HallsContent = () => {
     if (isLimitReached) {
       Swal.fire({
         title: 'Upgrade Required',
-        text: `You have reached the maximum number of halls (${subscription?.tier.maxHalls}) for your current plan.`,
+        text: `You have reached the maximum number of venues (${subscription?.tier.maxHalls}) for your current plan.`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Upgrade Now',
@@ -87,7 +87,7 @@ const HallsContent = () => {
       if (hallsData.length === 0 && user?.activeRole === 'hall-owner' && !sessionStorage.getItem('welcomePopupShown')) {
         Swal.fire({
           title: "Welcome!",
-          text: "Let's get started by creating your first hall.",
+          text: "Let's get started by creating your first venue.",
           icon: "info",
           confirmButtonText: "Create Now",
           confirmButtonColor: "#295FA7",
@@ -125,8 +125,8 @@ const HallsContent = () => {
 
   const handleCreate = async (formData: Record<string, unknown>) => {
     Swal.fire({
-      title: 'Creating Hall...',
-      text: 'Please wait while we set up your new hall.',
+      title: 'Creating Venue...',
+      text: 'Please wait while we set up your new venue.',
       allowOutsideClick: false,
       didOpen: () => {
         Swal.showLoading();
@@ -137,7 +137,7 @@ const HallsContent = () => {
       const response = await api.post('/halls', formData);
       Swal.toast.fire({
         icon: 'success',
-        title: 'Hall Created!',
+        title: 'Venue Created!',
       });
       fetchHalls();
       return response.data.data;
@@ -155,7 +155,7 @@ const HallsContent = () => {
     if (!editingHall) return;
 
     Swal.fire({
-      title: 'Updating Hall...',
+      title: 'Updating Venue...',
       text: 'Please wait while we save the changes.',
       allowOutsideClick: false,
       didOpen: () => {
@@ -167,7 +167,7 @@ const HallsContent = () => {
       await api.patch(`/halls/${editingHall._id || editingHall.id}`, formData);
       Swal.toast.fire({
         icon: 'success',
-        title: 'Hall Updated!',
+        title: 'Venue Updated!',
       });
       fetchHalls();
       closeHallModal();
@@ -262,13 +262,13 @@ const HallsContent = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <h1 className="text-3xl font-bold text-primary">Halls</h1>
+        <h1 className="text-3xl font-bold text-primary">Venues</h1>
         {user?.activeRole === "hall-owner" && (
           <button
             onClick={handleOpenCreateModal}
             className="w-full sm:w-auto bg-primary text-white px-6 py-2.5 rounded-lg font-semibold shadow-md hover:bg-primary-dark transition-colors flex items-center justify-center gap-3"
           >
-            <span>Create Hall</span>
+            <span>Create Venue</span>
             {isLimitReached && <span className="text-[10px] bg-red-600 text-white px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">Limit Reached</span>}
           </button>
         )}
@@ -344,7 +344,7 @@ const HallsContent = () => {
                             <button
                               onClick={() => openEditModal(hall)}
                               className="text-xs font-bold text-primary hover:text-primary-dark bg-primary/5 px-3 py-1.5 rounded-lg transition-colors border border-primary/10"
-                              title="Edit Hall"
+                              title="Edit Venue"
                             >
                               Edit
                             </button>

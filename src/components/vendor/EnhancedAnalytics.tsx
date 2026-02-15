@@ -353,11 +353,11 @@ const EnhancedAnalytics = ({ initialData }: { initialData?: AnalyticsData | null
                   >
                       <div className="flex items-center">
                           <Search className="h-4 w-4 mr-3 text-[#295FA7]"/>
-                          <span className="text-sm font-bold text-gray-700">{selectedHall ? selectedHall.name : 'All Halls'}</span>
+                          <span className="text-sm font-bold text-gray-700">{selectedHall ? selectedHall.name : 'All Venues'}</span>
                       </div>
                       <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${showHallPicker ? 'rotate-180' : ''}`}/>
                   </button>
-                  {showHallPicker && (<div className="absolute right-0 top-full mt-3 z-30 bg-white border border-gray-100 rounded-2xl shadow-2xl w-full md:w-64 overflow-hidden animate-in fade-in slide-in-from-top-2"><div className="p-2 border-b bg-gray-50"><input type="text" placeholder="Search halls..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full p-2 text-sm border rounded-xl focus:outline-none focus:ring-1 focus:ring-primary/50 bg-white"/></div><ul className="max-h-60 overflow-y-auto">{halls.filter(h => h.name.toLowerCase().includes(searchTerm.toLowerCase())).map(hall => (<li key={hall._id} onClick={() => { setSelectedHall(hall); setShowHallPicker(false); }} className="p-3 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors border-b last:border-0 font-medium">{hall.name}</li>))}</ul></div>)}
+                  {showHallPicker && (<div className="absolute right-0 top-full mt-3 z-30 bg-white border border-gray-100 rounded-2xl shadow-2xl w-full md:w-64 overflow-hidden animate-in fade-in slide-in-from-top-2"><div className="p-2 border-b bg-gray-50"><input type="text" placeholder="Search venues..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full p-2 text-sm border rounded-xl focus:outline-none focus:ring-1 focus:ring-primary/50 bg-white"/></div><ul className="max-h-60 overflow-y-auto">{halls.filter(h => h.name.toLowerCase().includes(searchTerm.toLowerCase())).map(hall => (<li key={hall._id} onClick={() => { setSelectedHall(hall); setShowHallPicker(false); }} className="p-3 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors border-b last:border-0 font-medium">{hall.name}</li>))}</ul></div>)}
               </div>
               <button
                   onClick={handleClearFilters}
@@ -375,7 +375,7 @@ const EnhancedAnalytics = ({ initialData }: { initialData?: AnalyticsData | null
                 <StatCard title="Gross Revenue" value={formatCurrency(overallStats.totalGrossRevenue || 0)} icon={BarChartIcon} />
                 <StatCard title="Total Refunded" value={formatCurrency(overallStats.totalRefunded || 0)} icon={TrendingDown} />
                 <StatCard title="Net Revenue" value={formatCurrency(overallStats.totalNetRevenue || overallStats.totalRevenue)} icon={TrendingUp} />
-                <StatCard title="Total Hall Views" value={overallStats.totalViews} icon={Eye} />
+                <StatCard title="Total Venue Views" value={overallStats.totalViews} icon={Eye} />
                 <StatCard title="Confirmed Bookings" value={overallStats.totalBookings.confirmed} icon={Briefcase} />
                 <StatCard title="Booking Conversion" value={`${kpis.bookingConversionRate}`} icon={Target} />
                 <StatCard title="Avg. Booking Value" value={formatCurrency(Number(kpis.averageBookingValue))} icon={TrendingUp} />
@@ -412,7 +412,7 @@ const EnhancedAnalytics = ({ initialData }: { initialData?: AnalyticsData | null
                     )}
                 </div>
                 <div className="lg:col-span-2 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-                    <h2 className="text-lg font-black text-gray-900 uppercase tracking-tighter mb-8 text-center">Revenue by Hall</h2>
+                    <h2 className="text-lg font-black text-gray-900 uppercase tracking-tighter mb-8 text-center">Revenue by Venue</h2>
                     {revenueDetails && revenueDetails.breakdownByHall && revenueDetails.breakdownByHall.length > 0 ? (
                         <ResponsiveContainer width="100%" height={300}>
                             <PieChart>

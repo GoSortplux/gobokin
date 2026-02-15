@@ -170,7 +170,7 @@ const AdminEnhancedAnalytics = () => {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
               <div className="lg:col-span-3 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
                   <div className="flex items-center justify-between mb-8">
-                      <h2 className="text-lg font-black text-gray-900 uppercase tracking-tighter">Hall Revenue Performance</h2>
+                      <h2 className="text-lg font-black text-gray-900 uppercase tracking-tighter">Venue Revenue Performance</h2>
                       <div className="px-3 py-1 bg-blue-50 text-primary text-[10px] font-bold rounded-full uppercase">Top 5 Venues</div>
                   </div>
                   <ResponsiveContainer width="100%" height={320}>
@@ -245,12 +245,12 @@ const AdminEnhancedAnalytics = () => {
                   </div>
               </div>
               <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-                  <h2 className="text-lg font-black text-gray-900 uppercase tracking-tighter mb-6">Inactive Properties</h2>
+                  <h2 className="text-lg font-black text-gray-900 uppercase tracking-tighter mb-6">Inactive Venues</h2>
                   <div className="overflow-x-auto">
                       <table className="min-w-full">
                           <thead>
                             <tr className="border-b border-gray-50">
-                                <th className="pb-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Property Name</th>
+                                <th className="pb-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Venue Name</th>
                                 <th className="pb-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Ownership</th>
                                 <th className="pb-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
                             </tr>

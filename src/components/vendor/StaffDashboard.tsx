@@ -127,7 +127,7 @@ const StaffDashboard = () => {
     <div className="p-6 bg-gray-50 min-h-screen space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-800">Staff Dashboard</h1>
-        <p className="text-gray-500">Welcome! Here is an overview of the halls and bookings you manage.</p>
+        <p className="text-gray-500">Welcome! Here is an overview of the venues and bookings you manage.</p>
       </div>
 
       {loading ? (
@@ -141,7 +141,7 @@ const StaffDashboard = () => {
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <StatCard title="Total Managed Halls" value={hallsCount} icon={Building} />
+            <StatCard title="Total Managed Venues" value={hallsCount} icon={Building} />
             <StatCard title="Confirmed Bookings" value={data?.overallStats?.totalBookings?.confirmed || 0} icon={Briefcase} />
           </div>
 
@@ -152,7 +152,7 @@ const StaffDashboard = () => {
                 <thead>
                   <tr className="bg-gray-50">
                     <th className="p-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
-                    <th className="p-3 text-left text-xs font-medium text-gray-500 uppercase">Hall</th>
+                    <th className="p-3 text-left text-xs font-medium text-gray-500 uppercase">Venue</th>
                     <th className="p-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
                     <th className="p-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                   </tr>

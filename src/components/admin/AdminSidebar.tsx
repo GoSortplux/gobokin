@@ -36,7 +36,7 @@ const AdminSidebar = () => {
     },
     {
       href: "/admin/dashboard/halls",
-      label: "Halls",
+      label: "Venues",
       icon: <Building size={24} />,
     },
     {

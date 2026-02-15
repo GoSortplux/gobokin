@@ -124,7 +124,7 @@ const StaffModal: React.FC<StaffModalProps> = ({ isOpen, onClose, onSubmit, staf
             )}
           </h2>
           <p className="text-sm text-gray-500 font-medium">
-            {staff ? 'Update staff member details and hall assignments.' : 'Create a new staff account to help manage your halls.'}
+            {staff ? 'Update staff member details and venue assignments.' : 'Create a new staff account to help manage your venues.'}
           </p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -146,7 +146,7 @@ const StaffModal: React.FC<StaffModalProps> = ({ isOpen, onClose, onSubmit, staf
           </div>
           <div>
             <label htmlFor="hallIds" className="block text-sm font-medium text-gray-800 flex justify-between">
-              Assign Halls
+              Assign Venues
               {hallsLoading && <CustomLoader size={16} />}
             </label>
             <select
@@ -164,7 +164,7 @@ const StaffModal: React.FC<StaffModalProps> = ({ isOpen, onClose, onSubmit, staf
                 </option>
               ))}
             </select>
-            <p className="text-xs text-gray-500 mt-1">Hold Ctrl (Cmd on Mac) to select multiple halls.</p>
+            <p className="text-xs text-gray-500 mt-1">Hold Ctrl (Cmd on Mac) to select multiple venues.</p>
           </div>
           <div className="flex justify-end mt-8 space-x-3">
             <button

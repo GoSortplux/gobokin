@@ -209,7 +209,7 @@ const ApplicationDetailsModal = ({
             <DetailItem label="State" value={getLocationName(application.state)} />
             <DetailItem label="Local Government" value={getLocationName(application.localGovernment)} />
             <DetailItem label="Address" value={application.hallAddress} />
-            <DetailItem label="Managed Halls" value={application.hallsCount} />
+            <DetailItem label="Managed Venues" value={application.hallsCount} />
 
             <div className="col-span-full mt-6 mb-4">
               <h3 className="text-sm font-black text-primary uppercase italic flex items-center gap-2 mb-4 border-b pb-2">
@@ -373,7 +373,7 @@ const AllUsersTab = () => {
           >
             <option value="">All Roles</option>
             <option value="user">User</option>
-            <option value="hall-owner">Hall Owner</option>
+            <option value="hall-owner">Venue Owner</option>
             <option value="staff">Staff</option>
             <option value="super-admin">Super Admin</option>
           </select>
@@ -456,7 +456,7 @@ const PendingApplicationsTab = () => {
   const handleApprove = async (userId: string) => {
     const result = await Swal.fire({
       title: "Approve Application?",
-      text: "Are you sure you want to approve this hall owner application?",
+      text: "Are you sure you want to approve this venue owner application?",
       icon: "question",
       showCancelButton: true,
       confirmButtonColor: "#295FA7",

@@ -526,14 +526,14 @@ const BookingsPage = () => {
         )}
       </div>
       <div className="mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-        <label htmlFor="hall-select" className="block text-xs font-semibold text-gray-500 uppercase mb-2">Select a Hall</label>
+        <label htmlFor="hall-select" className="block text-xs font-semibold text-gray-500 uppercase mb-2">Select a Venue</label>
         <select
           id="hall-select"
           value={selectedHall}
           onChange={(e) => handleHallChange(e.target.value)}
           className="block w-full pl-3 pr-10 py-2.5 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-lg text-gray-900"
         >
-          <option value="">--Please choose a hall--</option>
+          <option value="">--Please choose a venue--</option>
           {halls.map((hall) => (
             <option key={hall._id} value={hall._id}>
               {hall.name}
@@ -852,7 +852,7 @@ const BookingsPage = () => {
                   )) : (
                     <tr>
                       <td colSpan={6} className="px-6 py-20 text-center text-gray-500">
-                        {selectedHall ? (searchTerm ? `No bookings found matching "${searchTerm}"` : 'No bookings found for this hall.') : 'Please select a hall.'}
+                        {selectedHall ? (searchTerm ? `No bookings found matching "${searchTerm}"` : 'No bookings found for this venue.') : 'Please select a venue.'}
                       </td>
                     </tr>
                   )}
@@ -1001,7 +1001,7 @@ const BookingsPage = () => {
                 </div>
               )) : (
                 <div className="text-center py-20 bg-white rounded-xl border-2 border-dashed border-gray-200 text-gray-400 font-medium">
-                  {selectedHall ? "No bookings found." : "Select a hall above."}
+                  {selectedHall ? "No bookings found." : "Select a venue above."}
                 </div>
               )}
             </div>
@@ -1108,7 +1108,7 @@ const BookingsPage = () => {
                   )) : (
                     <tr>
                       <td colSpan={5} className="px-6 py-20 text-center text-gray-500">
-                         {selectedHall ? "No reservations found." : "Select a hall."}
+                         {selectedHall ? "No reservations found." : "Select a venue."}
                       </td>
                     </tr>
                   )}

@@ -696,9 +696,9 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
           {activeTab === 'reservation' && (
             <form onSubmit={handleReservationSubmit} className="space-y-4">
                <div>
-                <label className="block text-sm font-medium text-gray-800">Hall</label>
+                <label className="block text-sm font-medium text-gray-800">Venue</label>
                 <select name="hall" value={formData.hall} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900">
-                  <option value="">Select a hall</option>
+                  <option value="">Select a venue</option>
                   {halls.map((hall: HallItem) => (
                     <option key={hall._id} value={hall._id}>
                       {hall.name}
@@ -879,7 +879,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
               </div>
               <div className="flex justify-between items-center mt-8">
                 <div>
-                  <div className="text-sm">Hall Price: ₦{hallPrice.toLocaleString()}</div>
+                  <div className="text-sm">Venue Price: ₦{hallPrice.toLocaleString()}</div>
                   <div className="text-sm">Facilities Price: ₦{facilitiesPrice.toLocaleString()}</div>
                   <div className="text-sm font-semibold">Total Price: ₦{totalPrice.toLocaleString()}</div>
                   {(() => {
@@ -901,9 +901,9 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
           {activeTab === 'recurring' && (
             <form onSubmit={handleRecurringSubmit} className="space-y-4">
                <div>
-                <label className="block text-sm font-medium text-gray-800">Hall</label>
+                <label className="block text-sm font-medium text-gray-800">Venue</label>
                 <select name="hall" value={formData.hall} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900">
-                  <option value="">Select a hall</option>
+                  <option value="">Select a venue</option>
                   {halls.map((hall: HallItem) => (
                     <option key={hall._id} value={hall._id}>
                       {hall.name}
@@ -1148,7 +1148,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
 
               <div className="flex justify-between items-center mt-8">
                 <div>
-                  <div className="text-sm">Hall Price: ₦{hallPrice.toLocaleString()}</div>
+                  <div className="text-sm">Venue Price: ₦{hallPrice.toLocaleString()}</div>
                   <div className="text-sm">Facilities Price: ₦{facilitiesPrice.toLocaleString()}</div>
                   {discountAmount > 0 && (
                     <div className="text-sm text-green-600 font-medium">Discount Applied: -₦{discountAmount.toLocaleString()}</div>
@@ -1164,9 +1164,9 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
           {activeTab === 'walk-in' && (
             <form onSubmit={handleWalkInSubmit} className="space-y-4">
                <div>
-                <label className="block text-sm font-medium text-gray-800">Hall</label>
+                <label className="block text-sm font-medium text-gray-800">Venue</label>
                 <select name="hall" value={formData.hall} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900">
-                  <option value="">Select a hall</option>
+                  <option value="">Select a venue</option>
                   {halls.map((hall: HallItem) => (
                     <option key={hall._id} value={hall._id}>
                       {hall.name}
@@ -1359,7 +1359,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
               </div>
               <div className="flex justify-between items-center mt-8">
                 <div>
-                  <div className="text-sm">Hall Price: ₦{hallPrice.toLocaleString()}</div>
+                  <div className="text-sm">Venue Price: ₦{hallPrice.toLocaleString()}</div>
                   <div className="text-sm">Facilities Price: ₦{facilitiesPrice.toLocaleString()}</div>
                   <div className="text-sm font-bold">Total Price: ₦{totalPrice.toLocaleString()}</div>
                 </div>
