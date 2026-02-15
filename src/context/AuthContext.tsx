@@ -29,7 +29,7 @@ interface AuthContextType {
   loading: boolean;
   login: (token: string, user: User, redirectPath?: string) => void;
   logout: () => void;
-  updateToken: (token: string) => void;
+  updateToken: (token: string, redirectPath?: string | null) => void;
   updateUser: (updates: Partial<User>) => void;
   updateUserApplicationStatus: (status: string) => void;
 }
@@ -206,27 +206,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     api.defaults.headers.Authorization = `Bearer ${newToken}`;
 
     if (redirectPath) {
-      router.push(redirectPath);
+      window.location.href = redirectPath;
       return;
     }
 
     const returnUrl = localStorage.getItem('returnUrl');
     if (returnUrl) {
       localStorage.removeItem('returnUrl');
-      router.push(returnUrl);
+      window.location.href = returnUrl;
     } else {
       // First-time users (customers) go to home page for the tour
       const isCustomer = newUser.activeRole === 'user';
       const tourCompleted = localStorage.getItem('gobokin_customer_tour_completed');
 
       if (isCustomer && !tourCompleted) {
-        router.push('/');
+        window.location.href = '/';
       } else {
         const dashboardPath = getDashboardPath(newUser.activeRole);
-        router.push(dashboardPath);
+        window.location.href = dashboardPath;
       }
     }
-  }, [router]);
+  }, []);
 
   const updateUser = useCallback((updates: Partial<User>) => {
     setUser(prev => {
@@ -237,7 +237,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
   }, []);
 
-  const updateToken = useCallback((newToken: string) => {
+  const updateToken = useCallback((newToken: string, customRedirectPath?: string | null) => {
     setToken(newToken);
     localStorage.setItem('token', newToken);
     localStorage.setItem('lastActivity', Date.now().toString());
@@ -263,27 +263,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return updatedUser;
       });
 
+      // If customRedirectPath is explicitly null, skip redirection
+      if (customRedirectPath === null) return;
+
+      if (customRedirectPath) {
+        window.location.href = customRedirectPath;
+        return;
+      }
+
       const returnUrl = localStorage.getItem('returnUrl');
       if (returnUrl) {
         localStorage.removeItem('returnUrl');
-        router.push(returnUrl);
+        window.location.href = returnUrl;
       } else {
         // First-time users (customers) go to home page for the tour
         const isCustomer = decodedToken.activeRole === 'user';
         const tourCompleted = localStorage.getItem('gobokin_customer_tour_completed');
 
         if (isCustomer && !tourCompleted) {
-          router.push('/');
+          window.location.href = '/';
         } else {
           const redirectPath = getDashboardPath(decodedToken.activeRole);
-          router.push(redirectPath);
+          window.location.href = redirectPath;
         }
       }
     } catch (error) {
       console.error("Failed to decode token or update user", error);
       logout();
     }
-  }, [logout, router]);
+  }, [logout]);
 
   const updateUserApplicationStatus = useCallback((status: string) => {
     setUser(prev => {

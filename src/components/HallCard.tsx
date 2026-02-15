@@ -1,10 +1,11 @@
 'use client';
-import Link from "next/link";
+import { useState } from "react";
 import Image from "next/image";
 import { Star, Eye } from "lucide-react";
 import Slider from "react-slick";
 
 import { Hall } from "@/types/hall";
+import CustomLoader from "@/components/CustomLoader";
 import { useAuth } from "@/context/AuthContext";
 import { createHallSlug } from "@/utils/slugify";
 import { VIEW_COUNT_ROLES } from '@/constants/auth';
@@ -15,6 +16,7 @@ interface HallCardProps {
 
 const HallCard = ({ hall }: HallCardProps) => {
   const { user } = useAuth();
+  const [isNavigating, setIsNavigating] = useState(false);
   const canSeeViews = user && VIEW_COUNT_ROLES.includes(user.activeRole);
   const { dailyRate, hourlyRate } = hall.pricing || {};
 
@@ -29,14 +31,25 @@ const HallCard = ({ hall }: HallCardProps) => {
     autoplaySpeed: 3000,
   };
 
+  const handleNavigation = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsNavigating(true);
+    window.location.href = `/halls/${createHallSlug(hall.name, hall._id, hall.slug)}`;
+  };
+
   return (
     <div className="h-full">
-      <div data-testid="hall-card" className="h-full block bg-white rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
+      <div data-testid="hall-card" className="h-full block bg-white rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 relative">
+        {isNavigating && (
+          <div className="absolute inset-0 z-50 bg-white/60 backdrop-blur-[2px] flex items-center justify-center">
+            <CustomLoader size={40} />
+          </div>
+        )}
         <div className="relative hall-card-slider">
           {hall.images && hall.images.length > 1 ? (
             <Slider {...settings} className="hall-card-slick">
               {hall.images.map((image, index) => (
-                <Link href={`/halls/${createHallSlug(hall.name, hall._id, hall.slug)}`} key={index}>
+                <a href={`/halls/${createHallSlug(hall.name, hall._id, hall.slug)}`} key={index} onClick={handleNavigation}>
                   <div className="relative h-48 w-full">
                     <Image
                       fill
@@ -46,11 +59,11 @@ const HallCard = ({ hall }: HallCardProps) => {
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
                   </div>
-                </Link>
+                </a>
               ))}
             </Slider>
           ) : (
-            <Link href={`/halls/${createHallSlug(hall.name, hall._id, hall.slug)}`}>
+            <a href={`/halls/${createHallSlug(hall.name, hall._id, hall.slug)}`} onClick={handleNavigation}>
               <div className="relative h-48 w-full">
                 <Image
                   fill
@@ -60,10 +73,10 @@ const HallCard = ({ hall }: HallCardProps) => {
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
               </div>
-            </Link>
+            </a>
           )}
         </div>
-        <Link href={`/halls/${createHallSlug(hall.name, hall._id, hall.slug)}`} className="h-full">
+        <a href={`/halls/${createHallSlug(hall.name, hall._id, hall.slug)}`} className="h-full" onClick={handleNavigation}>
           <div className="p-3">
             <h3 className="text-sm font-bold text-gray-800 truncate">{hall.name}</h3>
           <p className="mt-0.5 text-xs text-gray-500 truncate">{hall.location}</p>
@@ -110,7 +123,7 @@ const HallCard = ({ hall }: HallCardProps) => {
             </div>
           </div>
         </div>
-        </Link>
+        </a>
       </div>
     </div>
   );

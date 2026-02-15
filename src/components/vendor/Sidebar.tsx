@@ -5,6 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useUI } from "@/context/UIContext";
+import CustomLoader from "@/components/CustomLoader";
 import {
   LayoutDashboard,
   Building,
@@ -20,6 +21,7 @@ import {
 
 const Sidebar = () => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [pendingPath, setPendingPath] = useState<string | null>(null);
   const { isSidebarOpen, closeSidebar } = useUI();
   const pathname = usePathname();
   const { logout, user } = useAuth();
@@ -73,6 +75,12 @@ const Sidebar = () => {
       }
     );
   }
+
+  const handleNavigation = (href: string) => {
+    if (pathname === href) return;
+    setPendingPath(href);
+    window.location.href = href;
+  };
 
   return (
     <>
@@ -136,19 +144,24 @@ const Sidebar = () => {
 
       <nav className="flex-1 flex flex-col px-3 space-y-3">
         {navLinks.map((link) => (
-          <Link
+          <button
             key={link.href}
             id={link.id}
-            href={link.href}
-            className={`flex items-center ${isExpanded ? "px-4" : "justify-center"} h-12 rounded-2xl transition-all duration-300 group relative ${
+            onClick={() => handleNavigation(link.href)}
+            disabled={pendingPath === link.href}
+            className={`flex items-center ${isExpanded ? "px-4" : "justify-center"} h-12 w-full rounded-2xl transition-all duration-300 group relative ${
               pathname === link.href
                 ? "bg-primary text-white shadow-lg shadow-blue-200"
                 : "text-gray-400 hover:text-primary hover:bg-blue-50"
-            }`}
+            } disabled:opacity-80`}
             title={!isExpanded ? link.label : ""}
           >
             <div className={`flex-shrink-0 transform group-hover:scale-110 transition-transform duration-200 ${pathname === link.href ? "scale-105" : ""}`}>
-              {React.cloneElement(link.icon as React.ReactElement<{ size: number }>, { size: 20 })}
+              {pendingPath === link.href ? (
+                <CustomLoader size={20} />
+              ) : (
+                React.cloneElement(link.icon as React.ReactElement<{ size: number }>, { size: 20 })
+              )}
             </div>
             {(isExpanded || isSidebarOpen) && (
               <span className={`ml-4 text-sm font-bold whitespace-nowrap opacity-100 transition-opacity duration-300 ${pathname === link.href ? "text-white" : "text-gray-600"}`}>
@@ -158,7 +171,7 @@ const Sidebar = () => {
             {pathname === link.href && !isExpanded && (
               <div className="absolute -left-3 w-1.5 h-6 bg-primary rounded-r-full" />
             )}
-          </Link>
+          </button>
         ))}
       </nav>
 

@@ -79,12 +79,10 @@ const AdminHeader = () => {
 
     try {
       const response = await api.post('/auth/switch-role', { role }, { timeout: 15000 });
-      const { accessToken } = response.data.data;
+      const { accessToken } = response.data.data || response.data;
 
+      // updateToken now handles redirection using window.location.href
       updateToken(accessToken);
-
-      const redirectPath = getDashboardPath(role);
-      router.push(redirectPath);
     } catch (error: unknown) {
       Swal.toast.fire({
         icon: 'error',
