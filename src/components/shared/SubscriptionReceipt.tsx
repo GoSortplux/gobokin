@@ -175,8 +175,8 @@ const SubscriptionReceipt: React.FC<SubscriptionReceiptProps> = ({ data, isSucce
               <Image src="/logo.png" alt="Gobokin Logo" width={180} height={60} className="mb-4 object-contain" />
               <p className="text-gray-500 font-medium">Modern Event Booking Platform</p>
             </div>
-            <div className="mt-6 lg:mt-0 text-right">
-              <h2 className="text-3xl font-black text-primary italic uppercase leading-none text-nowrap">Subscription Receipt</h2>
+            <div className="mt-6 lg:mt-0 text-left lg:text-right">
+              <h2 className="text-2xl md:text-3xl font-black text-primary italic uppercase leading-none">Subscription Receipt</h2>
               <p className="text-gray-400 mt-2 font-bold tracking-widest uppercase">ID: {id}</p>
             </div>
           </div>

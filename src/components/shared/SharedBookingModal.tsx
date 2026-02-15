@@ -673,19 +673,19 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
         </div>
         <div className="flex bg-gray-50 p-1.5 rounded-2xl mb-8 border border-gray-100">
           <button
-            className={`flex-1 px-4 py-2.5 text-xs font-black uppercase tracking-widest transition-all rounded-xl ${activeTab === 'recurring' ? 'bg-white text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+            className={`flex-1 px-2 sm:px-4 py-2.5 text-[10px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest transition-all rounded-xl ${activeTab === 'recurring' ? 'bg-white text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
             onClick={() => setActiveTab('recurring')}
           >
             Recurring
           </button>
           <button
-            className={`flex-1 px-4 py-2.5 text-xs font-black uppercase tracking-widest transition-all rounded-xl ${activeTab === 'walk-in' ? 'bg-white text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+            className={`flex-1 px-2 sm:px-4 py-2.5 text-[10px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest transition-all rounded-xl ${activeTab === 'walk-in' ? 'bg-white text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
             onClick={() => setActiveTab('walk-in')}
           >
             Walk-in
           </button>
           <button
-            className={`flex-1 px-4 py-2.5 text-xs font-black uppercase tracking-widest transition-all rounded-xl ${activeTab === 'reservation' ? 'bg-white text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+            className={`flex-1 px-2 sm:px-4 py-2.5 text-[10px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest transition-all rounded-xl ${activeTab === 'reservation' ? 'bg-white text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
             onClick={() => setActiveTab('reservation')}
           >
             Reservation
