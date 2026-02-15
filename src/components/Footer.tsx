@@ -117,7 +117,7 @@ const Footer = () => {
                   <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                 </svg>
               </a>
-              <a href="#" className="text-gray-400 hover:text-primary transition-colors" title="Facebook">
+              <a href="https://web.facebook.com/gobokins" className="text-gray-400 hover:text-primary transition-colors" title="Facebook">
                 <Facebook size={20} />
               </a>
               <a href="#" className="text-gray-400 hover:text-primary transition-colors" title="Instagram">
@@ -137,7 +137,7 @@ const Footer = () => {
                   <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
                 </svg>
               </a>
-              <span className="text-gray-400 font-bold text-xs ml-2">@gobokin</span>
+              <span className="text-gray-400 font-bold text-xs ml-2">@gobokins</span>
             </div>
           </div>
 
