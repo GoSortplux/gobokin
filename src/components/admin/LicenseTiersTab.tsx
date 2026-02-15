@@ -108,7 +108,16 @@ const LicenseTiersTab = () => {
             >
                 <div className="flex-grow">
                     <div className="flex justify-between items-start">
-                        <h2 className="text-2xl font-bold text-gray-800">{tier.name}</h2>
+                        <div className="flex flex-col">
+                          <h2 className="text-2xl font-bold text-gray-800">{tier.name}</h2>
+                          <div className="mt-1">
+                            {tier.isPublic ? (
+                              <span className="bg-green-50 text-green-600 text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-green-100">Public</span>
+                            ) : (
+                              <span className="bg-gray-50 text-gray-400 text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-gray-100">Private</span>
+                            )}
+                          </div>
+                        </div>
                         <span className="bg-primary/10 text-primary font-semibold text-xs px-3 py-1 rounded-full">
                             {tier.minHalls === tier.maxHalls ? `${tier.minHalls} Venue${tier.minHalls > 1 ? 's' : ''}` : `${tier.minHalls}-${tier.maxHalls} Venues`}
                         </span>

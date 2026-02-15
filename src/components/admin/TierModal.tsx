@@ -20,6 +20,7 @@ const TierModal: React.FC<TierModalProps> = ({ isOpen, onClose, onSubmit, tier }
     maxHalls: 1,
     features: [],
     rules: [],
+    isPublic: false,
     discount: {
       type: 'percentage',
       value: 0,
@@ -56,6 +57,7 @@ const TierModal: React.FC<TierModalProps> = ({ isOpen, onClose, onSubmit, tier }
 
       setFormData({
         ...tier,
+        isPublic: tier.isPublic ?? false,
         rules: formattedRules,
         discount: tier.discount || {
           type: 'percentage',
@@ -74,6 +76,7 @@ const TierModal: React.FC<TierModalProps> = ({ isOpen, onClose, onSubmit, tier }
         maxHalls: 1,
         features: [],
         rules: [],
+        isPublic: false,
         discount: {
           type: 'percentage',
           value: 0,
@@ -86,18 +89,20 @@ const TierModal: React.FC<TierModalProps> = ({ isOpen, onClose, onSubmit, tier }
   }, [tier, isOpen]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
+    const { name, value, type } = e.target;
+    const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
+
     if (name.includes('.')) {
       const [parent, child] = name.split('.');
       setFormData(prev => ({
         ...prev,
         [parent]: {
           ...(prev[parent as keyof LicenseTier] as Record<string, unknown>),
-          [child]: value
+          [child]: val
         }
       }));
     } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+      setFormData((prev) => ({ ...prev, [name]: val }));
     }
   };
 
@@ -275,6 +280,26 @@ const TierModal: React.FC<TierModalProps> = ({ isOpen, onClose, onSubmit, tier }
                     : "Create subscription rules first to assign them here."}
                 </p>
               )}
+            </div>
+          </div>
+
+          {/* Visibility Section */}
+          <div className="border-t border-gray-100 pt-6">
+            <div className="flex items-center justify-between p-4 bg-blue-50/50 rounded-2xl border border-blue-100">
+              <div className="flex flex-col">
+                <span className="text-sm font-bold text-blue-900 uppercase italic">Make Public</span>
+                <span className="text-[10px] text-blue-700 font-medium">Determine if this tier is visible to Venue Owners</span>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="isPublic"
+                  checked={formData.isPublic}
+                  onChange={handleChange}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+              </label>
             </div>
           </div>
 

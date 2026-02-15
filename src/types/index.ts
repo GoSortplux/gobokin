@@ -250,6 +250,7 @@ export interface LicenseTier {
     value: number;
   }[];
   discountedPrice?: number;
+  isPublic?: boolean;
 }
 
 export interface ManualAssignmentPayload {
