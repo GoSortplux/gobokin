@@ -30,7 +30,7 @@ const ResourcesPage = () => {
     {
       icon: <Settings size={24} />,
       title: "Dashboard Tutorial",
-      description: "A comprehensive guide on how to use all the features of your hall owner dashboard.",
+      description: "A comprehensive guide on how to use all the features of your venue owner dashboard.",
       link: "#"
     },
     {

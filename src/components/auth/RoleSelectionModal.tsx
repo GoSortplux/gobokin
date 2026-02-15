@@ -17,19 +17,19 @@ const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ isOpen, roles, 
         return {
           label: 'Customer',
           icon: <UserCircle className="w-6 h-6" />,
-          description: 'Book halls and manage your reservations'
+          description: 'Book venues and manage your reservations'
         };
       case 'hall-owner':
         return {
-          label: 'Hall Owner',
+          label: 'Venue Owner',
           icon: <Building className="w-6 h-6" />,
-          description: 'Manage your halls and bookings'
+          description: 'Manage your venues and bookings'
         };
       case 'staff':
         return {
           label: 'Staff',
           icon: <Users className="w-6 h-6" />,
-          description: 'Help manage halls and reservations'
+          description: 'Help manage venues and reservations'
         };
       case 'super-admin':
         return {

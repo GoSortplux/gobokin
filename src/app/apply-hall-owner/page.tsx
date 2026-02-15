@@ -142,7 +142,7 @@ const ApplyHallOwnerPage = () => {
       return false;
     }
     if (!acceptedPolicy) {
-      Swal.toast.fire({ icon: 'error', title: 'Please accept the Hall Owner Agreement.' });
+      Swal.toast.fire({ icon: 'error', title: 'Please accept the Venue Owner Agreement.' });
       return false;
     }
     return true;
@@ -236,7 +236,7 @@ const ApplyHallOwnerPage = () => {
                 </div>
                 <h1 className="text-2xl font-black text-gray-900 mb-4 uppercase italic">Application Pending</h1>
                 <p className="text-gray-600 mb-8">
-                    Your application to become a hall owner is currently being reviewed by our team.
+                    Your application to become a venue owner is currently being reviewed by our team.
                     We will notify you once a decision has been made.
                 </p>
                 <Link href="/" className="inline-flex items-center justify-center px-8 py-3 bg-primary text-white font-bold rounded-xl transition-all hover:bg-primary/90 shadow-lg shadow-primary/20">
@@ -373,7 +373,7 @@ const ApplyHallOwnerPage = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">How many halls or venues do you manage or own?</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">How many venues do you manage or own?</label>
                     <select
                         name="hallsCount"
                         value={formData.hallsCount}
@@ -428,7 +428,7 @@ const ApplyHallOwnerPage = () => {
                   )}
                 </div>
                 <div className="mt-6">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Are you authorized to list and manage bookings for this hall on Go Bokin?</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Are you authorized to list and manage bookings for this venue on Go Bokin?</label>
                   <select
                     name="isAuthorized"
                     value={formData.isAuthorized}
@@ -453,7 +453,7 @@ const ApplyHallOwnerPage = () => {
                 <div className="grid grid-cols-1 gap-6">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Is the hall currently available for booking?</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Is the venue currently available for booking?</label>
                         <select
                             name="availability"
                             value={formData.availability}
@@ -485,7 +485,7 @@ const ApplyHallOwnerPage = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Are you open to allowing customers book and pay for this hall online via Go Bokin?</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Are you open to allowing customers book and pay for this venue online via Go Bokin?</label>
                     <select
                       name="onlineBookingPreference"
                       value={formData.onlineBookingPreference}
@@ -573,7 +573,7 @@ const ApplyHallOwnerPage = () => {
                         onClick={() => setIsPolicyModalOpen(true)}
                         className="text-primary hover:underline font-bold"
                       >
-                        Hall Owner Agreement
+                        Venue Owner Agreement
                       </button>
                     </label>
                   </div>

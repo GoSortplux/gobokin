@@ -21,6 +21,7 @@ const placeholders = [
 
 const formatRole = (role: string) => {
   if (role === 'user') return 'Customer';
+  if (role === 'hall-owner') return 'Venue Owner';
   return role.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 };
 

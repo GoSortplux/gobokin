@@ -18,6 +18,7 @@ import { getDashboardPath } from "@/utils/redirects";
 
 const formatRole = (role: string) => {
   if (role === 'user') return 'Customer';
+  if (role === 'hall-owner') return 'Venue Owner';
   return role.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 };
 
@@ -414,7 +415,7 @@ const Header = () => {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <p className="text-gray-600 text-sm">Log in to book halls and manage your reservations.</p>
+                    <p className="text-gray-600 text-sm">Log in to book venues and manage your reservations.</p>
                     <Link
                       href="/auth/login"
                       className="block w-full py-3 text-center bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20"

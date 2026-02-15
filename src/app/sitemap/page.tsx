@@ -23,7 +23,7 @@ const SitemapPage = () => {
         { label: "Try Listing", href: "/hosting/try-listing" },
         { label: "Protection for Venue", href: "/hosting/protection" },
         { label: "Explore Listing Resources", href: "/hosting/resources" },
-        { label: "Apply to be a Hall Owner", href: "/apply-hall-owner" }
+        { label: "Apply to be a Venue Owner", href: "/apply-hall-owner" }
       ]
     },
     {

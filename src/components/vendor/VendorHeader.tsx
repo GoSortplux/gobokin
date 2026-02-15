@@ -22,6 +22,7 @@ const placeholders = [
 
 const formatRole = (role: string) => {
   if (role === 'user') return 'Customer';
+  if (role === 'hall-owner') return 'Venue Owner';
   return role.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 };
 
@@ -123,7 +124,7 @@ const VendorHeader = () => {
           <Menu size={24} />
         </button>
         <h1 className="text-xl font-black text-gray-900 tracking-tighter uppercase italic hidden lg:block">
-          {user?.activeRole === 'staff' ? 'Staff' : 'Owner'} <span className="text-primary not-italic">Dashboard</span>
+          {user?.activeRole === 'staff' ? 'Staff' : 'Venue Owner'} <span className="text-primary not-italic">Dashboard</span>
         </h1>
       </div>
 

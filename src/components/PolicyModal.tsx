@@ -278,7 +278,7 @@ const PolicyModal = ({
             </div>
             <div>
               <h2 className={`${compact ? 'text-xl' : 'text-2xl'} font-black text-gray-900 tracking-tight`}>
-                {type === 'hall-owner' ? 'Hall Owner Agreement' : (slug === 'refund-policy' ? 'Refund & Cancellation Policy' : 'Updated Policies')}
+                {type === 'hall-owner' ? 'Venue Owner Agreement' : (slug === 'refund-policy' ? 'Refund & Cancellation Policy' : 'Updated Policies')}
               </h2>
               <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mt-0.5">Review and Accept Agreement</p>
             </div>

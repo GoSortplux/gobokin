@@ -38,7 +38,7 @@ const HallOwnerApplications = () => {
   const handleApprove = async (userId: string) => {
     const result = await Swal.fire({
       title: 'Are you sure?',
-      text: "You are about to approve this hall owner application.",
+      text: "You are about to approve this venue owner application.",
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, approve it!'
@@ -65,7 +65,7 @@ const HallOwnerApplications = () => {
   const handleReject = async (userId: string) => {
     const result = await Swal.destructive.fire({
       title: 'Are you sure?',
-      text: "You are about to reject this hall owner application.",
+      text: "You are about to reject this venue owner application.",
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, reject it!'
