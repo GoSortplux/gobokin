@@ -38,7 +38,9 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
     try {
       const response = await api.post('/auth/refresh-token');
       if (response.data?.data?.accessToken) {
-        updateToken(response.data.data.accessToken);
+        // Use null to prevent redirection to dashboard after policy acceptance
+        // We want the user to stay on their current page
+        updateToken(response.data.data.accessToken, null);
       } else {
         window.location.reload();
       }

@@ -57,6 +57,7 @@ const LoginPage = () => {
       userWithActiveRole.fullName = `${userWithActiveRole.firstName} ${userWithActiveRole.lastName}`;
     }
 
+    // AuthContext login now handles the redirection using window.location.href
     login(accessToken, userWithActiveRole as unknown as User, redirectPath);
   };
 
@@ -88,6 +89,7 @@ const LoginPage = () => {
         activeRole: selectedRole
       };
 
+      // This will handle the final redirection
       processLogin(newAccessToken, updatedUser);
     } catch (err: unknown) {
       localStorage.removeItem('token');

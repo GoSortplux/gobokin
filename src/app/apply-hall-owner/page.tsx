@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/services/api';
 import withAuth from '@/components/auth/withAuth';
@@ -23,7 +22,6 @@ interface Metadata {
 
 const ApplyHallOwnerPage = () => {
   const { user, updateToken, updateUserApplicationStatus, updateUser } = useAuth();
-  const router = useRouter();
   const [metadata, setMetadata] = useState<Metadata | null>(null);
   const [countries, setCountries] = useState<{ _id: string; name: string }[]>([]);
   const [states, setStates] = useState<{ _id: string; name: string }[]>([]);
@@ -187,7 +185,8 @@ const ApplyHallOwnerPage = () => {
       try {
         const refreshRes = await api.post('/auth/refresh-token');
         if (refreshRes.data?.data?.accessToken) {
-          updateToken(refreshRes.data.data.accessToken);
+          // Pass null to avoid automatic redirection to dashboard
+          updateToken(refreshRes.data.data.accessToken, null);
         }
       } catch (_err) {
         // Fallback if refresh token fails
@@ -200,7 +199,8 @@ const ApplyHallOwnerPage = () => {
         text: 'Your application has been received and is being processed.',
         confirmButtonColor: '#295FA7',
       });
-      router.push('/');
+      // Redirect to home page
+      window.location.href = '/';
     } catch (error: unknown) {
       let errorMessage = 'An error occurred. Please try again.';
       if (error && typeof error === 'object' && 'response' in error) {

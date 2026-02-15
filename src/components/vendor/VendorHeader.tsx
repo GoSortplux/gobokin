@@ -87,16 +87,15 @@ const VendorHeader = () => {
       const { accessToken } = response.data.data;
 
       updateToken(accessToken);
-
-      const redirectPath = getDashboardPath(role);
-      router.push(redirectPath);
     } catch (error: unknown) {
       Swal.toast.fire({
         icon: 'error',
         title: error instanceof Error ? error.message : 'An error occurred. Please try again.',
       });
     } finally {
-      setIsSwitchingAccount(false);
+      setTimeout(() => {
+        setIsSwitchingAccount(false);
+      }, 5000);
     }
   };
 

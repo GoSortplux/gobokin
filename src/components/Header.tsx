@@ -70,18 +70,20 @@ const Header = () => {
       const response = await api.post('/auth/switch-role', { role }, { timeout: 15000 }); // 15 second timeout
       const { accessToken } = response.data.data;
 
+      // updateToken now handles the redirection using window.location.href
       updateToken(accessToken);
-
-      // Redirect based on the new role
-      const redirectPath = getDashboardPath(role);
-      router.push(redirectPath);
     } catch (error: unknown) {
       Swal.toast.fire({
         icon: 'error',
         title: error instanceof Error ? error.message : 'An error occurred. Please try again.',
       });
     } finally {
-      setIsSwitchingAccount(false);
+      // If redirection happened via window.location.href, the page will reload
+      // and we don't need to set this to false. If it failed, we should.
+      // However, keep it true for a bit to avoid flicker if it's slow.
+      setTimeout(() => {
+        setIsSwitchingAccount(false);
+      }, 5000);
     }
   };
 
