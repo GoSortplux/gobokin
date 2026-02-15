@@ -20,6 +20,7 @@ import {
 
 const Sidebar = () => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [pendingPath, setPendingPath] = useState<string | null>(null);
   const { isSidebarOpen, closeSidebar } = useUI();
   const pathname = usePathname();
   const { logout, user } = useAuth();
@@ -27,7 +28,14 @@ const Sidebar = () => {
   // Close sidebar on mobile when route changes
   useEffect(() => {
     closeSidebar();
+    setPendingPath(null);
   }, [pathname, closeSidebar]);
+
+  const handleNavigate = (href: string) => {
+    if (pathname === href) return;
+    setPendingPath(href);
+    window.location.href = href;
+  };
 
   const navLinks = [
     {
@@ -136,19 +144,23 @@ const Sidebar = () => {
 
       <nav className="flex-1 flex flex-col px-3 space-y-3">
         {navLinks.map((link) => (
-          <Link
+          <button
             key={link.href}
             id={link.id}
-            href={link.href}
-            className={`flex items-center ${isExpanded ? "px-4" : "justify-center"} h-12 rounded-2xl transition-all duration-300 group relative ${
+            onClick={() => handleNavigate(link.href)}
+            className={`flex items-center ${isExpanded ? "px-4" : "justify-center"} h-12 rounded-2xl transition-all duration-300 group relative w-full ${
               pathname === link.href
                 ? "bg-primary text-white shadow-lg shadow-blue-200"
                 : "text-gray-400 hover:text-primary hover:bg-blue-50"
-            }`}
+            } ${pendingPath === link.href ? "opacity-70 cursor-wait" : ""}`}
             title={!isExpanded ? link.label : ""}
           >
             <div className={`flex-shrink-0 transform group-hover:scale-110 transition-transform duration-200 ${pathname === link.href ? "scale-105" : ""}`}>
-              {React.cloneElement(link.icon as React.ReactElement<{ size: number }>, { size: 20 })}
+              {pendingPath === link.href ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-current border-t-transparent" />
+              ) : (
+                React.cloneElement(link.icon as React.ReactElement<{ size: number }>, { size: 20 })
+              )}
             </div>
             {(isExpanded || isSidebarOpen) && (
               <span className={`ml-4 text-sm font-bold whitespace-nowrap opacity-100 transition-opacity duration-300 ${pathname === link.href ? "text-white" : "text-gray-600"}`}>
@@ -158,7 +170,7 @@ const Sidebar = () => {
             {pathname === link.href && !isExpanded && (
               <div className="absolute -left-3 w-1.5 h-6 bg-primary rounded-r-full" />
             )}
-          </Link>
+          </button>
         ))}
       </nav>
 
