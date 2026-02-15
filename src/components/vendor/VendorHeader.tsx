@@ -261,7 +261,7 @@ const VendorHeader = () => {
                       }}
                       className="w-full text-left px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-xl transition-colors flex items-center justify-between"
                     >
-                      <span>Create Hall</span>
+                      <span>Create Venue</span>
                       {isLimitReached && <span className="text-[10px] bg-rose-50 text-rose-500 font-black px-1.5 py-0.5 rounded-md uppercase">Limit</span>}
                     </button>
                     <button
