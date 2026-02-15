@@ -160,7 +160,7 @@ const SearchContent = () => {
 
   return (
     <div className="container mx-auto px-4 pt-24 pb-8">
-      <h1 className="text-3xl font-bold mb-8">Search for Halls</h1>
+      <h1 className="text-3xl font-bold mb-8">Search for Venue</h1>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
         <div className="col-span-1">
           {/* Filter section */}
