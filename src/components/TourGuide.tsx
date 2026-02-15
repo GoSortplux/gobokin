@@ -11,6 +11,7 @@ const TourGuide = () => {
   const pathname = usePathname();
   const driverRef = useRef<Driver | null>(null);
   const isDestroying = useRef(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!user || !activeRole) return;
@@ -19,15 +20,24 @@ const TourGuide = () => {
     const isCustomerCompleted = localStorage.getItem('gobokin_customer_tour_completed');
     const isOwnerCompleted = localStorage.getItem('gobokin_owner_tour_completed');
 
-    // Small delay to ensure elements are rendered
-    const timer = setTimeout(() => {
+    const checkAndStartTour = () => {
+        // Wait for page to be fully loaded and all data-fetching skeletons to disappear
+        const isPageReady = document.readyState === 'complete';
+        // We ignore the pulse animation in the footer (Mobile App Coming Soon)
+        const isDataLoaded = !document.querySelector('.animate-pulse:not(footer *)');
+
+        if (!isPageReady || !isDataLoaded) {
+            timerRef.current = setTimeout(checkAndStartTour, 500);
+            return;
+        }
+
         if (isVendorPage && activeRole === 'hall-owner' && !isOwnerCompleted) {
           const ownerSteps = [
             {
               element: '#vendor-analytics',
               popover: {
                 title: 'Welcome!',
-                description: 'Welcome to your Hall Owner Dashboard! Here you can see an overview of your business performance, including revenue and bookings.',
+                description: 'Welcome to your Venue Owner Dashboard! Here you can see an overview of your business performance, including revenue and bookings.',
                 side: "bottom",
                 align: 'start'
               }
@@ -35,8 +45,8 @@ const TourGuide = () => {
             {
               element: '#vendor-nav-halls',
               popover: {
-                title: 'Manage Halls',
-                description: 'Manage your halls here. You can add new halls, edit existing ones, or block dates for maintenance.',
+                title: 'Manage Venues',
+                description: 'Manage your venues here. You can add new venues, edit existing ones, or block dates for maintenance.',
                 side: "right",
                 align: 'start'
               }
@@ -54,7 +64,7 @@ const TourGuide = () => {
               element: '#vendor-nav-staff',
               popover: {
                 title: 'Staff Management',
-                description: 'Add and manage your staff members to help you run your halls more efficiently.',
+                description: 'Add and manage your staff members to help you run your venues more efficiently.',
                 side: "right",
                 align: 'start'
               }
@@ -93,8 +103,8 @@ const TourGuide = () => {
             {
               element: '#search-bar',
               popover: {
-                title: 'Find Halls',
-                description: 'Use our powerful search to find halls by location, price, date, and capacity.',
+                title: 'Find Venues',
+                description: 'Use our powerful search to find venues by location, price, date, and capacity.',
                 side: "bottom",
                 align: 'start'
               }
@@ -102,8 +112,8 @@ const TourGuide = () => {
             {
               element: '#become-owner-button',
               popover: {
-                title: 'Become an Owner',
-                description: 'Have a space to share? You can easily apply to become a hall owner and start earning!',
+                title: 'List Your Venue',
+                description: 'Have a space to share? You can easily apply to list your venue and start earning!',
                 side: "bottom",
                 align: 'start'
               }
@@ -147,10 +157,13 @@ const TourGuide = () => {
               driverRef.current.drive();
           }
         }
-    }, 1500);
+    };
+
+    const timer = setTimeout(checkAndStartTour, 500);
 
     return () => {
       clearTimeout(timer);
+      if (timerRef.current) clearTimeout(timerRef.current);
       if (driverRef.current) {
         isDestroying.current = true;
         driverRef.current.destroy();
