@@ -112,9 +112,14 @@ const TierModal: React.FC<TierModalProps> = ({ isOpen, onClose, onSubmit, tier }
   };
 
   const handleAddRule = () => {
+    const firstRule = availableRules[0];
+    let defaultValue: string | number | boolean = 0;
+    if (firstRule?.type === 'boolean') defaultValue = false;
+    if (firstRule?.type === 'string') defaultValue = "";
+
     setFormData(prev => ({
       ...prev,
-      rules: [...(prev.rules || []), { rule: availableRules[0]?._id || '', value: 0 }]
+      rules: [...(prev.rules || []), { rule: firstRule?._id || '', value: defaultValue }]
     }));
   };
 
@@ -125,10 +130,22 @@ const TierModal: React.FC<TierModalProps> = ({ isOpen, onClose, onSubmit, tier }
     }));
   };
 
-  const handleRuleChange = (index: number, field: 'rule' | 'value', value: string | number) => {
+  const handleRuleChange = (index: number, field: 'rule' | 'value', value: string | number | boolean) => {
     setFormData(prev => {
       const updatedRules = [...(prev.rules || [])];
-      updatedRules[index] = { ...updatedRules[index], [field]: value };
+
+      if (field === 'rule') {
+        const ruleId = value as string;
+        const selectedRule = availableRules.find(r => r._id === ruleId);
+        let defaultValue: string | number | boolean = 0;
+        if (selectedRule?.type === 'boolean') defaultValue = false;
+        if (selectedRule?.type === 'string') defaultValue = "";
+
+        updatedRules[index] = { ...updatedRules[index], rule: ruleId, value: defaultValue };
+      } else {
+        updatedRules[index] = { ...updatedRules[index], value: value as string | number | boolean };
+      }
+
       return { ...prev, rules: updatedRules };
     });
   };
@@ -245,34 +262,63 @@ const TierModal: React.FC<TierModalProps> = ({ isOpen, onClose, onSubmit, tier }
               )}
             </div>
             <div className="space-y-3">
-              {formData.rules?.map((ruleItem, index) => (
-                <div key={index} className="flex items-center gap-3 bg-gray-50 p-3 rounded-2xl border border-gray-100">
-                  <select
-                    value={typeof ruleItem.rule === 'object' ? (ruleItem.rule as SubscriptionRule)._id : ruleItem.rule}
-                    onChange={(e) => handleRuleChange(index, 'rule', e.target.value)}
-                    className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  >
-                    <option value="" disabled>Select a rule</option>
-                    {availableRules.map(r => (
-                      <option key={r._id} value={r._id}>{r.name} ({r.key})</option>
-                    ))}
-                  </select>
-                  <input
-                    type="number"
-                    value={ruleItem.value}
-                    onChange={(e) => handleRuleChange(index, 'value', parseInt(e.target.value) || 0)}
-                    className="w-24 px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                    placeholder="Value"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveRule(index)}
-                    className="p-2 text-gray-400 hover:text-red-500 transition-colors"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              ))}
+              {formData.rules?.map((ruleItem, index) => {
+                const ruleId = typeof ruleItem.rule === 'object' ? (ruleItem.rule as SubscriptionRule)._id : ruleItem.rule;
+                const ruleDefinition = availableRules.find(r => r._id === ruleId);
+                const ruleType = ruleDefinition?.type || 'number';
+
+                return (
+                  <div key={index} className="flex items-center gap-3 bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                    <select
+                      value={ruleId}
+                      onChange={(e) => handleRuleChange(index, 'rule', e.target.value)}
+                      className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    >
+                      <option value="" disabled>Select a rule</option>
+                      {availableRules.map(r => (
+                        <option key={r._id} value={r._id}>{r.name} ({r.key})</option>
+                      ))}
+                    </select>
+
+                    {ruleType === 'boolean' ? (
+                      <label className="relative inline-flex items-center cursor-pointer ml-2">
+                        <input
+                          type="checkbox"
+                          checked={!!ruleItem.value}
+                          onChange={(e) => handleRuleChange(index, 'value', e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                        <span className="ml-2 text-[10px] font-bold text-gray-500 uppercase w-8">{ruleItem.value ? 'Yes' : 'No'}</span>
+                      </label>
+                    ) : ruleType === 'string' ? (
+                      <input
+                        type="text"
+                        value={ruleItem.value as string}
+                        onChange={(e) => handleRuleChange(index, 'value', e.target.value)}
+                        className="w-32 px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        placeholder="Value"
+                      />
+                    ) : (
+                      <input
+                        type="number"
+                        value={ruleItem.value as number}
+                        onChange={(e) => handleRuleChange(index, 'value', parseInt(e.target.value) || 0)}
+                        className="w-24 px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        placeholder="Value"
+                      />
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveRule(index)}
+                      className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                );
+              })}
               {formData.rules?.length === 0 && (
                 <p className="text-xs text-gray-400 text-center py-2 italic">
                   {availableRules.length > 0

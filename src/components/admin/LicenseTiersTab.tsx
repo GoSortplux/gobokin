@@ -147,12 +147,22 @@ const LicenseTiersTab = () => {
                       <>
                         <p className="text-sm font-semibold text-gray-500 mb-3 uppercase">Rules</p>
                         <ul className="space-y-2">
-                          {tier.rules.map((ruleItem, index) => (
-                            <li key={index} className="flex justify-between items-center text-sm text-gray-700 bg-gray-100 px-3 py-1 rounded-md">
-                              <span>{typeof ruleItem.rule === 'object' ? ruleItem.rule.name : ruleItem.rule}</span>
-                              <span className="font-bold text-primary">{ruleItem.value}</span>
-                            </li>
-                          ))}
+                          {tier.rules.map((ruleItem, index) => {
+                            const ruleName = typeof ruleItem.rule === 'object' ? ruleItem.rule.name : ruleItem.rule;
+                            const ruleType = typeof ruleItem.rule === 'object' ? ruleItem.rule.type : null;
+                            let displayValue = ruleItem.value;
+
+                            if (ruleType === 'boolean' || typeof ruleItem.value === 'boolean') {
+                              displayValue = ruleItem.value ? 'Yes' : 'No';
+                            }
+
+                            return (
+                              <li key={index} className="flex justify-between items-center text-sm text-gray-700 bg-gray-100 px-3 py-1 rounded-md">
+                                <span>{ruleName}</span>
+                                <span className="font-bold text-primary">{displayValue}</span>
+                              </li>
+                            );
+                          })}
                         </ul>
                       </>
                     )}

@@ -247,7 +247,7 @@ export interface LicenseTier {
   };
   rules: {
     rule: string | SubscriptionRule;
-    value: number;
+    value: number | string | boolean;
   }[];
   discountedPrice?: number;
   isPublic?: boolean;
