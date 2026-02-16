@@ -1,11 +1,10 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useUI } from "@/context/UIContext";
-import CustomLoader from "@/components/CustomLoader";
 import {
   LayoutDashboard,
   Building,
@@ -21,7 +20,6 @@ import {
 
 const AdminSidebar = () => {
   const pathname = usePathname();
-  const [pendingPath, setPendingPath] = useState<string | null>(null);
   const { isSidebarOpen, closeSidebar } = useUI();
   const { logout } = useAuth();
 
@@ -73,12 +71,6 @@ const AdminSidebar = () => {
     },
   ];
 
-  const handleNavigation = (href: string) => {
-    if (pathname === href) return;
-    setPendingPath(href);
-    window.location.href = href;
-  };
-
   return (
     <>
     {/* Mobile Backdrop */}
@@ -114,28 +106,23 @@ const AdminSidebar = () => {
       </div>
       <nav className="flex-1 flex flex-col items-center space-y-3">
         {navLinks.map((link) => (
-          <button
+          <Link
             key={link.href}
-            onClick={() => handleNavigation(link.href)}
-            disabled={pendingPath === link.href}
+            href={link.href}
             className={`flex items-center justify-center h-12 w-12 rounded-2xl transition-all duration-300 group relative ${
               pathname === link.href
                 ? "bg-primary text-white shadow-lg shadow-blue-200 scale-110"
                 : "text-gray-400 hover:text-primary hover:bg-blue-50"
-            } disabled:opacity-80`}
+            }`}
             title={link.label}
           >
             <div className="transform group-hover:scale-110 transition-transform duration-200">
-              {pendingPath === link.href ? (
-                <CustomLoader size={20} />
-              ) : (
-                React.cloneElement(link.icon as React.ReactElement<{ size: number }>, { size: 20 })
-              )}
+              {React.cloneElement(link.icon as React.ReactElement<{ size: number }>, { size: 20 })}
             </div>
             {pathname === link.href && (
               <div className="absolute -left-4 w-1.5 h-6 bg-primary rounded-r-full" />
             )}
-          </button>
+          </Link>
         ))}
       </nav>
       <div className="mt-auto border-t border-gray-50 pt-6 w-full flex flex-col items-center">
