@@ -33,6 +33,41 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
     }
   }, [user, isAuthPage]);
 
+  // Handle chunk loading errors (usually after a new deployment)
+  useEffect(() => {
+    const handleChunkError = (event: ErrorEvent | PromiseRejectionEvent) => {
+      const error = 'error' in event ? event.error : event.reason;
+      const errorMessage = error?.message || '';
+
+      if (
+        errorMessage.includes('Failed to load chunk') ||
+        errorMessage.includes('Loading chunk') ||
+        errorMessage.includes('Unexpected token') // Often happens when HTML is returned instead of JS
+      ) {
+        // Prevent infinite reload loops
+        const lastReload = sessionStorage.getItem('last-chunk-reload');
+        const now = Date.now();
+
+        // Only reload if we haven't reloaded in the last 10 seconds
+        if (!lastReload || now - parseInt(lastReload) > 10000) {
+          sessionStorage.setItem('last-chunk-reload', now.toString());
+          console.warn('Chunk loading error detected, reloading page...', errorMessage);
+          window.location.reload();
+        } else {
+          console.error('Chunk loading error persisted after reload. Please check your connection or clear cache.', errorMessage);
+        }
+      }
+    };
+
+    window.addEventListener('error', handleChunkError);
+    window.addEventListener('unhandledrejection', handleChunkError);
+
+    return () => {
+      window.removeEventListener('error', handleChunkError);
+      window.removeEventListener('unhandledrejection', handleChunkError);
+    };
+  }, []);
+
   const handleGeneralPolicyAccepted = async () => {
     // Re-fetch token or user data to get updated acceptance status
     try {
