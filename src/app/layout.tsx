@@ -37,20 +37,28 @@ export default function RootLayout({
               (function() {
                 var handleChunkError = function(event) {
                   var error = event.error || event.reason || (event.detail && event.detail.reason);
-                  var errorMessage = (error && error.message) || event.message || "";
-                  if (
-                    errorMessage.indexOf("Failed to load chunk") !== -1 ||
-                    errorMessage.indexOf("Loading chunk") !== -1 ||
-                    errorMessage.indexOf("Unexpected token") !== -1
-                  ) {
+                  var errorMessage = (error && (error.message || error.toString())) || event.message || "";
+
+                  var isChunkError =
+                    /chunk|loading|unexpected token/i.test(errorMessage) ||
+                    errorMessage.indexOf("CSS_CHUNK_LOAD_FAILED") !== -1;
+
+                  var target = event.target || event.srcElement;
+                  var isResourceError = target &&
+                    (target.tagName === "SCRIPT" || target.tagName === "LINK") &&
+                    (target.src || target.href || "").indexOf("/_next/static/") !== -1;
+
+                  if (isChunkError || isResourceError) {
                     try {
                       var lastReload = sessionStorage.getItem("last-chunk-reload");
                       var now = Date.now();
-                      if (!lastReload || now - parseInt(lastReload) > 10000) {
+                      if (!lastReload || now - parseInt(lastReload) > 5000) {
                         sessionStorage.setItem("last-chunk-reload", now.toString());
                         window.location.reload();
                       }
-                    } catch (e) {}
+                    } catch (e) {
+                      window.location.reload();
+                    }
                   }
                 };
                 window.addEventListener("error", handleChunkError, true);
