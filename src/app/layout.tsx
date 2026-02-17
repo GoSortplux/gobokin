@@ -30,6 +30,36 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                var handleChunkError = function(event) {
+                  var error = event.error || event.reason || (event.detail && event.detail.reason);
+                  var errorMessage = (error && error.message) || event.message || "";
+                  if (
+                    errorMessage.indexOf("Failed to load chunk") !== -1 ||
+                    errorMessage.indexOf("Loading chunk") !== -1 ||
+                    errorMessage.indexOf("Unexpected token") !== -1
+                  ) {
+                    try {
+                      var lastReload = sessionStorage.getItem("last-chunk-reload");
+                      var now = Date.now();
+                      if (!lastReload || now - parseInt(lastReload) > 10000) {
+                        sessionStorage.setItem("last-chunk-reload", now.toString());
+                        window.location.reload();
+                      }
+                    } catch (e) {}
+                  }
+                };
+                window.addEventListener("error", handleChunkError, true);
+                window.addEventListener("unhandledrejection", handleChunkError);
+              })();
+            `,
+          }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
