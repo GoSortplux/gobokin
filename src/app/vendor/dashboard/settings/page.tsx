@@ -98,8 +98,19 @@ const SettingsPage = () => {
         }),
         api.get("/monnify/banks")
       ]);
-      setBankAccount(bankRes.data.data || { accountNumber: "", bankName: "", accountName: "", bankCode: "" });
-      setBanks(banksListRes.data.data || []);
+      const bankData = bankRes.data.data || { accountNumber: "", bankName: "", accountName: "", bankCode: "" };
+      const banksList = banksListRes.data.data || [];
+
+      // If bankName is missing but bankCode is present, resolve it from the banks list
+      if (bankData.bankCode && !bankData.bankName && banksList.length > 0) {
+        const matchingBank = banksList.find((b: Bank) => b.code === bankData.bankCode);
+        if (matchingBank) {
+          bankData.bankName = matchingBank.name;
+        }
+      }
+
+      setBankAccount(bankData);
+      setBanks(banksList);
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 403) {
         setBankError("You do not have permission to view or edit bank account details.");
