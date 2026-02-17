@@ -19,6 +19,9 @@ interface PaymentStatus {
 interface User {
   _id: string;
   fullName: string;
+  accountName?: string;
+  accountNumber?: string;
+  bankCode?: string;
 }
 
 interface Subaccount {
@@ -323,7 +326,16 @@ const SubaccountsTab = () => {
                       <select
                           id="hallOwner"
                           value={selectedUserId}
-                          onChange={(e) => setSelectedUserId(e.target.value)}
+                          onChange={(e) => {
+                            const userId = e.target.value;
+                            setSelectedUserId(userId);
+                            const user = users.find(u => u._id === userId);
+                            if (user) {
+                              if (user.accountNumber) setAccountNumber(user.accountNumber);
+                              if (user.bankCode) setSelectedBankCode(user.bankCode);
+                              if (user.accountName) setAccountName(user.accountName);
+                            }
+                          }}
                           className="mt-1 block w-full p-2 border border-gray-300 rounded-md text-gray-600"
                           required
                       >
