@@ -227,6 +227,7 @@ export interface SubscriptionRule {
   key: string;
   type: string;
   description: string;
+  displayText?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -248,6 +249,7 @@ export interface LicenseTier {
   rules: {
     rule: string | SubscriptionRule;
     value: number | string | boolean;
+    displayText?: string;
   }[];
   discountedPrice?: number;
   isPublic?: boolean;

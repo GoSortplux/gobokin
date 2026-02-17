@@ -94,10 +94,12 @@ const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
           ))}
           {Array.isArray(tier.rules) && tier.rules.map((ruleItem, index) => {
             const ruleName = typeof ruleItem.rule === 'object' ? ruleItem.rule.name : 'Unknown Rule';
+            const ruleDisplayText = typeof ruleItem.rule === 'object' ? ruleItem.rule.displayText : undefined;
+            const displayValue = ruleItem.displayText || ruleDisplayText || `${ruleName} - ${ruleItem.value}`;
             return (
               <li key={`rule-${index}`} className="flex items-start">
                 <CheckCircle className="text-green-500 w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
-                <span className="text-sm font-medium">{ruleName} - {ruleItem.value}</span>
+                <span className="text-sm font-medium">{displayValue}</span>
               </li>
             );
           })}
