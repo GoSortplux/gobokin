@@ -292,7 +292,7 @@ const HallsContent = () => {
       {!loading && !error && (
         <div className="space-y-4">
           {/* Desktop Table */}
-          <div className="hidden md:block bg-white shadow-lg rounded-xl overflow-hidden border border-gray-200">
+          <div className="hidden md:block bg-white shadow-lg rounded-xl overflow-x-auto border border-gray-200">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
@@ -300,8 +300,7 @@ const HallsContent = () => {
                   <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Location</th>
                   <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Capacity</th>
                   <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Stats</th>
-                  <th className="px-6 py-3 text-right text-[10px] font-bold text-gray-500 uppercase tracking-wider">Actions</th>
-                  <th className="px-6 py-3"></th>
+                  <th className="sticky right-0 bg-gray-50 px-6 py-3 text-right text-[10px] font-bold text-gray-500 uppercase tracking-wider z-20 shadow-[-4px_0_4px_-2px_rgba(0,0,0,0.05)]">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -313,7 +312,7 @@ const HallsContent = () => {
                             <span className="text-sm font-semibold text-gray-900 block">{hall.name}</span>
                             <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{hall.hallSize || 'Standard Size'}</span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">{hall.location}</td>
+                        <td className="px-6 py-4 text-sm font-medium text-gray-500 max-w-[200px] truncate" title={hall.location}>{hall.location}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center space-x-2">
                                 <span className="px-3 py-1 bg-gray-100 rounded-lg text-xs font-bold text-gray-700">{hall.capacity}</span>
@@ -331,46 +330,46 @@ const HallsContent = () => {
                                 </div>
                             </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right">
-                          <div className="flex justify-end space-x-2">
-                            <button
-                              onClick={() => handleToggleBooking(hall._id || hall.id, hall.isOnlineBookingEnabled)}
-                              className={`text-xs font-bold ${hall.isOnlineBookingEnabled ? 'text-rose-600 hover:text-rose-800 bg-rose-50' : 'text-emerald-600 hover:text-emerald-800 bg-emerald-50'} px-3 py-1.5 rounded-lg transition-colors border ${hall.isOnlineBookingEnabled ? 'border-rose-100' : 'border-emerald-100'} flex items-center gap-1.5`}
-                              title={hall.isOnlineBookingEnabled ? "Disable Online Booking" : "Enable Online Booking"}
-                            >
-                              {hall.isOnlineBookingEnabled ? <PowerOff size={14} /> : <Power size={14} />}
-                              <span>{hall.isOnlineBookingEnabled ? 'Disable' : 'Enable'}</span>
-                            </button>
-                            <button
-                              onClick={() => openEditModal(hall)}
-                              className="text-xs font-bold text-primary hover:text-primary-dark bg-primary/5 px-3 py-1.5 rounded-lg transition-colors border border-primary/10"
-                              title="Edit Venue"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => openReservationModal(hall._id || hall.id)}
-                              className="text-xs font-bold text-amber-600 hover:text-amber-800 bg-amber-50 px-3 py-1.5 rounded-lg transition-colors border border-amber-100"
-                              title="Block Dates"
-                            >
-                              Block Dates
+                        <td className="sticky right-0 bg-white group-hover:bg-gray-50 px-6 py-4 whitespace-nowrap text-right z-10 shadow-[-4px_0_4px_-2px_rgba(0,0,0,0.05)]">
+                          <div className="flex items-center justify-end space-x-4">
+                            <div className="flex justify-end space-x-2">
+                              <button
+                                onClick={() => handleToggleBooking(hall._id || hall.id, hall.isOnlineBookingEnabled)}
+                                className={`text-xs font-bold ${hall.isOnlineBookingEnabled ? 'text-rose-600 hover:text-rose-800 bg-rose-50' : 'text-emerald-600 hover:text-emerald-800 bg-emerald-50'} px-3 py-1.5 rounded-lg transition-colors border ${hall.isOnlineBookingEnabled ? 'border-rose-100' : 'border-emerald-100'} flex items-center gap-1.5`}
+                                title={hall.isOnlineBookingEnabled ? "Disable Online Booking" : "Enable Online Booking"}
+                              >
+                                {hall.isOnlineBookingEnabled ? <PowerOff size={14} /> : <Power size={14} />}
+                                <span>{hall.isOnlineBookingEnabled ? 'Disable' : 'Enable'}</span>
+                              </button>
+                              <button
+                                onClick={() => openEditModal(hall)}
+                                className="text-xs font-bold text-primary hover:text-primary-dark bg-primary/5 px-3 py-1.5 rounded-lg transition-colors border border-primary/10"
+                                title="Edit Venue"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => openReservationModal(hall._id || hall.id)}
+                                className="text-xs font-bold text-amber-600 hover:text-amber-800 bg-amber-50 px-3 py-1.5 rounded-lg transition-colors border border-amber-100"
+                                title="Block Dates"
+                              >
+                                Block Dates
+                              </button>
+                            </div>
+                            <button onClick={() => handleToggle(hall._id || hall.id)} className="p-2 text-gray-400 hover:text-gray-900 transition-colors border-l border-gray-100 ml-2 pl-4">
+                              <ChevronDown
+                                size={18}
+                                className={`transform transition-transform duration-300 ${
+                                  expandedHallId === (hall._id || hall.id) ? "rotate-180" : ""
+                                }`}
+                              />
                             </button>
                           </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                          <button onClick={() => handleToggle(hall._id || hall.id)} className="p-2 text-gray-400 hover:text-gray-900 transition-colors">
-                            <ChevronDown
-                              size={18}
-                              className={`transform transition-transform duration-300 ${
-                                expandedHallId === (hall._id || hall.id) ? "rotate-180" : ""
-                              }`}
-                            />
-                          </button>
                         </td>
                       </tr>
                       {expandedHallId === (hall._id || hall.id) && (
                         <tr>
-                          <td colSpan={6} className="px-6 py-5 bg-gray-50 border-t border-gray-100">
+                          <td colSpan={5} className="px-6 py-5 bg-gray-50 border-t border-gray-100">
                             <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
                               <div>
                                 <p className="text-xs font-bold text-gray-400 uppercase mb-3">Pricing Strategy</p>
@@ -401,7 +400,7 @@ const HallsContent = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="px-6 py-20 text-center text-gray-500">
+                    <td colSpan={5} className="px-6 py-20 text-center text-gray-500">
                         {searchTerm ? `No results for "${searchTerm}"` : "No venues established"}
                     </td>
                   </tr>
