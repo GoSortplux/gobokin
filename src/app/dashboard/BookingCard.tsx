@@ -150,7 +150,7 @@ const BookingCard: React.FC<BookingCardProps> = ({ booking, onViewReceipt, onRev
             </button>
           </div>
 
-          {!isPast && booking.status !== 'cancelled' && (
+          {!isPast && booking.status !== 'cancelled' && booking.paymentStatus !== 'pending' && (
             <div className="w-full">
               {cancellationStatus === 'not-requested' ? (
                 <button
