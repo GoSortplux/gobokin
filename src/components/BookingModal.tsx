@@ -29,6 +29,25 @@ export interface FacilityWithQuantity extends Facility {
   quantity: number;
 }
 
+interface QuoteData {
+  totalPrice: number;
+  hallPrice: number;
+  facilitiesPrice: number;
+  discountAmount: number;
+  discountType?: string;
+  feeBreakdown: {
+    serviceTotal: number;
+    transactionFee: number;
+    totalAmount: number;
+  };
+  reservationFeeDetails?: {
+    serviceTotal: number;
+    transactionFee: number;
+    totalAmount: number;
+    percentage: number;
+  };
+}
+
 const BookingModal: FC<BookingModalProps> = ({
   hallId,
   isOpen,
@@ -50,7 +69,7 @@ const BookingModal: FC<BookingModalProps> = ({
   const [totalPrice, setTotalPrice] = useState(0);
   const [hallCost, setHallCost] = useState(0);
   const [discountAmount, setDiscountAmount] = useState(0);
-  const [quoteData, setQuoteData] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
+  const [quoteData, setQuoteData] = useState<QuoteData | null>(null);
   const [isCalculatingQuote, setIsCalculatingQuote] = useState(false);
   const [startTime, setStartTime] = useState(initialStartTime);
   const [endTime, setEndTime] = useState(initialEndTime);

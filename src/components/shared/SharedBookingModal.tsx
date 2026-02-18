@@ -57,6 +57,25 @@ interface HallItem {
   closingHour?: number;
 }
 
+interface QuoteData {
+  totalPrice: number;
+  hallPrice: number;
+  facilitiesPrice: number;
+  discountAmount: number;
+  discountType?: string;
+  feeBreakdown: {
+    serviceTotal: number;
+    transactionFee: number;
+    totalAmount: number;
+  };
+  reservationFeeDetails?: {
+    serviceTotal: number;
+    transactionFee: number;
+    totalAmount: number;
+    percentage: number;
+  };
+}
+
 
 const parseLocalDate = (dateStr: string) => {
   const [year, month, day] = dateStr.split('-').map(Number);
@@ -99,7 +118,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
   const [facilitiesPrice, setFacilitiesPrice] = useState(0);
   const [totalPrice, setTotalPrice] = useState(0);
   const [discountAmount, setDiscountAmount] = useState(0);
-  const [quoteData, setQuoteData] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
+  const [quoteData, setQuoteData] = useState<QuoteData | null>(null);
   const [isCalculatingQuote, setIsCalculatingQuote] = useState(false);
   const [usePerDateTimes, setUsePerDateTimes] = useState(false);
   const [dateTimes, setDateTimes] = useState<Record<string, { startTime: string; endTime: string }>>({});

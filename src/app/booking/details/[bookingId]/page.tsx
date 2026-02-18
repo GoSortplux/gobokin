@@ -22,7 +22,6 @@ import api from "@/services/api";
 import { Booking, Reservation, Hall } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 import UnifiedReceipt from "@/components/shared/UnifiedReceipt";
-import { useAuth } from "@/context/AuthContext";
 import withAuth from "@/components/auth/withAuth";
 import Image from "next/image";
 import Link from "next/link";
@@ -33,7 +32,6 @@ import { translateError } from "@/utils/errors";
 const BookingDetailsPage = () => {
   const params = useParams();
   const router = useRouter();
-  const { user } = useAuth();
   const bookingId = params.bookingId as string;
 
   const [data, setData] = useState<Booking | Reservation | null>(null);
