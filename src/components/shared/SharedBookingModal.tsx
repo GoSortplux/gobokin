@@ -7,6 +7,7 @@ import api from '@/services/api';
 import { translateError } from '@/utils/errors';
 import Swal from "@/utils/sweetalert";
 import Calendar from '../Calendar';
+import CustomLoader from '../CustomLoader';
 import { useBookingAvailability } from '@/hooks/useBookingAvailability';
 import {
   format,
@@ -98,6 +99,8 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
   const [facilitiesPrice, setFacilitiesPrice] = useState(0);
   const [totalPrice, setTotalPrice] = useState(0);
   const [discountAmount, setDiscountAmount] = useState(0);
+  const [quoteData, setQuoteData] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
+  const [isCalculatingQuote, setIsCalculatingQuote] = useState(false);
   const [usePerDateTimes, setUsePerDateTimes] = useState(false);
   const [dateTimes, setDateTimes] = useState<Record<string, { startTime: string; endTime: string }>>({});
   const [paymentOptions, setPaymentOptions] = useState<{ paymentMethods: string[]; paymentStatuses: string[] }>({ paymentMethods: [], paymentStatuses: [] });
@@ -320,6 +323,67 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
 
     calculateTotalPrice();
   }, [formData.hall, formData.startTime, formData.endTime, formData.dates, formData.selectedFacilities, halls, facilities, activeTab, usePerDateTimes, dateTimes]);
+
+  useEffect(() => {
+    const fetchQuote = async () => {
+      if (!formData.hall || formData.dates.length === 0) {
+        setQuoteData(null);
+        return;
+      }
+
+      // Basic validation for times if not using per-date times
+      if (!usePerDateTimes && (!formData.startTime || !formData.endTime)) {
+        return;
+      }
+
+      setIsCalculatingQuote(true);
+      try {
+        const bookingDates = formData.dates.map(dateStr => {
+          const times = usePerDateTimes && dateTimes[dateStr] ? dateTimes[dateStr] : { startTime: formData.startTime, endTime: formData.endTime };
+          if (!times.startTime || !times.endTime) return null;
+
+          const [startH, startM] = times.startTime.split(':').map(Number);
+          const [endH, endM] = times.endTime.split(':').map(Number);
+          const start = parseLocalDate(dateStr);
+          start.setHours(startH, startM, 0, 0);
+          const end = parseLocalDate(dateStr);
+          end.setHours(endH, endM, 0, 0);
+
+          return {
+            startTime: start.toISOString(),
+            endTime: end.toISOString(),
+          };
+        }).filter(Boolean);
+
+        if (bookingDates.length === 0) {
+          setIsCalculatingQuote(false);
+          return;
+        }
+
+        const payload = {
+          hallId: formData.hall,
+          bookingDates,
+          selectedFacilities: formData.selectedFacilities,
+          isRecurring: activeTab === 'recurring' || formData.dates.length > 1,
+          manualDiscount: 0, // Default to 0 as requested or until we find the check button
+          paymentMethod: formData.paymentMethod
+        };
+
+        const response = await api.post('/bookings/calculate-quote', payload);
+        setQuoteData(response.data.data);
+      } catch (err) {
+        console.error('Failed to fetch quote:', err);
+      } finally {
+        setIsCalculatingQuote(false);
+      }
+    };
+
+    const timer = setTimeout(() => {
+      fetchQuote();
+    }, 500); // Debounce quote calculation
+
+    return () => clearTimeout(timer);
+  }, [formData.hall, formData.dates, formData.startTime, formData.endTime, formData.selectedFacilities, formData.paymentMethod, activeTab, usePerDateTimes, dateTimes]);
 
   const generateRecurringDates = useCallback((startDate: Date, endDate: Date, pattern: string) => {
     if (!startDate || !endDate || endDate < startDate || pattern === 'none') return [startDate];
@@ -877,24 +941,69 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                   ))}
                 </select>
               </div>
-              <div className="flex justify-between items-center mt-8">
-                <div>
-                  <div className="text-sm">Venue Price: ₦{hallPrice.toLocaleString()}</div>
-                  <div className="text-sm">Facilities Price: ₦{facilitiesPrice.toLocaleString()}</div>
-                  <div className="text-sm font-semibold">Total Price: ₦{totalPrice.toLocaleString()}</div>
-                  {(() => {
-                    const selectedHall = halls.find(h => h._id === formData.hall);
-                    const feePercentage = selectedHall?.reservationFeePercentage || 40;
-                    return (
-                      <div className="text-sm font-bold text-[#B68945]">
-                        Reservation Fee ({feePercentage}%): ₦{(totalPrice * (feePercentage / 100)).toLocaleString()}
+              <div className="mt-8 pt-6 border-t border-gray-100">
+                {isCalculatingQuote ? (
+                  <div className="flex items-center gap-2 text-primary">
+                    <CustomLoader size={16} />
+                    <span className="text-xs font-bold uppercase tracking-widest">Recalculating Quote...</span>
+                  </div>
+                ) : quoteData ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50/50 p-6 rounded-[2rem] border border-gray-100">
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>Venue Rental:</span>
+                        <span className="font-bold text-gray-900">₦{quoteData.hallPrice.toLocaleString()}</span>
                       </div>
-                    );
-                  })()}
+                      {quoteData.facilitiesPrice > 0 && (
+                        <div className="flex justify-between text-xs text-gray-500">
+                          <span>Facilities:</span>
+                          <span className="font-bold text-gray-900">₦{quoteData.facilitiesPrice.toLocaleString()}</span>
+                        </div>
+                      )}
+                      {quoteData.discountAmount > 0 && (
+                        <div className="flex justify-between text-xs text-green-600">
+                          <span>Discount:</span>
+                          <span className="font-bold">-₦{quoteData.discountAmount.toLocaleString()}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>VAT (7.5%):</span>
+                        <span className="font-bold text-gray-900">₦{quoteData.feeBreakdown.vat.toLocaleString()}</span>
+                      </div>
+                      {quoteData.feeBreakdown.fee > 0 && (
+                        <div className="flex justify-between text-xs text-amber-600">
+                          <span>Transaction Fee:</span>
+                          <span className="font-bold">₦{quoteData.feeBreakdown.fee.toLocaleString()}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex flex-col justify-end space-y-3">
+                      <div className="text-right">
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Total Amount Due</span>
+                        <span className="text-3xl font-black text-primary italic leading-none">₦{quoteData.feeBreakdown.totalAmount.toLocaleString()}</span>
+                      </div>
+                      {quoteData.reservationFeeDetails && (
+                        <div className="text-right bg-primary/5 p-3 rounded-2xl border border-primary/10">
+                          <span className="text-[10px] font-black text-primary uppercase tracking-widest block mb-1">Part Payment ({quoteData.reservationFeeDetails.percentage}%)</span>
+                          <span className="text-xl font-black text-primary">₦{quoteData.reservationFeeDetails.totalAmount.toLocaleString()}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <div className="text-sm">Venue Price: ₦{hallPrice.toLocaleString()}</div>
+                      <div className="text-sm">Facilities Price: ₦{facilitiesPrice.toLocaleString()}</div>
+                      <div className="text-sm font-semibold">Total Price: ₦{totalPrice.toLocaleString()}</div>
+                    </div>
+                  </div>
+                )}
+                <div className="flex justify-end mt-6">
+                  <button type="submit" disabled={isCalculatingQuote} className="px-8 py-4 rounded-2xl text-white bg-primary hover:bg-primary/90 font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20 transition-all active:scale-95 disabled:opacity-50">
+                    Reserve with Part Payment
+                  </button>
                 </div>
-                <button type="submit" className="px-4 py-2 rounded-md text-white bg-primary hover:bg-primary-dark">
-                  Reserve with Part Payment
-                </button>
               </div>
             </form>
           )}
@@ -1146,18 +1255,66 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                 </select>
               </div>
 
-              <div className="flex justify-between items-center mt-8">
-                <div>
-                  <div className="text-sm">Venue Price: ₦{hallPrice.toLocaleString()}</div>
-                  <div className="text-sm">Facilities Price: ₦{facilitiesPrice.toLocaleString()}</div>
-                  {discountAmount > 0 && (
-                    <div className="text-sm text-green-600 font-medium">Discount Applied: -₦{discountAmount.toLocaleString()}</div>
-                  )}
-                  <div className="text-sm font-bold">Total Price: ₦{totalPrice.toLocaleString()}</div>
+              <div className="mt-8 pt-6 border-t border-gray-100">
+                {isCalculatingQuote ? (
+                  <div className="flex items-center gap-2 text-primary">
+                    <CustomLoader size={16} />
+                    <span className="text-xs font-bold uppercase tracking-widest">Recalculating Quote...</span>
+                  </div>
+                ) : quoteData ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50/50 p-6 rounded-[2rem] border border-gray-100">
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>Venue Rental:</span>
+                        <span className="font-bold text-gray-900">₦{quoteData.hallPrice.toLocaleString()}</span>
+                      </div>
+                      {quoteData.facilitiesPrice > 0 && (
+                        <div className="flex justify-between text-xs text-gray-500">
+                          <span>Facilities:</span>
+                          <span className="font-bold text-gray-900">₦{quoteData.facilitiesPrice.toLocaleString()}</span>
+                        </div>
+                      )}
+                      {quoteData.discountAmount > 0 && (
+                        <div className="flex justify-between text-xs text-green-600">
+                          <span>Discount:</span>
+                          <span className="font-bold">-₦{quoteData.discountAmount.toLocaleString()}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>VAT (7.5%):</span>
+                        <span className="font-bold text-gray-900">₦{quoteData.feeBreakdown.vat.toLocaleString()}</span>
+                      </div>
+                      {quoteData.feeBreakdown.fee > 0 && (
+                        <div className="flex justify-between text-xs text-amber-600">
+                          <span>Transaction Fee:</span>
+                          <span className="font-bold">₦{quoteData.feeBreakdown.fee.toLocaleString()}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex flex-col justify-end space-y-3">
+                      <div className="text-right">
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Total Amount Due</span>
+                        <span className="text-3xl font-black text-primary italic leading-none">₦{quoteData.feeBreakdown.totalAmount.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <div className="text-sm">Venue Price: ₦{hallPrice.toLocaleString()}</div>
+                      <div className="text-sm">Facilities Price: ₦{facilitiesPrice.toLocaleString()}</div>
+                      {discountAmount > 0 && (
+                        <div className="text-sm text-green-600 font-medium">Discount Applied: -₦{discountAmount.toLocaleString()}</div>
+                      )}
+                      <div className="text-sm font-bold">Total Price: ₦{totalPrice.toLocaleString()}</div>
+                    </div>
+                  </div>
+                )}
+                <div className="flex justify-end mt-6">
+                  <button type="submit" disabled={isCalculatingQuote} className="px-8 py-4 rounded-2xl text-white bg-primary hover:bg-primary/90 font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20 transition-all active:scale-95 disabled:opacity-50">
+                    Create Recurring Booking
+                  </button>
                 </div>
-                <button type="submit" className="px-4 py-2 rounded-md text-white bg-primary hover:bg-primary-dark">
-                  Create Recurring Booking
-                </button>
               </div>
             </form>
           )}
@@ -1357,15 +1514,63 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                     ))}
                 </select>
               </div>
-              <div className="flex justify-between items-center mt-8">
-                <div>
-                  <div className="text-sm">Venue Price: ₦{hallPrice.toLocaleString()}</div>
-                  <div className="text-sm">Facilities Price: ₦{facilitiesPrice.toLocaleString()}</div>
-                  <div className="text-sm font-bold">Total Price: ₦{totalPrice.toLocaleString()}</div>
+              <div className="mt-8 pt-6 border-t border-gray-100">
+                {isCalculatingQuote ? (
+                  <div className="flex items-center gap-2 text-primary">
+                    <CustomLoader size={16} />
+                    <span className="text-xs font-bold uppercase tracking-widest">Recalculating Quote...</span>
+                  </div>
+                ) : quoteData ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50/50 p-6 rounded-[2rem] border border-gray-100">
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>Venue Rental:</span>
+                        <span className="font-bold text-gray-900">₦{quoteData.hallPrice.toLocaleString()}</span>
+                      </div>
+                      {quoteData.facilitiesPrice > 0 && (
+                        <div className="flex justify-between text-xs text-gray-500">
+                          <span>Facilities:</span>
+                          <span className="font-bold text-gray-900">₦{quoteData.facilitiesPrice.toLocaleString()}</span>
+                        </div>
+                      )}
+                      {quoteData.discountAmount > 0 && (
+                        <div className="flex justify-between text-xs text-green-600">
+                          <span>Discount:</span>
+                          <span className="font-bold">-₦{quoteData.discountAmount.toLocaleString()}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>VAT (7.5%):</span>
+                        <span className="font-bold text-gray-900">₦{quoteData.feeBreakdown.vat.toLocaleString()}</span>
+                      </div>
+                      {quoteData.feeBreakdown.fee > 0 && (
+                        <div className="flex justify-between text-xs text-amber-600">
+                          <span>Transaction Fee:</span>
+                          <span className="font-bold">₦{quoteData.feeBreakdown.fee.toLocaleString()}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex flex-col justify-end space-y-3">
+                      <div className="text-right">
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Total Amount Due</span>
+                        <span className="text-3xl font-black text-primary italic leading-none">₦{quoteData.feeBreakdown.totalAmount.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <div className="text-sm">Venue Price: ₦{hallPrice.toLocaleString()}</div>
+                      <div className="text-sm">Facilities Price: ₦{facilitiesPrice.toLocaleString()}</div>
+                      <div className="text-sm font-bold">Total Price: ₦{totalPrice.toLocaleString()}</div>
+                    </div>
+                  </div>
+                )}
+                <div className="flex justify-end mt-6">
+                  <button type="submit" disabled={isCalculatingQuote} className="px-8 py-4 rounded-2xl text-white bg-primary hover:bg-primary/90 font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20 transition-all active:scale-95 disabled:opacity-50">
+                    Pay in Full
+                  </button>
                 </div>
-                <button type="submit" className="px-4 py-2 rounded-md text-white bg-primary hover:bg-primary-dark">
-                  Pay in Full
-                </button>
               </div>
             </form>
           )}

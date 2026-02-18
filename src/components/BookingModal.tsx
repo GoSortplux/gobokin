@@ -50,6 +50,8 @@ const BookingModal: FC<BookingModalProps> = ({
   const [totalPrice, setTotalPrice] = useState(0);
   const [hallCost, setHallCost] = useState(0);
   const [discountAmount, setDiscountAmount] = useState(0);
+  const [quoteData, setQuoteData] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
+  const [isCalculatingQuote, setIsCalculatingQuote] = useState(false);
   const [startTime, setStartTime] = useState(initialStartTime);
   const [endTime, setEndTime] = useState(initialEndTime);
   const [usePerDateTimes, setUsePerDateTimes] = useState(false);
@@ -342,7 +344,51 @@ const BookingModal: FC<BookingModalProps> = ({
   const handleBookNow = () => handlePayment('book');
   const handleReserveNow = () => handlePayment('reserve');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const fetchQuote = async () => {
+    if (!selectedDates || selectedDates.length === 0) return;
+
+    setIsCalculatingQuote(true);
+    setError('');
+    try {
+      const bookingDates = selectedDates.map(date => {
+        const dateStr = date.toDateString();
+        const times = usePerDateTimes && dateTimes[dateStr] ? dateTimes[dateStr] : { startTime, endTime };
+        const [startHour, startMinute] = times.startTime.split(':').map(Number);
+        const [endHour, endMinute] = times.endTime.split(':').map(Number);
+        const startDate = new Date(date);
+        startDate.setHours(startHour, startMinute, 0, 0);
+        const endDate = new Date(date);
+        endDate.setHours(endHour, endMinute, 0, 0);
+        return {
+          startTime: startDate.toISOString(),
+          endTime: endDate.toISOString(),
+        };
+      });
+
+      const facilitiesPayload = selectedFacilities.map(f => ({
+        facilityId: f.facility?._id || f._id,
+        quantity: f.quantity,
+      }));
+
+      const payload = {
+        hallId,
+        bookingDates,
+        selectedFacilities: facilitiesPayload,
+        isRecurring: selectedDates.length > 1,
+        manualDiscount: 0
+      };
+
+      const response = await api.post('/bookings/calculate-quote', payload);
+      setQuoteData(response.data.data);
+    } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+      console.error('Failed to fetch quote:', err);
+      setError(err.response?.data?.message || 'Failed to calculate booking quote.');
+    } finally {
+      setIsCalculatingQuote(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (step === 2) {
       if (usePerDateTimes && selectedDates) {
@@ -357,6 +403,9 @@ const BookingModal: FC<BookingModalProps> = ({
         setError('Please select start and end times.');
         return;
       }
+
+      // Fetch quote before moving to step 3
+      await fetchQuote();
     }
     setError('');
     if (step < 3) {
@@ -573,90 +622,170 @@ const BookingModal: FC<BookingModalProps> = ({
 
           {step === 3 && (
             <div className="bg-gray-50 p-4 lg:p-6 rounded-lg max-h-[60vh] overflow-y-auto">
-              <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4 border-b pb-2">Booking Summary</h3>
-              <div className="space-y-3 text-sm">
-                <div className="flex flex-col border-b pb-2">
-                  <span className="text-gray-600 font-medium mb-1">Dates & Times:</span>
-                  <div className="pl-2 space-y-1">
-                    {selectedDates?.map(date => {
-                      const dateStr = date.toDateString();
-                      const times = usePerDateTimes && dateTimes[dateStr] ? dateTimes[dateStr] : { startTime, endTime };
-                      return (
-                        <div key={dateStr} className="flex justify-between text-xs">
-                          <span>{date.toLocaleDateString()}:</span>
-                          <span className="font-medium">{times.startTime} - {times.endTime}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
+              {isCalculatingQuote ? (
+                <div className="flex flex-col items-center justify-center py-10">
+                  <CustomLoader />
+                  <p className="mt-4 text-gray-500 font-medium">Calculating your quote...</p>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Event Details:</span>
-                  <span className="font-medium text-gray-900">{eventDetails}</span>
-                </div>
-                <div className="border-t my-2"></div>
-                {hall && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Hall Rental:</span>
-                    <span className="font-medium text-gray-900">₦{hallCost.toLocaleString()}</span>
-                  </div>
-                )}
-                {selectedFacilities.length > 0 && (
-                  <div className="pt-2">
-                    <h4 className="font-medium text-gray-800 mb-1">Selected Facilities:</h4>
-                    {selectedFacilities.map(f => (
-                      <div key={f._id} className="flex justify-between items-center text-gray-600">
-                        <span>{f.facility?.name || f.name} (x{f.quantity})</span>
-                        <span className="font-medium">₦{calculateFacilityCost(f).toLocaleString()}</span>
+              ) : (
+                <div className="space-y-6">
+                  <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4 border-b pb-2">Booking Summary</h3>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex flex-col border-b pb-2">
+                      <span className="text-gray-600 font-medium mb-1">Dates & Times:</span>
+                      <div className="pl-2 space-y-1">
+                        {selectedDates?.map(date => {
+                          const dateStr = date.toDateString();
+                          const times = usePerDateTimes && dateTimes[dateStr] ? dateTimes[dateStr] : { startTime, endTime };
+                          return (
+                            <div key={dateStr} className="flex justify-between text-xs">
+                              <span>{date.toLocaleDateString()}:</span>
+                              <span className="font-medium">{times.startTime} - {times.endTime}</span>
+                            </div>
+                          );
+                        })}
                       </div>
-                    ))}
-                  </div>
-                )}
-                {discountAmount > 0 && (
-                  <div className="flex justify-between text-green-600 font-medium pt-2 border-t mt-2">
-                    <span>Discount Applied:</span>
-                    <span>-₦{discountAmount.toLocaleString()}</span>
-                  </div>
-                )}
-                <div className={`flex justify-between font-bold text-lg ${discountAmount > 0 ? '' : 'border-t mt-2'} pt-2`}>
-                    <span className="text-gray-800">Total Price:</span>
-                    <span className="text-gray-900">₦{totalPrice.toLocaleString()}</span>
-                </div>
-                 {bookingMode === 'reserve' && (
-                  <div className="flex justify-between mt-2">
-                    <span className="text-gray-600">
-                      Reservation Fee ({hall?.reservationFeePercentage || 40}%):
-                    </span>
-                    <span className="font-medium text-gray-900">
-                      ₦{(totalPrice * ((hall?.reservationFeePercentage || 40) / 100)).toLocaleString()}
-                    </span>
-                  </div>
-                )}
-                <div className="mt-6 pt-4 border-t border-gray-200">
-                  <label className="flex items-start cursor-pointer group">
-                    <div className="flex items-center h-5">
-                      <input
-                        id="refund-policy-checkbox"
-                        name="refund-policy-checkbox"
-                        type="checkbox"
-                        className="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary cursor-pointer"
-                        checked={hasAcceptedRefundPolicy}
-                        onChange={(e) => setHasAcceptedRefundPolicy(e.target.checked)}
-                      />
                     </div>
-                    <div className="ml-3 text-sm">
-                      <span className="text-gray-600">I have read and agree to the </span>
-                      <button
-                        type="button"
-                        onClick={() => setShowRefundPolicy(true)}
-                        className="text-primary font-semibold hover:underline"
-                      >
-                        Refund & Cancellation Policy
-                      </button>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Event Details:</span>
+                      <span className="font-medium text-gray-900">{eventDetails}</span>
                     </div>
-                  </label>
+                    <div className="border-t my-2"></div>
+
+                    {quoteData ? (
+                      <>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Hall Rental:</span>
+                          <span className="font-medium text-gray-900">₦{(quoteData.hallPrice || 0).toLocaleString()}</span>
+                        </div>
+                        {quoteData.facilitiesPrice > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Facilities:</span>
+                            <span className="font-medium text-gray-900">₦{quoteData.facilitiesPrice.toLocaleString()}</span>
+                          </div>
+                        )}
+                        {quoteData.discountAmount > 0 && (
+                          <div className="flex justify-between text-green-600">
+                            <span>Discount ({quoteData.discountType || 'Applied'}):</span>
+                            <span className="font-medium">-₦{quoteData.discountAmount.toLocaleString()}</span>
+                          </div>
+                        )}
+
+                        <div className="border-t my-2"></div>
+
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Subtotal:</span>
+                          <span className="font-medium text-gray-900">₦{(quoteData.feeBreakdown?.baseAmount || quoteData.totalPrice).toLocaleString()}</span>
+                        </div>
+
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">VAT (7.5%):</span>
+                          <span className="font-medium text-gray-900">₦{(quoteData.feeBreakdown?.vat || 0).toLocaleString()}</span>
+                        </div>
+
+                        {quoteData.feeBreakdown?.fee > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Transaction Fee:</span>
+                            <span className="font-medium text-gray-900">₦{quoteData.feeBreakdown.fee.toLocaleString()}</span>
+                          </div>
+                        )}
+
+                        <div className="flex justify-between font-bold text-lg border-t mt-2 pt-2">
+                            <span className="text-gray-800">Total Price:</span>
+                            <span className="text-gray-900">₦{(quoteData.feeBreakdown?.totalAmount || quoteData.totalPrice).toLocaleString()}</span>
+                        </div>
+
+                        {bookingMode === 'reserve' && quoteData.reservationFeeDetails && (
+                          <div className="mt-4 p-3 bg-primary/5 rounded-xl border border-primary/10">
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-xs font-bold text-primary uppercase">Reservation Payment</span>
+                              <span className="text-xs font-black text-primary">{quoteData.reservationFeeDetails.percentage}% Required</span>
+                            </div>
+                            <div className="space-y-1">
+                              <div className="flex justify-between text-xs text-gray-600">
+                                <span>Base Reservation:</span>
+                                <span>₦{quoteData.reservationFeeDetails.baseAmount.toLocaleString()}</span>
+                              </div>
+                              <div className="flex justify-between text-xs text-gray-600">
+                                <span>VAT on Reservation:</span>
+                                <span>₦{quoteData.reservationFeeDetails.vat.toLocaleString()}</span>
+                              </div>
+                              <div className="flex justify-between font-bold text-sm text-gray-900 border-t border-primary/10 pt-1 mt-1">
+                                <span>To Pay Now:</span>
+                                <span>₦{quoteData.reservationFeeDetails.totalAmount.toLocaleString()}</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        {hall && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Hall Rental:</span>
+                            <span className="font-medium text-gray-900">₦{hallCost.toLocaleString()}</span>
+                          </div>
+                        )}
+                        {selectedFacilities.length > 0 && (
+                          <div className="pt-2">
+                            <h4 className="font-medium text-gray-800 mb-1">Selected Facilities:</h4>
+                            {selectedFacilities.map(f => (
+                              <div key={f._id} className="flex justify-between items-center text-gray-600">
+                                <span>{f.facility?.name || f.name} (x{f.quantity})</span>
+                                <span className="font-medium">₦{calculateFacilityCost(f).toLocaleString()}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {discountAmount > 0 && (
+                          <div className="flex justify-between text-green-600 font-medium pt-2 border-t mt-2">
+                            <span>Discount Applied:</span>
+                            <span>-₦{discountAmount.toLocaleString()}</span>
+                          </div>
+                        )}
+                        <div className={`flex justify-between font-bold text-lg ${discountAmount > 0 ? '' : 'border-t mt-2'} pt-2`}>
+                            <span className="text-gray-800">Total Price:</span>
+                            <span className="text-gray-900">₦{totalPrice.toLocaleString()}</span>
+                        </div>
+                        {bookingMode === 'reserve' && (
+                          <div className="flex justify-between mt-2">
+                            <span className="text-gray-600">
+                              Reservation Fee ({hall?.reservationFeePercentage || 40}%):
+                            </span>
+                            <span className="font-medium text-gray-900">
+                              ₦{(totalPrice * ((hall?.reservationFeePercentage || 40) / 100)).toLocaleString()}
+                            </span>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                  <div className="mt-6 pt-4 border-t border-gray-200">
+                    <label className="flex items-start cursor-pointer group">
+                      <div className="flex items-center h-5">
+                        <input
+                          id="refund-policy-checkbox"
+                          name="refund-policy-checkbox"
+                          type="checkbox"
+                          className="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary cursor-pointer"
+                          checked={hasAcceptedRefundPolicy}
+                          onChange={(e) => setHasAcceptedRefundPolicy(e.target.checked)}
+                        />
+                      </div>
+                      <div className="ml-3 text-sm">
+                        <span className="text-gray-600">I have read and agree to the </span>
+                        <button
+                          type="button"
+                          onClick={() => setShowRefundPolicy(true)}
+                          className="text-primary font-semibold hover:underline"
+                        >
+                          Refund & Cancellation Policy
+                        </button>
+                      </div>
+                    </label>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
 
