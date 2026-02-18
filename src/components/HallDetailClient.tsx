@@ -209,7 +209,7 @@ const HallDetailClient = ({ slugOrId, initialHall }: HallDetailClientProps) => {
   if (!hall) {
     return (
         <div className="pt-32 pb-20">
-            <ErrorState message="We couldn't find the hall you're looking for." />
+            <ErrorState message="We couldn't find the venue you're looking for." />
         </div>
     );
   }
@@ -319,7 +319,7 @@ const HallDetailClient = ({ slugOrId, initialHall }: HallDetailClientProps) => {
             <button
               onClick={handleShare}
               className="absolute top-4 left-4 z-20 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-all duration-300 hover:scale-110 active:scale-95 group/share"
-              title="Share Hall"
+              title="Share Venue"
             >
               <Share2 size={18} className="text-gray-700 group-hover/share:text-primary transition-colors" />
             </button>
@@ -366,7 +366,7 @@ const HallDetailClient = ({ slugOrId, initialHall }: HallDetailClientProps) => {
             </div>
 
             <div className="py-6 border-b">
-              <h3 className="font-semibold text-xl text-gray-800 mb-4">About this hall</h3>
+              <h3 className="font-semibold text-xl text-gray-800 mb-4">About this venue</h3>
               <p className="text-gray-700 whitespace-pre-line">
                 {hall.description}
               </p>
@@ -437,7 +437,7 @@ const HallDetailClient = ({ slugOrId, initialHall }: HallDetailClientProps) => {
               <div className="py-6 border-b">
                 <div className="flex items-center space-x-2 mb-4">
                   <AlertTriangle className="h-6 w-6 text-amber-500 animate-pulse" />
-                  <h3 className="font-semibold text-xl text-gray-800">Hall Rules</h3>
+                  <h3 className="font-semibold text-xl text-gray-800">Venue Rules</h3>
                 </div>
                 <div className="bg-amber-50 border border-amber-100 rounded-lg p-5">
                   <ul className="space-y-3">
@@ -463,13 +463,13 @@ const HallDetailClient = ({ slugOrId, initialHall }: HallDetailClientProps) => {
                   onChange={() => {}}
                   onMonthChange={setDisplayedMonth}
                   displayedMonth={displayedMonth}
-                  getDateAvailability={isOnlineBookingEnabled ? getDateAvailability : () => 'fully booked'}
+                  getDateAvailability={getDateAvailability}
                   onDateClick={(date) => {
                     if (!isOnlineBookingEnabled) {
                       Swal.fire({
                         icon: 'info',
                         title: 'Contact Owner to Book',
-                        text: 'Online booking is currently disabled for this hall. Please contact the owner for inquiries.',
+                        text: 'Online booking is currently disabled for this venue. Contact Owner to Book',
                         confirmButtonColor: '#295FA7',
                       });
                       return;
@@ -491,7 +491,7 @@ const HallDetailClient = ({ slugOrId, initialHall }: HallDetailClientProps) => {
                       icon: 'question',
                       showCancelButton: true,
                       confirmButtonText: 'Book Now',
-                      cancelButtonText: 'Reserve Hall',
+                      cancelButtonText: 'Reserve Venue',
                       confirmButtonColor: '#295FA7',
                       cancelButtonColor: '#B68945',
                     }).then((result) => {
@@ -574,7 +574,7 @@ const HallDetailClient = ({ slugOrId, initialHall }: HallDetailClientProps) => {
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500 italic">No reviews yet for this hall.</p>
+                <p className="text-gray-500 italic">No reviews yet for this venue.</p>
               )}
             </div>
              {/* Recommendation Section */}
@@ -632,7 +632,7 @@ const HallDetailClient = ({ slugOrId, initialHall }: HallDetailClientProps) => {
                 <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-3">
                   <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
                   <p className="text-sm text-amber-800">
-                    Online booking is currently disabled for this hall. Contact Owner to Book
+                    Online booking is currently disabled for this venue. Contact Owner to Book
                   </p>
                 </div>
               )}

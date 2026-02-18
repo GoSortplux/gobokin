@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     if (!hall) {
       return {
-        title: 'Hall Not Found | Gobokin',
+        title: 'Venue Not Found | Gobokin',
       };
     }
 
@@ -56,13 +56,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   } catch (error) {
     console.error('Error generating metadata:', error);
     return {
-      title: 'Hall | Gobokin',
+      title: 'Venue | Gobokin',
     };
   }
 }
 
 export default async function HallDetailPage({ params }: Props) {
   const { slug } = await params;
+
   const hall = await getHall(slug);
 
   return <HallDetailClient slugOrId={slug} initialHall={hall} />;
