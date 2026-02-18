@@ -438,6 +438,7 @@ const EnhancedAnalytics = ({ initialData }: { initialData?: AnalyticsData | null
                             <th className="pb-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Event</th>
                             <th className="pb-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Date</th>
                             <th className="pb-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Price</th>
+                            <th className="pb-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Payment</th>
                             <th className="pb-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
                           </tr>
                         </thead>
@@ -479,6 +480,11 @@ const EnhancedAnalytics = ({ initialData }: { initialData?: AnalyticsData | null
                                         )}
                                     </td>
                                     <td className="py-4 whitespace-nowrap text-sm font-black text-gray-900">{formatCurrency(booking.totalPrice)}</td>
+                                    <td className="py-4 whitespace-nowrap">
+                                        <span className={`px-2 py-1 inline-flex text-[10px] font-black uppercase rounded-md ${booking.paymentStatus === 'paid' ? 'bg-green-50 text-green-600' : 'bg-orange-50 text-orange-600'}`}>
+                                            {booking.paymentStatus}
+                                        </span>
+                                    </td>
                                     <td className="py-4 whitespace-nowrap text-right">
                                         <span className={`px-2 py-1 inline-flex text-[10px] font-black uppercase rounded-md ${booking.status === 'confirmed' ? 'bg-green-50 text-green-600' : 'bg-yellow-50 text-yellow-600'}`}>
                                             {booking.status}

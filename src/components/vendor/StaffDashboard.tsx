@@ -26,6 +26,7 @@ interface Booking {
     endTime: string;
   }[];
   totalPrice: number;
+  paymentStatus: string;
   status: string;
   isRecurring?: boolean;
   recurringBookingId?: string;
@@ -154,6 +155,7 @@ const StaffDashboard = () => {
                     <th className="p-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
                     <th className="p-3 text-left text-xs font-medium text-gray-500 uppercase">Venue</th>
                     <th className="p-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                    <th className="p-3 text-left text-xs font-medium text-gray-500 uppercase">Payment</th>
                     <th className="p-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                   </tr>
                 </thead>
@@ -190,6 +192,11 @@ const StaffDashboard = () => {
                         ) : (
                           formatDate(new Date(booking.bookingDates[0].startTime), 'MMM d, yyyy')
                         )}
+                      </td>
+                      <td className="p-3 whitespace-nowrap">
+                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${booking.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>
+                          {booking.paymentStatus}
+                        </span>
                       </td>
                       <td className="p-3 whitespace-nowrap">
                         <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${booking.status === 'confirmed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
