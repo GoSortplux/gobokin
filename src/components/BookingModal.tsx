@@ -675,18 +675,13 @@ const BookingModal: FC<BookingModalProps> = ({
 
                         <div className="flex justify-between">
                           <span className="text-gray-600">Subtotal:</span>
-                          <span className="font-medium text-gray-900">₦{(quoteData.feeBreakdown?.baseAmount || quoteData.totalPrice).toLocaleString()}</span>
+                          <span className="font-medium text-gray-900">₦{(quoteData.feeBreakdown?.serviceTotal || quoteData.totalPrice).toLocaleString()}</span>
                         </div>
 
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">VAT (7.5%):</span>
-                          <span className="font-medium text-gray-900">₦{(quoteData.feeBreakdown?.vat || 0).toLocaleString()}</span>
-                        </div>
-
-                        {quoteData.feeBreakdown?.fee > 0 && (
+                        {quoteData.feeBreakdown?.transactionFee > 0 && (
                           <div className="flex justify-between">
                             <span className="text-gray-600">Transaction Fee:</span>
-                            <span className="font-medium text-gray-900">₦{quoteData.feeBreakdown.fee.toLocaleString()}</span>
+                            <span className="font-medium text-gray-900">₦{quoteData.feeBreakdown.transactionFee.toLocaleString()}</span>
                           </div>
                         )}
 
@@ -704,12 +699,14 @@ const BookingModal: FC<BookingModalProps> = ({
                             <div className="space-y-1">
                               <div className="flex justify-between text-xs text-gray-600">
                                 <span>Base Reservation:</span>
-                                <span>₦{quoteData.reservationFeeDetails.baseAmount.toLocaleString()}</span>
+                                <span>₦{quoteData.reservationFeeDetails.serviceTotal.toLocaleString()}</span>
                               </div>
-                              <div className="flex justify-between text-xs text-gray-600">
-                                <span>VAT on Reservation:</span>
-                                <span>₦{quoteData.reservationFeeDetails.vat.toLocaleString()}</span>
-                              </div>
+                              {quoteData.reservationFeeDetails.transactionFee > 0 && (
+                                <div className="flex justify-between text-xs text-gray-600">
+                                  <span>Transaction Fee:</span>
+                                  <span>₦{quoteData.reservationFeeDetails.transactionFee.toLocaleString()}</span>
+                                </div>
+                              )}
                               <div className="flex justify-between font-bold text-sm text-gray-900 border-t border-primary/10 pt-1 mt-1">
                                 <span>To Pay Now:</span>
                                 <span>₦{quoteData.reservationFeeDetails.totalAmount.toLocaleString()}</span>
