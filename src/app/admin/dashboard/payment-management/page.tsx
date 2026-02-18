@@ -242,8 +242,9 @@ const SubaccountsTab = () => {
       setSubaccounts(Array.isArray(subaccountsRes.data.data) ? subaccountsRes.data.data : []);
       setBanks(banksRes.data.data);
 
-      if (commissionRes.data?.data?.rate !== undefined) {
-        setDefaultSplitPercentage(100 - commissionRes.data.data.rate);
+      const rate = commissionRes.data?.data?.value ?? commissionRes.data?.data?.rate;
+      if (rate !== undefined) {
+        setDefaultSplitPercentage(100 - rate);
       }
     } catch (error) {
       console.error("Error fetching initial data:", error);

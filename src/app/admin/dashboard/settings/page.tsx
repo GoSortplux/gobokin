@@ -35,7 +35,7 @@ const SettingsPage = () => {
                 const newSettings: Partial<Settings> = {};
 
                 if (commissionRes.status === 'fulfilled') {
-                    newSettings.commissionRate = commissionRes.value.data.data.rate;
+                    newSettings.commissionRate = commissionRes.value.data.data.value ?? commissionRes.value.data.data.rate;
                 }
                 if (pendingRes.status === 'fulfilled') {
                     newSettings.pendingBookingDeletionTime = pendingRes.value.data.data.time;
