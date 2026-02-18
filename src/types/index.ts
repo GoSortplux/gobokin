@@ -227,6 +227,7 @@ export interface SubscriptionRule {
   key: string;
   type: string;
   description: string;
+  display_text?: string;
   displayText?: string;
   createdAt?: string;
   updatedAt?: string;

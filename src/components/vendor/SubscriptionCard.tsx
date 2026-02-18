@@ -94,7 +94,7 @@ const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
           ))}
           {Array.isArray(tier.rules) && tier.rules.map((ruleItem, index) => {
             const ruleName = typeof ruleItem.rule === 'object' ? ruleItem.rule.name : 'Unknown Rule';
-            const ruleDisplayText = typeof ruleItem.rule === 'object' ? ruleItem.rule.displayText : undefined;
+            const ruleDisplayText = typeof ruleItem.rule === 'object' ? (ruleItem.rule.display_text || ruleItem.rule.displayText) : undefined;
             const displayValue = ruleItem.displayText || ruleDisplayText || `${ruleName} - ${ruleItem.value}`;
             return (
               <li key={`rule-${index}`} className="flex items-start">

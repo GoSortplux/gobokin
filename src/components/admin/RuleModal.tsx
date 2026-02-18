@@ -16,17 +16,22 @@ const RuleModal: React.FC<RuleModalProps> = ({ isOpen, onClose, onSubmit, rule }
     key: "",
     type: "number",
     description: "",
+    display_text: "",
   });
 
   useEffect(() => {
     if (rule) {
-      setFormData(rule);
+      setFormData({
+        ...rule,
+        display_text: rule.display_text || rule.displayText || ""
+      });
     } else {
       setFormData({
         name: "",
         key: "",
         type: "number",
         description: "",
+        display_text: "",
       });
     }
   }, [rule]);
@@ -93,6 +98,20 @@ const RuleModal: React.FC<RuleModalProps> = ({ isOpen, onClose, onSubmit, rule }
               <option value="boolean">Boolean</option>
               <option value="string">String</option>
             </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Display Text</label>
+            <input
+              type="text"
+              name="display_text"
+              required
+              value={formData.display_text}
+              onChange={handleChange}
+              placeholder="e.g. Max Staff Allowed"
+              className="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+            />
+            <p className="mt-1 ml-1 text-[10px] text-gray-400">This text will be displayed to users in subscription cards.</p>
           </div>
 
           <div>
