@@ -70,6 +70,7 @@ export interface Reservation {
   balanceAmount?: number;
   reservationFee?: number;
   status: string;
+  createdAt: string;
   paymentStatus?: string;
   walkInUserDetails?: {
     fullName: string;
