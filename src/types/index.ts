@@ -117,6 +117,10 @@ export interface User {
   avatar?: string;
   role: string[];
   activeRole: string;
+  accountName?: string;
+  accountNumber?: string;
+  bankCode?: string;
+  bvn?: string;
   hasAcceptedLatestPolicies: boolean;
   hasAcceptedHallOwnerPolicy: boolean;
   isVerified?: boolean;

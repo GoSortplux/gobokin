@@ -22,6 +22,7 @@ interface User {
   accountName?: string;
   accountNumber?: string;
   bankCode?: string;
+  bvn?: string;
 }
 
 interface Subaccount {
@@ -227,6 +228,7 @@ const SubaccountsTab = () => {
   const [selectedUserId, setSelectedUserId] = useState('');
   const [selectedBankCode, setSelectedBankCode] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
+  const [bvn, setBvn] = useState('');
   const [defaultSplitPercentage, setDefaultSplitPercentage] = useState<number | ''>('');
 
   const fetchSubaccountData = async () => {
@@ -282,8 +284,8 @@ const SubaccountsTab = () => {
 
   const handleCreateSubaccount = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedUserId || !selectedBankCode || !accountNumber || !accountName || defaultSplitPercentage === '') {
-        Swal.fire('Validation Error', 'Please fill all fields and validate the account.', 'error');
+    if (!selectedUserId || !selectedBankCode || !accountNumber || !accountName || !bvn || defaultSplitPercentage === '') {
+        Swal.fire('Validation Error', 'Please fill all fields, including BVN, and validate the account.', 'error');
         return;
     }
 
@@ -299,6 +301,7 @@ const SubaccountsTab = () => {
             bankCode: selectedBankCode,
             accountNumber,
             accountName,
+                bvn,
             defaultSplitPercentage: Number(defaultSplitPercentage),
         };
         await api.post('/subaccounts', payload);
@@ -308,6 +311,7 @@ const SubaccountsTab = () => {
         setSelectedBankCode('');
         setAccountNumber('');
         setAccountName('');
+            setBvn('');
         setDefaultSplitPercentage('');
         fetchSubaccountData();
     } catch (error: unknown) {
@@ -340,6 +344,7 @@ const SubaccountsTab = () => {
                               if (user.accountNumber) setAccountNumber(user.accountNumber);
                               if (user.bankCode) setSelectedBankCode(user.bankCode);
                               if (user.accountName) setAccountName(user.accountName);
+                              if (user.bvn) setBvn(user.bvn);
                             }
                           }}
                           className="mt-1 block w-full p-2 border border-gray-300 rounded-md text-gray-600"
@@ -390,6 +395,19 @@ const SubaccountsTab = () => {
                           value={accountName}
                           className="mt-1 block w-full p-2 border border-gray-300 rounded-md bg-gray-100 text-gray-800"
                           disabled
+                      />
+                  </div>
+                  <div>
+                      <label htmlFor="bvn" className="block text-sm font-medium text-gray-700">BVN</label>
+                      <input
+                          type="text"
+                          id="bvn"
+                          value={bvn}
+                          onChange={(e) => setBvn(e.target.value)}
+                          className="mt-1 block w-full p-2 border border-gray-300 rounded-md text-gray-600"
+                          placeholder="11 digits"
+                          maxLength={11}
+                          required
                       />
                   </div>
                   <div>
