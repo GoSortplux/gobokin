@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { useRouter } from "next/navigation";
 import { Booking, Hall } from "@/types";
 import api from "@/services/api";
 import Swal from "@/utils/sweetalert";
@@ -14,6 +15,7 @@ interface BookingCardProps {
 }
 
 const BookingCard: React.FC<BookingCardProps> = ({ booking, onViewReceipt, onReview, onRefresh, isPast }) => {
+  const router = useRouter();
   const [completingPayment, setCompletingPayment] = React.useState(false);
   const hall = typeof booking.hall === 'object' ? (booking.hall as Hall) : null;
   const hallName = hall ? hall.name : "Hall details unavailable";
@@ -138,7 +140,13 @@ const BookingCard: React.FC<BookingCardProps> = ({ booking, onViewReceipt, onRev
               </button>
             )}
             <button
-              onClick={() => onViewReceipt(booking.bookingId)}
+              onClick={() => {
+                if (booking.paymentStatus === 'pending') {
+                  router.push(`/booking/details/${booking.bookingId}`);
+                } else {
+                  onViewReceipt(booking.bookingId);
+                }
+              }}
               disabled={!hall}
               className={`py-2 px-4 rounded-md transition-colors duration-300 text-center flex-1 ${
                 !hall
@@ -146,7 +154,7 @@ const BookingCard: React.FC<BookingCardProps> = ({ booking, onViewReceipt, onRev
                   : "bg-gray-200 text-gray-800 hover:bg-gray-300"
               }`}
             >
-              View Receipt
+              {booking.paymentStatus === 'pending' ? 'View Details' : 'View Receipt'}
             </button>
           </div>
 

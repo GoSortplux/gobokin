@@ -1,6 +1,7 @@
 
 "use client";
 import React from "react";
+import { useRouter } from "next/navigation";
 import { Reservation, Hall } from "@/types";
 import api from "@/services/api";
 import Swal from "@/utils/sweetalert";
@@ -14,6 +15,7 @@ interface ReservationCardProps {
 }
 
 const ReservationCard: React.FC<ReservationCardProps> = ({ reservation, onCompleteBooking, onViewReceipt, onRefresh }) => {
+  const router = useRouter();
   const hall = typeof reservation.hall === "object" ? (reservation.hall as Hall) : null;
   const hallName = hall ? hall.name : "Hall details unavailable";
 
@@ -120,7 +122,13 @@ const ReservationCard: React.FC<ReservationCardProps> = ({ reservation, onComple
               </button>
             )}
             <button
-              onClick={() => onViewReceipt(reservation.reservationId)}
+              onClick={() => {
+                if (reservation.paymentStatus === 'pending') {
+                  router.push(`/booking/details/${reservation.reservationId}`);
+                } else {
+                  onViewReceipt(reservation.reservationId);
+                }
+              }}
               disabled={!hall}
               className={`px-4 py-2 rounded-md transition-colors flex-1 ${
                 !hall
@@ -128,7 +136,7 @@ const ReservationCard: React.FC<ReservationCardProps> = ({ reservation, onComple
                   : "bg-gray-200 text-gray-800 hover:bg-gray-300"
               }`}
             >
-              View Receipt
+              {reservation.paymentStatus === 'pending' ? 'View Details' : 'View Receipt'}
             </button>
           </div>
 

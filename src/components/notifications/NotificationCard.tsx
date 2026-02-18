@@ -14,9 +14,17 @@ const NotificationCard = ({ notification, onMarkAsRead, onMarkAsUnread }: Notifi
   const match = notification.message.match(urlRegex);
   const detectedLink = match ? match[0] : null;
 
+  // Detect booking or reservation ID (e.g., GOH-..., RES-...)
+  const bookingIdRegex = /\b(GOH|RES)-[A-Z0-9-]+\b/i;
+  const bookingMatch = notification.message.match(bookingIdRegex);
+  const detectedBookingId = bookingMatch ? bookingMatch[0] : null;
+
   const urlSlug = notification.hallSlug || notification.hallId || "";
 
-  const finalLink = notification.link || detectedLink || (urlSlug ? `/halls/${urlSlug}/review` : null);
+  const finalLink = notification.link ||
+                    detectedLink ||
+                    (detectedBookingId ? `/booking/details/${detectedBookingId}` : null) ||
+                    (urlSlug ? `/halls/${urlSlug}/review` : null);
   const displayMessage = notification.message.replace(urlRegex, '').trim();
 
   const isReview = finalLink?.includes('/review') || notification.message.toLowerCase().includes('review');

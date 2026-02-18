@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import api from "../../services/api";
 import BookingCard from "./BookingCard";
 import BookingDetailsModal from "./BookingDetailsModal";
@@ -10,6 +11,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Booking, Review, Hall } from "@/types";
 
 const BookingsView = () => {
+  const router = useRouter();
   const { user } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -43,8 +45,9 @@ const BookingsView = () => {
     try {
       const response = await api.get(`/bookings/search/${searchTerm}`);
       if (response.data.data) {
-        setSelectedBooking(response.data.data);
-        setIsModalOpen(true);
+        const result = response.data.data;
+        const id = result.bookingId || result.reservationId;
+        router.push(`/booking/details/${id}`);
       } else {
         Swal.fire("Not Found", "Booking not found.", "error");
       }
