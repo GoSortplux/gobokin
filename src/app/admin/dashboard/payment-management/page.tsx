@@ -232,14 +232,19 @@ const SubaccountsTab = () => {
   const fetchSubaccountData = async () => {
     setLoading(true);
     try {
-      const [usersRes, subaccountsRes, banksRes] = await Promise.all([
+      const [usersRes, subaccountsRes, banksRes, commissionRes] = await Promise.all([
         api.get('/users?role=hall-owner'),
         api.get('/subaccounts'),
         api.get('/monnify/banks'),
+        api.get('/settings/commission-rate'),
       ]);
       setUsers(usersRes.data.data);
       setSubaccounts(Array.isArray(subaccountsRes.data.data) ? subaccountsRes.data.data : []);
       setBanks(banksRes.data.data);
+
+      if (commissionRes.data?.data?.rate !== undefined) {
+        setDefaultSplitPercentage(100 - commissionRes.data.data.rate);
+      }
     } catch (error) {
       console.error("Error fetching initial data:", error);
       Swal.fire("Error", "Could not fetch required data.", "error");
@@ -393,12 +398,14 @@ const SubaccountsTab = () => {
                           id="defaultSplitPercentage"
                           value={defaultSplitPercentage}
                           onChange={(e) => setDefaultSplitPercentage(Number(e.target.value))}
-                          className="mt-1 block w-full p-2 border border-gray-300 rounded-md text-gray-600"
+                          className="mt-1 block w-full p-2 border border-gray-300 rounded-md bg-gray-100 text-gray-800"
                           placeholder="e.g., 90"
                           min="0"
                           max="100"
                           required
+                          disabled
                       />
+                      <p className="mt-1 text-[10px] text-gray-400 italic">This is calculated based on the platform&apos;s commission rate.</p>
                   </div>
                   <button
                       type="submit"
