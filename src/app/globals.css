@@ -90,39 +90,19 @@ input[type="reset"]:disabled {
 }
 
 /* Custom styles for VenueCard slider dots */
-.venue-card-slick .slick-dots {
-  position: absolute;
-  bottom: 10px;
-  padding: 0;
-  margin: 0;
-  width: 100%;
-  list-style: none;
-  text-align: center;
-  z-index: 10;
+.hall-card-slick .slick-dots {
+  bottom: 12px;
 }
 
-.venue-card-slick .slick-dots li {
-  display: inline-block;
-  margin: 0 3px;
+.hall-card-slick .slick-dots li button:before {
+  color: white;
+  opacity: 0.5;
+  font-size: 8px;
 }
 
-.venue-card-slick .slick-dots li button {
-  padding: 0;
-  width: 8px;
-  height: 8px;
-  border: none;
-  background-color: rgba(255, 255, 255, 0.5);
-  border-radius: 50%;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.venue-card-slick .slick-dots li button:before {
-  content: ''; /* Hide the default pseudo-element */
-}
-
-.venue-card-slick .slick-dots li.slick-active button {
-  background-color: white;
+.hall-card-slick .slick-dots li.slick-active button:before {
+  color: white;
+  opacity: 1;
 }
 
 @media print {

@@ -149,6 +149,7 @@ const HomePage = () => {
               {!scrolled && (
                 <motion.div
                   initial={{ opacity: 1, height: 'auto' }}
+                  animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
                   transition={{ duration: 0.3, ease: 'easeInOut' }}
                 >

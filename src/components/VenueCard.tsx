@@ -34,7 +34,7 @@ const VenueCard = ({ venue }: VenueCardProps) => {
       <div data-testid="venue-card" className="h-full block bg-white rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
         <div className="relative venue-card-slider">
           {venue.images && venue.images.length > 1 ? (
-            <Slider {...settings} className="venue-card-slick">
+            <Slider {...settings} className="hall-card-slick">
               {venue.images.map((image, index) => (
                 <Link href={`/venues/${createVenueSlug(venue.name, venue._id, venue.slug)}`} key={index}>
                   <div className="relative h-48 w-full">
