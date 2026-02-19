@@ -339,6 +339,13 @@ const SubaccountsTab = () => {
                           onChange={(e) => {
                             const userId = e.target.value;
                             setSelectedUserId(userId);
+
+                            // Clear previous user data from form
+                            setAccountNumber('');
+                            setSelectedBankCode('');
+                            setAccountName('');
+                            setBvn('');
+
                             const user = users.find(u => u._id === userId);
                             if (user) {
                               if (user.accountNumber) setAccountNumber(user.accountNumber);
