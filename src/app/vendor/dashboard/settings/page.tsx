@@ -16,6 +16,8 @@ interface BankAccount {
   bankName: string;
   accountName: string;
   bankCode?: string;
+  bvn?: string;
+  nin?: string;
 }
 
 interface Bank {
@@ -47,7 +49,14 @@ const SettingsPage = () => {
   const [activeTab, setActiveTab] = useState("licenses");
 
   // State for Bank Account
-  const [bankAccount, setBankAccount] = useState<BankAccount>({ accountNumber: "", bankName: "", accountName: "", bankCode: "" });
+  const [bankAccount, setBankAccount] = useState<BankAccount>({
+    accountNumber: "",
+    bankName: "",
+    accountName: "",
+    bankCode: "",
+    bvn: "",
+    nin: "",
+  });
   const [banks, setBanks] = useState<Bank[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
@@ -62,6 +71,12 @@ const SettingsPage = () => {
   const [recommendedTier, setRecommendedTier] = useState<string | null>(null);
   const [licenseLoading, setLicenseLoading] = useState(true);
   const [licenseError, setLicenseError] = useState<string | null>(null);
+
+  const maskValue = (val?: string) => {
+    if (!val) return "Not Set";
+    if (val.length < 4) return val;
+    return "*".repeat(val.length - 4) + val.slice(-4);
+  };
 
   const fetchLicenseData = async () => {
     setLicenseLoading(true);
@@ -98,7 +113,7 @@ const SettingsPage = () => {
         }),
         api.get("/monnify/banks")
       ]);
-      const bankData = bankRes.data.data || { accountNumber: "", bankName: "", accountName: "", bankCode: "" };
+      const bankData = bankRes.data.data || { accountNumber: "", bankName: "", accountName: "", bankCode: "", bvn: "", nin: "" };
       const banksList = banksListRes.data.data || [];
 
       // If bankName is missing but bankCode is present, resolve it from the banks list
@@ -181,6 +196,9 @@ const SettingsPage = () => {
     if (name === "accountNumber") {
       const sanitized = value.replace(/\D/g, "").slice(0, 10);
       setBankAccount((prev) => ({ ...prev, [name]: sanitized }));
+    } else if (name === "bvn" || name === "nin") {
+      const sanitized = value.replace(/\D/g, "").slice(0, 11);
+      setBankAccount((prev) => ({ ...prev, [name]: sanitized }));
     } else {
       setBankAccount((prev) => ({ ...prev, [name]: value }));
     }
@@ -192,6 +210,26 @@ const SettingsPage = () => {
       Swal.fire({
         title: "Incomplete Details",
         text: "Please provide a valid account number and bank.",
+        icon: "warning",
+        confirmButtonColor: "#4F46E5",
+      });
+      return;
+    }
+
+    if (!bankAccount.bvn || bankAccount.bvn.length !== 11) {
+      Swal.fire({
+        title: "Invalid BVN",
+        text: "BVN must be exactly 11 digits.",
+        icon: "warning",
+        confirmButtonColor: "#4F46E5",
+      });
+      return;
+    }
+
+    if (!bankAccount.nin || bankAccount.nin.length !== 11) {
+      Swal.fire({
+        title: "Invalid NIN",
+        text: "NIN must be exactly 11 digits.",
         icon: "warning",
         confirmButtonColor: "#4F46E5",
       });
@@ -210,6 +248,8 @@ const SettingsPage = () => {
       await api.patch("/users/me/bank-details", {
         bankCode: bankAccount.bankCode,
         accountNumber: bankAccount.accountNumber,
+        bvn: bankAccount.bvn,
+        nin: bankAccount.nin,
       });
       Swal.fire({
         title: "Success!",
@@ -328,7 +368,7 @@ const SettingsPage = () => {
               </div>
             ) : !isEditing ? (
               // View Mode
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-gray-400 text-sm font-medium uppercase tracking-wider">
                     <Building2 className="w-4 h-4" />
@@ -350,8 +390,22 @@ const SettingsPage = () => {
                   </div>
                   <p className="text-lg font-semibold text-gray-800">{bankAccount.accountName || "Not Set"}</p>
                 </div>
-                {(!bankAccount.bankName || !bankAccount.accountNumber) && (
-                  <div className="md:col-span-3 mt-4">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-gray-400 text-sm font-medium uppercase tracking-wider">
+                    <Shield className="w-4 h-4" />
+                    BVN
+                  </div>
+                  <p className="text-lg font-semibold text-gray-800 tracking-wider">{maskValue(bankAccount.bvn)}</p>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-gray-400 text-sm font-medium uppercase tracking-wider">
+                    <Shield className="w-4 h-4" />
+                    NIN
+                  </div>
+                  <p className="text-lg font-semibold text-gray-800 tracking-wider">{maskValue(bankAccount.nin)}</p>
+                </div>
+                {(!bankAccount.bankName || !bankAccount.accountNumber || !bankAccount.bvn || !bankAccount.nin) && (
+                  <div className="md:col-span-2 lg:col-span-3 mt-4">
                     <button
                       onClick={() => setIsEditing(true)}
                       className="w-full py-4 border-2 border-dashed border-gray-200 rounded-xl text-gray-400 font-medium hover:border-primary hover:text-primary transition-all flex items-center justify-center gap-2"
@@ -407,11 +461,44 @@ const SettingsPage = () => {
                   </div>
                 </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="bvn" className="block text-sm font-semibold text-gray-700">BVN (11 Digits)</label>
+                    <input
+                      id="bvn"
+                      name="bvn"
+                      type="text"
+                      placeholder="Enter 11-digit BVN"
+                      value={bankAccount.bvn}
+                      onChange={handleInputChange}
+                      className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all tracking-widest text-lg font-medium ${bankAccount.bvn && bankAccount.bvn.length !== 11 ? 'border-red-300' : ''}`}
+                    />
+                    {bankAccount.bvn && bankAccount.bvn.length !== 11 && (
+                      <p className="text-red-500 text-xs">BVN must be exactly 11 digits</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="nin" className="block text-sm font-semibold text-gray-700">NIN (11 Digits)</label>
+                    <input
+                      id="nin"
+                      name="nin"
+                      type="text"
+                      placeholder="Enter 11-digit NIN"
+                      value={bankAccount.nin}
+                      onChange={handleInputChange}
+                      className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all tracking-widest text-lg font-medium ${bankAccount.nin && bankAccount.nin.length !== 11 ? 'border-red-300' : ''}`}
+                    />
+                    {bankAccount.nin && bankAccount.nin.length !== 11 && (
+                      <p className="text-red-500 text-xs">NIN must be exactly 11 digits</p>
+                    )}
+                  </div>
+                </div>
+
                 <div className="flex items-center gap-4 pt-4">
                   <button
                     type="submit"
-                    disabled={!isAccountValidated || isValidating}
-                    className={`flex-1 py-3 px-6 rounded-lg font-bold text-white transition-all ${!isAccountValidated || isValidating ? 'bg-gray-300 cursor-not-allowed' : 'bg-primary hover:bg-indigo-700 shadow-md hover:shadow-lg'}`}
+                    disabled={!isAccountValidated || isValidating || bankAccount.bvn?.length !== 11 || bankAccount.nin?.length !== 11}
+                    className={`flex-1 py-3 px-6 rounded-lg font-bold text-white transition-all ${!isAccountValidated || isValidating || bankAccount.bvn?.length !== 11 || bankAccount.nin?.length !== 11 ? 'bg-gray-300 cursor-not-allowed' : 'bg-primary hover:bg-indigo-700 shadow-md hover:shadow-lg'}`}
                   >
                     Save Account Details
                   </button>

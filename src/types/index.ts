@@ -121,6 +121,7 @@ export interface User {
   accountNumber?: string;
   bankCode?: string;
   bvn?: string;
+  nin?: string;
   hasAcceptedLatestPolicies: boolean;
   hasAcceptedHallOwnerPolicy: boolean;
   isVerified?: boolean;
