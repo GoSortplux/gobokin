@@ -307,15 +307,21 @@ const BookingDetailsPage = () => {
                 <div className="flex justify-between items-center text-gray-600">
                   <span>Amount Paid</span>
                   <span className="font-bold text-green-600">
-                    ₦{(data.paidAmount || data.reservationFee || (data.paymentStatus === 'paid' ? data.totalPrice : 0)).toLocaleString()}
+                    ₦{(data.paymentStatus === 'paid'
+                        ? data.totalPrice
+                        : (data.paidAmount || (data.paymentStatus === 'partially_paid' ? data.reservationFee : 0) || 0)
+                      ).toLocaleString()}
                   </span>
                 </div>
                 <div className="pt-4 border-t border-gray-100 flex justify-between items-center">
                   <span className="text-gray-900 font-bold text-lg">Balance Due</span>
                   <span className="text-primary font-black text-2xl">
-                    ₦{(data.balanceAmount !== undefined
-                        ? data.balanceAmount
-                        : (data.reservationFee ? Math.max(0, data.totalPrice - data.reservationFee) : 0)).toLocaleString()}
+                    ₦{(data.paymentStatus === 'paid'
+                        ? 0
+                        : (data.balanceAmount !== undefined
+                            ? data.balanceAmount
+                            : Math.max(0, data.totalPrice - (data.paidAmount || (data.paymentStatus === 'partially_paid' ? data.reservationFee : 0) || 0)))
+                      ).toLocaleString()}
                   </span>
                 </div>
               </div>

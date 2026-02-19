@@ -5,6 +5,7 @@ import api from "@/services/api";
 import Swal from "@/utils/sweetalert";
 import { PlusCircle, Trash2 } from "lucide-react";
 import LoadingSpinner from "@/components/admin/LoadingSpinner";
+import CustomLoader from "@/components/CustomLoader";
 
 interface PaymentMethod {
   _id: string;
@@ -391,7 +392,7 @@ const SubaccountsTab = () => {
                               maxLength={10}
                               required
                           />
-                          {validationLoading && <div className="absolute inset-y-0 right-0 flex items-center pr-3"><LoadingSpinner /></div>}
+                          {validationLoading && <div className="absolute inset-y-0 right-0 flex items-center pr-3"><CustomLoader size={20} /></div>}
                       </div>
                   </div>
                   <div>
