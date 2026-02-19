@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { DateRange } from 'react-day-picker';
+import { AnimatePresence, motion } from 'framer-motion';
 import Carousel from '@/components/Carousel';
 import SkeletonCard from '@/components/SkeletonCard';
 import SearchBar from '@/components/SearchBar';
@@ -136,7 +137,7 @@ const HomePage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="container mx-auto px-4 pt-20 pb-8 sm:px-6 lg:px-8">
-        <div className="text-center mb-8 md:mb-12">
+        <div className="text-center mb-16 md:mb-20">
           <h1 className="text-xl sm:text-3xl md:text-3xl lg:text-4xl font-extrabold text-gray-900 tracking-tight px-2 pt-8">
             Find the perfect venue for your next event
           </h1>
@@ -144,12 +145,22 @@ const HomePage = () => {
             Browse through our curated list of venues and book with ease.
           </p>
           <div className="mt-6 md:mt-8">
-            {!scrolled && <SearchBar onSearch={handleSearch} />}
+            <AnimatePresence>
+              {!scrolled && (
+                <motion.div
+                  initial={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
+                  transition={{ duration: 0.3, ease: 'easeInOut' }}
+                >
+                  <SearchBar onSearch={handleSearch} />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 
         {loading && (
-          <div className="space-y-8 md:space-y-12">
+          <div className="space-y-16 md:space-y-20">
             {[1, 2].map((section) => (
               <section key={section}>
                 <div className="h-8 bg-gray-200 rounded-lg w-48 mb-4 md:mb-6 animate-pulse"></div>
@@ -172,7 +183,7 @@ const HomePage = () => {
         )}
 
         {!loading && !error && (
-          <div className="space-y-8 md:space-y-12">
+          <div className="space-y-16 md:space-y-20">
             <section>
               <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Featured Venue</h2>
               <Carousel venues={allVenues.slice(0, 7)} />

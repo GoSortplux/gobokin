@@ -27,6 +27,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
   const [maxPrice, setMaxPrice] = useState<number>(10000000);
 
   const locationRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const calendarRef = useRef<HTMLDivElement>(null);
   const capacityRef = useRef<HTMLDivElement>(null);
   const priceRef = useRef<HTMLDivElement>(null);
@@ -94,10 +95,12 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
     >
       {/* Location Section */}
       <motion.div variants={itemVariants} className="flex-1 relative group" ref={locationRef}>
-        <motion.div
-          whileTap={{ scale: 0.98 }}
+        <div
           className="p-4 md:p-5 rounded-2xl md:rounded-full hover:bg-gray-50 cursor-pointer transition-all duration-200 flex items-center space-x-3 group-hover:ring-2 group-hover:ring-primary/20"
-          onClick={() => setShowLocations(true)}
+          onClick={() => {
+            if (inputRef.current) inputRef.current.focus();
+            setShowLocations(true);
+          }}
         >
           <div className="bg-blue-50 p-2.5 rounded-full text-blue-600 md:hidden">
             <MapPin className="w-5 h-5" />
@@ -105,20 +108,22 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
           <div className="flex-grow">
             <div className="flex items-center space-x-1">
               <MapPin className="hidden md:block w-4 h-4 text-gray-400" />
-              <label htmlFor="location" className="block text-xs md:text-sm font-bold text-gray-800 uppercase tracking-tight">
+              <label htmlFor="location" className="block text-xs md:text-sm font-bold text-gray-800 uppercase tracking-tight cursor-pointer">
                 Location
               </label>
             </div>
             <input
+              ref={inputRef}
               type="text"
               id="location"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
+              onFocus={() => setShowLocations(true)}
               placeholder="Enter Location"
               className="w-full bg-transparent border-none focus:ring-0 text-gray-600 placeholder-gray-400 text-sm mt-0.5"
             />
           </div>
-        </motion.div>
+        </div>
         {showLocations && (
           <div className="absolute z-20 w-full mt-1 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
             <ul className="py-2">
