@@ -1,6 +1,6 @@
 import React from "react";
 import { CheckCircle, Tag } from 'lucide-react';
-import { LicenseTier } from "@/types";
+import { LicenseTier, SubscriptionRule } from "@/types";
 
 interface SubscriptionCardProps {
   tier: LicenseTier;
@@ -93,8 +93,10 @@ const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
             </li>
           ))}
           {Array.isArray(tier.rules) && tier.rules.map((ruleItem, index) => {
-            const ruleName = typeof ruleItem.rule === 'object' ? ruleItem.rule.name : 'Unknown Rule';
-            const ruleDisplayText = typeof ruleItem.rule === 'object' ? (ruleItem.rule.display_text || ruleItem.rule.displayText) : undefined;
+            const rule = ruleItem.rule;
+            const isObjectRule = rule && typeof rule === 'object';
+            const ruleName = isObjectRule ? (rule as SubscriptionRule).name : 'Unknown Rule';
+            const ruleDisplayText = isObjectRule ? ((rule as SubscriptionRule).display_text || (rule as SubscriptionRule).displayText) : undefined;
             const displayValue = ruleItem.displayText || ruleDisplayText || `${ruleName} - ${ruleItem.value}`;
             return (
               <li key={`rule-${index}`} className="flex items-start">

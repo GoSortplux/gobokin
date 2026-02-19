@@ -5,7 +5,7 @@ import LoadingSpinner from "@/components/admin/LoadingSpinner";
 import { Edit, Trash, PlusCircle, ShieldCheck } from "lucide-react";
 import TierModal from "@/components/admin/TierModal";
 import Swal from "@/utils/sweetalert";
-import { LicenseTier } from "@/types";
+import { LicenseTier, SubscriptionRule } from "@/types";
 
 const LicenseTiersTab = () => {
   const [tiers, setTiers] = useState<LicenseTier[]>([]);
@@ -148,8 +148,10 @@ const LicenseTiersTab = () => {
                         <p className="text-sm font-semibold text-gray-500 mb-3 uppercase">Rules</p>
                         <ul className="space-y-2">
                           {tier.rules.map((ruleItem, index) => {
-                            const ruleName = typeof ruleItem.rule === 'object' ? ruleItem.rule.name : ruleItem.rule;
-                            const ruleType = typeof ruleItem.rule === 'object' ? ruleItem.rule.type : null;
+                            const rule = ruleItem.rule;
+                            const isObjectRule = rule && typeof rule === 'object';
+                            const ruleName = isObjectRule ? (rule as SubscriptionRule).name : (rule || 'Unknown Rule');
+                            const ruleType = isObjectRule ? (rule as SubscriptionRule).type : null;
                             let displayValue = ruleItem.value;
 
                             if (ruleType === 'boolean' || typeof ruleItem.value === 'boolean') {
