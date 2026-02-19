@@ -8,7 +8,7 @@ import ReviewModal from "./ReviewModal";
 import Swal from "@/utils/sweetalert";
 import CustomLoader from "@/components/CustomLoader";
 import { useAuth } from "@/context/AuthContext";
-import { Booking, Review, Hall } from "@/types";
+import { Booking, Review, Venue } from "@/types";
 
 const BookingsView = () => {
   const router = useRouter();
@@ -84,8 +84,8 @@ const BookingsView = () => {
 
     try {
       setLoadingReviewStatus(true);
-      // Fetch all reviews for this hall to check if one exists for this booking (fallback)
-      const hallId = typeof booking.hall === 'object' ? (booking.hall as Hall)._id : booking.hall;
+      // Fetch all reviews for this venue to check if one exists for this booking (fallback)
+      const hallId = typeof booking.hall === 'object' ? (booking.hall as Venue)._id : booking.hall;
       const response = await api.get(`/reviews/hall/${hallId}`);
       const reviews = (response.data.data || []) as Review[];
 

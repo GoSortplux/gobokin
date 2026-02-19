@@ -30,7 +30,7 @@ interface APISuitability {
   name: string;
 }
 
-interface HallData {
+interface VenueData {
   _id?: string;
   id?: string;
   name?: string;
@@ -84,11 +84,11 @@ interface HallData {
   videos?: string[];
 }
 
-interface HallModalProps {
+interface VenueModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (formData: Record<string, unknown>) => Promise<Record<string, unknown> | void> | void;
-  hall?: HallData;
+  venue?: VenueData;
 }
 
 const parseHour = (timeStr: string | number) => {
@@ -99,7 +99,7 @@ const parseHour = (timeStr: string | number) => {
   return parseInt(String(timeStr), 10);
 };
 
-const HallModal: React.FC<HallModalProps> = ({ isOpen, onClose, onSubmit, hall }) => {
+const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venue }) => {
   const router = useRouter();
   const vendorContext = useContext(VendorContext);
 
@@ -141,13 +141,13 @@ const HallModal: React.FC<HallModalProps> = ({ isOpen, onClose, onSubmit, hall }
       maxStaffManualDiscount: 0 as number | string,
     });
     setCurrentStep(1);
-    setHallId(null);
+    setVenueId(null);
     setErrors({});
   };
 
   const handleClose = () => {
-    if (!hall) {
-      localStorage.removeItem('hallCreationProgress');
+    if (!venue) {
+      localStorage.removeItem('venueCreationProgress');
       resetForm();
     }
     onClose();
@@ -155,7 +155,7 @@ const HallModal: React.FC<HallModalProps> = ({ isOpen, onClose, onSubmit, hall }
 
   const subscription = vendorContext?.subscription;
   const [currentStep, setCurrentStep] = useState(1);
-  const [hallId, setHallId] = useState<string | null>(null);
+  const [hallId, setVenueId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [hasUploadedImages, setHasUploadedImages] = useState(false);
@@ -259,17 +259,17 @@ const HallModal: React.FC<HallModalProps> = ({ isOpen, onClose, onSubmit, hall }
   }, [formData.state]);
 
   useEffect(() => {
-    // This effect handles the transition from step 2 to 3 after a hall is created.
+    // This effect handles the transition from step 2 to 3 after a venue is created.
     // It waits for hallId to be set before moving to the next step to avoid race conditions.
-    if (hallId && !hall && currentStep === 2) {
+    if (hallId && !venue && currentStep === 2) {
       setCurrentStep(3);
     }
-  }, [hallId, hall, currentStep]);
+  }, [hallId, venue, currentStep]);
 
   useEffect(() => {
-    if (hall) {
-      // Map incoming hall facilities to the new structure
-      const mappedFacilities = hall.facilities ? hall.facilities.map((fac) => ({
+    if (venue) {
+      // Map incoming venue facilities to the new structure
+      const mappedFacilities = venue.facilities ? venue.facilities.map((fac) => ({
         facility: typeof fac.facility === 'object' ? fac.facility?._id : fac.facility || '', // Handle populated and non-populated facility
         name: typeof fac.facility === 'object' ? fac.facility?.name : (fac.name || ''), // Display name
         available: fac.available,
@@ -300,44 +300,44 @@ const HallModal: React.FC<HallModalProps> = ({ isOpen, onClose, onSubmit, hall }
       };
 
       setFormData({
-        name: hall.name || '',
-        description: hall.description || '',
-        capacity: hall.capacity || 0,
-        openingHour: formatTime(hall.openingHour, '09:00'),
-        closingHour: formatTime(hall.closingHour, '23:00'),
-        location: hall.location || '',
-        hourlyRate: hall.pricing?.hourlyRate || hall.pricing?.perHour || 0,
-        dailyRate: hall.pricing?.dailyRate || hall.pricing?.perDay || 0,
+        name: venue.name || '',
+        description: venue.description || '',
+        capacity: venue.capacity || 0,
+        openingHour: formatTime(venue.openingHour, '09:00'),
+        closingHour: formatTime(venue.closingHour, '23:00'),
+        location: venue.location || '',
+        hourlyRate: venue.pricing?.hourlyRate || venue.pricing?.perHour || 0,
+        dailyRate: venue.pricing?.dailyRate || venue.pricing?.perDay || 0,
         facilities: mappedFacilities as Facility[],
-        suitableFor: hall.suitableFor ? hall.suitableFor.map((s) => typeof s === 'string' ? s : (s as { _id?: string; id?: string })._id || (s as { _id?: string; id?: string }).id || '') : [],
-        carParkCapacity: hall.carParkCapacity || 0,
-        hallSize: hall.hallSize || '',
-        rules: Array.isArray(hall.rules) ? hall.rules.join('\n') : (hall.rules || ''),
-        country: getID(hall.country),
-        state: getID(hall.state),
-        localGovernment: getID(hall.localGovernment),
-        allowRecurringBookings: hall.allowRecurringBookings || false,
-        isOnlineBookingEnabled: hall.isOnlineBookingEnabled !== undefined ? hall.isOnlineBookingEnabled : true,
+        suitableFor: venue.suitableFor ? venue.suitableFor.map((s) => typeof s === 'string' ? s : (s as { _id?: string; id?: string })._id || (s as { _id?: string; id?: string }).id || '') : [],
+        carParkCapacity: venue.carParkCapacity || 0,
+        hallSize: venue.hallSize || '',
+        rules: Array.isArray(venue.rules) ? venue.rules.join('\n') : (venue.rules || ''),
+        country: getID(venue.country),
+        state: getID(venue.state),
+        localGovernment: getID(venue.localGovernment),
+        allowRecurringBookings: venue.allowRecurringBookings || false,
+        isOnlineBookingEnabled: venue.isOnlineBookingEnabled !== undefined ? venue.isOnlineBookingEnabled : true,
         recurringBookingDiscount: {
-          percentage: hall.recurringBookingDiscount?.percentage || 0,
-          minBookings: hall.recurringBookingDiscount?.minBookings || 0,
+          percentage: venue.recurringBookingDiscount?.percentage || 0,
+          minBookings: venue.recurringBookingDiscount?.minBookings || 0,
         },
         discountSettings: {
-          enabled: hall.discountSettings?.enabled || false,
+          enabled: venue.discountSettings?.enabled || false,
           hourly: {
-            minHours: hall.discountSettings?.hourly?.minHours || 0,
-            percentage: hall.discountSettings?.hourly?.percentage || 0,
+            minHours: venue.discountSettings?.hourly?.minHours || 0,
+            percentage: venue.discountSettings?.hourly?.percentage || 0,
           },
           daily: {
-            minDays: hall.discountSettings?.daily?.minDays || 0,
-            percentage: hall.discountSettings?.daily?.percentage || 0,
+            minDays: venue.discountSettings?.daily?.minDays || 0,
+            percentage: venue.discountSettings?.daily?.percentage || 0,
           },
         },
-        maxStaffManualDiscount: hall.maxStaffManualDiscount || 0,
+        maxStaffManualDiscount: venue.maxStaffManualDiscount || 0,
       });
-      setHallId(hall._id || hall.id || null);
+      setVenueId(venue._id || venue.id || null);
     } else {
-      const savedData = typeof window !== 'undefined' ? localStorage.getItem('hallCreationProgress') : null;
+      const savedData = typeof window !== 'undefined' ? localStorage.getItem('venueCreationProgress') : null;
       if (savedData && isOpen) {
         try {
           const parsedData = JSON.parse(savedData);
@@ -379,10 +379,10 @@ const HallModal: React.FC<HallModalProps> = ({ isOpen, onClose, onSubmit, hall }
             ...parsedData
           });
           setCurrentStep(1);
-          setHallId(null);
+          setVenueId(null);
           return;
         } catch (e) {
-          console.error("Failed to parse saved hall progress", e);
+          console.error("Failed to parse saved venue progress", e);
         }
       }
 
@@ -423,9 +423,9 @@ const HallModal: React.FC<HallModalProps> = ({ isOpen, onClose, onSubmit, hall }
         maxStaffManualDiscount: 0,
       });
       setCurrentStep(1);
-      setHallId(null);
+      setVenueId(null);
     }
-  }, [hall, isOpen]);
+  }, [venue, isOpen]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -525,11 +525,11 @@ const HallModal: React.FC<HallModalProps> = ({ isOpen, onClose, onSubmit, hall }
   };
 
   const validateStep = (step: number, isUpdate: boolean = false) => {
-    if (hall && !isUpdate) return true;
+    if (venue && !isUpdate) return true;
     const newErrors: Record<string, string> = {};
 
     if (step === 1 || isUpdate) {
-      if (!formData.name.trim()) newErrors.name = 'Hall name is required';
+      if (!formData.name.trim()) newErrors.name = 'Venue name is required';
       if (!formData.description.trim()) newErrors.description = 'Description is required';
       if (!formData.country) newErrors.country = 'Country is required';
       if (!formData.state) newErrors.state = 'State is required';
@@ -550,7 +550,7 @@ const HallModal: React.FC<HallModalProps> = ({ isOpen, onClose, onSubmit, hall }
       if (Number(formData.hourlyRate) <= 0) newErrors.hourlyRate = 'Hourly rate must be greater than 0';
       if (Number(formData.dailyRate) <= 0) newErrors.dailyRate = 'Daily rate must be greater than 0';
       if (Number(formData.carParkCapacity) <= 0) newErrors.carParkCapacity = 'Car park capacity must be greater than 0';
-      if (!formData.hallSize.trim()) newErrors.hallSize = 'Hall size is required';
+      if (!formData.hallSize.trim()) newErrors.hallSize = 'Venue size is required';
       if (formData.suitableFor.length === 0) newErrors.suitableFor = 'Select at least one suitability category';
 
       formData.facilities.forEach((fac, index) => {
@@ -625,7 +625,7 @@ const HallModal: React.FC<HallModalProps> = ({ isOpen, onClose, onSubmit, hall }
       return facilityData;
     });
 
-    if (hall) {
+    if (venue) {
       if (!validateStep(1, true)) {
         Swal.fire({
           icon: 'error',
@@ -687,9 +687,9 @@ const HallModal: React.FC<HallModalProps> = ({ isOpen, onClose, onSubmit, hall }
       }
 
       // Call suitability update separately as requested
-      const actualHallId = hall._id || hall.id;
+      const actualVenueId = venue._id || venue.id;
       try {
-        await api.patch(`/halls/${actualHallId}/suitability`, { suitableFor: formData.suitableFor });
+        await api.patch(`/halls/${actualVenueId}/suitability`, { suitableFor: formData.suitableFor });
       } catch (error) {
         console.error('Failed to update suitabilities:', error);
       }
@@ -704,17 +704,17 @@ const HallModal: React.FC<HallModalProps> = ({ isOpen, onClose, onSubmit, hall }
     } else if (currentStep === 2) {
       if (!validateStep(2)) return;
 
-      if (!subscription && !hall) {
+      if (!subscription && !venue) {
         Swal.fire({
           title: 'Subscription Required',
-          text: 'You need an active subscription to create a hall. We will save your progress so you can continue after subscribing.',
+          text: 'You need an active subscription to create a venue. We will save your progress so you can continue after subscribing.',
           icon: 'warning',
           showCancelButton: true,
           confirmButtonText: 'Go to Subscriptions',
           cancelButtonText: 'Cancel',
         }).then((result) => {
           if (result.isConfirmed) {
-            localStorage.setItem('hallCreationProgress', JSON.stringify(formData));
+            localStorage.setItem('venueCreationProgress', JSON.stringify(formData));
             router.push('/vendor/dashboard/settings?tab=licenses');
             onClose();
           }
@@ -769,20 +769,20 @@ const HallModal: React.FC<HallModalProps> = ({ isOpen, onClose, onSubmit, hall }
       try {
         const result = await onSubmit(payload) as { _id?: string; id?: string } | undefined;
         if (result && (result._id || result.id)) {
-          setHallId((result._id || result.id) as string);
+          setVenueId((result._id || result.id) as string);
         }
-        localStorage.removeItem('hallCreationProgress');
+        localStorage.removeItem('venueCreationProgress');
       } catch (error) {
-        console.error('Failed to create hall:', error);
+        console.error('Failed to create venue:', error);
       } finally {
         setIsSubmitting(false);
       }
     } else {
-      const hallData = hall as HallData | undefined;
-      if (!hasUploadedImages && (!hallData || (hallData.images?.length || 0) === 0)) {
+      const venueData = venue as VenueData | undefined;
+      if (!hasUploadedImages && (!venueData || (venueData.images?.length || 0) === 0)) {
         Swal.fire({
           title: 'No images uploaded',
-          text: 'Are you sure you want to finish without uploading any images? A hall must have at least one image to be visible to customers.',
+          text: 'Are you sure you want to finish without uploading any images? A venue must have at least one image to be visible to customers.',
           icon: 'warning',
           showCancelButton: true,
           confirmButtonText: 'Yes, finish',
@@ -821,16 +821,16 @@ const HallModal: React.FC<HallModalProps> = ({ isOpen, onClose, onSubmit, hall }
         </button>
         <div className="mb-8">
           <h2 className="text-2xl font-black text-gray-900 tracking-tighter uppercase italic">
-            {hall ? (
+            {venue ? (
               <>Edit <span className="text-primary not-italic">Venue</span></>
             ) : (
               <>Create <span className="text-primary not-italic">Venue</span></>
             )}
           </h2>
           <p className="text-sm text-gray-500 font-medium">
-            {hall ? 'Update your venue information and settings.' : "Let's get started by setting up your new venue."}
+            {venue ? 'Update your venue information and settings.' : "Let's get started by setting up your new venue."}
           </p>
-          {!hall && (
+          {!venue && (
             <div className="flex items-center mt-6">
               <div className={`flex items-center ${currentStep >= 1 ? 'text-primary' : 'text-gray-700'}`}>
                 <div className={`w-6 h-6 rounded-full border-2 ${currentStep >= 1 ? 'border-primary bg-primary/5' : 'border-gray-400'} flex items-center justify-center text-xs font-bold`}>1</div>
@@ -850,7 +850,7 @@ const HallModal: React.FC<HallModalProps> = ({ isOpen, onClose, onSubmit, hall }
           )}
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {hall ? (
+          {venue ? (
             <>
               {/* Render all fields for editing */}
               <div>
@@ -1213,8 +1213,8 @@ const HallModal: React.FC<HallModalProps> = ({ isOpen, onClose, onSubmit, hall }
               {hallId && (
                 <MediaUpload
                   hallId={hallId}
-                  initialImages={hall?.images || []}
-                  initialVideos={hall?.videos || []}
+                  initialImages={venue?.images || []}
+                  initialVideos={venue?.videos || []}
                   onUploadSuccess={(urls) => {
                     const uploadedImages = urls.filter(url => !isVideo(url));
                     if (uploadedImages.length > 0) {
@@ -1597,8 +1597,8 @@ const HallModal: React.FC<HallModalProps> = ({ isOpen, onClose, onSubmit, hall }
               {currentStep === 3 && hallId && (
                 <MediaUpload
                   hallId={hallId}
-                  initialImages={(hall as HallData | undefined)?.images || []}
-                  initialVideos={(hall as HallData | undefined)?.videos || []}
+                  initialImages={(venue as VenueData | undefined)?.images || []}
+                  initialVideos={(venue as VenueData | undefined)?.videos || []}
                   onUploadSuccess={(urls) => {
                     const uploadedImages = urls.filter(url => !isVideo(url));
                     if (uploadedImages.length > 0) {
@@ -1611,7 +1611,7 @@ const HallModal: React.FC<HallModalProps> = ({ isOpen, onClose, onSubmit, hall }
           )}
 
           <div className="flex justify-end mt-8 space-x-3">
-            {!hall && currentStep > 1 && (
+            {!venue && currentStep > 1 && (
               <button
                 type="button"
                 onClick={handleBack}
@@ -1626,7 +1626,7 @@ const HallModal: React.FC<HallModalProps> = ({ isOpen, onClose, onSubmit, hall }
               disabled={isSubmitting}
               className="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-primary hover:bg-primary-dark shadow-md shadow-primary/20 transition-all disabled:opacity-50"
             >
-              {isSubmitting ? 'Submitting...' : (hall ? 'Save Changes' : (currentStep === 1 || currentStep === 2 ? 'Continue' : 'Finish'))}
+              {isSubmitting ? 'Submitting...' : (venue ? 'Save Changes' : (currentStep === 1 || currentStep === 2 ? 'Continue' : 'Finish'))}
             </button>
           </div>
         </form>
@@ -1635,4 +1635,4 @@ const HallModal: React.FC<HallModalProps> = ({ isOpen, onClose, onSubmit, hall }
   );
 };
 
-export default HallModal;
+export default VenueModal;

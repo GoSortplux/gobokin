@@ -24,7 +24,7 @@ const NotificationCard = ({ notification, onMarkAsRead, onMarkAsUnread }: Notifi
   const finalLink = notification.link ||
                     detectedLink ||
                     (detectedBookingId ? `/booking/details/${detectedBookingId}` : null) ||
-                    (urlSlug ? `/halls/${urlSlug}/review` : null);
+                    (urlSlug ? `/venues/${urlSlug}/review` : null);
   const displayMessage = notification.message.replace(urlRegex, '').trim();
 
   const isReview = finalLink?.includes('/review') || notification.message.toLowerCase().includes('review');

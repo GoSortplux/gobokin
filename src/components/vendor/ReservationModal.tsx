@@ -7,7 +7,7 @@ import Calendar from '../Calendar';
 import { format } from 'date-fns';
 import api from '@/services/api';
 import { useBookingAvailability } from '@/hooks/useBookingAvailability';
-import { Hall } from '@/types';
+import { Venue } from '@/types';
 
 const AvailabilityLegend = () => (
   <div className="mt-4 p-4 border border-gray-100 rounded-2xl bg-gray-50/50 w-full shadow-inner">
@@ -39,21 +39,21 @@ interface ReservationModalProps {
 const ReservationModal: React.FC<ReservationModalProps> = ({ isOpen, onClose, onSubmit, hallId }) => {
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
   const [displayedMonth, setDisplayedMonth] = useState(new Date());
-  const [hall, setHall] = useState<Hall | null>(null);
+  const [venue, setVenue] = useState<Venue | null>(null);
 
-  const { getDateAvailability } = useBookingAvailability(hall, undefined, displayedMonth);
+  const { getDateAvailability } = useBookingAvailability(venue, undefined, displayedMonth);
 
   useEffect(() => {
     if (isOpen && hallId) {
-      const fetchHall = async () => {
+      const fetchVenue = async () => {
         try {
           const response = await api.get(`/halls/${hallId}`);
-          setHall(response.data.data);
+          setVenue(response.data.data);
         } catch (err) {
-          console.error('Failed to fetch hall:', err);
+          console.error('Failed to fetch venue:', err);
         }
       };
-      fetchHall();
+      fetchVenue();
     } else if (!isOpen) {
       // Reset state when modal is closed
       setSelectedDates([]);
@@ -68,8 +68,8 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ isOpen, onClose, on
       return;
     }
 
-    const openingHour = hall?.openingHour || 0;
-    const closingHour = hall?.closingHour || 24;
+    const openingHour = venue?.openingHour || 0;
+    const closingHour = venue?.closingHour || 24;
 
     const bookingDates = selectedDates.map((date) => {
       const start = new Date(date);
@@ -83,7 +83,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ isOpen, onClose, on
     });
 
     onSubmit({
-      hallId,
+      hallId: hallId,
       bookingDates,
       eventDetails: 'Owner Reservation (Blocked)',
     });

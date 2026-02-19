@@ -13,7 +13,7 @@ import PaymentLinkModal from "@/components/shared/PaymentLinkModal";
 import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { ChevronDown, XCircle, Share2 } from "lucide-react";
-import { Booking, Reservation, Hall } from "@/types";
+import { Booking, Reservation, Venue } from "@/types";
 
 const Pagination = ({
   currentPage,
@@ -55,7 +55,7 @@ const BookingsPage = () => {
   const pathname = usePathname();
   const { isBookingModalOpen, openBookingModal, closeBookingModal } = useUI();
   const searchParams = useSearchParams();
-  const hallIdFromQuery = searchParams.get('hallId');
+  const venueIdFromQuery = searchParams.get('hallId');
   const searchTerm = searchParams.get('search') || '';
   const [activeTab, setActiveTab] = useState('bookings');
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -68,8 +68,8 @@ const BookingsPage = () => {
   const [refundType, setRefundType] = useState<'booking' | 'reservation'>('booking');
   const [selectedItemForRefund, setSelectedItemForRefund] = useState<Booking | Reservation | null>(null);
   const [reservations, setReservations] = useState<Reservation[]>([]);
-  const [halls, setHalls] = useState<Hall[]>([]);
-  const [selectedHall, setSelectedHall] = useState<string>(hallIdFromQuery || '');
+  const [venues, setVenues] = useState<Venue[]>([]);
+  const [selectedVenue, setSelectedVenue] = useState<string>(venueIdFromQuery || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [isConversionModalOpen, setIsConversionModalOpen] = useState(false);
@@ -101,21 +101,21 @@ const BookingsPage = () => {
     return (item.refundDetails?.totalRefundedAmount || 0) > 0;
   };
 
-  const fetchHalls = useCallback(async () => {
+  const fetchVenues = useCallback(async () => {
     try {
       const response = await api.get("/halls/by-owner");
       if (response.data && Array.isArray(response.data.data)) {
-        setHalls(response.data.data);
+        setVenues(response.data.data);
         // If hallId from query is present, ensure it's selected
-        if (hallIdFromQuery && response.data.data.some((hall: Hall) => hall._id === hallIdFromQuery)) {
-          setSelectedHall(hallIdFromQuery);
+        if (venueIdFromQuery && response.data.data.some((venue: Venue) => venue._id === venueIdFromQuery)) {
+          setSelectedVenue(venueIdFromQuery);
         }
       }
     } catch (err) {
-      console.error("Error fetching halls:", err);
+      console.error("Error fetching venues:", err);
       setError(translateError(err));
     }
-  }, [hallIdFromQuery]);
+  }, [venueIdFromQuery]);
 
   const fetchBookings = useCallback(async (hallId: string, page: number = 1) => {
     if (!hallId) {
@@ -183,8 +183,8 @@ const BookingsPage = () => {
   }, []);
 
   useEffect(() => {
-    fetchHalls();
-  }, [fetchHalls]);
+    fetchVenues();
+  }, [fetchVenues]);
 
   useEffect(() => {
     if (searchParams.get('action') === 'create') {
@@ -199,23 +199,23 @@ const BookingsPage = () => {
   }, [searchParams, openBookingModal, pathname, router]);
 
   useEffect(() => {
-    if (selectedHall) {
+    if (selectedVenue) {
       if (activeTab === 'reservations') {
-        fetchReservations(selectedHall, reservationsPage);
+        fetchReservations(selectedVenue, reservationsPage);
       } else if (activeTab === 'cancellations') {
-        fetchBookings(selectedHall, bookingsPage);
-        fetchReservations(selectedHall, reservationsPage);
+        fetchBookings(selectedVenue, bookingsPage);
+        fetchReservations(selectedVenue, reservationsPage);
       } else if (activeTab === 'pending') {
-        fetchBookings(selectedHall, bookingsPage);
-        fetchReservations(selectedHall, reservationsPage);
+        fetchBookings(selectedVenue, bookingsPage);
+        fetchReservations(selectedVenue, reservationsPage);
       } else {
-        fetchBookings(selectedHall, bookingsPage);
+        fetchBookings(selectedVenue, bookingsPage);
       }
     }
-  }, [selectedHall, activeTab, bookingsPage, reservationsPage, fetchBookings, fetchReservations]);
+  }, [selectedVenue, activeTab, bookingsPage, reservationsPage, fetchBookings, fetchReservations]);
 
   const handleHallChange = (hallId: string) => {
-    setSelectedHall(hallId);
+    setSelectedVenue(hallId);
     setBookingsPage(1);
     setReservationsPage(1);
   };
@@ -256,9 +256,9 @@ const BookingsPage = () => {
         const endpoint = isReservation ? `/reservations/${id}/cancel` : `/bookings/${id}/cancel`;
         await api.patch(endpoint, { reason });
         Swal.fire('Cancelled!', `The ${isReservation ? 'reservation' : 'booking'} has been cancelled.`, 'success');
-        if (selectedHall) {
-          if (isReservation) fetchReservations(selectedHall, reservationsPage);
-          else fetchBookings(selectedHall, bookingsPage);
+        if (selectedVenue) {
+          if (isReservation) fetchReservations(selectedVenue, reservationsPage);
+          else fetchBookings(selectedVenue, bookingsPage);
         }
       } catch (err) {
         console.error('Failed to cancel:', err);
@@ -291,9 +291,9 @@ const BookingsPage = () => {
         const endpoint = isReservation ? `/reservations/${id}/confirm-cancellation` : `/bookings/${id}/confirm-cancellation`;
         await api.patch(endpoint, { reason });
         Swal.fire('Approved!', 'The cancellation has been confirmed.', 'success');
-        if (selectedHall) {
-          if (isReservation) fetchReservations(selectedHall, reservationsPage);
-          else fetchBookings(selectedHall, bookingsPage);
+        if (selectedVenue) {
+          if (isReservation) fetchReservations(selectedVenue, reservationsPage);
+          else fetchBookings(selectedVenue, bookingsPage);
         }
       } catch (err) {
         console.error('Failed to confirm cancellation:', err);
@@ -326,9 +326,9 @@ const BookingsPage = () => {
         const endpoint = isReservation ? `/reservations/${id}/reject-cancellation` : `/bookings/${id}/reject-cancellation`;
         await api.patch(endpoint, { reason });
         Swal.fire('Rejected!', 'The cancellation request has been rejected.', 'success');
-        if (selectedHall) {
-          if (isReservation) fetchReservations(selectedHall, reservationsPage);
-          else fetchBookings(selectedHall, bookingsPage);
+        if (selectedVenue) {
+          if (isReservation) fetchReservations(selectedVenue, reservationsPage);
+          else fetchBookings(selectedVenue, bookingsPage);
         }
       } catch (err) {
         console.error('Failed to reject cancellation:', err);
@@ -492,11 +492,11 @@ const BookingsPage = () => {
         title: type === 'reservation' ? 'Reservation Created!' : 'Booking Created!',
         text: `The ${type} has been successfully created.`,
       });
-      if (selectedHall) {
+      if (selectedVenue) {
         if (type === 'reservation') {
           setActiveTab('reservations');
         } else {
-          fetchBookings(selectedHall, 1);
+          fetchBookings(selectedVenue, 1);
           setBookingsPage(1);
         }
       }
@@ -526,17 +526,17 @@ const BookingsPage = () => {
         )}
       </div>
       <div className="mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-        <label htmlFor="hall-select" className="block text-xs font-semibold text-gray-500 uppercase mb-2">Select a Venue</label>
+        <label htmlFor="venue-select" className="block text-xs font-semibold text-gray-500 uppercase mb-2">Select a Venue</label>
         <select
-          id="hall-select"
-          value={selectedHall}
+          id="venue-select"
+          value={selectedVenue}
           onChange={(e) => handleHallChange(e.target.value)}
           className="block w-full pl-3 pr-10 py-2.5 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-lg text-gray-900"
         >
           <option value="">--Please choose a venue--</option>
-          {halls.map((hall) => (
-            <option key={hall._id} value={hall._id}>
-              {hall.name}
+          {venues.map((venue) => (
+            <option key={venue._id} value={venue._id}>
+              {venue.name}
             </option>
           ))}
         </select>
@@ -852,7 +852,7 @@ const BookingsPage = () => {
                   )) : (
                     <tr>
                       <td colSpan={6} className="px-6 py-20 text-center text-gray-500">
-                        {selectedHall ? (searchTerm ? `No bookings found matching "${searchTerm}"` : 'No bookings found for this venue.') : 'Please select a venue.'}
+                        {selectedVenue ? (searchTerm ? `No bookings found matching "${searchTerm}"` : 'No bookings found for this venue.') : 'Please select a venue.'}
                       </td>
                     </tr>
                   )}
@@ -1001,7 +1001,7 @@ const BookingsPage = () => {
                 </div>
               )) : (
                 <div className="text-center py-20 bg-white rounded-xl border-2 border-dashed border-gray-200 text-gray-400 font-medium">
-                  {selectedHall ? "No bookings found." : "Select a venue above."}
+                  {selectedVenue ? "No bookings found." : "Select a venue above."}
                 </div>
               )}
             </div>
@@ -1108,7 +1108,7 @@ const BookingsPage = () => {
                   )) : (
                     <tr>
                       <td colSpan={5} className="px-6 py-20 text-center text-gray-500">
-                         {selectedHall ? "No reservations found." : "Select a venue."}
+                         {selectedVenue ? "No reservations found." : "Select a venue."}
                       </td>
                     </tr>
                   )}
@@ -1222,7 +1222,7 @@ const BookingsPage = () => {
           isOpen={isConversionModalOpen}
           onClose={() => setIsConversionModalOpen(false)}
           reservationId={selectedReservationId}
-          onSuccess={() => fetchReservations(selectedHall, reservationsPage)}
+          onSuccess={() => fetchReservations(selectedVenue, reservationsPage)}
         />
       )}
       <RescheduleModal
@@ -1231,9 +1231,9 @@ const BookingsPage = () => {
         type={rescheduleType}
         onClose={() => setIsRescheduleModalOpen(false)}
         onSuccess={() => {
-          if (selectedHall) {
-            if (rescheduleType === 'reservation') fetchReservations(selectedHall, reservationsPage);
-            else fetchBookings(selectedHall, bookingsPage);
+          if (selectedVenue) {
+            if (rescheduleType === 'reservation') fetchReservations(selectedVenue, reservationsPage);
+            else fetchBookings(selectedVenue, bookingsPage);
           }
         }}
       />
@@ -1243,9 +1243,9 @@ const BookingsPage = () => {
         type={refundType}
         onClose={() => setIsRefundModalOpen(false)}
         onSuccess={() => {
-          if (selectedHall) {
-            if (refundType === 'reservation') fetchReservations(selectedHall, reservationsPage);
-            else fetchBookings(selectedHall, bookingsPage);
+          if (selectedVenue) {
+            if (refundType === 'reservation') fetchReservations(selectedVenue, reservationsPage);
+            else fetchBookings(selectedVenue, bookingsPage);
           }
         }}
       />

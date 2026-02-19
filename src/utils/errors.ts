@@ -80,7 +80,7 @@ const translateErrorMessage = (message: string): string => {
   }
 
   // If no translation found, and it looks technical, return a generic friendly message
-  if (lowerMessage.includes('load halls') || lowerMessage.includes('fetch halls') || lowerMessage.includes('venue')) {
+  if (lowerMessage.includes('load venues') || lowerMessage.includes('fetch venues') || lowerMessage.includes('venue')) {
     return "We're having trouble loading the venues right now. Please try again in a moment.";
   }
 

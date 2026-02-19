@@ -102,7 +102,7 @@ const NotificationDropdown = () => {
               const match = notification.message.match(urlRegex);
               const urlSlug = notification.hallSlug || notification.hallId || "";
 
-              const finalLink = notification.link || (match ? match[0] : null) || (urlSlug ? `/halls/${urlSlug}/review` : null);
+              const finalLink = notification.link || (match ? match[0] : null) || (urlSlug ? `/venues/${urlSlug}/review` : null);
               const isReview = finalLink?.includes('/review') || notification.message.toLowerCase().includes('review');
 
               return (

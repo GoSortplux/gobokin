@@ -7,13 +7,13 @@ import Swal from "@/utils/sweetalert";
 import LoadingSpinner from "@/components/admin/LoadingSpinner";
 import { Search, Trash, Edit, Power, PowerOff, Eye, PlusCircle, Calendar as CalendarIcon, Ban, CheckCircle } from "lucide-react";
 import Link from "next/link";
-import { createHallSlug } from "@/utils/slugify";
-import HallModal from "@/components/vendor/HallModal";
+import { createVenueSlug } from "@/utils/slugify";
+import VenueModal from "@/components/vendor/VenueModal";
 import ReservationModal from "@/components/vendor/ReservationModal";
 import Tabs from "@/components/admin/Tabs"; // New Import
 
-// Hall Interface
-interface Hall {
+// Venue Interface
+interface Venue {
   _id: string;
   slug?: string;
   name: string;
@@ -37,21 +37,21 @@ interface Suitability {
   name: string;
 }
 
-const HallManagementContent = () => {
+const VenueManagementContent = () => {
   // Common State
   const searchParams = useSearchParams();
   const initialSearch = searchParams.get("search") || "";
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("halls");
+  const [activeTab, setActiveTab] = useState("venues");
 
-  // Halls State
-  const [halls, setHalls] = useState<Hall[]>([]);
+  // Venues State
+  const [venues, setVenues] = useState<Venue[]>([]);
   const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingHall, setEditingHall] = useState<Hall | undefined>(undefined);
+  const [editingVenue, setEditingVenue] = useState<Venue | undefined>(undefined);
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
-  const [selectedHallId, setSelectedHallId] = useState<string | null>(null);
+  const [selectedVenueId, setSelectedVenueId] = useState<string | null>(null);
 
   // Facilities State
   const [facilities, setFacilities] = useState<Facility[]>([]);
@@ -63,7 +63,7 @@ const HallManagementContent = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            await Promise.all([fetchHalls(), fetchFacilities(), fetchSuitabilities()]);
+            await Promise.all([fetchVenues(), fetchFacilities(), fetchSuitabilities()]);
         } catch (error) {
             console.error("Error fetching data:", error);
             Swal.fire("Error", "Could not fetch all necessary data.", "error");
@@ -74,33 +74,33 @@ const HallManagementContent = () => {
     fetchData();
   }, []);
 
-  // Halls Functions
-  const fetchHalls = () => {
+  // Venues Functions
+  const fetchVenues = () => {
     return api.get("/halls")
       .then(response => {
-        setHalls(response.data.data);
+        setVenues(response.data.data);
       })
       .catch(error => {
-        console.error("Error fetching halls:", error);
+        console.error("Error fetching venues:", error);
         throw error; // Re-throw to be caught by Promise.all
       });
   };
 
-  const filteredHalls = useMemo(() => {
-    return halls
-      .filter(hall => {
-        if (statusFilter === "enabled") return hall.isOnlineBookingEnabled;
-        if (statusFilter === "disabled") return !hall.isOnlineBookingEnabled;
-        if (statusFilter === "listed") return hall.isListed;
-        if (statusFilter === "unlisted") return !hall.isListed;
+  const filteredVenues = useMemo(() => {
+    return venues
+      .filter(venue => {
+        if (statusFilter === "enabled") return venue.isOnlineBookingEnabled;
+        if (statusFilter === "disabled") return !venue.isOnlineBookingEnabled;
+        if (statusFilter === "listed") return venue.isListed;
+        if (statusFilter === "unlisted") return !venue.isListed;
         return true;
       })
-      .filter(hall =>
-        (hall.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (hall.location || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (hall.owner?.fullName || "").toLowerCase().includes(searchTerm.toLowerCase())
+      .filter(venue =>
+        (venue.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (venue.location || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (venue.owner?.fullName || "").toLowerCase().includes(searchTerm.toLowerCase())
       );
-  }, [halls, searchTerm, statusFilter]);
+  }, [venues, searchTerm, statusFilter]);
 
   const handleToggleBooking = async (hallId: string, currentState: boolean) => {
     const action = currentState ? "disable" : "enable";
@@ -115,7 +115,7 @@ const HallManagementContent = () => {
         try {
             await api.patch(`/halls/${hallId}/toggle-online-booking`);
             Swal.fire('Success!', `Online booking has been ${action}d.`, 'success');
-            fetchHalls();
+            fetchVenues();
         } catch (error) {
             console.error(`Error toggling online booking:`, error);
             Swal.fire('Error', `Could not ${action} online booking.`, 'error');
@@ -145,7 +145,7 @@ const HallManagementContent = () => {
         try {
           await api.patch(`/admin/halls/${hallId}/unlist`, { reason });
           Swal.fire('Success!', 'The venue has been unlisted.', 'success');
-          fetchHalls();
+          fetchVenues();
         } catch (error) {
           console.error("Error unlisting venue:", error);
           Swal.fire('Error', 'Could not unlist the venue.', 'error');
@@ -164,7 +164,7 @@ const HallManagementContent = () => {
         try {
           await api.patch(`/admin/halls/${hallId}/relist`);
           Swal.fire('Success!', 'The venue has been relisted.', 'success');
-          fetchHalls();
+          fetchVenues();
         } catch (error) {
           console.error("Error relisting venue:", error);
           Swal.fire('Error', 'Could not relist the venue.', 'error');
@@ -173,7 +173,7 @@ const HallManagementContent = () => {
     }
   };
 
-  const handleDeleteHall = async (hallId: string) => {
+  const handleDeleteVenue = async (hallId: string) => {
     const result = await Swal.fire({
       title: 'Are you sure?',
       text: "This will permanently delete the venue and all its data!",
@@ -187,7 +187,7 @@ const HallManagementContent = () => {
       try {
         await api.delete(`/halls/${hallId}`);
         Swal.fire('Deleted!', 'The venue has been deleted.', 'success');
-        fetchHalls();
+        fetchVenues();
       } catch (error) {
         console.error("Error deleting venue:", error);
         Swal.fire('Error', 'Could not delete the venue.', 'error');
@@ -195,7 +195,7 @@ const HallManagementContent = () => {
     }
   };
 
-  const handleCreateHall = async (formData: Record<string, unknown>) => {
+  const handleCreateVenue = async (formData: Record<string, unknown>) => {
     Swal.fire({
       title: 'Creating Venue...',
       text: 'Please wait while we set up the new venue.',
@@ -214,10 +214,10 @@ const HallManagementContent = () => {
         timer: 2000,
         showConfirmButton: false,
       });
-      fetchHalls();
+      fetchVenues();
       return response.data.data;
     } catch (error) {
-      console.error('Failed to create hall:', error);
+      console.error('Failed to create venue:', error);
       Swal.fire({
         icon: 'error',
         title: 'Creation Failed',
@@ -227,8 +227,8 @@ const HallManagementContent = () => {
     }
   };
 
-  const handleUpdateHall = async (formData: Record<string, unknown>) => {
-    if (!editingHall) return;
+  const handleUpdateVenue = async (formData: Record<string, unknown>) => {
+    if (!editingVenue) return;
 
     Swal.fire({
       title: 'Updating Venue...',
@@ -240,7 +240,7 @@ const HallManagementContent = () => {
     });
 
     try {
-      const response = await api.patch(`/halls/${editingHall._id}`, formData);
+      const response = await api.patch(`/halls/${editingVenue._id}`, formData);
       Swal.fire({
         icon: 'success',
         title: 'Venue Updated!',
@@ -248,12 +248,12 @@ const HallManagementContent = () => {
         timer: 2000,
         showConfirmButton: false,
       });
-      fetchHalls();
+      fetchVenues();
       setIsModalOpen(false);
-      setEditingHall(undefined);
+      setEditingVenue(undefined);
       return response.data.data;
     } catch (error) {
-      console.error('Failed to update hall:', error);
+      console.error('Failed to update venue:', error);
       Swal.fire({
         icon: 'error',
         title: 'Update Failed',
@@ -263,13 +263,13 @@ const HallManagementContent = () => {
     }
   };
 
-  const openEditModal = (hall: Hall) => {
-    setEditingHall(hall);
+  const openEditModal = (venue: Venue) => {
+    setEditingVenue(venue);
     setIsModalOpen(true);
   };
 
   const handleOpenCreateModal = () => {
-    setEditingHall(undefined);
+    setEditingVenue(undefined);
     setIsModalOpen(true);
   };
 
@@ -286,7 +286,7 @@ const HallManagementContent = () => {
   };
 
   const openReservationModal = (hallId: string) => {
-    setSelectedHallId(hallId);
+    setSelectedVenueId(hallId);
     setIsReservationModalOpen(true);
   };
 
@@ -457,38 +457,38 @@ const HallManagementContent = () => {
   }
 
   const tabs = [
-      { label: "Venues", value: "halls" },
+      { label: "Venues", value: "venues" },
       { label: "Facilities", value: "facilities" },
       { label: "Suitabilities", value: "suitabilities" },
   ];
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Conditionally render HallModal only for the halls tab */}
-      {activeTab === 'halls' && (
-        <HallModal
+      {/* Conditionally render VenueModal only for the venues tab */}
+      {activeTab === 'venues' && (
+        <VenueModal
           isOpen={isModalOpen}
           onClose={() => {
             setIsModalOpen(false);
-            setEditingHall(undefined);
+            setEditingVenue(undefined);
           }}
-          onSubmit={editingHall ? handleUpdateHall : handleCreateHall}
-          hall={editingHall}
+          onSubmit={editingVenue ? handleUpdateVenue : handleCreateVenue}
+          venue={editingVenue}
         />
       )}
 
-      {selectedHallId && (
+      {selectedVenueId && (
         <ReservationModal
           isOpen={isReservationModalOpen}
           onClose={() => setIsReservationModalOpen(false)}
           onSubmit={handleCreateReservation}
-          hallId={selectedHallId}
+          hallId={selectedVenueId}
         />
       )}
 
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-3xl font-bold text-primary">Venue Management</h1>
-        {activeTab === 'halls' && (
+        {activeTab === 'venues' && (
              <button
                 onClick={handleOpenCreateModal}
                 className="bg-primary text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-opacity-90"
@@ -520,7 +520,7 @@ const HallManagementContent = () => {
       <Tabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
 
       <div className="mt-8">
-        {activeTab === 'halls' && (
+        {activeTab === 'venues' && (
             <div className="bg-white p-6 shadow-lg rounded-lg">
                 <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                     <div className="relative w-full md:w-1/3">
@@ -559,46 +559,46 @@ const HallManagementContent = () => {
                     </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredHalls.map((hall) => (
-                        <tr key={hall._id}>
-                        <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{hall.name}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{hall.location}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{hall.owner?.fullName || 'No Owner'}</td>
+                    {filteredVenues.map((venue) => (
+                        <tr key={venue._id}>
+                        <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{venue.name}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{venue.location}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{venue.owner?.fullName || 'No Owner'}</td>
                         <td className="px-6 py-4 whitespace-nowrap space-x-2">
                             <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                hall.isOnlineBookingEnabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                venue.isOnlineBookingEnabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                             }`}>
-                                Booking: {hall.isOnlineBookingEnabled ? 'Enabled' : 'Disabled'}
+                                Booking: {venue.isOnlineBookingEnabled ? 'Enabled' : 'Disabled'}
                             </span>
                             <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                hall.isListed ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+                                venue.isListed ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
                             }`}>
-                                {hall.isListed ? 'Listed' : 'Unlisted'}
+                                {venue.isListed ? 'Listed' : 'Unlisted'}
                             </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <Link href={`/halls/${createHallSlug(hall.name, hall._id, hall.slug)}`} passHref>
+                            <Link href={`/venues/${createVenueSlug(venue.name, venue._id, venue.slug)}`} passHref>
                                 <button title="View Venue" className="text-blue-600 hover:text-blue-900 mr-3"><Eye size={18} /></button>
                             </Link>
-                            <button onClick={() => openEditModal(hall)} title="Edit Venue" className="text-indigo-600 hover:text-indigo-900 mr-3"><Edit size={18} /></button>
+                            <button onClick={() => openEditModal(venue)} title="Edit Venue" className="text-indigo-600 hover:text-indigo-900 mr-3"><Edit size={18} /></button>
                             <button
-                                onClick={() => handleToggleBooking(hall._id, hall.isOnlineBookingEnabled)}
-                                title={hall.isOnlineBookingEnabled ? "Disable Booking" : "Enable Booking"}
+                                onClick={() => handleToggleBooking(venue._id, venue.isOnlineBookingEnabled)}
+                                title={venue.isOnlineBookingEnabled ? "Disable Booking" : "Enable Booking"}
                                 className="text-yellow-600 hover:text-yellow-900 mr-3"
                             >
-                                {hall.isOnlineBookingEnabled ? <PowerOff size={18} /> : <Power size={18} />}
+                                {venue.isOnlineBookingEnabled ? <PowerOff size={18} /> : <Power size={18} />}
                             </button>
                             <button
-                                onClick={() => handleUnlistRelist(hall._id, hall.isListed)}
-                                title={hall.isListed ? "Unlist Venue" : "Relist Venue"}
-                                className={`${hall.isListed ? 'text-orange-600 hover:text-orange-900' : 'text-green-600 hover:text-green-900'} mr-3`}
+                                onClick={() => handleUnlistRelist(venue._id, venue.isListed)}
+                                title={venue.isListed ? "Unlist Venue" : "Relist Venue"}
+                                className={`${venue.isListed ? 'text-orange-600 hover:text-orange-900' : 'text-green-600 hover:text-green-900'} mr-3`}
                             >
-                                {hall.isListed ? <Ban size={18} /> : <CheckCircle size={18} />}
+                                {venue.isListed ? <Ban size={18} /> : <CheckCircle size={18} />}
                             </button>
-                            <button onClick={() => openReservationModal(hall._id)} title="Block Dates" className="text-green-600 hover:text-green-900 mr-3">
+                            <button onClick={() => openReservationModal(venue._id)} title="Block Dates" className="text-green-600 hover:text-green-900 mr-3">
                                 <CalendarIcon size={18} />
                             </button>
-                            <button onClick={() => handleDeleteHall(hall._id)} title="Delete Venue" className="text-red-600 hover:text-red-900">
+                            <button onClick={() => handleDeleteVenue(venue._id)} title="Delete Venue" className="text-red-600 hover:text-red-900">
                                 <Trash size={18} />
                             </button>
                         </td>
@@ -606,7 +606,7 @@ const HallManagementContent = () => {
                     ))}
                     </tbody>
                 </table>
-                {filteredHalls.length === 0 && (
+                {filteredVenues.length === 0 && (
                     <div className="text-center py-8 text-gray-500">
                         No venues found.
                     </div>
@@ -687,10 +687,10 @@ const HallManagementContent = () => {
   );
 };
 
-const HallManagementPage = () => (
+const VenueManagementPage = () => (
   <Suspense fallback={<div>Loading...</div>}>
-    <HallManagementContent />
+    <VenueManagementContent />
   </Suspense>
 );
 
-export default withAuth(HallManagementPage, ["super-admin"]);
+export default withAuth(VenueManagementPage, ["super-admin"]);

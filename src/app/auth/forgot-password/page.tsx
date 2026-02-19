@@ -36,7 +36,7 @@ const ForgotPasswordPage = () => {
       {/* Left side with background image */}
       <div
         className="hidden lg:block w-1/2 bg-cover bg-center"
-        style={{ backgroundImage: "url(/hall_default.jpg)" }}
+        style={{ backgroundImage: "url(/venue_default.jpg)" }}
       >
       </div>
 

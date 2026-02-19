@@ -5,22 +5,22 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 
-interface Hall {
+interface Venue {
   images: string[];
 }
 
 const AuthLayout = ({ children }: { children: React.ReactNode }) => {
-  const [images, setImages] = useState<string[]>(['/hall_default.jpg']);
+  const [images, setImages] = useState<string[]>(['/venue_default.jpg']);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     const fetchHallImages = async () => {
       try {
         const response = await axios.get('https://api.gobokin.com/api/v1/halls');
-        const halls = response.data.data;
-        if (halls && halls.length > 0) {
-          const allImages = halls
-            .flatMap((hall: Hall) => hall.images)
+        const venues = response.data.data;
+        if (venues && venues.length > 0) {
+          const allImages = venues
+            .flatMap((venue: Venue) => venue.images)
             .filter((image: string) => image); // Filter out any empty strings
           if (allImages.length > 0) {
             const secureImages = allImages.map((img: string) => img.replace(/^http:/, 'https:'));
@@ -28,7 +28,7 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
           }
         }
       } catch (error) {
-        console.error('Failed to fetch hall images:', error);
+        console.error('Failed to fetch venue images:', error);
       }
     };
 
@@ -53,7 +53,7 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
           <Image
             key={image}
             src={image}
-            alt="Hall"
+            alt="Venue"
             fill
             style={{ objectFit: 'cover' }}
             className={`transition-opacity duration-1000 ease-in-out ${

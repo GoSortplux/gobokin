@@ -43,7 +43,7 @@ const TourGuide = () => {
               }
             },
             {
-              element: '#vendor-nav-halls',
+              element: '#vendor-nav-venues',
               popover: {
                 title: 'Manage Venues',
                 description: 'Manage your venues here. You can add new venues, edit existing ones, or block dates for maintenance.',

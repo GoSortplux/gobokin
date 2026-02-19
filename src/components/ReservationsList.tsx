@@ -19,7 +19,7 @@ const ReservationsList = () => {
       const response = await api.get('/reservations/my-reservations');
       const reservationsData = response.data.data.reservations || [];
 
-      // Fetch hall details for each reservation
+      // Fetch venue details for each reservation
       const reservationsWithHallDetails = await Promise.all(
         (Array.isArray(reservationsData) ? reservationsData : []).map(async (reservation: Reservation) => {
           if (typeof reservation.hall === 'string') {
@@ -27,8 +27,8 @@ const ReservationsList = () => {
               const hallResponse = await api.get(`/halls/${reservation.hall}`);
               reservation.hall = hallResponse.data.data;
             } catch (hallError) {
-              console.error(`Failed to fetch hall details for reservation ${reservation._id}`, hallError);
-              // Keep the hall as an ID string if fetching fails
+              console.error(`Failed to fetch venue details for reservation ${reservation._id}`, hallError);
+              // Keep the venue as an ID string if fetching fails
             }
           }
           return reservation;

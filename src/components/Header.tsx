@@ -116,7 +116,7 @@ const Header = () => {
         return (
           <Link
             id="become-owner-button"
-            href="/apply-hall-owner"
+            href="/apply-venue-owner"
             className={buttonClasses}
           >
             <Plus className="w-4 h-4" />

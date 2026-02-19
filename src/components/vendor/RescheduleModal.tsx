@@ -8,7 +8,7 @@ import Swal from "@/utils/sweetalert";
 import Calendar from '../Calendar';
 import { format } from 'date-fns';
 import { useBookingAvailability } from '@/hooks/useBookingAvailability';
-import { Hall, Booking, Reservation } from '@/types';
+import { Venue, Booking, Reservation } from '@/types';
 
 const AvailabilityLegend = () => (
   <div className="mt-4 p-4 border border-gray-100 rounded-2xl bg-gray-50/50 w-full shadow-inner">
@@ -46,9 +46,9 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({ isOpen, onClose, book
   const [displayedMonth, setDisplayedMonth] = useState(new Date());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [hall, setHall] = useState<Hall | null>(null);
+  const [venue, setVenue] = useState<Venue | null>(null);
 
-  const { getDateAvailability, disabledHours } = useBookingAvailability(hall, selectedDates, displayedMonth);
+  const { getDateAvailability, disabledHours } = useBookingAvailability(venue, selectedDates, displayedMonth);
 
   const generateTimeOptions = (openingHour: number, closingHour: number, disabled: number[]) => {
     const options = [];
@@ -81,18 +81,18 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({ isOpen, onClose, book
       setDisplayedMonth(firstDate);
       setError('');
 
-      const fetchHall = async () => {
+      const fetchVenue = async () => {
         try {
           const hallId = typeof booking.hall === 'string' ? booking.hall : booking.hall?._id;
           if (hallId) {
             const response = await api.get(`/halls/${hallId}`);
-            setHall(response.data.data);
+            setVenue(response.data.data);
           }
         } catch (err) {
-          console.error('Failed to fetch hall:', err);
+          console.error('Failed to fetch venue:', err);
         }
       };
-      fetchHall();
+      fetchVenue();
     }
   }, [isOpen, booking]);
 
@@ -206,7 +206,7 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({ isOpen, onClose, book
                 required
               >
                 <option value="">Select Time</option>
-                {hall && generateTimeOptions(hall.openingHour || 0, hall.closingHour || 24, disabledHours)}
+                {venue && generateTimeOptions(venue.openingHour || 0, venue.closingHour || 24, disabledHours)}
               </select>
             </div>
             <div>
@@ -218,7 +218,7 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({ isOpen, onClose, book
                 required
               >
                 <option value="">Select Time</option>
-                {hall && generateTimeOptions(hall.openingHour || 0, hall.closingHour || 24, disabledHours)}
+                {venue && generateTimeOptions(venue.openingHour || 0, venue.closingHour || 24, disabledHours)}
               </select>
             </div>
           </div>

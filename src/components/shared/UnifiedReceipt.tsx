@@ -3,7 +3,7 @@
 import React, { useRef } from 'react';
 import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
-import { Booking, Reservation, Hall } from '@/types';
+import { Booking, Reservation, Venue } from '@/types';
 import { CheckCircle, Download, Share2, Printer, MapPin, Calendar, Clock, CreditCard, Building2, User } from 'lucide-react';
 import Image from 'next/image';
 import Swal from '@/utils/sweetalert';
@@ -21,7 +21,7 @@ const UnifiedReceipt: React.FC<UnifiedReceiptProps> = ({ data, isSuccessPage = f
   };
 
   const id = isBooking(data) ? data.bookingId : data.reservationId;
-  const hall = typeof data.hall === 'object' ? (data.hall as Hall) : null;
+  const venue = typeof data.hall === 'object' ? (data.hall as Venue) : null;
 
   // Calculate financial details
   const amountPaid = data.paidAmount || data.reservationFee || data.totalPrice;
@@ -96,7 +96,7 @@ const UnifiedReceipt: React.FC<UnifiedReceiptProps> = ({ data, isSuccessPage = f
         await navigator.share({
           files: [file],
           title: 'Booking Receipt',
-          text: `Here is my booking receipt for ${hall?.name || 'the hall'}. Receipt ID: ${id}`,
+          text: `Here is my booking receipt for ${venue?.name || 'the venue'}. Receipt ID: ${id}`,
         });
       } else {
         // Fallback to image download if sharing is not supported
@@ -180,7 +180,7 @@ const UnifiedReceipt: React.FC<UnifiedReceiptProps> = ({ data, isSuccessPage = f
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Left Column: Customer & Hall */}
+            {/* Left Column: Customer & Venue */}
             <div className="space-y-10">
               <section>
                 <div className="flex items-center gap-3 mb-4 text-primary font-bold uppercase tracking-wider text-sm">
@@ -196,13 +196,13 @@ const UnifiedReceipt: React.FC<UnifiedReceiptProps> = ({ data, isSuccessPage = f
               <section>
                 <div className="flex items-center gap-3 mb-4 text-primary font-bold uppercase tracking-wider text-sm">
                   <Building2 size={18} />
-                  <span>Hall Details</span>
+                  <span>Venue Details</span>
                 </div>
                 <div className="bg-gray-50 p-6 rounded-2xl">
-                  <p className="text-xl font-bold text-gray-900">{hall?.name || 'N/A'}</p>
+                  <p className="text-xl font-bold text-gray-900">{venue?.name || 'N/A'}</p>
                   <div className="flex items-start gap-2 text-gray-600 mt-2">
                     <MapPin size={18} className="mt-1 flex-shrink-0" />
-                    <span>{hall?.location || 'N/A'}</span>
+                    <span>{venue?.location || 'N/A'}</span>
                   </div>
                 </div>
               </section>

@@ -1,4 +1,4 @@
-const HallDetailSkeleton = () => {
+const VenueDetailSkeleton = () => {
   return (
     <div className="bg-white min-h-screen animate-pulse">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-28">
@@ -71,4 +71,4 @@ const HallDetailSkeleton = () => {
   );
 };
 
-export default HallDetailSkeleton;
+export default VenueDetailSkeleton;

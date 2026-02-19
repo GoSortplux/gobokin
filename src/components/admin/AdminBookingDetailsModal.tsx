@@ -1,20 +1,20 @@
 "use client";
 import React from 'react';
 import { X } from 'lucide-react';
-import { Booking, Hall } from '@/types';
+import { Booking, Venue } from '@/types';
 
 interface AdminBookingDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   booking: Booking;
-  halls: Hall[];
+  venues: Venue[];
 }
 
-const AdminBookingDetailsModal: React.FC<AdminBookingDetailsModalProps> = ({ isOpen, onClose, booking, halls }) => {
+const AdminBookingDetailsModal: React.FC<AdminBookingDetailsModalProps> = ({ isOpen, onClose, booking, venues }) => {
   if (!isOpen) return null;
 
-  const hallId = typeof booking.hall === 'string' ? booking.hall : (booking.hall as Hall)?._id || (booking.hall as Hall)?.id;
-  const hallName = halls.find(h => h._id === hallId || h.id === hallId)?.name || 'N/A';
+  const hallId = typeof booking.hall === 'string' ? booking.hall : (booking.hall as Venue)?._id || (booking.hall as Venue)?.id;
+  const hallName = venues.find(h => h._id === hallId || h.id === hallId)?.name || 'N/A';
 
   const startTime = booking.bookingDates?.[0]?.startTime || '';
 

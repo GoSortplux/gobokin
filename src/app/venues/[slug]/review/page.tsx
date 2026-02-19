@@ -6,7 +6,7 @@ import { Star, X, ArrowLeft, Loader2 } from 'lucide-react';
 import api from '@/services/api';
 import Swal from "@/utils/sweetalert";
 import { useAuth } from '@/context/AuthContext';
-import { Booking, Hall } from '@/types';
+import { Booking, Venue } from '@/types';
 interface ReviewPageProps {
   params: Promise<{ slug: string }>;
 }
@@ -16,8 +16,8 @@ const ReviewPage = ({ params }: ReviewPageProps) => {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
-  const [hall, setHall] = useState<Hall | null>(null);
-  const [hallId, setHallId] = useState<string | null>(null);
+  const [venue, setVenue] = useState<Venue | null>(null);
+  const [hallId, setVenueId] = useState<string | null>(null);
   const [booking, setBooking] = useState<Booking | null>(null);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
@@ -37,19 +37,19 @@ const ReviewPage = ({ params }: ReviewPageProps) => {
 
     const fetchData = async () => {
       try {
-        // Fetch Hall Details
-        let hallData;
-        let actualHallId: string;
+        // Fetch Venue Details
+        let venueData;
+        let actualVenueId: string;
         try {
           // Fetch using slug from URL
-          const hallRes = await api.get(`/halls/${slug}`);
-          hallData = hallRes.data.data;
-          setHall(hallData);
-          actualHallId = hallData._id || hallData.id;
-          setHallId(actualHallId);
+          const venueRes = await api.get(`/venues/${slug}`);
+          venueData = venueRes.data.data;
+          setVenue(venueData);
+          actualVenueId = venueData._id || venueData.id;
+          setVenueId(actualVenueId);
         } catch (err) {
-          console.error('Error fetching hall:', err);
-          setError('Failed to load hall details. The hall may no longer exist or the link is invalid.');
+          console.error('Error fetching venue:', err);
+          setError('Failed to load venue details. The venue may no longer exist or the link is invalid.');
           setLoading(false);
           return;
         }
@@ -75,21 +75,21 @@ const ReviewPage = ({ params }: ReviewPageProps) => {
         }
 
         // Find eligible booking:
-        // 1. Belongs to this hall
+        // 1. Belongs to this venue
         // 2. Paid
         // 3. Most recent one
         const eligibleBooking = userBookings
           .filter((b: Booking) => {
             if (!b) return false;
-            // Handle cases where hall might be null or missing
-            const bHallId = b.hall && typeof b.hall === 'object'
+            // Handle cases where venue might be null or missing
+            const bVenueId = b.hall && typeof b.hall === 'object'
               ? (b.hall as { _id: string })._id
               : b.hall;
 
-            if (!bHallId) return false;
+            if (!bVenueId) return false;
 
             // Loose comparison to handle potential ID format differences
-            const isMatch = String(bHallId) === String(actualHallId);
+            const isMatch = String(bVenueId) === String(actualVenueId);
             const isPaid = b.paymentStatus === 'paid';
 
             return isMatch && isPaid;
@@ -105,7 +105,7 @@ const ReviewPage = ({ params }: ReviewPageProps) => {
           })[0];
 
         if (!eligibleBooking) {
-          setError('No eligible paid booking found for this hall. You can only review halls you have successfully booked and paid for.');
+          setError('No eligible paid booking found for this venue. You can only review venues you have successfully booked and paid for.');
         } else {
           setBooking(eligibleBooking);
         }
@@ -122,7 +122,7 @@ const ReviewPage = ({ params }: ReviewPageProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!booking || !hall) return;
+    if (!booking || !venue) return;
 
     if (rating === 0) {
       Swal.fire('Error', 'Please provide a rating.', 'error');
@@ -145,7 +145,7 @@ const ReviewPage = ({ params }: ReviewPageProps) => {
         icon: 'success',
         confirmButtonColor: '#295FA7',
       });
-      router.push(`/halls/${slug}`);
+      router.push(`/venues/${slug}`);
     } catch (err: unknown) {
       console.error('Error submitting review:', err);
       Swal.fire('Error', err instanceof Error ? err.message : 'Failed to submit review.', 'error');
@@ -175,10 +175,10 @@ const ReviewPage = ({ params }: ReviewPageProps) => {
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Cannot Write Review</h2>
           <p className="text-gray-600 mb-8 leading-relaxed">{error}</p>
           <button
-            onClick={() => router.push(`/halls/${slug}`)}
+            onClick={() => router.push(`/venues/${slug}`)}
             className="w-full bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-opacity-90 transition-all shadow-md"
           >
-            Back to Hall
+            Back to Venue
           </button>
         </div>
       </div>
@@ -189,17 +189,17 @@ const ReviewPage = ({ params }: ReviewPageProps) => {
     <div className="min-h-screen bg-gray-50 pt-24 pb-12 px-4">
       <div className="max-w-2xl mx-auto">
         <button
-          onClick={() => router.push(`/halls/${slug}`)}
+          onClick={() => router.push(`/venues/${slug}`)}
           className="flex items-center text-gray-600 hover:text-primary mb-6 transition-colors group"
         >
           <ArrowLeft size={20} className="mr-2 group-hover:-translate-x-1 transition-transform" />
-          Back to {hall?.name || 'Hall'}
+          Back to {venue?.name || 'Venue'}
         </button>
 
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
           <div className="bg-primary px-8 py-10 text-white text-center">
             <h1 className="text-3xl font-bold mb-2">Share Your Experience</h1>
-            <p className="text-blue-100 opacity-90">How was your event at {hall?.name}?</p>
+            <p className="text-blue-100 opacity-90">How was your event at {venue?.name}?</p>
           </div>
 
           <form onSubmit={handleSubmit} className="p-8 lg:p-12 space-y-10">

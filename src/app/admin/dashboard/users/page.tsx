@@ -18,7 +18,7 @@ interface User {
   avatar?: string;
 }
 
-interface HallOwnerApplication {
+interface VenueOwnerApplication {
   _id: string;
   user: {
     _id: string;
@@ -158,7 +158,7 @@ const ApplicationDetailsModal = ({
   onApprove,
   onReject
 }: {
-  application: HallOwnerApplication;
+  application: VenueOwnerApplication;
   onClose: () => void;
   onApprove: (userId: string) => void;
   onReject: (userId: string) => void;
@@ -203,7 +203,7 @@ const ApplicationDetailsModal = ({
                 Venue Information
               </h3>
             </div>
-            <DetailItem label="Hall Name" value={application.hallName} />
+            <DetailItem label="Venue Name" value={application.hallName} />
             <DetailItem label="Capacity" value={application.capacity} />
             <DetailItem label="Country" value={getLocationName(application.country)} />
             <DetailItem label="State" value={getLocationName(application.state)} />
@@ -426,9 +426,9 @@ const AllUsersTab = () => {
 };
 
 const PendingApplicationsTab = () => {
-  const [applications, setApplications] = useState<HallOwnerApplication[]>([]);
+  const [applications, setApplications] = useState<VenueOwnerApplication[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedApp, setSelectedApp] = useState<HallOwnerApplication | null>(null);
+  const [selectedApp, setSelectedApp] = useState<VenueOwnerApplication | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("pending");
 
   useEffect(() => {
@@ -766,7 +766,7 @@ const UsersPageContent = () => {
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
             >
-              Pending Applications
+              Venue Owner Applications
             </button>
             <button
               onClick={() => setActiveTab("deletions")}

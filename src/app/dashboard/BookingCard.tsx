@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { useRouter } from "next/navigation";
-import { Booking, Hall } from "@/types";
+import { Booking, Venue } from "@/types";
 import api from "@/services/api";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
@@ -17,8 +17,8 @@ interface BookingCardProps {
 const BookingCard: React.FC<BookingCardProps> = ({ booking, onViewReceipt, onReview, onRefresh, isPast }) => {
   const router = useRouter();
   const [completingPayment, setCompletingPayment] = React.useState(false);
-  const hall = typeof booking.hall === 'object' ? (booking.hall as Hall) : null;
-  const hallName = hall ? hall.name : "Hall details unavailable";
+  const venue = typeof booking.hall === 'object' ? (booking.hall as Venue) : null;
+  const hallName = venue ? venue.name : "Venue details unavailable";
 
   const handleRequestCancellation = async () => {
     const { value: reason, isConfirmed } = await Swal.fire({
@@ -116,22 +116,22 @@ const BookingCard: React.FC<BookingCardProps> = ({ booking, onViewReceipt, onRev
             {isPast && (
               <button
                 onClick={() => onReview(booking)}
-                disabled={!hall}
+                disabled={!venue}
                 className={`py-2 px-4 rounded-md transition-colors duration-300 text-center flex-1 ${
-                  !hall
+                  !venue
                     ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                     : "bg-primary text-white hover:bg-opacity-90"
                 }`}
               >
-                {booking.review ? "View Review" : "Review Hall"}
+                {booking.review ? "View Review" : "Review Venue"}
               </button>
             )}
             {!isPast && booking.paymentStatus === "pending" && booking.status !== "cancelled" && (
               <button
                 onClick={handleCompletePayment}
-                disabled={!hall}
+                disabled={!venue}
                 className={`py-2 px-4 rounded-md transition-colors duration-300 text-center flex-1 ${
-                  !hall
+                  !venue
                     ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                     : "bg-primary text-white hover:bg-opacity-90"
                 }`}
@@ -147,9 +147,9 @@ const BookingCard: React.FC<BookingCardProps> = ({ booking, onViewReceipt, onRev
                   onViewReceipt(booking.bookingId);
                 }
               }}
-              disabled={!hall}
+              disabled={!venue}
               className={`py-2 px-4 rounded-md transition-colors duration-300 text-center flex-1 ${
-                !hall
+                !venue
                   ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                   : "bg-gray-200 text-gray-800 hover:bg-gray-300"
               }`}

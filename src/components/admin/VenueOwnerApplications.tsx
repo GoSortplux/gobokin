@@ -11,7 +11,7 @@ interface Application {
   // Add other application fields as needed
 }
 
-const HallOwnerApplications = () => {
+const VenueOwnerApplications = () => {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -124,4 +124,4 @@ const HallOwnerApplications = () => {
   );
 };
 
-export default HallOwnerApplications;
+export default VenueOwnerApplications;

@@ -3,9 +3,9 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 
 interface UIContextType {
-  isHallModalOpen: boolean;
-  openHallModal: () => void;
-  closeHallModal: () => void;
+  isVenueModalOpen: boolean;
+  openVenueModal: () => void;
+  closeVenueModal: () => void;
   isStaffModalOpen: boolean;
   openStaffModal: () => void;
   closeStaffModal: () => void;
@@ -20,13 +20,13 @@ interface UIContextType {
 const UIContext = createContext<UIContextType | undefined>(undefined);
 
 export const UIProvider = ({ children }: { children: ReactNode }) => {
-  const [isHallModalOpen, setIsHallModalOpen] = useState(false);
+  const [isVenueModalOpen, setIsVenueModalOpen] = useState(false);
   const [isStaffModalOpen, setIsStaffModalOpen] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const openHallModal = useCallback(() => setIsHallModalOpen(true), []);
-  const closeHallModal = useCallback(() => setIsHallModalOpen(false), []);
+  const openVenueModal = useCallback(() => setIsVenueModalOpen(true), []);
+  const closeVenueModal = useCallback(() => setIsVenueModalOpen(false), []);
 
   const openStaffModal = useCallback(() => setIsStaffModalOpen(true), []);
   const closeStaffModal = useCallback(() => setIsStaffModalOpen(false), []);
@@ -40,9 +40,9 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
   return (
     <UIContext.Provider
       value={{
-        isHallModalOpen,
-        openHallModal,
-        closeHallModal,
+        isVenueModalOpen,
+        openVenueModal,
+        closeVenueModal,
         isStaffModalOpen,
         openStaffModal,
         closeStaffModal,

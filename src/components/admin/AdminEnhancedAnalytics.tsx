@@ -32,10 +32,10 @@ interface PlatformRevenue {
   totalNetRevenue?: number;
 }
 interface CommissionAnalytics { commissionRate: string; totalCommission: number; commissionableRevenue: number; }
-interface HallPerformance { _id: string; owner: { _id: string; fullName: string; email: string; }; name: string; revenue: number; bookingCount: number; viewCount: number; score: number; }
-interface InactiveHall { hallId: string; hallName: string; ownerName?: string; }
+interface VenuePerformance { _id: string; owner: { _id: string; fullName: string; email: string; }; name: string; revenue: number; bookingCount: number; viewCount: number; score: number; }
+interface InactiveVenue { hallId: string; hallName: string; ownerName?: string; }
 interface DataComparison { currentPeriod: { from: string; to: string; bookingRevenue: number; subscriptionRevenue: number; }; previousPeriod: { from: string; to: string; bookingRevenue: number; subscriptionRevenue: number; }; change: { bookingRevenuePercentage: string; subscriptionRevenuePercentage: string; }; }
-interface AdminAnalyticsData { platformRevenue: PlatformRevenue; commissionAnalytics: CommissionAnalytics; hallPerformance: { mostActiveHalls: HallPerformance[]; inactiveHalls: InactiveHall[]; }; dataComparison: DataComparison; }
+interface AdminAnalyticsData { platformRevenue: PlatformRevenue; commissionAnalytics: CommissionAnalytics; hallPerformance: { mostActiveHalls: VenuePerformance[]; inactiveHalls: InactiveVenue[]; }; dataComparison: DataComparison; }
 
 const formatCurrency = (amount: number) => new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(amount);
 
@@ -94,7 +94,7 @@ const AdminEnhancedAnalytics = () => {
 
   useEffect(() => { fetchAdminAnalytics(); }, [fetchAdminAnalytics]);
 
-  const topHallsData = data?.hallPerformance?.mostActiveHalls.slice(0, 5).map(hall => ({ name: hall.name, Revenue: hall.revenue })) || [];
+  const topHallsData = data?.hallPerformance?.mostActiveHalls.slice(0, 5).map(venue => ({ name: venue.name, Revenue: venue.revenue })) || [];
   const revenueBreakdownData = data ? [
     { name: 'Booking Revenue', value: data.platformRevenue.totalBookingRevenue },
     { name: 'Subscription Revenue', value: data.platformRevenue.totalSubscriptionRevenue },
@@ -225,16 +225,16 @@ const AdminEnhancedAnalytics = () => {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-50">
-                              {data.hallPerformance?.mostActiveHalls.map((hall) => (
-                                  <tr key={hall._id} className="group hover:bg-gray-50/50 transition-colors">
+                              {data.hallPerformance?.mostActiveHalls.map((venue) => (
+                                  <tr key={venue._id} className="group hover:bg-gray-50/50 transition-colors">
                                       <td className="py-4">
-                                          <div className="text-sm font-bold text-gray-900">{hall.name}</div>
-                                          <div className="text-[10px] text-gray-400 font-medium">{hall.owner?.fullName ?? 'Independent Owner'}</div>
+                                          <div className="text-sm font-bold text-gray-900">{venue.name}</div>
+                                          <div className="text-[10px] text-gray-400 font-medium">{venue.owner?.fullName ?? 'Independent Owner'}</div>
                                       </td>
-                                      <td className="py-4 text-center text-sm font-black text-gray-900">{formatCurrency(hall.revenue)}</td>
+                                      <td className="py-4 text-center text-sm font-black text-gray-900">{formatCurrency(venue.revenue)}</td>
                                       <td className="py-4 text-right">
                                           <span className="inline-block px-3 py-1 bg-gray-100 group-hover:bg-primary group-hover:text-white transition-all text-gray-600 text-xs font-bold rounded-lg">
-                                            {hall.bookingCount}
+                                            {venue.bookingCount}
                                           </span>
                                       </td>
                                   </tr>
@@ -256,10 +256,10 @@ const AdminEnhancedAnalytics = () => {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-50">
-                              {data.hallPerformance?.inactiveHalls.map((hall) => (
-                                  <tr key={hall.hallId} className="hover:bg-gray-50/50 transition-colors">
-                                      <td className="py-4 text-sm font-bold text-gray-900">{hall.hallName}</td>
-                                      <td className="py-4 text-xs text-gray-500 font-medium">{hall.ownerName ?? 'Unassigned'}</td>
+                              {data.hallPerformance?.inactiveHalls.map((venue) => (
+                                  <tr key={venue.hallId} className="hover:bg-gray-50/50 transition-colors">
+                                      <td className="py-4 text-sm font-bold text-gray-900">{venue.hallName}</td>
+                                      <td className="py-4 text-xs text-gray-500 font-medium">{venue.ownerName ?? 'Unassigned'}</td>
                                       <td className="py-4 text-right">
                                           <span className="px-2 py-1 bg-rose-50 text-rose-600 text-[10px] font-black uppercase rounded-md">No Recent Bookings</span>
                                       </td>

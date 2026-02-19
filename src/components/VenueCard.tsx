@@ -4,19 +4,19 @@ import Image from "next/image";
 import { Star, Eye } from "lucide-react";
 import Slider from "react-slick";
 
-import { Hall } from "@/types/hall";
+import { Venue } from "@/types/venue";
 import { useAuth } from "@/context/AuthContext";
-import { createHallSlug } from "@/utils/slugify";
+import { createVenueSlug } from "@/utils/slugify";
 import { VIEW_COUNT_ROLES } from '@/constants/auth';
 
-interface HallCardProps {
-  hall: Hall;
+interface VenueCardProps {
+  venue: Venue;
 }
 
-const HallCard = ({ hall }: HallCardProps) => {
+const VenueCard = ({ venue }: VenueCardProps) => {
   const { user } = useAuth();
   const canSeeViews = user && VIEW_COUNT_ROLES.includes(user.activeRole);
-  const { dailyRate, hourlyRate } = hall.pricing || {};
+  const { dailyRate, hourlyRate } = venue.pricing || {};
 
   const settings = {
     dots: true,
@@ -31,18 +31,18 @@ const HallCard = ({ hall }: HallCardProps) => {
 
   return (
     <div className="h-full">
-      <div data-testid="hall-card" className="h-full block bg-white rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
-        <div className="relative hall-card-slider">
-          {hall.images && hall.images.length > 1 ? (
-            <Slider {...settings} className="hall-card-slick">
-              {hall.images.map((image, index) => (
-                <Link href={`/halls/${createHallSlug(hall.name, hall._id, hall.slug)}`} key={index}>
+      <div data-testid="venue-card" className="h-full block bg-white rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
+        <div className="relative venue-card-slider">
+          {venue.images && venue.images.length > 1 ? (
+            <Slider {...settings} className="venue-card-slick">
+              {venue.images.map((image, index) => (
+                <Link href={`/venues/${createVenueSlug(venue.name, venue._id, venue.slug)}`} key={index}>
                   <div className="relative h-48 w-full">
                     <Image
                       fill
                       className="object-cover"
                       src={image}
-                      alt={`${hall.name} image ${index + 1}`}
+                      alt={`${venue.name} image ${index + 1}`}
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
                   </div>
@@ -50,23 +50,23 @@ const HallCard = ({ hall }: HallCardProps) => {
               ))}
             </Slider>
           ) : (
-            <Link href={`/halls/${createHallSlug(hall.name, hall._id, hall.slug)}`}>
+            <Link href={`/venues/${createVenueSlug(venue.name, venue._id, venue.slug)}`}>
               <div className="relative h-48 w-full">
                 <Image
                   fill
                   className="object-cover"
-                  src={hall.images && hall.images.length > 0 ? hall.images[0] : "/hall_default.jpg"}
-                  alt={hall.name}
+                  src={venue.images && venue.images.length > 0 ? venue.images[0] : "/venue_default.jpg"}
+                  alt={venue.name}
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
               </div>
             </Link>
           )}
         </div>
-        <Link href={`/halls/${createHallSlug(hall.name, hall._id, hall.slug)}`} className="h-full">
+        <Link href={`/venues/${createVenueSlug(venue.name, venue._id, venue.slug)}`} className="h-full">
           <div className="p-3">
-            <h3 className="text-sm font-bold text-gray-800 truncate">{hall.name}</h3>
-          <p className="mt-0.5 text-xs text-gray-500 truncate">{hall.location}</p>
+            <h3 className="text-sm font-bold text-gray-800 truncate">{venue.name}</h3>
+          <p className="mt-0.5 text-xs text-gray-500 truncate">{venue.location}</p>
           <div className="mt-2 flex justify-between items-end">
             <div className="text-xs font-semibold text-gray-800 min-h-[2.5em] flex items-center">
               {dailyRate && hourlyRate ? (
@@ -93,9 +93,9 @@ const HallCard = ({ hall }: HallCardProps) => {
             <div className="flex flex-col items-end text-[11px] space-y-1 pb-0.5">
               <div className="flex items-center">
                 <Star className="h-3.5 w-3.5 text-gray-400 fill-gray-400" />
-                {hall.averageRating > 0 ? (
+                {venue.averageRating > 0 ? (
                   <span className="ml-1 text-gray-400 font-semibold">
-                    {hall.averageRating.toFixed(1)}
+                    {venue.averageRating.toFixed(1)}
                   </span>
                 ) : (
                   <span className="ml-1 text-gray-400">New</span>
@@ -104,7 +104,7 @@ const HallCard = ({ hall }: HallCardProps) => {
               {canSeeViews && (
                 <div className="flex items-center text-gray-500">
                   <Eye className="h-3 w-3 mr-1" />
-                  <span>{hall.views || 0}</span>
+                  <span>{venue.views || 0}</span>
                 </div>
               )}
             </div>
@@ -116,4 +116,4 @@ const HallCard = ({ hall }: HallCardProps) => {
   );
 };
 
-export default HallCard;
+export default VenueCard;

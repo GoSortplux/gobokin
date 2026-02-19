@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Star, X } from 'lucide-react';
 import api from '@/services/api';
 import Swal from "@/utils/sweetalert";
-import { Booking, Review, Hall } from '@/types';
+import { Booking, Review, Venue } from '@/types';
 import CustomLoader from '@/components/CustomLoader';
 
 interface ReviewModalProps {
@@ -19,9 +19,9 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ booking, existingReview, onCl
   const [loading, setLoading] = useState(false);
   const [hover, setHover] = useState(0);
 
-  const hall = typeof booking.hall === 'object' ? (booking.hall as Hall) : null;
-  const hallId = hall ? hall._id : booking.hall;
-  const hallName = hall ? hall.name : 'Hall';
+  const venue = typeof booking.hall === 'object' ? (booking.hall as Venue) : null;
+  const hallId = venue ? venue._id : booking.hall;
+  const hallName = venue ? venue.name : 'Venue';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -134,7 +134,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ booking, existingReview, onCl
                   id="comment"
                   rows={4}
                   className="w-full p-3 border border-gray-300 rounded-md focus:ring-primary focus:border-primary text-gray-800"
-                  placeholder="Tell others about your experience with this hall..."
+                  placeholder="Tell others about your experience with this venue..."
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   disabled={loading}

@@ -111,7 +111,7 @@ const AvailabilityLegend = () => (
 
 const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSubmit, userRole }) => {
   const [activeTab, setActiveTab] = useState('reservation');
-  const [halls, setHalls] = useState<HallItem[]>([]);
+  const [venues, setVenues] = useState<HallItem[]>([]);
   const [facilities, setFacilities] = useState<FacilityItem[]>([]);
   const [error, setError] = useState('');
   const [hallPrice, setHallPrice] = useState(0);
@@ -144,10 +144,10 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
     selectedFacilities: [] as { facilityId: string; quantity: number }[],
   });
 
-  const selectedHallObj = useMemo(() => halls.find(h => h._id === formData.hall) || null, [halls, formData.hall]);
+  const selectedVenueObj = useMemo(() => venues.find(h => h._id === formData.hall) || null, [venues, formData.hall]);
   const selectedDatesArray = useMemo(() => formData.dates.map(date => parseLocalDate(date)), [formData.dates]);
-  // @ts-expect-error - selectedHallObj matches required properties of Hall
-  const { getDateAvailability, disabledHours, getDisabledHoursForDate } = useBookingAvailability(selectedHallObj, selectedDatesArray, displayedMonth);
+  // @ts-expect-error - selectedVenueObj matches required properties of Venue
+  const { getDateAvailability, disabledHours, getDisabledHoursForDate } = useBookingAvailability(selectedVenueObj, selectedDatesArray, displayedMonth);
 
   const generateTimeOptions = (openingHour: number, closingHour: number, disabled: number[]) => {
     const options = [];
@@ -200,17 +200,17 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
       });
       setError('');
 
-      const fetchHalls = async () => {
+      const fetchVenues = async () => {
         try {
           const endpoint = userRole === 'admin' ? '/halls' : '/halls/by-owner';
           const response = await api.get(endpoint);
-          setHalls(response.data.data || []);
+          setVenues(response.data.data || []);
         } catch (err) {
-          console.error('Failed to fetch halls:', err);
+          console.error('Failed to fetch venues:', err);
           setError(translateError(err));
         }
       };
-      fetchHalls();
+      fetchVenues();
 
       const fetchPaymentOptions = async () => {
         try {
@@ -240,12 +240,12 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
 
   useEffect(() => {
     if (formData.hall) {
-      const selectedHall = halls.find((h) => h._id === formData.hall);
-      if (selectedHall) {
-        setFacilities(selectedHall.facilities);
+      const selectedVenue = venues.find((h) => h._id === formData.hall);
+      if (selectedVenue) {
+        setFacilities(selectedVenue.facilities);
       }
     }
-  }, [formData.hall, halls]);
+  }, [formData.hall, venues]);
 
   useEffect(() => {
     let type = 'specific-dates';
@@ -257,8 +257,8 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
 
   useEffect(() => {
     const calculateTotalPrice = () => {
-      const selectedHall = halls.find((h) => h._id === formData.hall);
-      if (!selectedHall) {
+      const selectedVenue = venues.find((h) => h._id === formData.hall);
+      if (!selectedVenue) {
         setHallPrice(0);
         setFacilitiesPrice(0);
         setTotalPrice(0);
@@ -293,8 +293,8 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
         return;
       }
 
-      const dailyRate = selectedHall.pricing.dailyRate || 0;
-      const hourlyRate = selectedHall.pricing.hourlyRate || 0;
+      const dailyRate = selectedVenue.pricing.dailyRate || 0;
+      const hourlyRate = selectedVenue.pricing.hourlyRate || 0;
 
       let calculatedHallPrice = 0;
       if (hourlyRate > 0) {
@@ -329,8 +329,8 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
       const subTotal = calculatedHallPrice + currentFacilitiesPrice;
       let calculatedDiscount = 0;
 
-      if (activeTab === 'recurring' && selectedHall.recurringBookingDiscount) {
-        const { percentage, minBookings } = selectedHall.recurringBookingDiscount;
+      if (activeTab === 'recurring' && selectedVenue.recurringBookingDiscount) {
+        const { percentage, minBookings } = selectedVenue.recurringBookingDiscount;
         if (formData.dates.length >= minBookings) {
           calculatedDiscount = subTotal * (percentage / 100);
         }
@@ -341,7 +341,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
     };
 
     calculateTotalPrice();
-  }, [formData.hall, formData.startTime, formData.endTime, formData.dates, formData.selectedFacilities, halls, facilities, activeTab, usePerDateTimes, dateTimes]);
+  }, [formData.hall, formData.startTime, formData.endTime, formData.dates, formData.selectedFacilities, venues, facilities, activeTab, usePerDateTimes, dateTimes]);
 
   useEffect(() => {
     const fetchQuote = async () => {
@@ -535,7 +535,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
   const handleRecurringSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const {
-      hall,
+      hall: venue,
       startTime,
       endTime,
       eventDetails,
@@ -580,7 +580,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
     }
 
     const bookingPayload: Record<string, unknown> = {
-      hallId: hall,
+      hallId: venue,
       eventDetails,
       walkInUserDetails,
       paymentMethod,
@@ -642,7 +642,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
 
   const handleWalkInSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { hall, startTime, endTime, dates, eventDetails, fullName, email, phone, paymentMethod, paymentStatus, selectedFacilities } = formData;
+    const { hall: venue, startTime, endTime, dates, eventDetails, fullName, email, phone, paymentMethod, paymentStatus, selectedFacilities } = formData;
 
     if (dates.length === 0) {
       setError('Please select at least one date.');
@@ -673,7 +673,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
     }
 
     onSubmit({
-      hallId: hall,
+      hallId: venue,
       bookingDates,
       startTime: bookingDates[0].startTime,
       endTime: bookingDates[0].endTime,
@@ -687,7 +687,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
 
   const handleReservationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { hall, startTime, endTime, dates, eventDetails, fullName, email, phone, paymentMethod, selectedFacilities } = formData;
+    const { hall: venue, startTime, endTime, dates, eventDetails, fullName, email, phone, paymentMethod, selectedFacilities } = formData;
 
     if (dates.length === 0) {
       setError('Please select at least one date.');
@@ -718,7 +718,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
     }
 
     onSubmit({
-      hallId: hall,
+      hallId: venue,
       bookingDates,
       startTime: bookingDates[0].startTime,
       endTime: bookingDates[0].endTime,
@@ -782,9 +782,9 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                 <label className="block text-sm font-medium text-gray-800">Venue</label>
                 <select name="hall" value={formData.hall} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900">
                   <option value="">Select a venue</option>
-                  {halls.map((hall: HallItem) => (
-                    <option key={hall._id} value={hall._id}>
-                      {hall.name}
+                  {venues.map((venue: HallItem) => (
+                    <option key={venue._id} value={venue._id}>
+                      {venue.name}
                     </option>
                   ))}
                 </select>
@@ -822,7 +822,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                       className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-1 focus:ring-primary outline-none"
                     >
                       <option value="">Select Time</option>
-                      {selectedHallObj && generateTimeOptions(selectedHallObj.openingHour || 0, selectedHallObj.closingHour || 24, disabledHours)}
+                      {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, disabledHours)}
                     </select>
                   </div>
                   <div>
@@ -834,7 +834,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                       className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-1 focus:ring-primary outline-none"
                     >
                       <option value="">Select Time</option>
-                      {selectedHallObj && generateTimeOptions(selectedHallObj.openingHour || 0, selectedHallObj.closingHour || 24, disabledHours)}
+                      {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, disabledHours)}
                     </select>
                   </div>
                 </div>
@@ -871,7 +871,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                             className="w-full px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-1 focus:ring-primary outline-none"
                           >
                             <option value="">Start</option>
-                            {selectedHallObj && generateTimeOptions(selectedHallObj.openingHour || 0, selectedHallObj.closingHour || 24, dateDisabledHours)}
+                            {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, dateDisabledHours)}
                           </select>
                         </div>
                         <div>
@@ -881,7 +881,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                             className="w-full px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-1 focus:ring-primary outline-none"
                           >
                             <option value="">End</option>
-                            {selectedHallObj && generateTimeOptions(selectedHallObj.openingHour || 0, selectedHallObj.closingHour || 24, dateDisabledHours)}
+                            {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, dateDisabledHours)}
                           </select>
                         </div>
                       </div>
@@ -1028,9 +1028,9 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                 <label className="block text-sm font-medium text-gray-800">Venue</label>
                 <select name="hall" value={formData.hall} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900">
                   <option value="">Select a venue</option>
-                  {halls.map((hall: HallItem) => (
-                    <option key={hall._id} value={hall._id}>
-                      {hall.name}
+                  {venues.map((venue: HallItem) => (
+                    <option key={venue._id} value={venue._id}>
+                      {venue.name}
                     </option>
                   ))}
                 </select>
@@ -1106,7 +1106,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                       className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-1 focus:ring-primary outline-none"
                     >
                       <option value="">Select Time</option>
-                      {selectedHallObj && generateTimeOptions(selectedHallObj.openingHour || 0, selectedHallObj.closingHour || 24, disabledHours)}
+                      {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, disabledHours)}
                     </select>
                   </div>
                   <div>
@@ -1118,7 +1118,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                       className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-1 focus:ring-primary outline-none"
                     >
                       <option value="">Select Time</option>
-                      {selectedHallObj && generateTimeOptions(selectedHallObj.openingHour || 0, selectedHallObj.closingHour || 24, disabledHours)}
+                      {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, disabledHours)}
                     </select>
                   </div>
                 </div>
@@ -1166,7 +1166,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                                 className="w-full px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-1 focus:ring-primary outline-none"
                               >
                                 <option value="">Start</option>
-                                {selectedHallObj && generateTimeOptions(selectedHallObj.openingHour || 0, selectedHallObj.closingHour || 24, getDisabledHoursForDate(parseLocalDate(dateStr)))}
+                                {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, getDisabledHoursForDate(parseLocalDate(dateStr)))}
                               </select>
                             </div>
                             <div>
@@ -1176,7 +1176,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                                 className="w-full px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-1 focus:ring-primary outline-none"
                               >
                                 <option value="">End</option>
-                                {selectedHallObj && generateTimeOptions(selectedHallObj.openingHour || 0, selectedHallObj.closingHour || 24, getDisabledHoursForDate(parseLocalDate(dateStr)))}
+                                {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, getDisabledHoursForDate(parseLocalDate(dateStr)))}
                               </select>
                             </div>
                           </div>
@@ -1335,9 +1335,9 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                 <label className="block text-sm font-medium text-gray-800">Venue</label>
                 <select name="hall" value={formData.hall} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900">
                   <option value="">Select a venue</option>
-                  {halls.map((hall: HallItem) => (
-                    <option key={hall._id} value={hall._id}>
-                      {hall.name}
+                  {venues.map((venue: HallItem) => (
+                    <option key={venue._id} value={venue._id}>
+                      {venue.name}
                     </option>
                   ))}
                 </select>
@@ -1375,7 +1375,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                       className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-1 focus:ring-primary outline-none"
                     >
                       <option value="">Select Time</option>
-                      {selectedHallObj && generateTimeOptions(selectedHallObj.openingHour || 0, selectedHallObj.closingHour || 24, disabledHours)}
+                      {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, disabledHours)}
                     </select>
                   </div>
                   <div>
@@ -1387,7 +1387,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                       className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-1 focus:ring-primary outline-none"
                     >
                       <option value="">Select Time</option>
-                      {selectedHallObj && generateTimeOptions(selectedHallObj.openingHour || 0, selectedHallObj.closingHour || 24, disabledHours)}
+                      {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, disabledHours)}
                     </select>
                   </div>
                 </div>
@@ -1424,7 +1424,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                             className="w-full px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-1 focus:ring-primary outline-none"
                           >
                             <option value="">Start</option>
-                            {selectedHallObj && generateTimeOptions(selectedHallObj.openingHour || 0, selectedHallObj.closingHour || 24, dateDisabledHours)}
+                            {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, dateDisabledHours)}
                           </select>
                         </div>
                         <div>
@@ -1434,7 +1434,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                             className="w-full px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-1 focus:ring-primary outline-none"
                           >
                             <option value="">End</option>
-                            {selectedHallObj && generateTimeOptions(selectedHallObj.openingHour || 0, selectedHallObj.closingHour || 24, dateDisabledHours)}
+                            {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, dateDisabledHours)}
                           </select>
                         </div>
                       </div>

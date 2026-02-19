@@ -16,7 +16,7 @@ export interface Facility {
 export interface Booking {
   _id: string;
   bookingId: string;
-  hall: string | Hall;
+  hall: string | Venue;
   user: string | { _id: string; fullName: string; email: string };
   bookingDates: {
     startTime: string;
@@ -59,7 +59,7 @@ export interface Booking {
 export interface Reservation {
   _id: string;
   reservationId: string;
-  hall: string | Hall;
+  hall: string | Venue;
   user: string | { _id: string; fullName: string; email: string };
   bookingDates: {
     startTime: string;
@@ -130,7 +130,7 @@ export interface User {
   };
 }
 
-export interface Hall {
+export interface Venue {
   id: string;
   _id: string;
   slug: string;

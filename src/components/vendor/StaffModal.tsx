@@ -5,7 +5,7 @@ import api from '@/services/api';
 import { X } from 'lucide-react';
 import CustomLoader from '../CustomLoader';
 
-interface Hall {
+interface Venue {
   _id: string;
   name: string;
 }
@@ -15,7 +15,7 @@ interface StaffMember {
   fullName: string;
   email: string;
   phone?: string;
-  hallIds?: string[];
+  venueIds?: string[];
 }
 
 interface StaffModalProps {
@@ -31,26 +31,26 @@ const StaffModal: React.FC<StaffModalProps> = ({ isOpen, onClose, onSubmit, staf
     email: '',
     phone: '',
     password: '',
-    hallIds: [] as string[],
+    venueIds: [] as string[],
   });
-  const [allHalls, setAllHalls] = useState<Hall[]>([]);
-  const [hallsLoading, setHallsLoading] = useState(false);
+  const [allVenues, setAllVenues] = useState<Venue[]>([]);
+  const [venuesLoading, setVenuesLoading] = useState(false);
 
   useEffect(() => {
-    // Fetch all halls to populate the multi-select dropdown
-    const fetchHalls = async () => {
-      setHallsLoading(true);
+    // Fetch all venues to populate the multi-select dropdown
+    const fetchVenues = async () => {
+      setVenuesLoading(true);
       try {
         const response = await api.get('/halls/by-owner');
-        setAllHalls(response.data.data || []);
+        setAllVenues(response.data.data || []);
       } catch (error) {
-        console.error('Failed to fetch halls:', error);
+        console.error('Failed to fetch venues:', error);
       } finally {
-        setHallsLoading(false);
+        setVenuesLoading(false);
       }
     };
     if (isOpen) {
-      fetchHalls();
+      fetchVenues();
     }
   }, [isOpen]);
 
@@ -61,7 +61,7 @@ const StaffModal: React.FC<StaffModalProps> = ({ isOpen, onClose, onSubmit, staf
         email: staff.email || '',
         phone: staff.phone || '',
         password: '', // Password should not be pre-filled
-        hallIds: staff.hallIds || [],
+        venueIds: staff.venueIds || [],
       });
     } else {
       setFormData({
@@ -69,7 +69,7 @@ const StaffModal: React.FC<StaffModalProps> = ({ isOpen, onClose, onSubmit, staf
         email: '',
         phone: '',
         password: '',
-        hallIds: [],
+        venueIds: [],
       });
     }
   }, [staff, isOpen]);
@@ -79,15 +79,21 @@ const StaffModal: React.FC<StaffModalProps> = ({ isOpen, onClose, onSubmit, staf
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleHallSelection = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleVenueSelection = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedIds = Array.from(e.target.selectedOptions, (option) => option.value);
-    setFormData((prev) => ({ ...prev, hallIds: selectedIds }));
+    setFormData((prev) => ({ ...prev, venueIds: selectedIds }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Omit password if it's empty (for editing without changing password)
-    const dataToSubmit: Record<string, unknown> = { ...formData };
+    // Map venueIds back to hallIds for API
+    const { venueIds, ...rest } = formData;
+    const dataToSubmit: Record<string, unknown> = {
+        ...rest,
+        hallIds: venueIds
+    };
+
     if (!dataToSubmit.password) {
       delete dataToSubmit.password;
     }
@@ -145,22 +151,22 @@ const StaffModal: React.FC<StaffModalProps> = ({ isOpen, onClose, onSubmit, staf
             <input type="password" name="password" placeholder={staff ? 'Enter New Password (leave blank to keep current)' : 'Enter Password'} value={formData.password} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500" />
           </div>
           <div>
-            <label htmlFor="hallIds" className="block text-sm font-medium text-gray-800 flex justify-between">
+            <label htmlFor="venueIds" className="block text-sm font-medium text-gray-800 flex justify-between">
               Assign Venues
-              {hallsLoading && <CustomLoader size={16} />}
+              {venuesLoading && <CustomLoader size={16} />}
             </label>
             <select
-              id="hallIds"
-              name="hallIds"
+              id="venueIds"
+              name="venueIds"
               multiple
-              disabled={hallsLoading}
-              value={formData.hallIds}
-              onChange={handleHallSelection}
+              disabled={venuesLoading}
+              value={formData.venueIds}
+              onChange={handleVenueSelection}
               className="w-full h-32 px-4 py-2 border border-gray-300 rounded-md text-gray-900 disabled:bg-gray-50 disabled:cursor-wait"
             >
-              {allHalls.map((hall) => (
-                <option key={hall._id} value={hall._id} className="text-gray-900">
-                  {hall.name}
+              {allVenues.map((venue) => (
+                <option key={venue._id} value={venue._id} className="text-gray-900">
+                  {venue.name}
                 </option>
               ))}
             </select>

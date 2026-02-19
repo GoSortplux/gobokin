@@ -1,16 +1,16 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import api from '@/services/api';
-import { Hall, UnavailableDate } from '@/types';
+import { Venue, UnavailableDate } from '@/types';
 import { startOfMonth, endOfMonth, format } from 'date-fns';
 
-export const useBookingAvailability = (hall: Hall | null, selectedDates: Date[] | undefined, displayedMonth: Date) => {
+export const useBookingAvailability = (venue: Venue | null, selectedDates: Date[] | undefined, displayedMonth: Date) => {
   const [unavailableDates, setUnavailableDates] = useState<UnavailableDate[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchUnavailableDates = async () => {
-      if (!hall) {
+      if (!venue) {
         setUnavailableDates([]);
         return;
       }
@@ -20,7 +20,7 @@ export const useBookingAvailability = (hall: Hall | null, selectedDates: Date[] 
       const endDate = format(endOfMonth(displayedMonth), 'yyyy-MM-dd');
 
       try {
-        const response = await api.get(`/halls/${hall._id}/unavailable-dates`, {
+        const response = await api.get(`/halls/${venue._id}/unavailable-dates`, {
           params: { startDate, endDate },
         });
         setUnavailableDates(response.data.data || []);
@@ -32,14 +32,14 @@ export const useBookingAvailability = (hall: Hall | null, selectedDates: Date[] 
       }
     };
     fetchUnavailableDates();
-  }, [hall, displayedMonth]);
+  }, [venue, displayedMonth]);
 
   const getDisabledHoursForDate = useCallback((date: Date) => {
-    if (!hall || !Array.isArray(unavailableDates)) {
+    if (!venue || !Array.isArray(unavailableDates)) {
       return [];
     }
-    const openingHour = hall.openingHour || 0;
-    const closingHour = hall.closingHour || 24;
+    const openingHour = venue.openingHour || 0;
+    const closingHour = venue.closingHour || 24;
     const disabledSet = new Set<number>();
 
     const targetDay = new Date(date).setHours(0, 0, 0, 0);
@@ -95,10 +95,10 @@ export const useBookingAvailability = (hall: Hall | null, selectedDates: Date[] 
     }
 
     return Array.from(disabledSet).sort((a, b) => a - b);
-  }, [unavailableDates, hall]);
+  }, [unavailableDates, venue]);
 
   const disabledHours = useMemo(() => {
-    if (!hall || !selectedDates || selectedDates.length === 0 || !Array.isArray(unavailableDates)) {
+    if (!venue || !selectedDates || selectedDates.length === 0 || !Array.isArray(unavailableDates)) {
       return [];
     }
     const disabledSet = new Set<number>();
@@ -109,13 +109,13 @@ export const useBookingAvailability = (hall: Hall | null, selectedDates: Date[] 
     });
 
     return Array.from(disabledSet).sort((a, b) => a - b);
-  }, [unavailableDates, hall, selectedDates, getDisabledHoursForDate]);
+  }, [unavailableDates, venue, selectedDates, getDisabledHoursForDate]);
 
   const getDateAvailability = useCallback((date: Date): 'fully booked' | 'partially booked' | 'fully available' => {
-    if (!hall || !Array.isArray(unavailableDates)) return 'fully available';
+    if (!venue || !Array.isArray(unavailableDates)) return 'fully available';
 
-    const openingHour = hall.openingHour || 0;
-    const closingHour = hall.closingHour || 24;
+    const openingHour = venue.openingHour || 0;
+    const closingHour = venue.closingHour || 24;
     const totalHours = closingHour - openingHour;
 
     const dayStart = new Date(date).setHours(0, 0, 0, 0);
@@ -197,7 +197,7 @@ export const useBookingAvailability = (hall: Hall | null, selectedDates: Date[] 
     } else {
       return 'fully available';
     }
-  }, [unavailableDates, hall]);
+  }, [unavailableDates, venue]);
 
   return { disabledHours, loading, getDateAvailability, getDisabledHoursForDate };
 };

@@ -5,7 +5,7 @@ import Carousel from "../../components/Carousel";
 import CustomLoader from "../../components/CustomLoader";
 
 const RecommendationsView = () => {
-  const [halls, setHalls] = useState([]);
+  const [venues, setVenues] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -24,7 +24,7 @@ const RecommendationsView = () => {
             const response = await api.get("/halls/recommendations", {
               params: { latitude, longitude },
             });
-            setHalls(response.data.data || []);
+            setVenues(response.data.data || []);
           } catch (err) {
             console.error("Error fetching recommendations:", err);
             setError("Could not fetch recommendations. Please try again later.");
@@ -44,7 +44,7 @@ const RecommendationsView = () => {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">Recommended Halls</h2>
+      <h2 className="text-2xl font-bold text-gray-800 mb-4">Recommended Venues</h2>
       {loading && (
         <div className="flex justify-center items-center h-64">
           <CustomLoader size={64} />
@@ -56,8 +56,8 @@ const RecommendationsView = () => {
           <span className="block sm:inline">{error}</span>
         </div>
       )}
-      {!loading && !error && halls.length > 0 && <Carousel halls={halls} />}
-      {!loading && !error && halls.length === 0 && (
+      {!loading && !error && venues.length > 0 && <Carousel venues={venues} />}
+      {!loading && !error && venues.length === 0 && (
         <div className="text-center text-gray-500 mt-8">
           <p>No recommendations found for your location at this time.</p>
         </div>

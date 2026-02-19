@@ -35,9 +35,9 @@ const TryListingPage = () => {
                 Turn your space into <span className="text-primary">earnings.</span>
               </h1>
               <p className="text-xl text-gray-600 mb-10 leading-relaxed">
-                Join thousands of venue owners who are earning extra income by listing their halls, studios, and event spaces on Gobokin.
+                Join thousands of venue owners who are earning extra income by listing their venues, studios, and event spaces on Gobokin.
               </p>
-              <a href="/apply-hall-owner" className="inline-flex items-center space-x-3 px-10 py-5 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-primary-dark transition-all active:scale-95 shadow-2xl shadow-primary/20">
+              <a href="/apply-venue-owner" className="inline-flex items-center space-x-3 px-10 py-5 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-primary-dark transition-all active:scale-95 shadow-2xl shadow-primary/20">
                 <span>Start Your Listing</span>
                 <PlusCircle size={20} />
               </a>

@@ -34,15 +34,15 @@ const ManualAssignmentTab = () => {
         api.get("/license-tiers"),
         api.get("/halls")
       ]);
-      // Filter for hall owners only
+      // Filter for venue owners only
       const hallOwners = usersRes.data.data.filter((u: User) => u.role.includes('hall-owner'));
       setUsers(hallOwners);
       setTiers(tiersRes.data.data);
 
-      // Calculate hall counts
+      // Calculate venue counts
       const counts: Record<string, number> = {};
-      hallsRes.data.data.forEach((hall: { owner?: string | { _id: string } }) => {
-        const ownerId = (typeof hall.owner === 'object' ? hall.owner?._id : hall.owner);
+      hallsRes.data.data.forEach((venue: { owner?: string | { _id: string } }) => {
+        const ownerId = (typeof venue.owner === 'object' ? venue.owner?._id : venue.owner);
         if (ownerId) {
           counts[ownerId] = (counts[ownerId] || 0) + 1;
         }

@@ -14,7 +14,7 @@ import AccountSwitchModal from "../shared/AccountSwitchModal";
 import { useUI } from "@/context/UIContext";
 
 const placeholders = [
-  "Search for Hall names...",
+  "Search for Venue names...",
   "Search for Booking IDs...",
   "Search for Customer names...",
   "Search for Staff members...",
@@ -73,8 +73,8 @@ const VendorHeader = () => {
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && searchQuery.trim()) {
-      // Default to halls if on Enter
-      handleSearch("/vendor/dashboard/halls");
+      // Default to venues if on Enter
+      handleSearch("/vendor/dashboard/venues");
     }
   };
 
@@ -99,7 +99,7 @@ const VendorHeader = () => {
   };
 
   const suggestions = [
-    { label: "Search in Halls", icon: Building, path: "/vendor/dashboard/halls" },
+    { label: "Search in Venues", icon: Building, path: "/vendor/dashboard/venues" },
     { label: "Search in Bookings", icon: Calendar, path: "/vendor/dashboard/bookings" },
     ...(user?.activeRole === "hall-owner"
       ? [
@@ -243,7 +243,7 @@ const VendorHeader = () => {
                         if (isLimitReached) {
                           Swal.fire({
                             title: 'Upgrade Required',
-                            text: `You have reached the maximum number of halls (${subscription?.tier.maxHalls}) for your current plan.`,
+                            text: `You have reached the maximum number of venues (${subscription?.tier.maxHalls}) for your current plan.`,
                             icon: 'warning',
                             showCancelButton: true,
                             confirmButtonText: 'Upgrade Now',
@@ -255,7 +255,7 @@ const VendorHeader = () => {
                           });
                           return;
                         }
-                        router.push('/vendor/dashboard/halls?action=create');
+                        router.push('/vendor/dashboard/venues?action=create');
                       }}
                       className="w-full text-left px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-xl transition-colors flex items-center justify-between"
                     >

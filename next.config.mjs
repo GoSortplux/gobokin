@@ -28,6 +28,30 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: '/halls/:path*',
+        destination: '/venues/:path*',
+        permanent: true,
+      },
+      {
+        source: '/apply-hall-owner',
+        destination: '/apply-venue-owner',
+        permanent: true,
+      },
+      {
+        source: '/admin/dashboard/halls',
+        destination: '/admin/dashboard/venues',
+        permanent: true,
+      },
+      {
+        source: '/vendor/dashboard/halls',
+        destination: '/vendor/dashboard/venues',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

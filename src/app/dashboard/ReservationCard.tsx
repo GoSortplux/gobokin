@@ -2,7 +2,7 @@
 "use client";
 import React from "react";
 import { useRouter } from "next/navigation";
-import { Reservation, Hall } from "@/types";
+import { Reservation, Venue } from "@/types";
 import api from "@/services/api";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
@@ -16,8 +16,8 @@ interface ReservationCardProps {
 
 const ReservationCard: React.FC<ReservationCardProps> = ({ reservation, onCompleteBooking, onViewReceipt, onRefresh }) => {
   const router = useRouter();
-  const hall = typeof reservation.hall === "object" ? (reservation.hall as Hall) : null;
-  const hallName = hall ? hall.name : "Hall details unavailable";
+  const venue = typeof reservation.hall === "object" ? (reservation.hall as Venue) : null;
+  const hallName = venue ? venue.name : "Venue details unavailable";
 
   const handleRequestCancellation = async () => {
     const { value: reason, isConfirmed } = await Swal.fire({
@@ -111,9 +111,9 @@ const ReservationCard: React.FC<ReservationCardProps> = ({ reservation, onComple
             {reservation.status === "ACTIVE" && (
               <button
                 onClick={() => onCompleteBooking(reservation)}
-                disabled={!hall}
+                disabled={!venue}
                 className={`px-4 py-2 rounded-md transition-colors flex-1 ${
-                  !hall
+                  !venue
                     ? "bg-primary/50 text-white cursor-not-allowed"
                     : "bg-primary text-white hover:bg-primary-dark"
                 }`}
@@ -129,9 +129,9 @@ const ReservationCard: React.FC<ReservationCardProps> = ({ reservation, onComple
                   onViewReceipt(reservation.reservationId);
                 }
               }}
-              disabled={!hall}
+              disabled={!venue}
               className={`px-4 py-2 rounded-md transition-colors flex-1 ${
-                !hall
+                !venue
                   ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                   : "bg-gray-200 text-gray-800 hover:bg-gray-300"
               }`}

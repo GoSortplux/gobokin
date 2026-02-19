@@ -4,12 +4,12 @@ import { db } from '@/lib/mock-db';
 /**
  * PATCH /api/v1/users/staff/{staffId}
  *
- * Update staff details and hall assignments
- * Allows a hall owner to update a staff member's profile and manage their assigned halls.
+ * Update staff details and venue assignments
+ * Allows a venue owner to update a staff member's profile and manage their assigned venues.
  *
  * Behavior:
  * - If hallIds is provided, it replaces the current assignments for this owner.
- * - If hallIds is an empty array [], the staff is removed from all your halls and unlinked from your account.
+ * - If hallIds is an empty array [], the staff is removed from all your venues and unlinked from your account.
  * - If the staff member is unlinked from all their owners, their 'staff' role is automatically removed.
  */
 
@@ -44,7 +44,7 @@ export async function PATCH(
       await db.users.update(staffId, updateData);
     }
 
-    // 3. Manage Hall Assignments
+    // 3. Manage Venue Assignments
     if (Array.isArray(hallIds)) {
       // First, remove all existing assignments for this staff member under this owner
       await db.assignments.deleteMany({ staffId, ownerId: currentOwnerId });

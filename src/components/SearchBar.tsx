@@ -290,7 +290,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
         whileTap={{ scale: 0.95 }}
         className="bg-primary hover:bg-blue-700 text-white rounded-2xl md:rounded-full p-4 md:p-6 mt-4 md:mt-0 md:ml-2 flex items-center justify-center space-x-3 md:space-x-0 shadow-lg shadow-primary/20 transition-all"
       >
-        <span className="md:hidden font-bold text-lg">Search Halls</span>
+        <span className="md:hidden font-bold text-lg">Search Venues</span>
         <Search className="w-6 h-6" />
       </motion.button>
     </motion.form>

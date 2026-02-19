@@ -6,7 +6,7 @@ import { X } from 'lucide-react';
 import api from '@/services/api';
 import CustomLoader from './CustomLoader';
 import Calendar from './Calendar';
-import { Hall, Facility } from '@/types';
+import { Venue, Facility } from '@/types';
 import { useBookingAvailability } from '@/hooks/useBookingAvailability';
 import { useAuth } from '@/context/AuthContext';
 import Swal from "@/utils/sweetalert";
@@ -60,7 +60,7 @@ const BookingModal: FC<BookingModalProps> = ({
   initialEndTime = '',
   initialSelectedFacilities = []
 }) => {
-  const [hall, setHall] = useState<Hall | null>(null);
+  const [venue, setHall] = useState<Venue | null>(null);
   const [step, setStep] = useState(initialStep || 1);
   const [selectedDates, setSelectedDates] = useState<Date[] | undefined>(initialSelectedDates);
   const [displayedMonth, setDisplayedMonth] = useState<Date>(new Date());
@@ -83,7 +83,7 @@ const BookingModal: FC<BookingModalProps> = ({
   const { user } = useAuth();
   const router = useRouter();
 
-  const { disabledHours, getDateAvailability, getDisabledHoursForDate } = useBookingAvailability(hall, selectedDates, displayedMonth);
+  const { disabledHours, getDateAvailability, getDisabledHoursForDate } = useBookingAvailability(venue, selectedDates, displayedMonth);
 
   const nextStep = () => setStep(step + 1);
   const prevStep = () => setStep(step - 1);
@@ -149,9 +149,9 @@ const BookingModal: FC<BookingModalProps> = ({
   }, [selectedDates, usePerDateTimes, dateTimes, startTime, endTime, durationInHours]);
 
   useEffect(() => {
-    if (hall && selectedDates && selectedDates.length > 0) {
-      const dailyRate = hall.pricing.dailyRate || 0;
-      const hourlyRate = hall.pricing.hourlyRate || 0;
+    if (venue && selectedDates && selectedDates.length > 0) {
+      const dailyRate = venue.pricing.dailyRate || 0;
+      const hourlyRate = venue.pricing.hourlyRate || 0;
       const numberOfDays = selectedDates.length;
 
       let calculatedHallCost = 0;
@@ -183,8 +183,8 @@ const BookingModal: FC<BookingModalProps> = ({
       const subTotal = calculatedHallCost + facilitiesCost;
       let calculatedDiscount = 0;
 
-      if (hall.recurringBookingDiscount) {
-        const { percentage, minBookings } = hall.recurringBookingDiscount;
+      if (venue.recurringBookingDiscount) {
+        const { percentage, minBookings } = venue.recurringBookingDiscount;
         if (selectedDates.length >= minBookings) {
           calculatedDiscount = subTotal * (percentage / 100);
         }
@@ -197,7 +197,7 @@ const BookingModal: FC<BookingModalProps> = ({
       setTotalPrice(0);
       setDiscountAmount(0);
     }
-  }, [hall, selectedDates, selectedFacilities, durationInHours, usePerDateTimes, dateTimes, startTime, endTime, calculateFacilityCost]);
+  }, [venue, selectedDates, selectedFacilities, durationInHours, usePerDateTimes, dateTimes, startTime, endTime, calculateFacilityCost]);
 
   useEffect(() => {
     if (isOpen) {
@@ -221,8 +221,8 @@ const BookingModal: FC<BookingModalProps> = ({
           const response = await api.get(`/halls/${hallId}`);
           setHall(response.data.data);
         } catch (err: unknown) {
-          console.error('Failed to fetch hall details:', err);
-          setError(err instanceof Error ? err.message : 'Failed to load hall information. Please try again.');
+          console.error('Failed to fetch venue details:', err);
+          setError(err instanceof Error ? err.message : 'Failed to load venue information. Please try again.');
         }
       };
       fetchHallDetails();
@@ -446,7 +446,7 @@ const BookingModal: FC<BookingModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center pb-4 mb-4 border-b border-gray-200">
-          <h2 className="text-xl lg:text-2xl font-semibold text-gray-900">Book Your Hall</h2>
+          <h2 className="text-xl lg:text-2xl font-semibold text-gray-900">Book Your Venue</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-800">
             <X className="h-6 w-6" />
           </button>
@@ -516,7 +516,7 @@ const BookingModal: FC<BookingModalProps> = ({
                       required
                     >
                       <option value="">Select a time</option>
-                      {hall && generateTimeOptions(hall.openingHour || 0, hall.closingHour || 24, disabledHours)}
+                      {venue && generateTimeOptions(venue.openingHour || 0, venue.closingHour || 24, disabledHours)}
                     </select>
                   </div>
                   <div>
@@ -529,7 +529,7 @@ const BookingModal: FC<BookingModalProps> = ({
                       required
                     >
                       <option value="">Select a time</option>
-                      {hall && generateTimeOptions(hall.openingHour || 0, hall.closingHour || 24, disabledHours)}
+                      {venue && generateTimeOptions(venue.openingHour || 0, venue.closingHour || 24, disabledHours)}
                     </select>
                   </div>
                 </div>
@@ -568,7 +568,7 @@ const BookingModal: FC<BookingModalProps> = ({
                               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900"
                             >
                               <option value="">Start Time</option>
-                              {hall && generateTimeOptions(hall.openingHour || 0, hall.closingHour || 24, dateDisabledHours)}
+                              {venue && generateTimeOptions(venue.openingHour || 0, venue.closingHour || 24, dateDisabledHours)}
                             </select>
                           </div>
                           <div>
@@ -578,7 +578,7 @@ const BookingModal: FC<BookingModalProps> = ({
                               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900"
                             >
                               <option value="">End Time</option>
-                              {hall && generateTimeOptions(hall.openingHour || 0, hall.closingHour || 24, dateDisabledHours)}
+                              {venue && generateTimeOptions(venue.openingHour || 0, venue.closingHour || 24, dateDisabledHours)}
                             </select>
                           </div>
                         </div>
@@ -588,12 +588,12 @@ const BookingModal: FC<BookingModalProps> = ({
                 </div>
               )}
 
-              {hall && hall.facilities.length > 0 && (
+              {venue && venue.facilities.length > 0 && (
                 <div className="mb-6">
                   <h4 className="text-md font-medium text-gray-800 mb-2">Add Facilities</h4>
                   <div className="max-h-48 overflow-y-auto pr-2">
                     <div className="grid grid-cols-1 gap-y-3">
-                      {hall.facilities.map((facility) => {
+                      {venue.facilities.map((facility) => {
                         const isSelected = selectedFacilities.some(f => f._id === facility._id);
                         const selectedFacility = selectedFacilities.find(f => f._id === facility._id);
                         return (
@@ -674,7 +674,7 @@ const BookingModal: FC<BookingModalProps> = ({
                     {quoteData ? (
                       <>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Hall Rental:</span>
+                          <span className="text-gray-600">Venue Rental:</span>
                           <span className="font-medium text-gray-900">₦{(quoteData.hallPrice || 0).toLocaleString()}</span>
                         </div>
                         {quoteData.facilitiesPrice > 0 && (
@@ -736,9 +736,9 @@ const BookingModal: FC<BookingModalProps> = ({
                       </>
                     ) : (
                       <>
-                        {hall && (
+                        {venue && (
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Hall Rental:</span>
+                            <span className="text-gray-600">Venue Rental:</span>
                             <span className="font-medium text-gray-900">₦{hallCost.toLocaleString()}</span>
                           </div>
                         )}
@@ -766,10 +766,10 @@ const BookingModal: FC<BookingModalProps> = ({
                         {bookingMode === 'reserve' && (
                           <div className="flex justify-between mt-2">
                             <span className="text-gray-600">
-                              Reservation Fee ({hall?.reservationFeePercentage || 40}%):
+                              Reservation Fee ({venue?.reservationFeePercentage || 40}%):
                             </span>
                             <span className="font-medium text-gray-900">
-                              ₦{(totalPrice * ((hall?.reservationFeePercentage || 40) / 100)).toLocaleString()}
+                              ₦{(totalPrice * ((venue?.reservationFeePercentage || 40) / 100)).toLocaleString()}
                             </span>
                           </div>
                         )}

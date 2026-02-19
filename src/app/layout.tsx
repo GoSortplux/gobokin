@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Gobokin",
-  description: "Book halls for your events",
+  description: "Book venues for your events",
   icons: {
     icon: '/favicon.png',
   },

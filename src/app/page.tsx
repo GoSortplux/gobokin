@@ -8,32 +8,32 @@ import SkeletonCard from '@/components/SkeletonCard';
 import SearchBar from '@/components/SearchBar';
 import api from '@/services/api';
 import useScroll from '@/hooks/useScroll';
-import { Hall } from '@/types/hall';
+import { Venue } from '@/types/venue';
 import { translateError } from '@/utils/errors';
 import ErrorState from '@/components/ErrorState';
 
 const HomePage = () => {
   const router = useRouter();
-  const [allHalls, setAllHalls] = useState<Hall[]>([]);
+  const [allVenues, setAllVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const scrolled = useScroll(100);
 
-  const fetchHalls = useCallback(async () => {
+  const fetchVenues = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
       const response = await api.get('/halls');
-      const hallsData = response.data.data;
+      const venuesData = response.data.data;
 
-      if (Array.isArray(hallsData)) {
-        setAllHalls(hallsData);
+      if (Array.isArray(venuesData)) {
+        setAllVenues(venuesData);
       } else {
         throw new Error('Invalid data format');
       }
     } catch (err) {
-      console.error('Failed to fetch halls:', err);
+      console.error('Failed to fetch venues:', err);
       setError(translateError(err));
     } finally {
       setLoading(false);
@@ -41,7 +41,7 @@ const HomePage = () => {
   }, []);
 
   useEffect(() => {
-    fetchHalls();
+    fetchVenues();
 
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -56,7 +56,7 @@ const HomePage = () => {
         }
       );
     }
-  }, [fetchHalls]);
+  }, [fetchVenues]);
 
   const handleSearch = (filters: { location: string; dateRange: DateRange | undefined; capacity: string; priceRange: [number, number] }) => {
     const { location, capacity, priceRange, dateRange } = filters;
@@ -93,45 +93,45 @@ const HomePage = () => {
     return R * c; // Distance in km
   };
 
-  const popularHalls = useMemo(() => {
-    return [...allHalls].sort((a, b) => (b.views || 0) - (a.views || 0));
-  }, [allHalls]);
+  const popularVenues = useMemo(() => {
+    return [...allVenues].sort((a, b) => (b.views || 0) - (a.views || 0));
+  }, [allVenues]);
 
-  const closestHalls = useMemo(() => {
+  const closestVenues = useMemo(() => {
     if (!userLocation) return [];
-    return allHalls
-      .filter((hall) => hall.geoLocation?.coordinates && hall.geoLocation.coordinates.length === 2)
-      .map((hall) => ({
-        ...hall,
+    return allVenues
+      .filter((venue) => venue.geoLocation?.coordinates && venue.geoLocation.coordinates.length === 2)
+      .map((venue) => ({
+        ...venue,
         distance: calculateDistance(
           userLocation.latitude,
           userLocation.longitude,
-          hall.geoLocation!.coordinates[1],
-          hall.geoLocation!.coordinates[0]
+          venue.geoLocation!.coordinates[1],
+          venue.geoLocation!.coordinates[0]
         ),
       }))
       .sort((a, b) => (a.distance || 0) - (b.distance || 0));
-  }, [allHalls, userLocation]);
+  }, [allVenues, userLocation]);
 
-  const largeCapacityHalls = useMemo(() => {
-    return allHalls.filter((hall) => hall.capacity >= 500);
-  }, [allHalls]);
+  const largeCapacityVenues = useMemo(() => {
+    return allVenues.filter((venue) => venue.capacity >= 500);
+  }, [allVenues]);
 
-  const budgetFriendlyHalls = useMemo(() => {
-    return allHalls.filter(
-      (hall) => (hall.pricing?.dailyRate || 0) <= 200000 && (hall.pricing?.dailyRate || 0) > 0
+  const budgetFriendlyVenues = useMemo(() => {
+    return allVenues.filter(
+      (venue) => (venue.pricing?.dailyRate || 0) <= 200000 && (venue.pricing?.dailyRate || 0) > 0
     );
-  }, [allHalls]);
+  }, [allVenues]);
 
-  const newlyAddedHalls = useMemo(() => {
-    return [...allHalls].sort((a, b) => {
+  const newlyAddedVenues = useMemo(() => {
+    return [...allVenues].sort((a, b) => {
       return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
     });
-  }, [allHalls]);
+  }, [allVenues]);
 
-  const highlyRatedHalls = useMemo(() => {
-    return allHalls.filter((hall) => hall.averageRating >= 4);
-  }, [allHalls]);
+  const highlyRatedVenues = useMemo(() => {
+    return allVenues.filter((venue) => venue.averageRating >= 4);
+  }, [allVenues]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -166,7 +166,7 @@ const HomePage = () => {
         {error && (
             <ErrorState
                 message={error}
-                onRetry={fetchHalls}
+                onRetry={fetchVenues}
                 className="mt-8"
             />
         )}
@@ -175,48 +175,48 @@ const HomePage = () => {
           <div className="space-y-8 md:space-y-12">
             <section>
               <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Featured Venue</h2>
-              <Carousel halls={allHalls.slice(0, 7)} />
+              <Carousel venues={allVenues.slice(0, 7)} />
             </section>
 
-            {popularHalls.length > 0 && (
+            {popularVenues.length > 0 && (
               <section>
                 <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Popular Venue</h2>
-                <Carousel halls={popularHalls} />
+                <Carousel venues={popularVenues} />
               </section>
             )}
 
-            {closestHalls.length > 0 && (
+            {closestVenues.length > 0 && (
               <section>
                 <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Closest to You</h2>
-                <Carousel halls={closestHalls} />
+                <Carousel venues={closestVenues} />
               </section>
             )}
 
-            {highlyRatedHalls.length > 0 && (
+            {highlyRatedVenues.length > 0 && (
               <section>
                 <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Highly Rated</h2>
-                <Carousel halls={highlyRatedHalls} />
+                <Carousel venues={highlyRatedVenues} />
               </section>
             )}
 
-            {newlyAddedHalls.length > 0 && (
+            {newlyAddedVenues.length > 0 && (
               <section>
                 <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Newly Added</h2>
-                <Carousel halls={newlyAddedHalls} />
+                <Carousel venues={newlyAddedVenues} />
               </section>
             )}
 
-            {largeCapacityHalls.length > 0 && (
+            {largeCapacityVenues.length > 0 && (
               <section>
                 <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Large Capacity Venue</h2>
-                <Carousel halls={largeCapacityHalls} />
+                <Carousel venues={largeCapacityVenues} />
               </section>
             )}
 
-            {budgetFriendlyHalls.length > 0 && (
+            {budgetFriendlyVenues.length > 0 && (
               <section>
                 <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Budget Friendly</h2>
-                <Carousel halls={budgetFriendlyHalls} />
+                <Carousel venues={budgetFriendlyVenues} />
               </section>
             )}
           </div>

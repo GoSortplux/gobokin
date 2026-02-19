@@ -21,7 +21,7 @@ const users: User[] = [
 ];
 
 let assignments: StaffAssignment[] = [
-  { staffId: '6789abcdef1234567890abcd', ownerId: 'owner-123', hallId: 'hall-101' }
+  { staffId: '6789abcdef1234567890abcd', ownerId: 'owner-123', hallId: 'venue-101' }
 ];
 
 export const db = {

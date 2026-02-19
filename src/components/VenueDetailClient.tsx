@@ -11,13 +11,13 @@ import DemoModal from '@/components/DemoModal';
 import { useUI } from '@/context/UIContext';
 import ReviewCard from '@/components/ReviewCard';
 import Calendar from '@/components/Calendar';
-import HallDetailSkeleton from '@/components/HallDetailSkeleton';
+import VenueDetailSkeleton from '@/components/VenueDetailSkeleton';
 import Carousel from '@/components/Carousel';
 import MediaViewerModal from '@/components/MediaViewerModal';
 import { isVideo, getMediaThumbnail } from '@/utils/media';
 import { useBookingAvailability } from '@/hooks/useBookingAvailability';
 import { translateError } from '@/utils/errors';
-import { Hall, Review, Suitability } from '@/types';
+import { Venue, Review, Suitability } from '@/types';
 import FacilityIcon from '@/components/FacilityIcon';
 import ErrorState from '@/components/ErrorState';
 import {
@@ -37,19 +37,19 @@ import {
 } from 'lucide-react';
 import Swal from "@/utils/sweetalert";
 
-interface HallDetailClientProps {
+interface VenueDetailClientProps {
   slugOrId: string;
-  initialHall?: Hall | null;
+  initialVenue?: Venue | null;
 }
 
-const HallDetailClient = ({ slugOrId, initialHall }: HallDetailClientProps) => {
+const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) => {
   const { user } = useAuth();
   const router = useRouter();
   const canSeeViews = user && VIEW_COUNT_ROLES.includes(user.activeRole);
-  const [hall, setHall] = useState<Hall | null>(initialHall || null);
-  const [recommendations, setRecommendations] = useState<Hall[]>([]);
+  const [venue, setVenue] = useState<Venue | null>(initialVenue || null);
+  const [recommendations, setRecommendations] = useState<Venue[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(!initialHall);
+  const [loading, setLoading] = useState(!initialVenue);
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [error, setError] = useState('');
   const [recommendationsUnavailable, setRecommendationsUnavailable] = useState(false);
@@ -67,9 +67,9 @@ const HallDetailClient = ({ slugOrId, initialHall }: HallDetailClientProps) => {
   const [isMediaViewerOpen, setMediaViewerOpen] = useState(false);
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
 
-  const { getDateAvailability } = useBookingAvailability(hall, undefined, displayedMonth);
+  const { getDateAvailability } = useBookingAvailability(venue, undefined, displayedMonth);
 
-  const isOnlineBookingEnabled = hall?.isOnlineBookingEnabled !== false;
+  const isOnlineBookingEnabled = venue?.isOnlineBookingEnabled !== false;
 
   const handleContactOwner = useCallback(async () => {
     if (!user) {
@@ -92,17 +92,17 @@ const HallDetailClient = ({ slugOrId, initialHall }: HallDetailClientProps) => {
       return;
     }
     try {
-      const targetId = hall?._id || hall?.id || slugOrId;
+      const targetId = venue?._id || venue?.id || slugOrId;
       const response = await api.post(`/halls/${targetId}/book-demo`);
       setOwnerContact(response.data.data);
       setDemoModalOpen(true);
     } catch (err: unknown) {
-      console.error(`Failed to contact owner for hall with id ${slugOrId}:`, err);
+      console.error(`Failed to contact owner for venue with id ${slugOrId}:`, err);
       setError(translateError(err));
     }
-  }, [slugOrId, user, router, hall]);
+  }, [slugOrId, user, router, venue]);
 
-  const fetchHallAndRecommendations = useCallback(async (isInitial: boolean = false) => {
+  const fetchVenueAndRecommendations = useCallback(async (isInitial: boolean = false) => {
     if (!slugOrId) return;
 
     if (!isInitial) {
@@ -112,21 +112,21 @@ const HallDetailClient = ({ slugOrId, initialHall }: HallDetailClientProps) => {
     setRecommendations([]);
 
     try {
-      let currentHall = hall;
+      let currentVenue = venue;
 
-      if (!isInitial || !currentHall) {
-        const hallResponse = await api.get<{ data: Hall }>(`/halls/${slugOrId}`);
-        currentHall = hallResponse.data.data;
-        setHall(currentHall);
+      if (!isInitial || !currentVenue) {
+        const venueResponse = await api.get<{ data: Venue }>(`/halls/${slugOrId}`);
+        currentVenue = venueResponse.data.data;
+        setVenue(currentVenue);
       }
 
-      if (!currentHall) return;
+      if (!currentVenue) return;
 
       // Fetch recommendations only if geoLocation data is available
-      if (currentHall.geoLocation?.coordinates && currentHall.geoLocation.coordinates.length === 2) {
-        const longitude = currentHall.geoLocation.coordinates[0];
-        const latitude = currentHall.geoLocation.coordinates[1];
-        api.get<{ data: Hall[] }>(
+      if (currentVenue.geoLocation?.coordinates && currentVenue.geoLocation.coordinates.length === 2) {
+        const longitude = currentVenue.geoLocation.coordinates[0];
+        const latitude = currentVenue.geoLocation.coordinates[1];
+        api.get<{ data: Venue[] }>(
           `/halls/recommendations`,
           {
             params: { latitude, longitude },
@@ -144,7 +144,7 @@ const HallDetailClient = ({ slugOrId, initialHall }: HallDetailClientProps) => {
 
       // Fetch reviews
       setReviewsLoading(true);
-      const targetId = currentHall?._id || currentHall?.id || slugOrId;
+      const targetId = currentVenue?._id || currentVenue?.id || slugOrId;
       api.get<{ data: Review[] }>(`/reviews/hall/${targetId}`)
         .then(reviewsResponse => {
           setReviews(reviewsResponse.data.data || []);
@@ -157,12 +157,12 @@ const HallDetailClient = ({ slugOrId, initialHall }: HallDetailClientProps) => {
         });
 
     } catch (err) {
-      console.error(`Failed to fetch hall with id ${slugOrId}:`, err);
+      console.error(`Failed to fetch venue with id ${slugOrId}:`, err);
       setError(translateError(err));
     } finally {
       setLoading(false);
     }
-  }, [slugOrId, hall]);
+  }, [slugOrId, venue]);
 
   useEffect(() => {
     // Restore state from localStorage if it exists
@@ -191,22 +191,22 @@ const HallDetailClient = ({ slugOrId, initialHall }: HallDetailClientProps) => {
       localStorage.removeItem('pendingAction');
     }
 
-    fetchHallAndRecommendations(!!initialHall);
-  }, [slugOrId, handleContactOwner, openBookingModal, fetchHallAndRecommendations, initialHall, hall]);
+    fetchVenueAndRecommendations(!!initialVenue);
+  }, [slugOrId, handleContactOwner, openBookingModal, fetchVenueAndRecommendations, initialVenue, venue]);
 
   if (loading) {
-    return <HallDetailSkeleton />;
+    return <VenueDetailSkeleton />;
   }
 
   if (error) {
     return (
         <div className="pt-32 pb-20">
-            <ErrorState message={error} onRetry={fetchHallAndRecommendations} />
+            <ErrorState message={error} onRetry={fetchVenueAndRecommendations} />
         </div>
     );
   }
 
-  if (!hall) {
+  if (!venue) {
     return (
         <div className="pt-32 pb-20">
             <ErrorState message="We couldn't find the venue you're looking for." />
@@ -223,8 +223,8 @@ const HallDetailClient = ({ slugOrId, initialHall }: HallDetailClientProps) => {
     e.stopPropagation();
     if (navigator.share) {
       navigator.share({
-        title: hall?.name,
-        text: `Check out ${hall?.name} on GoBokin!`,
+        title: venue?.name,
+        text: `Check out ${venue?.name} on GoBokin!`,
         url: window.location.href,
       }).catch(console.error);
     } else {
@@ -236,16 +236,16 @@ const HallDetailClient = ({ slugOrId, initialHall }: HallDetailClientProps) => {
     }
   };
 
-  const media = [...(hall.videos || []), ...(hall.images || [])];
+  const media = [...(venue.videos || []), ...(venue.images || [])];
 
   const getMapEmbedUrl = () => {
-    if (hall.geoLocation?.coordinates && hall.geoLocation.coordinates.length === 2) {
-      const [lng, lat] = hall.geoLocation.coordinates;
+    if (venue.geoLocation?.coordinates && venue.geoLocation.coordinates.length === 2) {
+      const [lng, lat] = venue.geoLocation.coordinates;
       return `https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed`;
     }
 
-    if (hall.directionUrl) {
-      const coordsMatch = hall.directionUrl.match(/destination=([0-9.-]+),([0-9.-]+)/);
+    if (venue.directionUrl) {
+      const coordsMatch = venue.directionUrl.match(/destination=([0-9.-]+),([0-9.-]+)/);
       if (coordsMatch) {
         const [, lat, lng] = coordsMatch;
         return `https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed`;
@@ -257,13 +257,13 @@ const HallDetailClient = ({ slugOrId, initialHall }: HallDetailClientProps) => {
 
   const renderMediaItem = (url: string | undefined, index: number, isLarge: boolean = false) => {
     const isVid = isVideo(url);
-    const thumb = isVid ? getMediaThumbnail(url) : (url || '/hall_default.jpg');
+    const thumb = isVid ? getMediaThumbnail(url) : (url || '/venue_default.jpg');
 
     return (
       <div className="relative w-full h-full">
         <Image
           src={thumb}
-          alt={index === 0 ? hall.name : ""}
+          alt={index === 0 ? venue.name : ""}
           fill
           className="object-cover"
           sizes={isLarge ? "(max-width: 768px) 100vw, 50vw" : "(max-width: 768px) 50vw, 25vw"}
@@ -282,29 +282,29 @@ const HallDetailClient = ({ slugOrId, initialHall }: HallDetailClientProps) => {
     <div className="bg-white min-h-screen">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-28">
         <div className="mb-4">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">{hall.name}</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">{venue.name}</h1>
           <div className="flex items-center mt-2">
             <div className="text-sm text-gray-600 flex items-center">
-              {hall.averageRating > 0 ? (
+              {venue.averageRating > 0 ? (
                 <span className="font-semibold flex items-center text-gray-400">
-                  {hall.averageRating.toFixed(1)} <Star className="h-4 w-4 ml-1 fill-gray-400" />
+                  {venue.averageRating.toFixed(1)} <Star className="h-4 w-4 ml-1 fill-gray-400" />
                 </span>
               ) : (
                 <span className="font-semibold text-gray-400">New</span>
               )}
-              {hall.numReviews > 0 && (
+              {venue.numReviews > 0 && (
                 <span className="ml-1">
-                  ({hall.numReviews} review{hall.numReviews > 1 ? 's' : ''})
+                  ({venue.numReviews} review{venue.numReviews > 1 ? 's' : ''})
                 </span>
               )}
               <span className="mx-2">·</span>
-              <span>{hall.location}</span>
+              <span>{venue.location}</span>
               {canSeeViews && (
                 <>
                   <span className="mx-2">·</span>
                   <span className="flex items-center inline-flex">
                     <Eye className="h-4 w-4 mr-1" />
-                    {hall.views || 0} views
+                    {venue.views || 0} views
                   </span>
                 </>
               )}
@@ -361,22 +361,22 @@ const HallDetailClient = ({ slugOrId, initialHall }: HallDetailClientProps) => {
                 Capacity
               </h2>
               <p className="text-gray-600 mt-1">
-                {hall.capacity} guests
+                {venue.capacity} guests
               </p>
             </div>
 
             <div className="py-6 border-b">
               <h3 className="font-semibold text-xl text-gray-800 mb-4">About this venue</h3>
               <p className="text-gray-700 whitespace-pre-line">
-                {hall.description}
+                {venue.description}
               </p>
             </div>
 
-            {hall.suitableFor && hall.suitableFor.length > 0 && (
+            {venue.suitableFor && venue.suitableFor.length > 0 && (
               <div className="py-6 border-b">
                 <h3 className="font-semibold text-xl text-gray-800 mb-4">Suitable For</h3>
                 <div className="flex flex-wrap gap-3">
-                  {hall.suitableFor.map((s) => {
+                  {venue.suitableFor.map((s) => {
                     const suitability = typeof s === 'string' ? { _id: s, name: s } as Suitability : s;
                     return (
                       <div
@@ -405,8 +405,8 @@ const HallDetailClient = ({ slugOrId, initialHall }: HallDetailClientProps) => {
             <div className="py-6 border-b">
               <h3 className="font-semibold text-xl text-gray-800 mb-4">What this place offers</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                {hall.facilities?.length > 0 ? (
-                  hall.facilities.map((facility, index) => (
+                {venue.facilities?.length > 0 ? (
+                  venue.facilities.map((facility, index) => (
                     <div key={index} className="flex items-center space-x-4">
                       <FacilityIcon name={facility.facility?.name || facility.name || ''} />
                       <div className="flex-grow">
@@ -433,7 +433,7 @@ const HallDetailClient = ({ slugOrId, initialHall }: HallDetailClientProps) => {
               </div>
             </div>
 
-            {hall.rules && (Array.isArray(hall.rules) ? hall.rules.length > 0 : (hall.rules as string).length > 0) && (
+            {venue.rules && (Array.isArray(venue.rules) ? venue.rules.length > 0 : (venue.rules as string).length > 0) && (
               <div className="py-6 border-b">
                 <div className="flex items-center space-x-2 mb-4">
                   <AlertTriangle className="h-6 w-6 text-amber-500 animate-pulse" />
@@ -441,7 +441,7 @@ const HallDetailClient = ({ slugOrId, initialHall }: HallDetailClientProps) => {
                 </div>
                 <div className="bg-amber-50 border border-amber-100 rounded-lg p-5">
                   <ul className="space-y-3">
-                    {(Array.isArray(hall.rules) ? hall.rules : (hall.rules as string).split('\n')).map((rule, index) => (
+                    {(Array.isArray(venue.rules) ? venue.rules : (venue.rules as string).split('\n')).map((rule, index) => (
                       <li key={index} className="flex items-start space-x-3 text-gray-700">
                         <div className="mt-1.5 h-1.5 w-1.5 rounded-full bg-amber-400 flex-shrink-0" />
                         <span className="text-sm font-medium leading-relaxed">{rule}</span>
@@ -544,10 +544,10 @@ const HallDetailClient = ({ slugOrId, initialHall }: HallDetailClientProps) => {
                     src={getMapEmbedUrl()!}
                   ></iframe>
                 </div>
-                {hall.geoLocation?.address && (
+                {venue.geoLocation?.address && (
                   <p className="mt-3 text-gray-600 text-sm flex items-start gap-2">
                     <MapPin className="h-4 w-4 mt-0.5 text-gray-400 flex-shrink-0" />
-                    {hall.geoLocation.address}
+                    {venue.geoLocation.address}
                   </p>
                 )}
               </div>
@@ -583,7 +583,7 @@ const HallDetailClient = ({ slugOrId, initialHall }: HallDetailClientProps) => {
               {recommendationsUnavailable ? (
                 <p className="text-gray-500">Recommendations are temporarily unavailable</p>
               ) : recommendations.length > 0 ? (
-                <Carousel halls={recommendations} slidesToShow={3} />
+                <Carousel venues={recommendations} slidesToShow={3} />
               ) : (
                 <p className="text-gray-500">No recommendation found</p>
               )}
@@ -594,33 +594,33 @@ const HallDetailClient = ({ slugOrId, initialHall }: HallDetailClientProps) => {
           <div className="lg:col-span-1 order-1 lg:order-2 mb-8 lg:mb-0">
             <div className="sticky top-28 border rounded-xl shadow-lg p-6">
               <div className="mb-4">
-                {hall.pricing?.dailyRate && hall.pricing?.hourlyRate ? (
+                {venue.pricing?.dailyRate && venue.pricing?.hourlyRate ? (
                   <div className="flex items-center justify-around">
                     <div className="text-center">
                       <p className="text-xl font-bold text-gray-900">
-                        ₦{hall.pricing.dailyRate.toLocaleString()}
+                        ₦{venue.pricing.dailyRate.toLocaleString()}
                       </p>
                       <span className="text-sm text-gray-600">/ day</span>
                     </div>
                     <div className="h-10 border-l border-gray-300"></div>
                     <div className="text-center">
                       <p className="text-xl font-bold text-gray-900">
-                        ₦{hall.pricing.hourlyRate.toLocaleString()}
+                        ₦{venue.pricing.hourlyRate.toLocaleString()}
                       </p>
                       <span className="text-sm text-gray-600">/ hour</span>
                     </div>
                   </div>
-                ) : hall.pricing?.dailyRate ? (
+                ) : venue.pricing?.dailyRate ? (
                   <div className="flex items-baseline">
                     <p className="text-2xl font-bold text-gray-900">
-                      ₦{hall.pricing.dailyRate.toLocaleString()}
+                      ₦{venue.pricing.dailyRate.toLocaleString()}
                     </p>
                     <span className="ml-1 text-gray-600">/ day</span>
                   </div>
-                ) : hall.pricing?.hourlyRate ? (
+                ) : venue.pricing?.hourlyRate ? (
                   <div className="flex items-baseline">
                     <p className="text-2xl font-bold text-gray-900">
-                      ₦{hall.pricing.hourlyRate.toLocaleString()}
+                      ₦{venue.pricing.hourlyRate.toLocaleString()}
                     </p>
                     <span className="ml-1 text-gray-600">/ hour</span>
                   </div>
@@ -675,11 +675,11 @@ const HallDetailClient = ({ slugOrId, initialHall }: HallDetailClientProps) => {
           </div>
         </div>
       </div>
-      {hall && (
+      {venue && (
         <>
           <BookingModal
             key={isBookingModalOpen ? 'open' : 'closed'}
-            hallId={hall.id || hall._id}
+            hallId={venue.id || venue._id}
             isOpen={isBookingModalOpen}
             onClose={closeBookingModal}
             bookingMode={bookingMode as 'book' | 'reserve'}
@@ -694,8 +694,8 @@ const HallDetailClient = ({ slugOrId, initialHall }: HallDetailClientProps) => {
             isOpen={isDemoModalOpen}
             onClose={() => setDemoModalOpen(false)}
             phone={ownerContact.phone}
-            directionUrl={hall.directionUrl}
-            address={hall.geoLocation?.address}
+            directionUrl={venue.directionUrl}
+            address={venue.geoLocation?.address}
           />
         </>
       )}
@@ -709,4 +709,4 @@ const HallDetailClient = ({ slugOrId, initialHall }: HallDetailClientProps) => {
   );
 };
 
-export default HallDetailClient;
+export default VenueDetailClient;

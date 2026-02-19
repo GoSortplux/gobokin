@@ -19,7 +19,7 @@ import {
   X
 } from "lucide-react";
 import api from "@/services/api";
-import { Booking, Reservation, Hall } from "@/types";
+import { Booking, Reservation, Venue } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 import UnifiedReceipt from "@/components/shared/UnifiedReceipt";
 import withAuth from "@/components/auth/withAuth";
@@ -89,7 +89,7 @@ const BookingDetailsPage = () => {
   };
 
   const id = isBooking(data) ? data.bookingId : data.reservationId;
-  const hall = typeof data.hall === 'object' ? (data.hall as Hall) : null;
+  const venue = typeof data.hall === 'object' ? (data.hall as Venue) : null;
   const bookingUser = typeof data.user === 'object' ? (data.user as { fullName: string; email: string }) : null;
   const status = isBooking(data) ? (data.status || data.bookingStatus) : data.status;
   const paymentStatus = data.paymentStatus;
@@ -215,21 +215,21 @@ const BookingDetailsPage = () => {
               </div>
             </div>
 
-            {/* Hall Details Card */}
+            {/* Venue Details Card */}
             <div className="bg-white rounded-[2rem] overflow-hidden shadow-sm border border-gray-100">
               <div className="relative h-64 w-full">
                 <Image
-                  src={hall?.images?.[0] || '/hall_default.jpg'}
-                  alt={hall?.name || 'Hall'}
+                  src={venue?.images?.[0] || '/venue_default.jpg'}
+                  alt={venue?.name || 'Venue'}
                   fill
                   className="object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 <div className="absolute bottom-6 left-6 text-white">
-                  <h2 className="text-2xl font-bold">{hall?.name || 'N/A'}</h2>
+                  <h2 className="text-2xl font-bold">{venue?.name || 'N/A'}</h2>
                   <div className="flex items-center gap-2 text-white/80 mt-1">
                     <MapPin size={16} />
-                    <span>{hall?.location || 'N/A'}</span>
+                    <span>{venue?.location || 'N/A'}</span>
                   </div>
                 </div>
               </div>
@@ -241,10 +241,10 @@ const BookingDetailsPage = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-4">
                     <p className="text-gray-600 leading-relaxed line-clamp-4">
-                      {hall?.description || 'No description available for this venue.'}
+                      {venue?.description || 'No description available for this venue.'}
                     </p>
                     <Link
-                      href={`/halls/${hall?.slug || hall?._id}`}
+                      href={`/venues/${venue?.slug || venue?._id}`}
                       className="inline-flex items-center gap-2 text-primary font-bold hover:underline"
                     >
                       View Venue Details
@@ -254,13 +254,13 @@ const BookingDetailsPage = () => {
                   <div className="bg-gray-50 rounded-2xl p-6 space-y-4">
                     <div className="flex items-center justify-between">
                       <span className="text-gray-500 font-medium">Capacity</span>
-                      <span className="text-gray-900 font-bold">{hall?.capacity || 0} guests</span>
+                      <span className="text-gray-900 font-bold">{venue?.capacity || 0} guests</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-gray-500 font-medium">Rating</span>
                       <div className="flex items-center gap-1 text-yellow-500 font-bold">
                         <CheckCircle2 size={16} />
-                        {hall?.averageRating || 0} ({hall?.numReviews || 0} reviews)
+                        {venue?.averageRating || 0} ({venue?.numReviews || 0} reviews)
                       </div>
                     </div>
                   </div>

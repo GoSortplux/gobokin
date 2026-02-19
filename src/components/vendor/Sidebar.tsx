@@ -37,10 +37,10 @@ const Sidebar = () => {
       id: "vendor-nav-dashboard",
     },
     {
-      href: "/vendor/dashboard/halls",
+      href: "/vendor/dashboard/venues",
       label: "Venues",
       icon: <Building size={24} />,
-      id: "vendor-nav-halls",
+      id: "vendor-nav-venues",
     },
     {
       href: "/vendor/dashboard/bookings",

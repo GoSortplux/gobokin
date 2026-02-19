@@ -230,7 +230,7 @@ const PaymentSuccessContent = () => {
     ...details,
     bookingId: details.bookingId || details.reservationId || 'N/A',
     bookingDates: details.bookingDates || (details.startTime && details.endTime ? [{ startTime: details.startTime, endTime: details.endTime }] : []),
-    hall: details.hall || { name: 'N/A', location: 'N/A' },
+    venue: details.hall || { name: 'N/A', location: 'N/A' },
     user: details.user || (typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {}),
   } as unknown as Booking;
 

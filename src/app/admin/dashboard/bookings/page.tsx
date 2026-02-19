@@ -12,7 +12,7 @@ import PaymentLinkModal from '@/components/shared/PaymentLinkModal';
 import { Search, ChevronDown, Eye, Share2 } from 'lucide-react';
 import CustomLoader from '@/components/CustomLoader';
 import Swal from "@/utils/sweetalert";
-import { Booking, Hall, Reservation } from '@/types';
+import { Booking, Venue, Reservation } from '@/types';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -24,15 +24,15 @@ type GroupedItem = Booking & {
 
 const BookingsPage = () => {
   const searchParams = useSearchParams();
-  const hallIdFromQuery = searchParams.get('hallId');
+  const venueIdFromQuery = searchParams.get('hallId');
   const initialSearch = searchParams.get('search') || '';
   const [activeTab, setActiveTab] = useState('bookings');
   const [allBookings, setAllBookings] = useState<Booking[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
-  const [halls, setHalls] = useState<Hall[]>([]);
+  const [venues, setVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [selectedHall, setSelectedHall] = useState(hallIdFromQuery || '');
+  const [selectedVenue, setSelectedVenue] = useState(venueIdFromQuery || '');
   const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -51,11 +51,11 @@ const BookingsPage = () => {
       const LIMIT = 10000; // Fetch all for local filtering/searching as per Super Admin pattern
       if (activeTab === 'bookings' || activeTab === 'cancellations') {
         let bookingsRes;
-        if (selectedHall) {
-          bookingsRes = await api.get(`/halls/${selectedHall}/bookings?limit=${LIMIT}`);
+        if (selectedVenue) {
+          bookingsRes = await api.get(`/halls/${selectedVenue}/bookings?limit=${LIMIT}`);
           const normalizedBookings = (bookingsRes.data.data.bookings || []).map((booking: Booking) => ({
             ...booking,
-            hall: booking.hall,
+            venue: booking.hall,
           }));
           setAllBookings(normalizedBookings);
         } else {
@@ -63,23 +63,23 @@ const BookingsPage = () => {
           setAllBookings(bookingsRes.data.data.bookings || []);
         }
       } else if (activeTab === 'reservations') {
-        if (selectedHall) {
-          const reservationsRes = await api.get(`/reservations/halls/${selectedHall}?limit=${LIMIT}`);
+        if (selectedVenue) {
+          const reservationsRes = await api.get(`/reservations/halls/${selectedVenue}?limit=${LIMIT}`);
           setReservations(reservationsRes.data.data.reservations || []);
         } else {
           setReservations([]);
         }
       } else if (activeTab === 'pending') {
         let bookingsRes;
-        if (selectedHall) {
-          bookingsRes = await api.get(`/halls/${selectedHall}/bookings?paymentStatus=pending&limit=${LIMIT}`);
+        if (selectedVenue) {
+          bookingsRes = await api.get(`/halls/${selectedVenue}/bookings?paymentStatus=pending&limit=${LIMIT}`);
           const normalizedBookings = (bookingsRes.data.data.bookings || []).map((booking: Booking) => ({
             ...booking,
-            hall: booking.hall,
+            venue: booking.hall,
           }));
           setAllBookings(normalizedBookings);
 
-          const reservationsRes = await api.get(`/reservations/halls/${selectedHall}?limit=${LIMIT}`);
+          const reservationsRes = await api.get(`/reservations/halls/${selectedVenue}?limit=${LIMIT}`);
           const allRes = reservationsRes.data.data.reservations || [];
           setReservations(allRes.filter((r: Reservation) =>
             r.paymentStatus?.toLowerCase() === 'pending' ||
@@ -93,8 +93,8 @@ const BookingsPage = () => {
       }
 
       if (activeTab === 'cancellations') {
-        if (selectedHall) {
-          const reservationsRes = await api.get(`/reservations/halls/${selectedHall}?limit=${LIMIT}`);
+        if (selectedVenue) {
+          const reservationsRes = await api.get(`/reservations/halls/${selectedVenue}?limit=${LIMIT}`);
           setReservations(reservationsRes.data.data.reservations || []);
         } else {
           setReservations([]);
@@ -105,20 +105,20 @@ const BookingsPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedHall, activeTab]);
+  }, [selectedVenue, activeTab]);
 
   useEffect(() => {
-    const fetchHalls = async () => {
+    const fetchVenues = async () => {
       try {
         const hallsRes = await api.get('/halls');
         if (hallsRes.data && Array.isArray(hallsRes.data.data)) {
-          setHalls(hallsRes.data.data);
+          setVenues(hallsRes.data.data);
         }
       } catch (err) {
-        console.error("Failed to fetch halls", err);
+        console.error("Failed to fetch venues", err);
       }
     };
-    fetchHalls();
+    fetchVenues();
   }, []);
 
   useEffect(() => {
@@ -352,9 +352,9 @@ const BookingsPage = () => {
     }
   };
 
-  const getHallName = (hall: string | Hall) => {
-    const id = typeof hall === 'string' ? hall : hall._id || hall.id;
-    return halls.find(h => h._id === id || h.id === id)?.name || 'N/A';
+  const getHallName = (venue: string | Venue) => {
+    const id = typeof venue === 'string' ? venue : venue._id || venue.id;
+    return venues.find(h => h._id === id || h.id === id)?.name || 'N/A';
   };
 
   const handleCreateBooking = async (formData: Record<string, unknown>, type: string) => {
@@ -465,16 +465,16 @@ const BookingsPage = () => {
               </div>
               <div className="w-full md:w-1/3">
                 <select
-                  value={selectedHall}
+                  value={selectedVenue}
                   onChange={(e) => {
-                    setSelectedHall(e.target.value);
+                    setSelectedVenue(e.target.value);
                     setCurrentPage(1);
                   }}
                   className="block w-full p-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 text-sm focus:ring-2 focus:ring-primary outline-none"
                 >
                   <option value="">All Venues</option>
-                  {halls.map((hall) => (
-                    <option key={hall._id} value={hall._id}>{hall.name}</option>
+                  {venues.map((venue) => (
+                    <option key={venue._id} value={venue._id}>{venue.name}</option>
                   ))}
                 </select>
               </div>
@@ -871,7 +871,7 @@ const BookingsPage = () => {
                         ) : (
                           <tr>
                             <td colSpan={7} className="py-20 text-center text-gray-400 font-medium italic">
-                               {!selectedHall ? 'Please select a venue to view reservations.' : 'No active reservations found for this match.'}
+                               {!selectedVenue ? 'Please select a venue to view reservations.' : 'No active reservations found for this match.'}
                             </td>
                           </tr>
                         )}
@@ -954,7 +954,7 @@ const BookingsPage = () => {
                     ) : (
                       <div className="text-center py-20 bg-white rounded-2xl border-2 border-dashed border-gray-100">
                          <p className="text-gray-400 font-bold uppercase text-xs tracking-widest">
-                            {!selectedHall ? 'Select a venue above' : 'No reservations found'}
+                            {!selectedVenue ? 'Select a venue above' : 'No reservations found'}
                          </p>
                       </div>
                     )}
@@ -980,7 +980,7 @@ const BookingsPage = () => {
             isOpen={isModalOpen}
             onClose={handleCloseModal}
             booking={selectedBooking}
-            halls={halls}
+            venues={venues}
         />
       )}
       <AdminBookingModal

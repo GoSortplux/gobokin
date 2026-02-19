@@ -45,7 +45,7 @@ interface Booking {
     email: string;
     phone: string;
   };
-  hall: {
+  venue: {
     _id: string;
     name: string;
   };
@@ -93,7 +93,7 @@ interface AnalyticsData {
     active: number;
   };
 }
-interface Hall {
+interface Venue {
   _id: string;
   name: string;
 }
@@ -184,11 +184,11 @@ const EnhancedAnalytics = ({ initialData }: { initialData?: AnalyticsData | null
   const { user } = useAuth();
   const [data, setData] = useState<AnalyticsData | null>(initialData || null);
   const [loading, setLoading] = useState<boolean>(!initialData);
-  const [halls, setHalls] = useState<Hall[]>([]);
+  const [venues, setVenues] = useState<Venue[]>([]);
   const [hallsLoading, setHallsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [dateRange, setDateRange] = useState<Range[]>([{ startDate: new Date(new Date().setDate(new Date().getDate() - 7)), endDate: new Date(), key: 'selection' }]);
-  const [selectedHall, setSelectedHall] = useState<Hall | null>(null);
+  const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showHallPicker, setShowHallPicker] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -213,11 +213,11 @@ const EnhancedAnalytics = ({ initialData }: { initialData?: AnalyticsData | null
         page: page.toString(),
         limit: '10'
       });
-      if (selectedHall) {
-        params.append('hallId', selectedHall._id);
-      } else if (user?.activeRole === 'staff' && halls.length > 0) {
-        // Explicitly pass all assigned hall IDs for staff if no specific hall is selected
-        halls.forEach(h => params.append('hallId', h._id));
+      if (selectedVenue) {
+        params.append('hallId', selectedVenue._id);
+      } else if (user?.activeRole === 'staff' && venues.length > 0) {
+        // Explicitly pass all assigned venue IDs for staff if no specific venue is selected
+        venues.forEach(h => params.append('hallId', h._id));
       }
 
       const response = await api.get(`../v2/analytics/hall-owner?${params.toString()}`);
@@ -234,11 +234,11 @@ const EnhancedAnalytics = ({ initialData }: { initialData?: AnalyticsData | null
     } finally {
       setLoading(false);
     }
-  }, [dateRange, selectedHall, user?.activeRole, halls]);
+  }, [dateRange, selectedVenue, user?.activeRole, venues]);
 
   useEffect(() => {
     if (!initialData) {
-      // For staff, wait for assigned halls to load before fetching analytics to ensure correct filtering
+      // For staff, wait for assigned venues to load before fetching analytics to ensure correct filtering
       if (user?.activeRole === 'staff' && hallsLoading) return;
 
       fetchAnalytics(currentPage);
@@ -247,18 +247,18 @@ const EnhancedAnalytics = ({ initialData }: { initialData?: AnalyticsData | null
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [dateRange, selectedHall]);
+  }, [dateRange, selectedVenue]);
 
   useEffect(() => {
     setHallsLoading(true);
     api.get('/halls/by-owner')
-      .then(res => res.data?.success && setHalls(res.data.data))
-      .catch(err => console.error("Failed to fetch halls", err))
+      .then(res => res.data?.success && setVenues(res.data.data))
+      .catch(err => console.error("Failed to fetch venues", err))
       .finally(() => setHallsLoading(false));
   }, []);
 
   const handleClearFilters = () => {
-    setSelectedHall(null);
+    setSelectedVenue(null);
     setDateRange([{ startDate: new Date(new Date().setDate(new Date().getDate() - 7)), endDate: new Date(), key: 'selection' }]);
     setSearchTerm('');
     setCurrentPage(1);
@@ -353,11 +353,11 @@ const EnhancedAnalytics = ({ initialData }: { initialData?: AnalyticsData | null
                   >
                       <div className="flex items-center">
                           <Search className="h-4 w-4 mr-3 text-[#295FA7]"/>
-                          <span className="text-sm font-bold text-gray-700">{selectedHall ? selectedHall.name : 'All Venues'}</span>
+                          <span className="text-sm font-bold text-gray-700">{selectedVenue ? selectedVenue.name : 'All Venues'}</span>
                       </div>
                       <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${showHallPicker ? 'rotate-180' : ''}`}/>
                   </button>
-                  {showHallPicker && (<div className="absolute right-0 top-full mt-3 z-30 bg-white border border-gray-100 rounded-2xl shadow-2xl w-full md:w-64 overflow-hidden animate-in fade-in slide-in-from-top-2"><div className="p-2 border-b bg-gray-50"><input type="text" placeholder="Search venues..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full p-2 text-sm border rounded-xl focus:outline-none focus:ring-1 focus:ring-primary/50 bg-white"/></div><ul className="max-h-60 overflow-y-auto">{halls.filter(h => h.name.toLowerCase().includes(searchTerm.toLowerCase())).map(hall => (<li key={hall._id} onClick={() => { setSelectedHall(hall); setShowHallPicker(false); }} className="p-3 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors border-b last:border-0 font-medium">{hall.name}</li>))}</ul></div>)}
+                  {showHallPicker && (<div className="absolute right-0 top-full mt-3 z-30 bg-white border border-gray-100 rounded-2xl shadow-2xl w-full md:w-64 overflow-hidden animate-in fade-in slide-in-from-top-2"><div className="p-2 border-b bg-gray-50"><input type="text" placeholder="Search venues..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full p-2 text-sm border rounded-xl focus:outline-none focus:ring-1 focus:ring-primary/50 bg-white"/></div><ul className="max-h-60 overflow-y-auto">{venues.filter(h => h.name.toLowerCase().includes(searchTerm.toLowerCase())).map(venue => (<li key={venue._id} onClick={() => { setSelectedVenue(venue); setShowHallPicker(false); }} className="p-3 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors border-b last:border-0 font-medium">{venue.name}</li>))}</ul></div>)}
               </div>
               <button
                   onClick={handleClearFilters}

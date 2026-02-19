@@ -10,12 +10,12 @@ export const slugify = (text: string) => {
     .replace(/-+$/, ''); // Trim - from end of text
 };
 
-export const createHallSlug = (name: string, id: string, slug?: string) => {
+export const createVenueSlug = (name: string, id: string, slug?: string) => {
   return slug || slugify(name);
 };
 
 /**
- * @deprecated Slugs no longer contain IDs. Use the slug directly to fetch halls.
+ * @deprecated Slugs no longer contain IDs. Use the slug directly to fetch venues.
  */
 export const extractIdFromSlug = (slug: string) => {
   const parts = slug.split('-');

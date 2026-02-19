@@ -14,7 +14,7 @@ import { useUI } from "@/context/UIContext";
 
 const placeholders = [
   "Search for Users by name...",
-  "Search for Hall names...",
+  "Search for Venue names...",
   "Search for Booking IDs...",
   "Search for License Tiers...",
 ];
@@ -95,7 +95,7 @@ const AdminHeader = () => {
 
   const suggestions = [
     { label: "Search in Users", icon: Users, path: "/admin/dashboard/users" },
-    { label: "Search in Halls", icon: Building, path: "/admin/dashboard/halls" },
+    { label: "Search in Venues", icon: Building, path: "/admin/dashboard/venues" },
     { label: "Search in Bookings", icon: Calendar, path: "/admin/dashboard/bookings" },
     { label: "Search in License Tiers", icon: Shield, path: "/admin/dashboard/license-tiers" },
   ];

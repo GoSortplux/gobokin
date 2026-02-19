@@ -15,7 +15,7 @@ interface Staff {
   fullName: string;
   email: string;
   phone?: string;
-  hallIds?: string[];
+  venueIds?: string[];
 }
 
 const StaffContent = () => {
@@ -38,7 +38,12 @@ const StaffContent = () => {
     try {
       setLoading(true);
       const response = await api.get('/users/my-staff');
-      setStaff(response.data.data);
+      // Map hallIds from API to venueIds for frontend
+      const mappedStaff = (response.data.data || []).map((s: { hallIds?: string[]; [key: string]: unknown }) => ({
+        ...s,
+        venueIds: s.hallIds,
+      }));
+      setStaff(mappedStaff);
       setError('');
     } catch (err) {
       console.error(err);

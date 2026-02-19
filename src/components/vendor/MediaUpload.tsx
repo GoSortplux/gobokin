@@ -29,7 +29,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ hallId, initialImages = [], i
   const [isDragging, setIsDragging] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Update internal state when initial props change (e.g. when opening modal for different hall)
+  // Update internal state when initial props change (e.g. when opening modal for different venue)
   useEffect(() => {
     setCurrentImages(initialImages);
     setCurrentVideos(initialVideos);
@@ -112,7 +112,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ hallId, initialImages = [], i
     if (type === 'image' && currentImages.length <= 1) {
       Swal.toast.fire({
         icon: 'error',
-        title: 'A hall must have at least one image.',
+        title: 'A venue must have at least one image.',
       });
       return;
     }
@@ -212,7 +212,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ hallId, initialImages = [], i
       const uploadedUrls = finalizeResponse.data.data.urls;
 
       if (uploadedUrls && uploadedUrls.length > 0) {
-        // Associate the processed URLs with the hall (Only if hallId is present)
+        // Associate the processed URLs with the venue (Only if hallId is present)
         if (hallId) {
           const backendUploadPromises = uploadedUrls.map((url: string) => {
             const isVideoUrl = isVideo(url);
@@ -254,7 +254,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ hallId, initialImages = [], i
 
   return (
     <div className="border border-gray-300 p-6 rounded-lg mt-6 bg-gray-50">
-      <h3 className="text-xl font-semibold mb-4 text-gray-800">Hall Media</h3>
+      <h3 className="text-xl font-semibold mb-4 text-gray-800">Venue Media</h3>
 
       {/* Existing Media Section */}
       {(currentImages.length > 0 || currentVideos.length > 0) && (
@@ -292,7 +292,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ hallId, initialImages = [], i
               <div key={`img-${index}`} className="relative group h-32">
                 <Image
                   src={url}
-                  alt={`hall image ${index}`}
+                  alt={`venue image ${index}`}
                   fill
                   className="object-cover rounded-md border border-gray-200"
                   unoptimized
@@ -314,7 +314,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ hallId, initialImages = [], i
       )}
 
       <p className="text-sm text-gray-600 mb-4">
-        {hallId ? 'Drag & drop files or click to select more media.' : 'Save the hall details before uploading images.'}
+        {hallId ? 'Drag & drop files or click to select more media.' : 'Save the venue details before uploading images.'}
       </p>
 
       <div

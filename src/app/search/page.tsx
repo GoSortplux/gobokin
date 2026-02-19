@@ -2,15 +2,15 @@
 
 import React, { useState, useEffect, useRef, Suspense, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import HallCard from '@/components/HallCard';
+import VenueCard from '@/components/VenueCard';
 import api from '@/services/api';
-import { Hall } from '@/types/hall';
+import { Venue } from '@/types/venue';
 import CustomLoader from '@/components/CustomLoader';
 import useIntersectionObserver from '@/hooks/useIntersectionObserver';
 import { translateError } from '@/utils/errors';
 import ErrorState from '@/components/ErrorState';
 
-const AnimatedHallCard = ({ hall, index }: { hall: Hall; index: number }) => {
+const AnimatedVenueCard = ({ venue, index }: { venue: Venue; index: number }) => {
   const ref = useRef<HTMLDivElement>(null);
   const isVisible = useIntersectionObserver(ref);
   const isInitiallyVisible = index < 6;
@@ -22,7 +22,7 @@ const AnimatedHallCard = ({ hall, index }: { hall: Hall; index: number }) => {
         isVisible || isInitiallyVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
       }`}
     >
-      <HallCard hall={hall} />
+      <VenueCard venue={venue} />
     </div>
   );
 };
@@ -30,10 +30,10 @@ const AnimatedHallCard = ({ hall, index }: { hall: Hall; index: number }) => {
 const SearchContent = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [halls, setHalls] = useState<Hall[]>([]);
+  const [venues, setVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [loadingMessage, setLoadingMessage] = useState('Loading halls...');
+  const [loadingMessage, setLoadingMessage] = useState('Loading venues...');
   const [keyword, setKeyword] = useState(searchParams.get('keyword') || '');
   const [minCapacity, setMinCapacity] = useState(searchParams.get('minCapacity') || '');
   const [minPrice, setMinPrice] = useState<number>(Number(searchParams.get('minPrice')) || 0);
@@ -70,21 +70,21 @@ const SearchContent = () => {
         },
       });
 
-      let filteredHalls = response.data.data;
+      let filteredVenues = response.data.data;
 
-      if (Array.isArray(filteredHalls)) {
+      if (Array.isArray(filteredVenues)) {
         /**
          * NOTE: Manual frontend filtering is necessary because the current backend
-         * /halls endpoint ignores query parameters like keyword, minCapacity, and price.
+         * /venues endpoint ignores query parameters like keyword, minCapacity, and price.
          */
 
         // 1. Keyword / Location filter
         if (kw) {
           const lowerKw = kw.toLowerCase();
-          filteredHalls = filteredHalls.filter((hall: Hall) =>
-            hall.name.toLowerCase().includes(lowerKw) ||
-            hall.location.toLowerCase().includes(lowerKw) ||
-            (hall.description && hall.description.toLowerCase().includes(lowerKw))
+          filteredVenues = filteredVenues.filter((venue: Venue) =>
+            venue.name.toLowerCase().includes(lowerKw) ||
+            venue.location.toLowerCase().includes(lowerKw) ||
+            (venue.description && venue.description.toLowerCase().includes(lowerKw))
           );
         }
 
@@ -92,13 +92,13 @@ const SearchContent = () => {
         if (cap) {
           const minCap = parseInt(cap);
           if (!isNaN(minCap)) {
-            filteredHalls = filteredHalls.filter((hall: Hall) => hall.capacity >= minCap);
+            filteredVenues = filteredVenues.filter((venue: Venue) => venue.capacity >= minCap);
           }
         }
 
         // 3. Price filter
-        filteredHalls = filteredHalls.filter((hall: Hall) => {
-          const rate = hall.pricing?.dailyRate || hall.pricing?.hourlyRate || 0;
+        filteredVenues = filteredVenues.filter((venue: Venue) => {
+          const rate = venue.pricing?.dailyRate || venue.pricing?.hourlyRate || 0;
           return rate >= minP && rate <= maxP;
         });
 
@@ -107,36 +107,36 @@ const SearchContent = () => {
           setLoadingMessage('Checking availability...');
           /**
            * Since the backend doesn't support filtering by availability in the list view,
-           * we check each hall individually. This is an N+1 operation, but necessary
+           * we check each venue individually. This is an N+1 operation, but necessary
            * until backend support is added.
            */
           const availabilityResults = await Promise.all(
-            filteredHalls.map(async (hall: Hall) => {
+            filteredVenues.map(async (venue: Venue) => {
               try {
-                const res = await api.get(`/halls/${hall._id}/unavailable-dates`, {
+                const res = await api.get(`/halls/${venue._id}/unavailable-dates`, {
                   params: { startDate: start || end, endDate: end || start }
                 });
                 // If data array is empty, it means no bookings/blocks in that range
-                return res.data.data.length === 0 ? hall : null;
+                return res.data.data.length === 0 ? venue : null;
               } catch (err) {
-                console.error(`Error checking availability for hall ${hall._id}:`, err);
-                // If availability check fails, we exclude the hall to be safe
+                console.error(`Error checking availability for venue ${venue._id}:`, err);
+                // If availability check fails, we exclude the venue to be safe
                 return null;
               }
             })
           );
-          filteredHalls = availabilityResults.filter((h): h is Hall => h !== null);
+          filteredVenues = availabilityResults.filter((h): h is Venue => h !== null);
         }
 
-        setHalls(filteredHalls);
+        setVenues(filteredVenues);
       } else {
-        setHalls([]);
+        setVenues([]);
       }
       setError('');
     } catch (error) {
-      console.error('Error fetching halls:', error);
+      console.error('Error fetching venues:', error);
       setError(translateError(error));
-      setHalls([]);
+      setVenues([]);
     } finally {
       setLoading(false);
     }
@@ -258,10 +258,10 @@ const SearchContent = () => {
             <ErrorState message={error} onRetry={fetchWithParams} />
           ) : (
             <>
-              {halls.length > 0 ? (
+              {venues.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {halls.map((hall, index) => (
-                    <AnimatedHallCard key={hall._id} hall={hall} index={index} />
+                  {venues.map((venue, index) => (
+                    <AnimatedVenueCard key={venue._id} venue={venue} index={index} />
                   ))}
                 </div>
               ) : (
@@ -272,7 +272,7 @@ const SearchContent = () => {
                     </svg>
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">No venues found</h3>
-                  <p className="text-gray-500 max-w-xs">We couldn&apos;t find any halls matching your current filters. Try broadening your search.</p>
+                  <p className="text-gray-500 max-w-xs">We couldn&apos;t find any venues matching your current filters. Try broadening your search.</p>
                 </div>
               )}
             </>

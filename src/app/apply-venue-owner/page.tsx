@@ -21,7 +21,7 @@ interface Metadata {
   hallsCountOptions: string[];
 }
 
-const ApplyHallOwnerPage = () => {
+const ApplyVenueOwnerPage = () => {
   const { user, updateToken, updateUserApplicationStatus, updateUser } = useAuth();
   const router = useRouter();
   const [metadata, setMetadata] = useState<Metadata | null>(null);
@@ -275,7 +275,7 @@ const ApplyHallOwnerPage = () => {
                 </h2>
                 <div className="grid grid-cols-1 gap-6">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Hall Name</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Venue Name</label>
                     <input
                       type="text"
                       name="hallName"
@@ -618,4 +618,4 @@ const ApplyHallOwnerPage = () => {
   );
 };
 
-export default withAuth(ApplyHallOwnerPage, ['user']);
+export default withAuth(ApplyVenueOwnerPage, ['user']);
