@@ -632,6 +632,7 @@ const BookingModal: FC<BookingModalProps> = ({
                     <p className="text-lg font-semibold text-gray-800">
                         Total: ₦{totalPrice.toLocaleString()}
                     </p>
+                    <p className="text-[10px] text-gray-500 font-medium">Includes taxes and charges</p>
                   </div>
                 </div>
               )}
@@ -697,16 +698,23 @@ const BookingModal: FC<BookingModalProps> = ({
                           <span className="font-medium text-gray-900">₦{(quoteData.feeBreakdown?.serviceTotal || quoteData.totalPrice).toLocaleString()}</span>
                         </div>
 
-                        {quoteData.feeBreakdown?.transactionFee > 0 && (
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Transaction Fee:</span>
-                            <span className="font-medium text-gray-900">₦{quoteData.feeBreakdown.transactionFee.toLocaleString()}</span>
-                          </div>
-                        )}
 
                         <div className="flex justify-between font-bold text-lg border-t mt-2 pt-2">
                             <span className="text-gray-800">Total Price:</span>
                             <span className="text-gray-900">₦{(quoteData.feeBreakdown?.totalAmount || quoteData.totalPrice).toLocaleString()}</span>
+                        </div>
+                        <div className="text-right space-y-1">
+                          <p className="text-[10px] text-gray-500 font-medium">Includes taxes and charges</p>
+                          {quoteData.feeBreakdown?.transactionFee > 0 && (
+                            <>
+                              <p className="text-[10px] text-gray-500">
+                                Transaction Fee (VAT/STAMP DUTY): ₦{quoteData.feeBreakdown.transactionFee.toLocaleString()}
+                              </p>
+                              <p className="text-[10px] text-gray-400 italic">
+                                Bear in mind that transaction fee has been captured in this charge
+                              </p>
+                            </>
+                          )}
                         </div>
 
                         {bookingMode === 'reserve' && quoteData.reservationFeeDetails && (
@@ -720,15 +728,22 @@ const BookingModal: FC<BookingModalProps> = ({
                                 <span>Base Reservation:</span>
                                 <span>₦{quoteData.reservationFeeDetails.serviceTotal.toLocaleString()}</span>
                               </div>
-                              {quoteData.reservationFeeDetails.transactionFee > 0 && (
-                                <div className="flex justify-between text-xs text-gray-600">
-                                  <span>Transaction Fee:</span>
-                                  <span>₦{quoteData.reservationFeeDetails.transactionFee.toLocaleString()}</span>
-                                </div>
-                              )}
                               <div className="flex justify-between font-bold text-sm text-gray-900 border-t border-primary/10 pt-1 mt-1">
                                 <span>To Pay Now:</span>
                                 <span>₦{quoteData.reservationFeeDetails.totalAmount.toLocaleString()}</span>
+                              </div>
+                              <div className="text-right space-y-0.5 mt-1">
+                                <p className="text-[9px] text-gray-500 font-medium">Includes taxes and charges</p>
+                                {quoteData.reservationFeeDetails.transactionFee > 0 && (
+                                  <>
+                                    <p className="text-[9px] text-gray-500">
+                                      Transaction Fee (VAT/STAMP DUTY): ₦{quoteData.reservationFeeDetails.transactionFee.toLocaleString()}
+                                    </p>
+                                    <p className="text-[9px] text-gray-400 italic">
+                                      Bear in mind that transaction fee has been captured in this charge
+                                    </p>
+                                  </>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -763,15 +778,23 @@ const BookingModal: FC<BookingModalProps> = ({
                             <span className="text-gray-800">Total Price:</span>
                             <span className="text-gray-900">₦{totalPrice.toLocaleString()}</span>
                         </div>
+                        <div className="text-right">
+                          <p className="text-[10px] text-gray-500 font-medium">Includes taxes and charges</p>
+                        </div>
                         {bookingMode === 'reserve' && (
-                          <div className="flex justify-between mt-2">
-                            <span className="text-gray-600">
-                              Reservation Fee ({venue?.reservationFeePercentage || 40}%):
-                            </span>
-                            <span className="font-medium text-gray-900">
-                              ₦{(totalPrice * ((venue?.reservationFeePercentage || 40) / 100)).toLocaleString()}
-                            </span>
-                          </div>
+                          <>
+                            <div className="flex justify-between mt-2">
+                              <span className="text-gray-600">
+                                Reservation Fee ({venue?.reservationFeePercentage || 40}%):
+                              </span>
+                              <span className="font-medium text-gray-900">
+                                ₦{(totalPrice * ((venue?.reservationFeePercentage || 40) / 100)).toLocaleString()}
+                              </span>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-[10px] text-gray-500 font-medium">Includes taxes and charges</p>
+                            </div>
+                          </>
                         )}
                       </>
                     )}
