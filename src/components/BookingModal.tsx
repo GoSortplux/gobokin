@@ -814,13 +814,13 @@ const BookingModal: FC<BookingModalProps> = ({
                             </div>
                           )}
                           <div className="h-px bg-white/10 my-4" />
-                          <div className="flex justify-between items-end">
-                            <span className="text-white/60 text-sm">Total Price</span>
-                            <div className="text-right">
-                              <div className="text-3xl font-black text-white leading-none">
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2">
+                            <span className="text-white/60 text-sm font-medium">Total Price</span>
+                            <div className="sm:text-right">
+                              <div className="text-3xl md:text-4xl font-black text-white leading-tight">
                                 ₦{(quoteData.feeBreakdown?.totalAmount || quoteData.totalPrice).toLocaleString()}
                               </div>
-                              <p className="text-[10px] text-white/40 mt-1">Includes taxes and charges</p>
+                              <p className="text-[10px] text-white/40 mt-1 font-medium">Includes taxes and charges</p>
                             </div>
                           </div>
 
@@ -867,8 +867,8 @@ const BookingModal: FC<BookingModalProps> = ({
                               <span className="font-bold text-white">₦{(totalPrice - hallCost).toLocaleString()}</span>
                             </div>
                           )}
-                          <div className="flex justify-between items-end pt-4 border-t border-white/10">
-                            <span className="text-white/60 text-sm">Total Price</span>
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2 pt-4 border-t border-white/10">
+                            <span className="text-white/60 text-sm font-medium">Total Price</span>
                             <div className="text-3xl font-black text-white">₦{totalPrice.toLocaleString()}</div>
                           </div>
                         </div>
