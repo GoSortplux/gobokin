@@ -5,7 +5,7 @@ import LoadingSpinner from "@/components/admin/LoadingSpinner";
 import { Edit, Trash, PlusCircle, ShieldCheck } from "lucide-react";
 import TierModal from "@/components/admin/TierModal";
 import Swal from "@/utils/sweetalert";
-import { LicenseTier, SubscriptionRule } from "@/types";
+import { LicenseTier } from "@/types";
 
 const LicenseTiersTab = () => {
   const [tiers, setTiers] = useState<LicenseTier[]>([]);
@@ -148,20 +148,11 @@ const LicenseTiersTab = () => {
                         <p className="text-sm font-semibold text-gray-500 mb-3 uppercase">Rules</p>
                         <ul className="space-y-2">
                           {tier.rules.map((ruleItem, index) => {
-                            const rule = ruleItem.rule;
-                            const isObjectRule = rule && typeof rule === 'object';
-                            const ruleName = isObjectRule ? (rule as SubscriptionRule).name : (rule || 'Unknown Rule');
-                            const ruleType = isObjectRule ? (rule as SubscriptionRule).type : null;
-                            let displayValue = ruleItem.value;
-
-                            if (ruleType === 'boolean' || typeof ruleItem.value === 'boolean') {
-                              displayValue = ruleItem.value ? 'Yes' : 'No';
-                            }
+                            if (!ruleItem.displayText) return null;
 
                             return (
-                              <li key={index} className="flex justify-between items-center text-sm text-gray-700 bg-gray-100 px-3 py-1 rounded-md">
-                                <span>{ruleName}</span>
-                                <span className="font-bold text-primary">{displayValue}</span>
+                              <li key={index} className="flex items-center text-sm text-gray-700 bg-gray-100 px-3 py-1 rounded-md font-medium italic">
+                                {ruleItem.displayText}
                               </li>
                             );
                           })}

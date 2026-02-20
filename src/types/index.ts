@@ -288,6 +288,8 @@ export interface SubscriptionRule {
   description: string;
   display_text?: string;
   displayText?: string;
+  singular_text?: string;
+  plural_text?: string;
   createdAt?: string;
   updatedAt?: string;
 }

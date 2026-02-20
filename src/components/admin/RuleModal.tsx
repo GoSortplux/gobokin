@@ -17,13 +17,17 @@ const RuleModal: React.FC<RuleModalProps> = ({ isOpen, onClose, onSubmit, rule }
     type: "number",
     description: "",
     display_text: "",
+    singular_text: "",
+    plural_text: "",
   });
 
   useEffect(() => {
     if (rule) {
       setFormData({
         ...rule,
-        display_text: rule.display_text || rule.displayText || ""
+        display_text: rule.display_text || rule.displayText || "",
+        singular_text: rule.singular_text || "",
+        plural_text: rule.plural_text || "",
       });
     } else {
       setFormData({
@@ -32,6 +36,8 @@ const RuleModal: React.FC<RuleModalProps> = ({ isOpen, onClose, onSubmit, rule }
         type: "number",
         description: "",
         display_text: "",
+        singular_text: "",
+        plural_text: "",
       });
     }
   }, [rule]);
@@ -108,11 +114,49 @@ const RuleModal: React.FC<RuleModalProps> = ({ isOpen, onClose, onSubmit, rule }
               required
               value={formData.display_text}
               onChange={handleChange}
-              placeholder="e.g. Max Staff Allowed"
+              placeholder="e.g. Support Level: {{value}}"
               className="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
             />
-            <p className="mt-1 ml-1 text-[10px] text-gray-400">This text will be displayed to users in subscription cards.</p>
+            <p className="mt-1 ml-1 text-[10px] text-gray-400">
+              Default template. Use <code className="font-bold text-primary">{"{{value}}"}</code> as a placeholder for the actual value.
+            </p>
           </div>
+
+          {formData.type === "number" && (
+            <>
+              <div className="animate-in fade-in slide-in-from-top-2">
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Singular Text (Value = 1)</label>
+                <input
+                  type="text"
+                  name="singular_text"
+                  required={formData.type === "number"}
+                  value={formData.singular_text}
+                  onChange={handleChange}
+                  placeholder="e.g. Manage {{value}} venue"
+                  className="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                />
+                <p className="mt-1 ml-1 text-[10px] text-gray-400">
+                  Used when value is exactly 1. Use <code className="font-bold text-primary">{"{{value}}"}</code> placeholder.
+                </p>
+              </div>
+
+              <div className="animate-in fade-in slide-in-from-top-2">
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Plural Text (Value ≠ 1)</label>
+                <input
+                  type="text"
+                  name="plural_text"
+                  required={formData.type === "number"}
+                  value={formData.plural_text}
+                  onChange={handleChange}
+                  placeholder="e.g. Manage {{value}} venues"
+                  className="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                />
+                <p className="mt-1 ml-1 text-[10px] text-gray-400">
+                  Used when value is 0 or &gt; 1. Use <code className="font-bold text-primary">{"{{value}}"}</code> placeholder.
+                </p>
+              </div>
+            </>
+          )}
 
           <div>
             <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Description</label>
