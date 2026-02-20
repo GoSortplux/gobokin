@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { DayPicker, DateRange } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import { format } from 'date-fns';
@@ -10,14 +10,23 @@ import useOnClickOutside from '@/hooks/useOnClickOutside';
 
 interface SearchBarProps {
   onSearch: (filters: { location: string; dateRange: DateRange | undefined; capacity: string; priceRange: [number, number] }) => void;
+  onActiveChange?: (isActive: boolean) => void;
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
+const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onActiveChange }) => {
   const [location, setLocation] = useState('');
   const [showLocations, setShowLocations] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showCapacity, setShowCapacity] = useState(false);
   const [showPrice, setShowPrice] = useState(false);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+
+  // Notify parent of active state
+  useEffect(() => {
+    if (onActiveChange) {
+      onActiveChange(showLocations || showCalendar || showCapacity || showPrice || isInputFocused);
+    }
+  }, [showLocations, showCalendar, showCapacity, showPrice, isInputFocused, onActiveChange]);
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: new Date(),
     to: new Date(),
@@ -118,7 +127,11 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
               id="location"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              onFocus={() => setShowLocations(true)}
+              onFocus={() => {
+                setShowLocations(true);
+                setIsInputFocused(true);
+              }}
+              onBlur={() => setIsInputFocused(false)}
               placeholder="Enter Location"
               className="w-full bg-transparent border-none focus:ring-0 text-gray-600 placeholder-gray-400 text-sm mt-0.5"
             />

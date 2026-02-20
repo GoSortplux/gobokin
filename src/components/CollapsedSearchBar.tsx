@@ -11,22 +11,30 @@ const CollapsedSearchBar = () => {
 
   return (
     <div
-      className="w-full max-w-md mx-auto cursor-pointer"
+      className="w-full max-w-md mx-auto cursor-pointer px-2"
       onClick={handleClick}
     >
-      <div className="flex items-center justify-between px-2 py-1 bg-white border border-gray-200 rounded-full shadow-sm">
-        <div className="flex items-center divide-x divide-gray-200">
-          <div className="px-4">
-            <p className="text-sm font-semibold text-gray-800">Location</p>
+      <div className="flex items-center justify-between px-2 py-1 bg-white border border-gray-200 rounded-full shadow-md hover:shadow-md transition-shadow">
+        <div className="flex items-center divide-x divide-gray-200 overflow-hidden">
+          {/* Desktop/Tablet View */}
+          <div className="hidden sm:flex items-center divide-x divide-gray-200">
+            <div className="px-4 flex-shrink-0">
+              <p className="text-sm font-bold text-gray-800">Anywhere</p>
+            </div>
+            <div className="hidden md:block px-4 flex-shrink-0">
+              <p className="text-sm font-semibold text-gray-800">Any Date</p>
+            </div>
+            <div className="px-4 flex-shrink-0">
+              <p className="text-sm font-medium text-gray-500">Add guests</p>
+            </div>
           </div>
-          <div className="px-4">
-            <p className="text-sm font-semibold text-gray-800">Date</p>
-          </div>
-          <div className="px-4">
-            <p className="text-sm font-semibold text-gray-800">Capacity</p>
+
+          {/* Mobile View */}
+          <div className="sm:hidden px-3">
+            <p className="text-[13px] font-bold text-gray-800">Search venues...</p>
           </div>
         </div>
-        <div className="p-2 text-white bg-primary rounded-full">
+        <div className="p-1.5 md:p-2 text-white bg-primary rounded-full flex-shrink-0">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 20 20"

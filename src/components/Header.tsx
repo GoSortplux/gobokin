@@ -155,7 +155,7 @@ const Header = () => {
           </div>
 
           {scrolled && (
-            <div className="hidden lg:block flex-grow">
+            <div className="flex-grow flex justify-center px-2 md:px-4">
               <CollapsedSearchBar />
             </div>
           )}

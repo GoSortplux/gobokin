@@ -19,7 +19,10 @@ const HomePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [isSearchActive, setIsSearchActive] = useState(false);
   const scrolled = useScroll(100);
+
+  const shouldHideSearch = scrolled && !isSearchActive;
 
   const fetchVenues = useCallback(async () => {
     try {
@@ -146,14 +149,14 @@ const HomePage = () => {
           </p>
           <div className="mt-6 md:mt-8">
             <AnimatePresence>
-              {!scrolled && (
+              {!shouldHideSearch && (
                 <motion.div
                   initial={{ opacity: 1, height: 'auto' }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
                   transition={{ duration: 0.3, ease: 'easeInOut' }}
                 >
-                  <SearchBar onSearch={handleSearch} />
+                  <SearchBar onSearch={handleSearch} onActiveChange={setIsSearchActive} />
                 </motion.div>
               )}
             </AnimatePresence>
