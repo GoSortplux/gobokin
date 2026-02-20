@@ -68,7 +68,6 @@ const BookingModal: FC<BookingModalProps> = ({
   const [selectedFacilities, setSelectedFacilities] = useState<FacilityWithQuantity[]>(initialSelectedFacilities);
   const [totalPrice, setTotalPrice] = useState(0);
   const [hallCost, setHallCost] = useState(0);
-  const [discountAmount, setDiscountAmount] = useState(0);
   const [quoteData, setQuoteData] = useState<QuoteData | null>(null);
   const [isCalculatingQuote, setIsCalculatingQuote] = useState(false);
   const [startTime, setStartTime] = useState(initialStartTime);
@@ -190,12 +189,10 @@ const BookingModal: FC<BookingModalProps> = ({
         }
       }
 
-      setDiscountAmount(calculatedDiscount);
       setTotalPrice(subTotal - calculatedDiscount);
     } else {
       setHallCost(0);
       setTotalPrice(0);
-      setDiscountAmount(0);
     }
   }, [venue, selectedDates, selectedFacilities, durationInHours, usePerDateTimes, dateTimes, startTime, endTime, calculateFacilityCost]);
 
@@ -227,7 +224,9 @@ const BookingModal: FC<BookingModalProps> = ({
       };
       fetchHallDetails();
     }
-  }, [hallId, isOpen, initialStep, initialSelectedDates, initialEventDetails, initialSelectedFacilities, initialStartTime, initialEndTime]);
+    // Only re-run when modal is opened/closed or hallId changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hallId, isOpen]);
 
   const handleFacilityChange = (facility: Facility) => {
     setSelectedFacilities((prevSelected) => {
@@ -407,8 +406,8 @@ const BookingModal: FC<BookingModalProps> = ({
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (step === 2) {
       if (usePerDateTimes && selectedDates) {
         for (const date of selectedDates) {
@@ -442,21 +441,56 @@ const BookingModal: FC<BookingModalProps> = ({
       <div
         role="dialog"
         aria-modal="true"
-        className={`relative z-10 bg-white rounded-t-2xl lg:rounded-xl shadow-2xl p-4 lg:p-6 w-full ${step === 1 ? 'max-w-2xl' : 'max-w-md'} transform transition-all duration-300 max-h-[95vh] overflow-y-auto border border-gray-200`}
+        className={`relative z-10 bg-white rounded-t-2xl lg:rounded-xl shadow-2xl p-4 lg:p-8 w-full max-w-4xl transform transition-all duration-300 max-h-[95vh] overflow-y-auto border border-gray-200`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center pb-4 mb-4 border-b border-gray-200">
-          <h2 className="text-xl lg:text-2xl font-semibold text-gray-900">Book Your Venue</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-800">
+        <div className="flex justify-between items-start mb-6">
+          <div className="flex-1">
+            <h2 className="text-2xl lg:text-3xl font-bold text-gray-900">Book Your Venue</h2>
+            <p className="text-gray-500 text-sm mt-1">Complete the steps below to secure your space.</p>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-full">
             <X className="h-6 w-6" />
           </button>
         </div>
+
+        {/* Progress Indicator */}
+        <div className="mb-8 relative">
+          <div className="flex justify-between items-center max-w-xl mx-auto">
+            {[
+              { id: 1, label: 'Select Dates' },
+              { id: 2, label: 'Details' },
+              { id: 3, label: 'Review & Pay' }
+            ].map((s) => (
+              <div key={s.id} className="flex flex-col items-center relative z-10">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
+                  step >= s.id ? 'bg-primary text-white scale-110 shadow-lg' : 'bg-gray-200 text-gray-500'
+                }`}>
+                  {s.id}
+                </div>
+                <span className={`text-[10px] uppercase tracking-wider font-bold mt-2 ${
+                  step >= s.id ? 'text-primary' : 'text-gray-400'
+                }`}>
+                  {s.label}
+                </span>
+              </div>
+            ))}
+          </div>
+          {/* Progress Line */}
+          <div className="absolute top-5 left-1/2 -translate-x-1/2 w-full max-w-[400px] lg:max-w-[480px] h-0.5 bg-gray-200 -z-0">
+            <div
+              className="h-full bg-primary transition-all duration-500"
+              style={{ width: `${(step - 1) * 50}%` }}
+            />
+          </div>
+        </div>
+
         <form onSubmit={handleSubmit}>
           {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
 
           {step === 1 && (
-            <div className="flex flex-col lg:flex-row justify-center items-center lg:items-start gap-4">
-              <div className="w-full lg:w-auto flex justify-center">
+            <div className="flex flex-col lg:flex-row gap-12 items-start">
+              <div className="flex-1 w-full bg-white rounded-2xl border border-gray-100 p-2 shadow-sm">
                 <Calendar
                   unavailableDates={[]}
                   disableToday={true}
@@ -467,418 +501,448 @@ const BookingModal: FC<BookingModalProps> = ({
                   onMonthChange={setDisplayedMonth}
                 />
               </div>
-              <div className="w-full lg:mt-4 p-4 border rounded-lg bg-gray-50">
-                <h3 className="font-semibold text-base lg:text-lg mb-3">Legend</h3>
-                <ul className="space-y-2">
-                  <li className="flex items-center">
-                    <span className="w-5 h-5 rounded-full bg-red-300 mr-2"></span>
-                    <span>Completely Booked</span>
-                  </li>
-                  <li className="flex items-center">
-                    <span className="w-5 h-5 rounded-full bg-orange-300 mr-2"></span>
-                    <span>Booked, but some time slot still available</span>
-                  </li>
-                  <li className="flex items-center">
-                    <span className="w-5 h-5 rounded-full bg-green-300 mr-2"></span>
-                    <span>Completely Available</span>
-                  </li>
-                </ul>
+
+              <div className="w-full lg:w-80 space-y-8">
+                <div>
+                  <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Availability Legend</h3>
+                  <div className="space-y-4">
+                    {[
+                      { color: 'bg-green-500', label: 'Available', sub: 'All slots are open for booking' },
+                      { color: 'bg-orange-500', label: 'Partially Booked', sub: 'Some hours are already taken' },
+                      { color: 'bg-red-500', label: 'Fully Booked', sub: 'No available slots on this day' },
+                    ].map((item, idx) => (
+                      <div key={idx} className="flex items-start group">
+                        <div className={`w-3 h-3 rounded-full mt-1 mr-3 ${item.color} shadow-sm`} />
+                        <div>
+                          <p className="text-sm font-bold text-gray-700 group-hover:text-primary transition-colors">{item.label}</p>
+                          <p className="text-[10px] text-gray-400 leading-tight">{item.sub}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-primary/5 rounded-2xl p-6 border border-primary/10">
+                  <h4 className="text-primary font-bold text-sm mb-2">Need help?</h4>
+                  <p className="text-xs text-primary/70 leading-relaxed">
+                    Select the dates you&apos;d like to book on the calendar. You can select multiple dates for recurring events.
+                  </p>
+                </div>
+
+                {selectedDates && selectedDates.length > 0 && (
+                  <div className="animate-in fade-in slide-in-from-bottom-2">
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">Selected</span>
+                    <div className="text-2xl font-black text-gray-900">
+                      {selectedDates.length} {selectedDates.length === 1 ? 'Date' : 'Dates'}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
 
           {step === 2 && (
-            <>
-              <div className="mb-6">
-                <label htmlFor="eventDetails" className="block text-sm font-medium text-gray-700 mb-1">
-                  Event Details
-                </label>
-                <input
-                  type="text"
-                  id="eventDetails"
-                  value={eventDetails}
-                  onChange={(e) => setEventDetails(e.target.value)}
-                  placeholder="Enter Event Details"
-                  className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#295FA7] focus:border-transparent sm:text-sm"
-                  required
-                />
-              </div>
-
-              {!usePerDateTimes && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label htmlFor="startTime" className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
-                    <select
-                      id="startTime"
-                      value={startTime}
-                      onChange={(e) => setStartTime(e.target.value)}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-[#295FA7] sm:text-sm"
-                      required
-                    >
-                      <option value="">Select a time</option>
-                      {venue && generateTimeOptions(venue.openingHour || 0, venue.closingHour || 24, disabledHours)}
-                    </select>
-                  </div>
-                  <div>
-                    <label htmlFor="endTime" className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
-                    <select
-                      id="endTime"
-                      value={endTime}
-                      onChange={(e) => setEndTime(e.target.value)}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-[#295FA7] sm:text-sm"
-                      required
-                    >
-                      <option value="">Select a time</option>
-                      {venue && generateTimeOptions(venue.openingHour || 0, venue.closingHour || 24, disabledHours)}
-                    </select>
-                  </div>
-                </div>
-              )}
-
-              {selectedDates && selectedDates.length > 1 && (
-                <div className="mb-4">
-                  <label className="flex items-center text-sm font-medium text-gray-700 cursor-pointer">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Left Column: Event Details & Times */}
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                    <span className="w-8 h-8 bg-primary/10 text-primary rounded-full flex items-center justify-center mr-2 text-sm">1</span>
+                    Event Details
+                  </h3>
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                    <label htmlFor="eventDetails" className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                      What are you hosting?
+                    </label>
                     <input
-                      type="checkbox"
-                      className="mr-2 h-4 w-4 text-[#295FA7] rounded border-gray-300 focus:ring-[#295FA7]"
-                      checked={usePerDateTimes}
-                      onChange={(e) => setUsePerDateTimes(e.target.checked)}
+                      type="text"
+                      id="eventDetails"
+                      value={eventDetails}
+                      onChange={(e) => setEventDetails(e.target.value)}
+                      placeholder="e.g. Wedding Reception, Corporate Meeting"
+                      className="block w-full px-4 py-3 bg-white border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all sm:text-sm"
+                      required
                     />
-                    Set different times for each date
-                  </label>
+                  </div>
                 </div>
-              )}
 
-              {usePerDateTimes && selectedDates && (
-                <div className="space-y-4 mb-6 p-4 border rounded-lg bg-gray-50 max-h-60 overflow-y-auto">
-                  <h4 className="text-sm font-semibold text-gray-800">Date-specific Times</h4>
-                  {selectedDates.map((date) => {
-                    const dateStr = date.toDateString();
-                    const times = dateTimes[dateStr] || { startTime, endTime };
-                    const dateDisabledHours = getDisabledHoursForDate(date);
-
-                    return (
-                      <div key={dateStr} className="border-b pb-3 last:border-b-0">
-                        <p className="text-xs font-medium text-gray-600 mb-2">{dateStr}</p>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <select
-                              value={times.startTime}
-                              onChange={(e) => handleDateTimeChange(dateStr, 'startTime', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900"
-                            >
-                              <option value="">Start Time</option>
-                              {venue && generateTimeOptions(venue.openingHour || 0, venue.closingHour || 24, dateDisabledHours)}
-                            </select>
-                          </div>
-                          <div>
-                            <select
-                              value={times.endTime}
-                              onChange={(e) => handleDateTimeChange(dateStr, 'endTime', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900"
-                            >
-                              <option value="">End Time</option>
-                              {venue && generateTimeOptions(venue.openingHour || 0, venue.closingHour || 24, dateDisabledHours)}
-                            </select>
-                          </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                    <span className="w-8 h-8 bg-primary/10 text-primary rounded-full flex items-center justify-center mr-2 text-sm">2</span>
+                    Select Times
+                  </h3>
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                    {!usePerDateTimes ? (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor="startTime" className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Start Time</label>
+                          <select
+                            id="startTime"
+                            value={startTime}
+                            onChange={(e) => setStartTime(e.target.value)}
+                            className="block w-full px-3 py-3 bg-white border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all sm:text-sm"
+                            required
+                          >
+                            <option value="">Select</option>
+                            {venue && generateTimeOptions(venue.openingHour || 0, venue.closingHour || 24, disabledHours)}
+                          </select>
+                        </div>
+                        <div>
+                          <label htmlFor="endTime" className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">End Time</label>
+                          <select
+                            id="endTime"
+                            value={endTime}
+                            onChange={(e) => setEndTime(e.target.value)}
+                            className="block w-full px-3 py-3 bg-white border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all sm:text-sm"
+                            required
+                          >
+                            <option value="">Select</option>
+                            {venue && generateTimeOptions(venue.openingHour || 0, venue.closingHour || 24, disabledHours)}
+                          </select>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {venue && venue.facilities.length > 0 && (
-                <div className="mb-6">
-                  <h4 className="text-md font-medium text-gray-800 mb-2">Add Facilities</h4>
-                  <div className="max-h-48 overflow-y-auto pr-2">
-                    <div className="grid grid-cols-1 gap-y-3">
-                      {venue.facilities.map((facility) => {
-                        const isSelected = selectedFacilities.some(f => f._id === facility._id);
-                        const selectedFacility = selectedFacilities.find(f => f._id === facility._id);
-                        return (
-                          <div key={facility._id} className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200">
-                            <label className="flex items-center space-x-3 text-sm cursor-pointer">
-                              <input
-                                type="checkbox"
-                                className="h-4 w-4 rounded border-gray-300 text-[#295FA7] focus:ring-[#295FA7]"
-                                checked={isSelected}
-                                onChange={() => handleFacilityChange(facility)}
-                              />
-                              <span className="text-gray-700">{facility.facility?.name || facility.name}</span>
-                              <span className="text-gray-500 font-medium">
-                                + ₦{facility.cost.toLocaleString()}{facility.chargeMethod === 'per_day' ? '/day' : (facility.chargeMethod === 'per_hour' ? '/hour' : '')}
-                              </span>
-                            </label>
-                            {isSelected && (
-                              <div className="w-24">
+                    ) : (
+                      <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                        {selectedDates?.map((date) => {
+                          const dateStr = date.toDateString();
+                          const times = dateTimes[dateStr] || { startTime, endTime };
+                          const dateDisabledHours = getDisabledHoursForDate(date);
+                          return (
+                            <div key={dateStr} className="bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
+                              <p className="text-xs font-bold text-primary mb-2">{dateStr}</p>
+                              <div className="grid grid-cols-2 gap-3">
                                 <select
-                                  value={selectedFacility?.quantity || 1}
-                                  onChange={(e) => handleQuantityChange(facility._id, parseInt(e.target.value, 10))}
-                                  className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#295FA7]"
+                                  value={times.startTime}
+                                  onChange={(e) => handleDateTimeChange(dateStr, 'startTime', e.target.value)}
+                                  className="w-full px-2 py-2 border border-gray-200 rounded-md text-sm"
                                 >
-                                  {Array.from({ length: facility.quantity }, (_, i) => i + 1).map(n =>
-                                    <option key={n} value={n}>{n}</option>
-                                  )}
+                                  <option value="">Start</option>
+                                  {venue && generateTimeOptions(venue.openingHour || 0, venue.closingHour || 24, dateDisabledHours)}
+                                </select>
+                                <select
+                                  value={times.endTime}
+                                  onChange={(e) => handleDateTimeChange(dateStr, 'endTime', e.target.value)}
+                                  className="w-full px-2 py-2 border border-gray-200 rounded-md text-sm"
+                                >
+                                  <option value="">End</option>
+                                  {venue && generateTimeOptions(venue.openingHour || 0, venue.closingHour || 24, dateDisabledHours)}
                                 </select>
                               </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                  <div className="mt-4 text-right">
-                    <p className="text-lg font-semibold text-gray-800">
-                        Total: ₦{totalPrice.toLocaleString()}
-                    </p>
-                    <p className="text-[10px] text-gray-500 font-medium">Includes taxes and charges</p>
-                  </div>
-                </div>
-              )}
-
-            </>
-          )}
-
-          {step === 3 && (
-            <div className="bg-gray-50 p-4 lg:p-6 rounded-lg max-h-[60vh] overflow-y-auto">
-              {isCalculatingQuote ? (
-                <div className="flex flex-col items-center justify-center py-10">
-                  <CustomLoader />
-                  <p className="mt-4 text-gray-500 font-medium">Calculating your quote...</p>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4 border-b pb-2">Booking Summary</h3>
-                  <div className="space-y-3 text-sm">
-                    <div className="flex flex-col border-b pb-2">
-                      <span className="text-gray-600 font-medium mb-1">Dates & Times:</span>
-                      <div className="pl-2 space-y-1">
-                        {selectedDates?.map(date => {
-                          const dateStr = date.toDateString();
-                          const times = usePerDateTimes && dateTimes[dateStr] ? dateTimes[dateStr] : { startTime, endTime };
-                          return (
-                            <div key={dateStr} className="flex justify-between text-xs">
-                              <span>{date.toLocaleDateString()}:</span>
-                              <span className="font-medium">{times.startTime} - {times.endTime}</span>
                             </div>
                           );
                         })}
                       </div>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Event Details:</span>
-                      <span className="font-medium text-gray-900">{eventDetails}</span>
-                    </div>
-                    <div className="border-t my-2"></div>
+                    )}
 
-                    {quoteData ? (
-                      <>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Venue Rental:</span>
-                          <span className="font-medium text-gray-900">₦{(quoteData.hallPrice || 0).toLocaleString()}</span>
-                        </div>
-                        {quoteData.facilitiesPrice > 0 && (
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Facilities:</span>
-                            <span className="font-medium text-gray-900">₦{quoteData.facilitiesPrice.toLocaleString()}</span>
-                          </div>
-                        )}
-                        {quoteData.discountAmount > 0 && (
-                          <div className="flex justify-between text-green-600">
-                            <span>Discount ({quoteData.discountType || 'Applied'}):</span>
-                            <span className="font-medium">-₦{quoteData.discountAmount.toLocaleString()}</span>
-                          </div>
-                        )}
-
-                        <div className="border-t my-2"></div>
-
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Subtotal:</span>
-                          <span className="font-medium text-gray-900">₦{(quoteData.feeBreakdown?.serviceTotal || quoteData.totalPrice).toLocaleString()}</span>
-                        </div>
-
-
-                        <div className="flex justify-between font-bold text-lg border-t mt-2 pt-2">
-                            <span className="text-gray-800">Total Price:</span>
-                            <span className="text-gray-900">₦{(quoteData.feeBreakdown?.totalAmount || quoteData.totalPrice).toLocaleString()}</span>
-                        </div>
-                        <div className="text-right space-y-1">
-                          <p className="text-[10px] text-gray-500 font-medium">Includes taxes and charges</p>
-                          {quoteData.feeBreakdown?.transactionFee > 0 && (
-                            <>
-                              <p className="text-[10px] text-gray-500">
-                                Transaction Fee (VAT/STAMP DUTY): ₦{quoteData.feeBreakdown.transactionFee.toLocaleString()}
-                              </p>
-                              <p className="text-[10px] text-gray-400 italic">
-                                Bear in mind that transaction fee has been captured in this charge
-                              </p>
-                            </>
-                          )}
-                        </div>
-
-                        {bookingMode === 'reserve' && quoteData.reservationFeeDetails && (
-                          <div className="mt-4 p-3 bg-primary/5 rounded-xl border border-primary/10">
-                            <div className="flex justify-between items-center mb-1">
-                              <span className="text-xs font-bold text-primary uppercase">Reservation Payment</span>
-                              <span className="text-xs font-black text-primary">{quoteData.reservationFeeDetails.percentage}% Required</span>
-                            </div>
-                            <div className="space-y-1">
-                              <div className="flex justify-between text-xs text-gray-600">
-                                <span>Base Reservation:</span>
-                                <span>₦{quoteData.reservationFeeDetails.serviceTotal.toLocaleString()}</span>
-                              </div>
-                              <div className="flex justify-between font-bold text-sm text-gray-900 border-t border-primary/10 pt-1 mt-1">
-                                <span>To Pay Now:</span>
-                                <span>₦{quoteData.reservationFeeDetails.totalAmount.toLocaleString()}</span>
-                              </div>
-                              <div className="text-right space-y-0.5 mt-1">
-                                <p className="text-[9px] text-gray-500 font-medium">Includes taxes and charges</p>
-                                {quoteData.reservationFeeDetails.transactionFee > 0 && (
-                                  <>
-                                    <p className="text-[9px] text-gray-500">
-                                      Transaction Fee (VAT/STAMP DUTY): ₦{quoteData.reservationFeeDetails.transactionFee.toLocaleString()}
-                                    </p>
-                                    <p className="text-[9px] text-gray-400 italic">
-                                      Bear in mind that transaction fee has been captured in this charge
-                                    </p>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        {venue && (
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Venue Rental:</span>
-                            <span className="font-medium text-gray-900">₦{hallCost.toLocaleString()}</span>
-                          </div>
-                        )}
-                        {selectedFacilities.length > 0 && (
-                          <div className="pt-2">
-                            <h4 className="font-medium text-gray-800 mb-1">Selected Facilities:</h4>
-                            {selectedFacilities.map(f => (
-                              <div key={f._id} className="flex justify-between items-center text-gray-600">
-                                <span>{f.facility?.name || f.name} (x{f.quantity})</span>
-                                <span className="font-medium">₦{calculateFacilityCost(f).toLocaleString()}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        {discountAmount > 0 && (
-                          <div className="flex justify-between text-green-600 font-medium pt-2 border-t mt-2">
-                            <span>Discount Applied:</span>
-                            <span>-₦{discountAmount.toLocaleString()}</span>
-                          </div>
-                        )}
-                        <div className={`flex justify-between font-bold text-lg ${discountAmount > 0 ? '' : 'border-t mt-2'} pt-2`}>
-                            <span className="text-gray-800">Total Price:</span>
-                            <span className="text-gray-900">₦{totalPrice.toLocaleString()}</span>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-[10px] text-gray-500 font-medium">Includes taxes and charges</p>
-                        </div>
-                        {bookingMode === 'reserve' && (
-                          <>
-                            <div className="flex justify-between mt-2">
-                              <span className="text-gray-600">
-                                Reservation Fee ({venue?.reservationFeePercentage || 40}%):
-                              </span>
-                              <span className="font-medium text-gray-900">
-                                ₦{(totalPrice * ((venue?.reservationFeePercentage || 40) / 100)).toLocaleString()}
-                              </span>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-[10px] text-gray-500 font-medium">Includes taxes and charges</p>
-                            </div>
-                          </>
-                        )}
-                      </>
+                    {selectedDates && selectedDates.length > 1 && (
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <label className="flex items-center text-sm font-medium text-gray-600 cursor-pointer hover:text-primary transition-colors">
+                          <input
+                            type="checkbox"
+                            className="mr-2 h-4 w-4 text-primary rounded border-gray-300 focus:ring-primary"
+                            checked={usePerDateTimes}
+                            onChange={(e) => setUsePerDateTimes(e.target.checked)}
+                          />
+                          Different times for each date
+                        </label>
+                      </div>
                     )}
                   </div>
-                  <div className="mt-6 pt-4 border-t border-gray-200">
-                    <label className="flex items-start cursor-pointer group">
-                      <div className="flex items-center h-5">
-                        <input
-                          id="refund-policy-checkbox"
-                          name="refund-policy-checkbox"
-                          type="checkbox"
-                          className="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary cursor-pointer"
-                          checked={hasAcceptedRefundPolicy}
-                          onChange={(e) => setHasAcceptedRefundPolicy(e.target.checked)}
-                        />
+                </div>
+              </div>
+
+              {/* Right Column: Facilities */}
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                    <span className="w-8 h-8 bg-primary/10 text-primary rounded-full flex items-center justify-center mr-2 text-sm">3</span>
+                    Add Facilities
+                  </h3>
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 min-h-[300px]">
+                    {venue && venue.facilities.length > 0 ? (
+                      <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                        {venue.facilities.map((facility) => {
+                          const isSelected = selectedFacilities.some(f => f._id === facility._id);
+                          const selectedFacility = selectedFacilities.find(f => f._id === facility._id);
+                          return (
+                            <div key={facility._id} className={`flex items-center justify-between p-3 rounded-xl border transition-all duration-200 ${
+                              isSelected ? 'bg-white border-primary shadow-sm' : 'bg-white/50 border-gray-100 hover:border-gray-200'
+                            }`}>
+                              <label className="flex items-center space-x-3 text-sm cursor-pointer flex-1">
+                                <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
+                                  isSelected ? 'bg-primary border-primary text-white' : 'bg-white border-gray-300'
+                                }`}>
+                                  {isSelected && (
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
+                                  )}
+                                  <input
+                                    type="checkbox"
+                                    className="hidden"
+                                    checked={isSelected}
+                                    onChange={() => handleFacilityChange(facility)}
+                                  />
+                                </div>
+                                <div className="flex flex-col">
+                                  <span className={`font-bold ${isSelected ? 'text-gray-900' : 'text-gray-700'}`}>
+                                    {facility.facility?.name || facility.name}
+                                  </span>
+                                  <span className="text-[10px] text-gray-500 font-medium">
+                                    + ₦{facility.cost.toLocaleString()}{facility.chargeMethod === 'per_day' ? '/day' : (facility.chargeMethod === 'per_hour' ? '/hour' : '')}
+                                  </span>
+                                </div>
+                              </label>
+                              {isSelected && (
+                                <div className="ml-4">
+                                  <select
+                                    value={selectedFacility?.quantity || 1}
+                                    onChange={(e) => handleQuantityChange(facility._id, parseInt(e.target.value, 10))}
+                                    className="px-2 py-1 bg-gray-50 border border-gray-200 rounded-md text-xs font-bold text-gray-900 focus:ring-1 focus:ring-primary outline-none"
+                                  >
+                                    {Array.from({ length: facility.quantity }, (_, index) => index + 1).map(n =>
+                                      <option key={n} value={n}>{n}</option>
+                                    )}
+                                  </select>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
-                      <div className="ml-3 text-sm">
-                        <span className="text-gray-600">I have read and agree to the </span>
-                        <button
-                          type="button"
-                          onClick={() => setShowRefundPolicy(true)}
-                          className="text-primary font-semibold hover:underline"
-                        >
-                          Refund & Cancellation Policy
-                        </button>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-full text-gray-400 py-10">
+                        <p className="text-sm italic">No extra facilities available for this venue.</p>
                       </div>
-                    </label>
+                    )}
+                  </div>
+
+                  <div className="mt-6 flex flex-col items-end">
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Running Total</span>
+                    <div className="text-3xl font-black text-gray-900">
+                      ₦{totalPrice.toLocaleString()}
+                    </div>
+                    <p className="text-[10px] text-gray-500 font-medium mt-1">Includes taxes and charges</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {step === 3 && (
+            <div className="max-h-[60vh] overflow-y-auto custom-scrollbar">
+              {isCalculatingQuote ? (
+                <div className="flex flex-col items-center justify-center py-20">
+                  <CustomLoader />
+                  <p className="mt-4 text-gray-500 font-medium animate-pulse">Finalizing your summary...</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                  {/* Left Column: Booking Details (3/5 width) */}
+                  <div className="lg:col-span-3 space-y-6">
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 mb-4 uppercase tracking-wider text-xs flex items-center">
+                        <span className="w-1.5 h-1.5 bg-primary rounded-full mr-2"></span>
+                        Event & Venue Details
+                      </h3>
+                      <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 space-y-4">
+                        <div className="flex justify-between items-start">
+                          <span className="text-gray-500 text-sm">Venue</span>
+                          <span className="font-bold text-gray-900 text-right">{venue?.name}</span>
+                        </div>
+                        <div className="flex justify-between items-start">
+                          <span className="text-gray-500 text-sm">Event</span>
+                          <span className="font-bold text-gray-900 text-right">{eventDetails}</span>
+                        </div>
+                        <div className="pt-4 border-t border-gray-200">
+                          <span className="text-gray-500 text-sm block mb-3">Selected Dates & Times</span>
+                          <div className="space-y-2">
+                            {selectedDates?.map(date => {
+                              const dateStr = date.toDateString();
+                              const times = usePerDateTimes && dateTimes[dateStr] ? dateTimes[dateStr] : { startTime, endTime };
+                              return (
+                                <div key={dateStr} className="flex justify-between items-center bg-white p-2 rounded-lg border border-gray-100 text-sm shadow-sm">
+                                  <span className="font-medium text-gray-700">{date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+                                  <span className="font-black text-primary">{times.startTime} - {times.endTime}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {selectedFacilities.length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900 mb-4 uppercase tracking-wider text-xs flex items-center">
+                          <span className="w-1.5 h-1.5 bg-primary rounded-full mr-2"></span>
+                          Added Facilities
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {selectedFacilities.map(f => (
+                            <div key={f._id} className="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center">
+                              <span className="text-sm font-medium text-gray-700">{f.facility?.name || f.name} <span className="text-gray-400">x{f.quantity}</span></span>
+                              <span className="text-sm font-bold text-gray-900">₦{calculateFacilityCost(f).toLocaleString()}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Right Column: Pricing & Checkout (2/5 width) */}
+                  <div className="lg:col-span-2">
+                    <div className="bg-gray-900 text-white rounded-3xl p-6 lg:p-8 shadow-xl sticky top-0">
+                      <h3 className="text-xl font-bold mb-6 text-white/90">Payment Summary</h3>
+
+                      {quoteData ? (
+                        <div className="space-y-4">
+                          <div className="flex justify-between text-sm text-white/60">
+                            <span>Base Rental</span>
+                            <span className="font-bold text-white">₦{(quoteData.hallPrice || 0).toLocaleString()}</span>
+                          </div>
+                          {quoteData.facilitiesPrice > 0 && (
+                            <div className="flex justify-between text-sm text-white/60">
+                              <span>Facilities</span>
+                              <span className="font-bold text-white">₦{quoteData.facilitiesPrice.toLocaleString()}</span>
+                            </div>
+                          )}
+                          {quoteData.discountAmount > 0 && (
+                            <div className="flex justify-between text-sm text-green-400">
+                              <span>Discount</span>
+                              <span className="font-bold">-₦{quoteData.discountAmount.toLocaleString()}</span>
+                            </div>
+                          )}
+                          <div className="h-px bg-white/10 my-4" />
+                          <div className="flex justify-between items-end">
+                            <span className="text-white/60 text-sm">Total Price</span>
+                            <div className="text-right">
+                              <div className="text-3xl font-black text-white leading-none">
+                                ₦{(quoteData.feeBreakdown?.totalAmount || quoteData.totalPrice).toLocaleString()}
+                              </div>
+                              <p className="text-[10px] text-white/40 mt-1">Includes taxes and charges</p>
+                            </div>
+                          </div>
+
+                          {quoteData.feeBreakdown?.transactionFee > 0 && (
+                            <div className="bg-white/5 rounded-xl p-3 mt-4 space-y-1">
+                              <div className="flex justify-between text-[10px]">
+                                <span className="text-white/40 italic">Transaction Fee (VAT/STAMP DUTY)</span>
+                                <span className="text-white/60 font-bold">₦{quoteData.feeBreakdown.transactionFee.toLocaleString()}</span>
+                              </div>
+                              <p className="text-[10px] text-white/30 italic leading-tight">
+                                Bear in mind that transaction fee has been captured in this charge
+                              </p>
+                            </div>
+                          )}
+
+                          {bookingMode === 'reserve' && quoteData.reservationFeeDetails && (
+                            <div className="mt-8 pt-6 border-t border-white/10">
+                              <div className="flex justify-between items-center mb-4">
+                                <span className="text-[10px] font-bold text-primary uppercase tracking-widest bg-primary/20 px-2 py-1 rounded">Reservation Payment</span>
+                                <span className="text-xs font-black text-white">{quoteData.reservationFeeDetails.percentage}% Required</span>
+                              </div>
+                              <div className="flex justify-between items-end">
+                                <span className="text-white/60 text-sm">To Pay Now</span>
+                                <div className="text-right">
+                                  <div className="text-2xl font-black text-white">
+                                    ₦{quoteData.reservationFeeDetails.totalAmount.toLocaleString()}
+                                  </div>
+                                  <p className="text-[10px] text-white/40">Includes taxes and charges</p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        /* Fallback when quoteData is not yet loaded */
+                        <div className="space-y-4">
+                          <div className="flex justify-between text-sm text-white/60">
+                            <span>Rental</span>
+                            <span className="font-bold text-white">₦{hallCost.toLocaleString()}</span>
+                          </div>
+                          {selectedFacilities.length > 0 && (
+                            <div className="flex justify-between text-sm text-white/60">
+                              <span>Facilities</span>
+                              <span className="font-bold text-white">₦{(totalPrice - hallCost).toLocaleString()}</span>
+                            </div>
+                          )}
+                          <div className="flex justify-between items-end pt-4 border-t border-white/10">
+                            <span className="text-white/60 text-sm">Total Price</span>
+                            <div className="text-3xl font-black text-white">₦{totalPrice.toLocaleString()}</div>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="mt-8 pt-6 border-t border-white/10">
+                        <label className="flex items-start cursor-pointer group mb-6">
+                          <input
+                            type="checkbox"
+                            className="mt-1 h-4 w-4 rounded border-white/20 bg-white/5 text-primary focus:ring-primary"
+                            checked={hasAcceptedRefundPolicy}
+                            onChange={(e) => setHasAcceptedRefundPolicy(e.target.checked)}
+                          />
+                          <div className="ml-3 text-xs text-white/60 leading-relaxed group-hover:text-white/80 transition-colors">
+                            I agree to the <button type="button" onClick={() => setShowRefundPolicy(true)} className="text-primary font-bold hover:underline">Refund & Cancellation Policy</button>
+                          </div>
+                        </label>
+
+                        {bookingMode === 'reserve' ? (
+                          <button
+                            type="button"
+                            onClick={handleReserveNow}
+                            disabled={loading || !hasAcceptedRefundPolicy}
+                            className="w-full py-4 bg-primary hover:bg-primary/90 text-white font-black rounded-2xl shadow-lg transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed flex items-center justify-center uppercase tracking-widest text-sm"
+                          >
+                            {loading ? <CustomLoader size={20} color="#fff" /> : 'Reserve Now'}
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={handleBookNow}
+                            disabled={loading || !hasAcceptedRefundPolicy}
+                            className="w-full py-4 bg-primary hover:bg-primary/90 text-white font-black rounded-2xl shadow-lg transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed flex items-center justify-center uppercase tracking-widest text-sm"
+                          >
+                            {loading ? <CustomLoader size={20} color="#fff" /> : 'Confirm & Pay'}
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
             </div>
           )}
 
-          <div className="flex justify-end mt-8">
-            {step > 1 && (
-              <button
-                type="button"
-                onClick={prevStep}
-                className="mr-3 px-5 py-2 text-sm font-semibold text-gray-700 bg-gray-100 border border-gray-300 rounded-lg shadow-sm hover:bg-gray-200 transition-colors duration-200"
-              >
-                Back
-              </button>
-            )}
-            {step === 3 ? (
-              <div className="flex gap-x-2">
-                {bookingMode === 'reserve' ? (
-                  <button
-                    type="button"
-                    onClick={handleReserveNow}
-                    disabled={loading || !hasAcceptedRefundPolicy}
-                    className="px-5 py-2 text-sm font-semibold border rounded-lg shadow-sm transition-colors duration-200 disabled:opacity-50 disabled:bg-gray-300 disabled:border-gray-300 bg-[#B68945] text-white border-[#B68945] flex items-center justify-center"
-                  >
-                    {loading ? (
-                      <>
-                        <CustomLoader size={16} className="mr-2" />
-                        Processing...
-                      </>
-                    ) : 'Reserve with Part Payment'}
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handleBookNow}
-                    disabled={loading || !hasAcceptedRefundPolicy}
-                    className="px-5 py-2 text-sm font-semibold text-white bg-[#295FA7] border border-transparent rounded-lg shadow-sm hover:bg-[#204a8a] transition-colors duration-200 disabled:opacity-50 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center"
-                  >
-                    {loading ? (
-                      <>
-                        <CustomLoader size={16} className="mr-2" />
-                        Processing...
-                      </>
-                    ) : 'Pay in Full'}
-                  </button>
-                )}
-              </div>
-            ) : (
-              <button
-                type="submit"
-                disabled={loading || (step === 1 && (!selectedDates || selectedDates.length === 0))}
-                className="px-5 py-2 text-sm font-semibold text-white bg-[#295FA7] border border-transparent rounded-lg shadow-sm hover:bg-[#204a8a] transition-colors duration-200 disabled:opacity-50 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
-              >
-                Next
-              </button>
-            )}
+          <div className="flex justify-between items-center mt-12 pt-8 border-t border-gray-100">
+            <div>
+              {step > 1 && (
+                <button
+                  type="button"
+                  onClick={prevStep}
+                  className="px-8 py-3 text-sm font-bold text-gray-500 hover:text-gray-900 transition-colors flex items-center"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                  Back
+                </button>
+              )}
+            </div>
+
+            <div className="flex gap-x-4">
+              {step < 3 ? (
+                <button
+                  type="submit"
+                  className="px-10 py-3 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl shadow-lg shadow-primary/20 transition-all transform active:scale-95 flex items-center uppercase tracking-widest text-xs"
+                >
+                  Next Step
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              ) : null}
+            </div>
           </div>
         </form>
       </div>
