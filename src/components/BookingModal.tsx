@@ -797,10 +797,6 @@ const BookingModal: FC<BookingModalProps> = ({
 
                       {quoteData ? (
                         <div className="space-y-4">
-                          <div className="flex justify-between text-sm text-white/60">
-                            <span>Base Rental</span>
-                            <span className="font-bold text-white">₦{(quoteData.hallPrice || 0).toLocaleString()}</span>
-                          </div>
                           {quoteData.facilitiesPrice > 0 && (
                             <div className="flex justify-between text-sm text-white/60">
                               <span>Facilities</span>
@@ -857,10 +853,6 @@ const BookingModal: FC<BookingModalProps> = ({
                       ) : (
                         /* Fallback when quoteData is not yet loaded */
                         <div className="space-y-4">
-                          <div className="flex justify-between text-sm text-white/60">
-                            <span>Rental</span>
-                            <span className="font-bold text-white">₦{hallCost.toLocaleString()}</span>
-                          </div>
                           {selectedFacilities.length > 0 && (
                             <div className="flex justify-between text-sm text-white/60">
                               <span>Facilities</span>
