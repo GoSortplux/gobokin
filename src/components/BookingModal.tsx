@@ -894,7 +894,7 @@ const BookingModal: FC<BookingModalProps> = ({
                             disabled={loading || !hasAcceptedRefundPolicy}
                             className="w-full py-4 bg-primary hover:bg-primary/90 text-white font-black rounded-2xl shadow-lg transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed flex items-center justify-center uppercase tracking-widest text-sm"
                           >
-                            {loading ? <CustomLoader size={20} color="#fff" /> : 'Reserve Now'}
+                            {loading ? <CustomLoader size={20} /> : 'Reserve Now'}
                           </button>
                         ) : (
                           <button
@@ -903,7 +903,7 @@ const BookingModal: FC<BookingModalProps> = ({
                             disabled={loading || !hasAcceptedRefundPolicy}
                             className="w-full py-4 bg-primary hover:bg-primary/90 text-white font-black rounded-2xl shadow-lg transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed flex items-center justify-center uppercase tracking-widest text-sm"
                           >
-                            {loading ? <CustomLoader size={20} color="#fff" /> : 'Confirm & Pay'}
+                            {loading ? <CustomLoader size={20} /> : 'Confirm & Pay'}
                           </button>
                         )}
                       </div>
