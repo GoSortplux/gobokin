@@ -9,10 +9,10 @@ import AdminBookingDetailsModal from '@/components/admin/AdminBookingDetailsModa
 import AdminBookingModal from '@/components/admin/AdminBookingModal';
 import ConversionModal from '@/components/shared/ConversionModal';
 import PaymentLinkModal from '@/components/shared/PaymentLinkModal';
-import { Search, ChevronDown, Eye, Share2 } from 'lucide-react';
+import { Search, ChevronDown, Eye, Share2, CreditCard, User, List, RefreshCcw, FileText, Phone, Mail } from 'lucide-react';
 import CustomLoader from '@/components/CustomLoader';
 import Swal from "@/utils/sweetalert";
-import { Booking, Venue, Reservation } from '@/types';
+import { Booking, Venue, Reservation, UserProfile } from '@/types';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -544,6 +544,13 @@ const BookingsPage = () => {
                                   {booking.paymentStatus}
                                 </span>
                               )}
+                              {booking.payout && (
+                                <span className={`px-2.5 py-1 w-fit text-[10px] font-black rounded-full uppercase tracking-tighter ${
+                                  booking.payout.status === 'completed' ? 'bg-emerald-600 text-white' : 'bg-amber-100 text-amber-700 border border-amber-200'
+                                }`}>
+                                  Payout: {booking.payout.status}
+                                </span>
+                              )}
                             </div>
                           </td>
                           <td className="py-4 px-6 text-sm font-black text-gray-900">₦{booking.totalPrice?.toLocaleString()}</td>
@@ -607,37 +614,212 @@ const BookingsPage = () => {
                         {expandedBookingId === booking._id && (
                           <tr>
                             <td colSpan={7} className="p-6 bg-gray-50 border-y border-gray-100">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                                <div>
-                                  <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Payment Information</h4>
-                                  <div className="grid grid-cols-2 gap-y-4 gap-x-2 text-xs">
-                                    <div className="text-gray-500">Gateway Method</div>
-                                    <div className="font-bold text-gray-800">{booking.paymentMethod || 'Manual'}</div>
-                                    <div className="text-gray-500">Transaction Status</div>
-                                    <div className="font-bold text-gray-800 uppercase">{booking.paymentStatus}</div>
-                                    <div className="text-gray-500">Origin</div>
-                                    <div className="font-bold text-gray-800">{booking.bookingType || 'Standard'}</div>
-                                  </div>
-                                </div>
-                                {booking.isGroup && (
+                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                {/* Column 1: Payment & Payout */}
+                                <div className="space-y-6">
                                   <div>
-                                    <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Recurring Timeline</h4>
-                                    <div className="max-h-40 overflow-y-auto border rounded-xl bg-white p-3 shadow-inner">
-                                      <table className="min-w-full text-xs">
-                                        <tbody className="divide-y divide-gray-50">
-                                          {booking.groupBookings?.map((gb) => (
-                                            <tr key={gb._id}>
-                                              <td className="py-2 font-mono text-gray-400">#{gb.bookingId}</td>
-                                              <td className="py-2 text-right font-bold text-gray-700">
-                                                {new Date(gb.bookingDates[0].startTime).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
-                                              </td>
-                                            </tr>
-                                          ))}
-                                        </tbody>
-                                      </table>
+                                    <h4 className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">
+                                      <CreditCard size={14} /> Payment Information
+                                    </h4>
+                                    <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-3 text-xs">
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-500">Method</span>
+                                        <span className="font-bold text-gray-800">{booking.paymentMethod || 'Manual'}</span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-500">Status</span>
+                                        <span className="font-bold text-gray-800 uppercase">{booking.paymentStatus}</span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-500">Origin</span>
+                                        <span className="font-bold text-gray-800 capitalize">{booking.bookingType || 'Standard'}</span>
+                                      </div>
                                     </div>
                                   </div>
-                                )}
+
+                                  {booking.payout && (
+                                    <div>
+                                      <h4 className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">
+                                        <RefreshCcw size={14} className="text-emerald-500" /> Payout Information
+                                      </h4>
+                                      <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 shadow-sm space-y-3 text-xs">
+                                        <div className="flex justify-between border-b border-emerald-100/50 pb-2">
+                                          <span className="text-emerald-700">Payout Amount</span>
+                                          <span className="font-black text-emerald-900">₦{booking.payout.amount.toLocaleString()}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-emerald-700">Status</span>
+                                          <span className={`font-black uppercase ${booking.payout.status === 'completed' ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                            {booking.payout.status}
+                                          </span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-emerald-700">Date</span>
+                                          <span className="font-bold text-emerald-800">{new Date(booking.payout.payoutDate).toLocaleDateString()}</span>
+                                        </div>
+                                        <div className="pt-2 space-y-2 border-t border-emerald-100/50">
+                                          <div className="flex flex-col">
+                                            <span className="text-[10px] text-emerald-600 uppercase font-bold">Bank Details</span>
+                                            <span className="font-bold text-emerald-900">{booking.payout.bankName} - {booking.payout.accountNumber}</span>
+                                            <span className="text-emerald-700 italic">{booking.payout.accountName}</span>
+                                          </div>
+                                          <div className="flex flex-col">
+                                            <span className="text-[10px] text-emerald-600 uppercase font-bold">Sub-Account</span>
+                                            <span className="font-mono text-emerald-800">{booking.payout.subAccountCode}</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Column 2: Financials & Facilities */}
+                                <div className="space-y-6">
+                                  <div>
+                                    <h4 className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">
+                                      <FileText size={14} /> Financial Breakdown
+                                    </h4>
+                                    <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-3 text-xs">
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-500">Original Price</span>
+                                        <span className="font-medium text-gray-800">₦{(booking.originalPrice || booking.totalPrice || 0).toLocaleString()}</span>
+                                      </div>
+                                      {booking.hallPrice !== undefined && (
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-500">Venue Base Price</span>
+                                          <span className="font-medium text-gray-800">₦{booking.hallPrice.toLocaleString()}</span>
+                                        </div>
+                                      )}
+                                      {booking.facilitiesPrice !== undefined && booking.facilitiesPrice > 0 && (
+                                        <div className="flex justify-between text-blue-600">
+                                          <span className="font-medium">Facilities Total</span>
+                                          <span className="font-bold">+ ₦{booking.facilitiesPrice.toLocaleString()}</span>
+                                        </div>
+                                      )}
+                                      {booking.discountAmount ? (
+                                        <div className="flex justify-between text-rose-600">
+                                          <span className="font-medium">Discount ({booking.discountPercentage}%)</span>
+                                          <span className="font-bold">- ₦{booking.discountAmount.toLocaleString()}</span>
+                                        </div>
+                                      ) : null}
+                                      <div className="flex justify-between pt-2 border-t border-gray-100">
+                                        <span className="font-black text-gray-900 uppercase">Total Charged</span>
+                                        <span className="font-black text-gray-900">₦{booking.totalPrice?.toLocaleString()}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {booking.selectedFacilities && booking.selectedFacilities.length > 0 && (
+                                    <div>
+                                      <h4 className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">
+                                        <List size={14} /> Selected Facilities
+                                      </h4>
+                                      <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm text-xs">
+                                        <ul className="space-y-2">
+                                          {booking.selectedFacilities.map((f, idx) => (
+                                            <li key={idx} className="flex justify-between items-center bg-gray-50 p-2 rounded-lg">
+                                              <span className="font-medium text-gray-800">{f.name} (x{f.quantity})</span>
+                                              <span className="font-bold text-gray-900">₦{f.cost.toLocaleString()}</span>
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Column 3: Customer & Timeline */}
+                                <div className="space-y-6">
+                                  <div>
+                                    <h4 className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">
+                                      <User size={14} /> Customer Details
+                                    </h4>
+                                    <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4 text-xs">
+                                      {typeof booking.user === 'object' && booking.user && (
+                                        <>
+                                          <div className="flex items-start gap-3">
+                                            <div className="bg-primary/10 p-2 rounded-lg text-primary">
+                                              <User size={16} />
+                                            </div>
+                                            <div className="overflow-hidden">
+                                              <p className="font-black text-gray-900 truncate">{(booking.user as UserProfile).fullName}</p>
+                                              <p className="text-gray-500 uppercase text-[10px] font-bold">Registered User</p>
+                                            </div>
+                                          </div>
+                                          <div className="space-y-2 pl-11">
+                                            <div className="flex items-center gap-2 text-gray-600 overflow-hidden">
+                                              <Mail size={12} className="shrink-0" />
+                                              <span className="truncate">{(booking.user as UserProfile).email}</span>
+                                            </div>
+                                            {(booking.user as UserProfile).phone && (
+                                              <div className="flex items-center gap-2 text-gray-600">
+                                                <Phone size={12} className="shrink-0" />
+                                                <span>{(booking.user as UserProfile).phone}</span>
+                                              </div>
+                                            )}
+                                          </div>
+                                        </>
+                                      )}
+                                      {booking.walkInUserDetails && (
+                                        <div className="pt-4 border-t border-gray-100">
+                                          <p className="text-[10px] font-black text-gray-400 uppercase mb-2">Walk-in Details</p>
+                                          <div className="space-y-1">
+                                            <p className="font-bold text-gray-800">{booking.walkInUserDetails.fullName}</p>
+                                            <p className="text-gray-600">{booking.walkInUserDetails.email}</p>
+                                            <p className="text-gray-600">{booking.walkInUserDetails.phone}</p>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {booking.refundDetails && booking.refundDetails.totalRefundedAmount > 0 && (
+                                    <div>
+                                      <h4 className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 text-rose-500">
+                                        <RefreshCcw size={14} /> Refund History
+                                      </h4>
+                                      <div className="bg-rose-50/50 p-4 rounded-xl border border-rose-100 shadow-sm text-xs space-y-3">
+                                        <div className="flex justify-between items-center text-rose-700">
+                                          <span className="font-bold">Total Refunded</span>
+                                          <span className="font-black text-rose-900">₦{booking.refundDetails.totalRefundedAmount.toLocaleString()}</span>
+                                        </div>
+                                        <div className="max-h-32 overflow-y-auto space-y-2 pr-1">
+                                          {booking.refundDetails.refundHistory.map((refund, idx) => (
+                                            <div key={idx} className="bg-white p-2 rounded-lg border border-rose-100 text-[10px]">
+                                              <div className="flex justify-between font-bold">
+                                                <span>₦{refund.amount.toLocaleString()}</span>
+                                                <span>{typeof refund.date === 'string' ? new Date(refund.date).toLocaleDateString() : 'N/A'}</span>
+                                              </div>
+                                              <p className="text-gray-500 mt-1 italic">&quot;{refund.note}&quot;</p>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {booking.isGroup && (
+                                    <div>
+                                      <h4 className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">
+                                        <List size={14} /> Recurring Timeline
+                                      </h4>
+                                      <div className="max-h-40 overflow-y-auto border rounded-xl bg-white p-3 shadow-inner">
+                                        <table className="min-w-full text-xs">
+                                          <tbody className="divide-y divide-gray-50">
+                                            {booking.groupBookings?.map((gb) => (
+                                              <tr key={gb._id}>
+                                                <td className="py-2 font-mono text-gray-400">#{gb.bookingId}</td>
+                                                <td className="py-2 text-right font-bold text-gray-700">
+                                                  {new Date(gb.bookingDates[0].startTime).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                                                </td>
+                                              </tr>
+                                            ))}
+                                          </tbody>
+                                        </table>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </td>
                           </tr>
@@ -679,6 +861,13 @@ const BookingsPage = () => {
                                   booking.paymentStatus.toLowerCase() === 'paid' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'
                                 }`}>
                                   {booking.paymentStatus}
+                                </span>
+                              )}
+                              {booking.payout && (
+                                <span className={`px-2 py-1 text-[8px] font-black rounded-full uppercase tracking-tighter ${
+                                  booking.payout.status === 'completed' ? 'bg-emerald-600 text-white' : 'bg-amber-100 text-amber-700 border border-amber-200'
+                                }`}>
+                                  Payout: {booking.payout.status}
                                 </span>
                               )}
                             </div>
@@ -754,14 +943,98 @@ const BookingsPage = () => {
                       </div>
 
                       {expandedBookingId === booking._id && (
-                        <div className="bg-gray-50/50 p-5 border-t border-gray-50 space-y-5">
+                        <div className="bg-gray-50/50 p-5 border-t border-gray-50 space-y-6">
                             <div>
-                              <p className="text-[10px] font-black text-gray-400 uppercase mb-2">Event Scope</p>
-                              <p className="text-xs text-gray-700 bg-white p-3 rounded-lg border border-gray-100">{booking.eventDetails || 'Generic Venue Booking'}</p>
+                              <p className="text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest">Event Scope</p>
+                              <p className="text-xs text-gray-700 bg-white p-3 rounded-xl border border-gray-100 shadow-sm">{booking.eventDetails || 'Generic Venue Booking'}</p>
                             </div>
+
+                            {/* Mobile Payout */}
+                            {booking.payout && (
+                              <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 shadow-sm space-y-3">
+                                <h4 className="flex items-center gap-2 text-[10px] font-black text-emerald-700 uppercase tracking-widest">
+                                  <RefreshCcw size={14} /> Payout Information
+                                </h4>
+                                <div className="space-y-2 text-[11px]">
+                                  <div className="flex justify-between font-black text-emerald-900">
+                                    <span>Amount</span>
+                                    <span>₦{booking.payout.amount.toLocaleString()}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-emerald-700">Status</span>
+                                    <span className={`uppercase font-black ${booking.payout.status === 'completed' ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                      {booking.payout.status}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between text-emerald-700">
+                                    <span>Date</span>
+                                    <span className="font-bold text-emerald-800">{new Date(booking.payout.payoutDate).toLocaleDateString()}</span>
+                                  </div>
+                                  <div className="pt-2 border-t border-emerald-100/50 text-emerald-800">
+                                    <p className="font-bold">{booking.payout.bankName} - {booking.payout.accountNumber}</p>
+                                    <p className="italic opacity-80">{booking.payout.accountName}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Mobile Financials */}
+                            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-3">
+                              <h4 className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                <FileText size={14} /> Financial Breakdown
+                              </h4>
+                              <div className="space-y-2 text-[11px]">
+                                <div className="flex justify-between text-gray-500">
+                                  <span>Base Price</span>
+                                  <span>₦{(booking.hallPrice || booking.originalPrice || booking.totalPrice || 0).toLocaleString()}</span>
+                                </div>
+                                {booking.facilitiesPrice !== undefined && booking.facilitiesPrice > 0 && (
+                                  <div className="flex justify-between text-blue-600">
+                                    <span>Facilities</span>
+                                    <span>+ ₦{booking.facilitiesPrice.toLocaleString()}</span>
+                                  </div>
+                                )}
+                                {booking.discountAmount ? (
+                                  <div className="flex justify-between text-rose-600">
+                                    <span>Discount ({booking.discountPercentage}%)</span>
+                                    <span>- ₦{booking.discountAmount.toLocaleString()}</span>
+                                  </div>
+                                ) : null}
+                              </div>
+                            </div>
+
+                            {/* Mobile Contact */}
+                            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-3">
+                              <h4 className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                <User size={14} /> Contact Details
+                              </h4>
+                              <div className="text-[11px] space-y-2">
+                                {typeof booking.user === 'object' && booking.user && (
+                                  <>
+                                    <div className="flex items-center gap-2 text-gray-800 font-bold">
+                                      <Mail size={12} className="text-gray-400" />
+                                      <span className="truncate">{(booking.user as UserProfile).email}</span>
+                                    </div>
+                                    {(booking.user as UserProfile).phone && (
+                                      <div className="flex items-center gap-2 text-gray-800 font-bold">
+                                        <Phone size={12} className="text-gray-400" />
+                                        <span>{(booking.user as UserProfile).phone}</span>
+                                      </div>
+                                    )}
+                                  </>
+                                )}
+                                {booking.walkInUserDetails && (
+                                  <div className="pt-2 border-t border-gray-50 text-gray-600">
+                                    <p className="font-bold text-gray-800">{booking.walkInUserDetails.fullName}</p>
+                                    <p>{booking.walkInUserDetails.phone}</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
                             {booking.isGroup && (
                               <div>
-                                 <p className="text-[10px] font-black text-gray-400 uppercase mb-2">Occurrence History</p>
+                                 <p className="text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest">Occurrence History</p>
                                  <div className="bg-white rounded-xl border border-gray-100 p-2 space-y-1.5 max-h-32 overflow-y-auto shadow-inner">
                                     {booking.groupBookings?.map(gb => (
                                       <div key={gb._id} className="flex justify-between items-center text-[10px] p-1.5 hover:bg-gray-50 rounded">

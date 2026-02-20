@@ -13,11 +13,20 @@ export interface Facility {
   name?: string;
 }
 
+export interface UserProfile {
+  _id: string;
+  fullName: string;
+  email: string;
+  phone?: string;
+  whatsappNumber?: string;
+  avatar?: string;
+}
+
 export interface Booking {
   _id: string;
   bookingId: string;
   hall: string | Venue;
-  user: string | { _id: string; fullName: string; email: string };
+  user: string | UserProfile;
   bookingDates: {
     startTime: string;
     endTime: string;
@@ -44,6 +53,19 @@ export interface Booking {
   cancellationRequest?: {
     status: 'not-requested' | 'pending' | 'approved' | 'rejected';
   };
+  hallPrice?: number;
+  facilitiesPrice?: number;
+  originalPrice?: number;
+  discountAmount?: number;
+  discountPercentage?: number;
+  discountType?: string;
+  selectedFacilities?: {
+    name: string;
+    cost: number;
+    chargeMethod: string;
+    facility: string;
+    quantity: number;
+  }[];
   refundDetails?: {
     totalRefundableAmount: number;
     totalRefundedAmount: number;
@@ -54,13 +76,22 @@ export interface Booking {
       recordedBy: string | { _id: string; fullName: string };
     }[];
   };
+  payout?: {
+    amount: number;
+    status: string;
+    payoutDate: string;
+    subAccountCode: string;
+    bankName: string;
+    accountNumber: string;
+    accountName: string;
+  };
 }
 
 export interface Reservation {
   _id: string;
   reservationId: string;
   hall: string | Venue;
-  user: string | { _id: string; fullName: string; email: string };
+  user: string | UserProfile;
   bookingDates: {
     startTime: string;
     endTime: string;
@@ -80,6 +111,19 @@ export interface Reservation {
   cancellationRequest?: {
     status: 'not-requested' | 'pending' | 'approved' | 'rejected';
   };
+  hallPrice?: number;
+  facilitiesPrice?: number;
+  originalPrice?: number;
+  discountAmount?: number;
+  discountPercentage?: number;
+  discountType?: string;
+  selectedFacilities?: {
+    name: string;
+    cost: number;
+    chargeMethod: string;
+    facility: string;
+    quantity: number;
+  }[];
   refundDetails?: {
     totalRefundableAmount: number;
     totalRefundedAmount: number;
@@ -89,6 +133,15 @@ export interface Reservation {
       date: string | { $date: string };
       recordedBy: string | { _id: string; fullName: string };
     }[];
+  };
+  payout?: {
+    amount: number;
+    status: string;
+    payoutDate: string;
+    subAccountCode: string;
+    bankName: string;
+    accountNumber: string;
+    accountName: string;
   };
 }
 
