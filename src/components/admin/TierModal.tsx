@@ -162,14 +162,31 @@ const TierModal: React.FC<TierModalProps> = ({ isOpen, onClose, onSubmit, tier }
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-center items-center">
-      <div className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative">
-        <button onClick={onClose} className="absolute top-6 right-6 text-gray-400 hover:text-gray-800 transition-colors">
-          <X size={24} />
+    <div className="fixed inset-0 z-50 flex justify-center items-center p-4">
+      <div
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm cursor-pointer"
+        onClick={onClose}
+      />
+      <div
+        className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative z-10 animate-in fade-in zoom-in-95"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-6 right-6 text-gray-400 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 p-2 rounded-xl transition-all cursor-pointer"
+          aria-label="Close modal"
+        >
+          <X size={20} />
         </button>
-        <h2 className="text-2xl font-black text-gray-800 mb-8 uppercase italic text-center">
-          {tier?._id ? "Edit License Tier" : "Add New License Tier"}
-        </h2>
+
+        <div className="mb-8 text-center">
+          <h2 className="text-3xl font-black text-gray-900 tracking-tighter uppercase italic">
+            {tier?._id ? "Edit" : "Add New"} <span className="text-primary not-italic">License Tier</span>
+          </h2>
+          <p className="text-sm text-gray-500 font-medium">
+            {tier?._id ? "Configure pricing and rules for this subscription plan." : "Define a new tier for platform subscriptions."}
+          </p>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -55,14 +55,31 @@ const RuleModal: React.FC<RuleModalProps> = ({ isOpen, onClose, onSubmit, rule }
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-center items-center">
-      <div className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto relative">
-        <button onClick={onClose} className="absolute top-6 right-6 text-gray-400 hover:text-gray-800 transition-colors">
-          <X size={24} />
+    <div className="fixed inset-0 z-50 flex justify-center items-center p-4">
+      <div
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm cursor-pointer"
+        onClick={onClose}
+      />
+      <div
+        className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto relative z-10 animate-in fade-in zoom-in-95"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-6 right-6 text-gray-400 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 p-2 rounded-xl transition-all cursor-pointer"
+          aria-label="Close modal"
+        >
+          <X size={20} />
         </button>
-        <h2 className="text-2xl font-black text-gray-800 mb-8 uppercase italic text-center">
-          {rule?._id ? "Edit Subscription Rule" : "Add New Rule"}
-        </h2>
+
+        <div className="mb-8 text-center">
+          <h2 className="text-3xl font-black text-gray-900 tracking-tighter uppercase italic">
+            {rule?._id ? "Edit" : "Add New"} <span className="text-primary not-italic">Rule</span>
+          </h2>
+          <p className="text-sm text-gray-500 font-medium">
+            {rule?._id ? "Modify existing subscription rule properties." : "Create a new rule to control platform limits."}
+          </p>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
