@@ -659,6 +659,7 @@ const BookingsPage = () => {
                     <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Customer</th>
                     <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Date Range</th>
                     <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Payout</th>
                     <th className="px-6 py-3 text-right text-[10px] font-bold text-gray-500 uppercase tracking-wider">Actions</th>
                     <th className="px-6 py-3"></th>
                   </tr>
@@ -721,6 +722,19 @@ const BookingsPage = () => {
                               </span>
                             )}
                           </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {booking.payout ? (
+                            <span className={`px-2.5 py-1 text-[10px] font-bold rounded-full uppercase tracking-wider ${
+                              booking.payout.status === 'completed' ? 'bg-green-100 text-green-800' :
+                              booking.payout.status === 'pending' ? 'bg-orange-100 text-orange-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {booking.payout.status}
+                            </span>
+                          ) : (
+                            <span className="text-[10px] text-gray-400 font-bold uppercase">N/A</span>
+                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right">
                           <div className="flex justify-end space-x-2">
@@ -803,47 +817,191 @@ const BookingsPage = () => {
                       </tr>
                       {expandedBookingId === booking._id && (
                         <tr>
-                          <td colSpan={6} className="px-6 py-5 bg-gray-50 border-t border-gray-100">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                              <div>
-                                <h4 className="text-xs font-bold text-gray-400 uppercase mb-3">Booking Details</h4>
-                                <div className="space-y-2 text-sm text-gray-700">
-                                  <div className="flex justify-between border-b border-gray-200 pb-1.5"><span className="text-gray-500">Event:</span> <span className="font-medium">{booking.eventDetails || 'N/A'}</span></div>
-                                  <div className="flex justify-between border-b border-gray-200 pb-1.5"><span className="text-gray-500">Total Price:</span> <span className="font-bold text-gray-900">₦{booking.totalPrice?.toLocaleString()}</span></div>
-                                  <div className="flex justify-between border-b border-gray-200 pb-1.5"><span className="text-gray-500">Payment:</span> <span>{booking.paymentMethod} ({booking.paymentStatus})</span></div>
-                                  {booking.walkInUserDetails && (
-                                    <>
-                                      <div className="flex justify-between border-b border-gray-200 pb-1.5"><span className="text-gray-500">Email:</span> <span>{booking.walkInUserDetails.email}</span></div>
-                                      <div className="flex justify-between border-b border-gray-200 pb-1.5"><span className="text-gray-500">Phone:</span> <span>{booking.walkInUserDetails.phone}</span></div>
-                                    </>
-                                  )}
-                                </div>
-                              </div>
-                              {booking.isGroup && (
+                          <td colSpan={7} className="px-6 py-8 bg-white border-t border-gray-100 shadow-inner">
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
+                              {/* Left Column: Customer & Event Info */}
+                              <div className="space-y-6">
                                 <div>
-                                  <h4 className="text-xs font-bold text-gray-400 uppercase mb-3">Recurring Schedule</h4>
-                                  <div className="max-h-48 overflow-y-auto border border-gray-200 rounded-lg bg-white p-3 shadow-inner">
-                                    <table className="min-w-full text-xs">
-                                      <thead>
-                                        <tr className="border-b border-gray-100">
-                                          <th className="text-left pb-2 text-gray-400">ID</th>
-                                          <th className="text-left pb-2 text-gray-400">Date & Time</th>
-                                        </tr>
-                                      </thead>
-                                      <tbody className="divide-y divide-gray-50">
-                                        {booking.groupBookings?.map((gb) => (
-                                          <tr key={gb._id}>
-                                            <td className="py-2 font-mono text-gray-500">{gb.bookingId}</td>
-                                            <td className="py-2 text-gray-700 font-medium">
-                                              {new Date(gb.bookingDates[0].startTime).toLocaleDateString()} @ {new Date(gb.bookingDates[0].startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                                            </td>
-                                          </tr>
-                                        ))}
-                                      </tbody>
-                                    </table>
+                                  <h4 className="text-[10px] font-bold text-primary uppercase tracking-widest mb-4 flex items-center gap-2">
+                                    <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+                                    Customer & Event Info
+                                  </h4>
+                                  <div className="space-y-3 bg-gray-50/50 p-4 rounded-xl border border-gray-100">
+                                    <div className="flex flex-col">
+                                      <span className="text-[10px] text-gray-400 font-bold uppercase">Customer</span>
+                                      <span className="text-sm font-semibold text-gray-900">{(typeof booking.user === 'object' && booking.user?.fullName) || booking.walkInUserDetails?.fullName}</span>
+                                    </div>
+                                    <div className="flex flex-col">
+                                      <span className="text-[10px] text-gray-400 font-bold uppercase">Event Details</span>
+                                      <span className="text-sm text-gray-700 italic">&quot;{booking.eventDetails || 'N/A'}&quot;</span>
+                                    </div>
+                                    {(typeof booking.user === 'object' && booking.user?.email || booking.walkInUserDetails?.email) && (
+                                      <div className="flex flex-col">
+                                        <span className="text-[10px] text-gray-400 font-bold uppercase">Contact Email</span>
+                                        <span className="text-sm text-gray-700">{(typeof booking.user === 'object' ? booking.user?.email : booking.walkInUserDetails?.email) || 'N/A'}</span>
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
-                              )}
+
+                                {booking.selectedFacilities && booking.selectedFacilities.length > 0 && (
+                                  <div>
+                                    <h4 className="text-[10px] font-bold text-primary uppercase tracking-widest mb-3 flex items-center gap-2">
+                                      <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+                                      Selected Facilities
+                                    </h4>
+                                    <div className="flex flex-wrap gap-2">
+                                      {booking.selectedFacilities.map((f, i) => (
+                                        <span key={i} className="px-2.5 py-1 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-lg border border-blue-100">
+                                          {f.name} (x{f.quantity})
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Second Column: Financial Breakdown */}
+                              <div>
+                                <h4 className="text-[10px] font-bold text-primary uppercase tracking-widest mb-4 flex items-center gap-2">
+                                  <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+                                  Financial Breakdown
+                                </h4>
+                                <div className="space-y-2 bg-gray-50/50 p-4 rounded-xl border border-gray-100">
+                                  <div className="flex justify-between items-center text-sm border-b border-gray-200 pb-2">
+                                    <span className="text-gray-500 font-medium">Venue Price:</span>
+                                    <span className="font-bold text-gray-900">₦{(booking.hallPrice || 0).toLocaleString()}</span>
+                                  </div>
+                                  <div className="flex justify-between items-center text-sm border-b border-gray-200 pb-2">
+                                    <span className="text-gray-500 font-medium">Facilities Price:</span>
+                                    <span className="font-bold text-gray-900">₦{(booking.facilitiesPrice || 0).toLocaleString()}</span>
+                                  </div>
+                                  {(booking.discountAmount || 0) > 0 && (
+                                    <div className="flex justify-between items-center text-sm text-green-600 border-b border-gray-200 pb-2">
+                                      <span className="font-medium">Discount:</span>
+                                      <span className="font-bold">-₦{booking.discountAmount?.toLocaleString()}</span>
+                                    </div>
+                                  )}
+                                  <div className="flex justify-between items-center pt-2">
+                                    <span className="text-gray-900 font-bold">Total Amount:</span>
+                                    <span className="text-lg font-black text-primary">₦{(booking.totalPrice || 0).toLocaleString()}</span>
+                                  </div>
+                                  <div className="mt-4 pt-3 border-t border-gray-200">
+                                    <div className="flex justify-between text-[10px] font-bold uppercase">
+                                      <span className="text-gray-400 tracking-tight">Payment Method:</span>
+                                      <span className="text-gray-700">{booking.paymentMethod}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Third Column: Payout Information */}
+                              <div>
+                                <h4 className="text-[10px] font-bold text-primary uppercase tracking-widest mb-4 flex items-center gap-2">
+                                  <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+                                  Payout Information
+                                </h4>
+                                {booking.payout ? (
+                                  <div className="space-y-4 bg-blue-50/30 p-4 rounded-xl border border-blue-100/50">
+                                    <div className="grid grid-cols-2 gap-4">
+                                      <div className="flex flex-col">
+                                        <span className="text-[10px] text-gray-400 font-bold uppercase">Payout Amount</span>
+                                        <span className="text-lg font-black text-blue-900">₦{booking.payout.amount?.toLocaleString()}</span>
+                                      </div>
+                                      <div className="flex flex-col items-end">
+                                        <span className="text-[10px] text-gray-400 font-bold uppercase">Status</span>
+                                        <span className={`mt-1 px-2.5 py-0.5 text-[9px] font-bold rounded-full uppercase ${
+                                          booking.payout.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+                                        }`}>
+                                          {booking.payout.status}
+                                        </span>
+                                      </div>
+                                    </div>
+
+                                    <div className="space-y-2.5 pt-2">
+                                      <div className="flex justify-between text-xs border-b border-blue-100/50 pb-2">
+                                        <span className="text-gray-500 font-medium">Bank Name:</span>
+                                        <span className="font-bold text-gray-800">{booking.payout.bankName || 'N/A'}</span>
+                                      </div>
+                                      <div className="flex justify-between text-xs border-b border-blue-100/50 pb-2">
+                                        <span className="text-gray-500 font-medium">Account No:</span>
+                                        <span className="font-bold text-gray-800 tracking-wider">{booking.payout.accountNumber || 'N/A'}</span>
+                                      </div>
+                                      <div className="flex justify-between text-xs">
+                                        <span className="text-gray-500 font-medium font-mono text-[10px]">Payout Date:</span>
+                                        <span className="font-bold text-gray-800">
+                                          {booking.payout.payoutDate ? new Date(booking.payout.payoutDate).toLocaleDateString(undefined, {
+                                            year: 'numeric', month: 'short', day: 'numeric'
+                                          }) : 'Pending'}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="flex flex-col items-center justify-center h-32 bg-gray-50 rounded-xl border-2 border-dashed border-gray-100 text-gray-400">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest">No Payout Data</p>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Right Column: Schedule / Group Info */}
+                              <div>
+                                {booking.isGroup ? (
+                                  <>
+                                    <h4 className="text-[10px] font-bold text-primary uppercase tracking-widest mb-4 flex items-center gap-2">
+                                      <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+                                      Recurring Schedule ({booking.groupBookings?.length})
+                                    </h4>
+                                    <div className="max-h-[180px] overflow-y-auto border border-gray-100 rounded-xl bg-gray-50/50 p-2 shadow-inner">
+                                      <table className="min-w-full text-[10px]">
+                                        <thead className="sticky top-0 bg-gray-50/90 backdrop-blur-sm shadow-sm">
+                                          <tr className="border-b border-gray-200">
+                                            <th className="text-left py-2 px-2 text-gray-400 font-bold uppercase">ID</th>
+                                            <th className="text-left py-2 px-2 text-gray-400 font-bold uppercase">Date</th>
+                                          </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-100">
+                                          {booking.groupBookings?.map((gb) => (
+                                            <tr key={gb._id} className="hover:bg-white/50 transition-colors">
+                                              <td className="py-2.5 px-2 font-mono text-gray-500">#{gb.bookingId}</td>
+                                              <td className="py-2.5 px-2 text-gray-700 font-bold uppercase">
+                                                {new Date(gb.bookingDates[0].startTime).toLocaleDateString()}
+                                              </td>
+                                            </tr>
+                                          ))}
+                                        </tbody>
+                                      </table>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <>
+                                    <h4 className="text-[10px] font-bold text-primary uppercase tracking-widest mb-4 flex items-center gap-2">
+                                      <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+                                      Quick Timeline
+                                    </h4>
+                                    <div className="bg-gray-50/50 p-4 rounded-xl border border-gray-100 space-y-4">
+                                      <div className="flex items-start gap-3">
+                                        <div className="w-2 h-2 rounded-full bg-green-500 mt-1.5 ring-4 ring-green-50"></div>
+                                        <div>
+                                          <p className="text-[10px] text-gray-400 font-bold uppercase">Booking Start</p>
+                                          <p className="text-sm font-bold text-gray-900">{new Date(booking.bookingDates[0].startTime).toLocaleString()}</p>
+                                        </div>
+                                      </div>
+                                      <div className="flex items-start gap-3">
+                                        <div className="w-2 h-2 rounded-full bg-red-500 mt-1.5 ring-4 ring-red-50"></div>
+                                        <div>
+                                          <p className="text-[10px] text-gray-400 font-bold uppercase">Booking End</p>
+                                          <p className="text-sm font-bold text-gray-900">{new Date(booking.bookingDates[0].endTime).toLocaleString()}</p>
+                                        </div>
+                                      </div>
+                                      <div className="pt-2 border-t border-gray-200">
+                                        <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Created Date</p>
+                                        <p className="text-xs text-gray-600">{new Date(booking.createdAt).toLocaleString()}</p>
+                                      </div>
+                                    </div>
+                                  </>
+                                )}
+                              </div>
                             </div>
                           </td>
                         </tr>
@@ -973,9 +1131,51 @@ const BookingsPage = () => {
                   </div>
 
                   {expandedBookingId === booking._id && (
-                    <div className="bg-gray-50 px-4 py-5 border-t border-gray-100 space-y-4">
+                    <div className="bg-gray-50 px-4 py-6 border-t border-gray-100 space-y-6">
                       <div>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">Detailed Info</p>
+                        <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-3">Financial Breakdown</p>
+                        <div className="bg-white p-3 rounded-lg border border-gray-200 space-y-2 text-xs">
+                          <div className="flex justify-between"><span className="text-gray-400">Venue Price:</span> <span className="font-bold text-gray-900">₦{(booking.hallPrice || 0).toLocaleString()}</span></div>
+                          <div className="flex justify-between"><span className="text-gray-400">Facilities:</span> <span className="font-bold text-gray-900">₦{(booking.facilitiesPrice || 0).toLocaleString()}</span></div>
+                          {(booking.discountAmount || 0) > 0 && <div className="flex justify-between text-green-600"><span className="font-medium">Discount:</span> <span className="font-bold">-₦{booking.discountAmount?.toLocaleString()}</span></div>}
+                          <div className="flex justify-between pt-2 border-t border-gray-100"><span className="text-gray-900 font-bold">Total:</span> <span className="text-sm font-black text-primary">₦{(booking.totalPrice || 0).toLocaleString()}</span></div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-3">Payout Status</p>
+                        {booking.payout ? (
+                          <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100 space-y-2 text-xs">
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Amount:</span>
+                              <span className="font-bold text-blue-900">₦{booking.payout.amount?.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Status:</span>
+                              <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full uppercase ${
+                                booking.payout.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+                              }`}>
+                                {booking.payout.status}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Bank:</span>
+                              <span className="font-medium text-gray-900">{booking.payout.bankName || 'N/A'}</span>
+                            </div>
+                            {booking.payout.payoutDate && (
+                              <div className="flex justify-between">
+                                <span className="text-gray-500 font-mono text-[10px]">Date:</span>
+                                <span className="font-medium text-gray-900">{new Date(booking.payout.payoutDate).toLocaleDateString()}</span>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="py-4 text-center bg-white rounded-lg border border-dashed border-gray-200 text-[10px] text-gray-400 font-bold uppercase">No Payout Info</div>
+                        )}
+                      </div>
+
+                      <div>
+                        <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-3">Event Details</p>
                         <div className="space-y-1.5 text-xs text-gray-700">
                           <div className="flex justify-between"><span className="text-gray-400">Event:</span> <span className="font-medium text-right ml-4">{booking.eventDetails || 'N/A'}</span></div>
                           <div className="flex justify-between"><span className="text-gray-400">Payment:</span> <span className="text-right">{booking.paymentMethod}</span></div>
