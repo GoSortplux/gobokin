@@ -23,7 +23,7 @@ const formatRole = (role: string) => {
 };
 
 const Header = () => {
-  const { user, logout, updateToken } = useAuth();
+  const { user, logout, updateToken, loading } = useAuth();
   const [message] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isSwitchingAccount, setIsSwitchingAccount] = useState(false);
@@ -87,6 +87,8 @@ const Header = () => {
 
   const renderBecomeOwnerButton = () => {
     const buttonClasses = "flex items-center justify-center gap-2 px-4 py-2 rounded-lg border-2 border-secondary text-secondary font-semibold hover:bg-secondary hover:text-white transition-all duration-300";
+
+    if (loading) return null;
 
     if (!user) {
       return (
@@ -163,7 +165,9 @@ const Header = () => {
           <div className="hidden lg:flex items-center space-x-4">
             {renderBecomeOwnerButton()}
             {message && <p>{message}</p>}
-            {user ? (
+            {loading ? (
+              <div className="w-10 h-10 rounded-full bg-gray-100 animate-pulse border border-gray-200" />
+            ) : user ? (
               <div className="flex items-center space-x-4">
                 <div
                   className="relative"
@@ -344,7 +348,22 @@ const Header = () => {
               </div>
 
               <div className="flex-grow overflow-y-auto py-6 px-4">
-                {user ? (
+                {loading ? (
+                  <div className="space-y-6">
+                    <div className="flex items-center space-x-3 pb-6 border-b">
+                      <div className="w-12 h-12 bg-gray-100 rounded-full animate-pulse" />
+                      <div className="space-y-2 flex-grow">
+                        <div className="h-4 bg-gray-100 rounded w-1/2 animate-pulse" />
+                        <div className="h-3 bg-gray-100 rounded w-1/3 animate-pulse" />
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      {[1, 2, 3].map(i => (
+                        <div key={i} className="h-12 bg-gray-50 rounded-xl animate-pulse" />
+                      ))}
+                    </div>
+                  </div>
+                ) : user ? (
                   <div className="space-y-6">
                     {/* User Info */}
                     <div className="flex items-center space-x-3 pb-6 border-b">
