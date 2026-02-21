@@ -82,11 +82,11 @@ const ReservationCard: React.FC<ReservationCardProps> = ({ reservation, onComple
         <h3 className="text-xl font-semibold text-gray-800">
           {hallName}
         </h3>
-        <p className="text-gray-600 mt-2">Reservation ID: {reservation.reservationId}</p>
+        <p className="text-gray-600 mt-2 font-medium">Reservation ID: {reservation.reservationId}</p>
         <p className="text-gray-600">
-          Date:{" "}
+          <span className="font-semibold text-gray-700">Event Date:</span>{" "}
           {reservation.bookingDates?.[0]?.startTime
-            ? new Date(reservation.bookingDates[0].startTime).toLocaleDateString()
+            ? new Date(reservation.bookingDates[0].startTime).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
             : "N/A"}
         </p>
         <p className="text-sm text-gray-500">
@@ -107,37 +107,44 @@ const ReservationCard: React.FC<ReservationCardProps> = ({ reservation, onComple
           Price: ₦{reservation.totalPrice.toLocaleString()}
         </p>
         <div className="mt-4 flex flex-col space-y-2">
-          <div className="flex justify-end space-x-2">
+          <div className="flex flex-wrap gap-2 justify-end">
             {reservation.status === "ACTIVE" && (
               <button
                 onClick={() => onCompleteBooking(reservation)}
                 disabled={!venue}
-                className={`px-4 py-2 rounded-md transition-colors flex-1 ${
+                className={`px-4 py-2 rounded-md transition-colors flex-1 min-w-[120px] ${
                   !venue
                     ? "bg-primary/50 text-white cursor-not-allowed"
-                    : "bg-primary text-white hover:bg-primary-dark"
+                    : "bg-primary text-white hover:bg-primary-dark shadow-sm"
                 }`}
               >
                 Complete Booking
               </button>
             )}
             <button
-              onClick={() => {
-                if (reservation.paymentStatus === 'pending') {
-                  router.push(`/booking/details/${reservation.reservationId}`);
-                } else {
-                  onViewReceipt(reservation.reservationId);
-                }
-              }}
+              onClick={() => router.push(`/booking/details/${reservation.reservationId}`)}
               disabled={!venue}
-              className={`px-4 py-2 rounded-md transition-colors flex-1 ${
+              className={`px-4 py-2 rounded-md transition-colors flex-1 min-w-[120px] ${
                 !venue
                   ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                  : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200"
               }`}
             >
-              {reservation.paymentStatus === 'pending' ? 'View Details' : 'View Receipt'}
+              View Details
             </button>
+            {reservation.paymentStatus !== 'pending' && (
+              <button
+                onClick={() => onViewReceipt(reservation.reservationId)}
+                disabled={!venue}
+                className={`px-4 py-2 rounded-md transition-colors flex-1 min-w-[120px] ${
+                  !venue
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-secondary/10 text-secondary hover:bg-secondary/20 border border-secondary/20"
+                }`}
+              >
+                View Receipt
+              </button>
+            )}
           </div>
 
           {reservation.status === 'ACTIVE' && (

@@ -104,23 +104,23 @@ const BookingCard: React.FC<BookingCardProps> = ({ booking, onViewReceipt, onRev
         <h3 className="text-xl font-semibold text-gray-800">
           {hallName}
         </h3>
-        <p className="text-gray-600 mt-2">Booking ID: {booking.bookingId}</p>
+        <p className="text-gray-600 mt-2 font-medium">Booking ID: {booking.bookingId}</p>
         <p className="text-gray-600">
-          Date:{" "}
+          <span className="font-semibold text-gray-700">Event Date:</span>{" "}
           {booking.bookingDates?.[0]?.startTime
-            ? new Date(booking.bookingDates[0].startTime).toLocaleDateString()
+            ? new Date(booking.bookingDates[0].startTime).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
             : "N/A"}
         </p>
         <div className="mt-4 flex flex-col space-y-2">
-          <div className="flex justify-end space-x-2">
+          <div className="flex flex-wrap gap-2 justify-end">
             {isPast && (
               <button
                 onClick={() => onReview(booking)}
                 disabled={!venue}
-                className={`py-2 px-4 rounded-md transition-colors duration-300 text-center flex-1 ${
+                className={`py-2 px-4 rounded-md transition-colors duration-300 text-center flex-1 min-w-[120px] ${
                   !venue
                     ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-primary text-white hover:bg-opacity-90"
+                    : "bg-primary text-white hover:bg-opacity-90 shadow-sm"
                 }`}
               >
                 {booking.review ? "View Review" : "Review Venue"}
@@ -130,32 +130,39 @@ const BookingCard: React.FC<BookingCardProps> = ({ booking, onViewReceipt, onRev
               <button
                 onClick={handleCompletePayment}
                 disabled={!venue}
-                className={`py-2 px-4 rounded-md transition-colors duration-300 text-center flex-1 ${
+                className={`py-2 px-4 rounded-md transition-colors duration-300 text-center flex-1 min-w-[120px] ${
                   !venue
                     ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-primary text-white hover:bg-opacity-90"
+                    : "bg-primary text-white hover:bg-opacity-90 shadow-sm"
                 }`}
               >
                 Complete Payment
               </button>
             )}
             <button
-              onClick={() => {
-                if (booking.paymentStatus === 'pending') {
-                  router.push(`/booking/details/${booking.bookingId}`);
-                } else {
-                  onViewReceipt(booking.bookingId);
-                }
-              }}
+              onClick={() => router.push(`/booking/details/${booking.bookingId}`)}
               disabled={!venue}
-              className={`py-2 px-4 rounded-md transition-colors duration-300 text-center flex-1 ${
+              className={`py-2 px-4 rounded-md transition-colors duration-300 text-center flex-1 min-w-[120px] ${
                 !venue
                   ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                  : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200"
               }`}
             >
-              {booking.paymentStatus === 'pending' ? 'View Details' : 'View Receipt'}
+              View Details
             </button>
+            {booking.paymentStatus !== 'pending' && (
+               <button
+                  onClick={() => onViewReceipt(booking.bookingId)}
+                  disabled={!venue}
+                  className={`py-2 px-4 rounded-md transition-colors duration-300 text-center flex-1 min-w-[120px] ${
+                    !venue
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-secondary/10 text-secondary hover:bg-secondary/20 border border-secondary/20"
+                  }`}
+                >
+                  View Receipt
+               </button>
+            )}
           </div>
 
           {!isPast && booking.status !== 'cancelled' && booking.paymentStatus !== 'pending' && (
