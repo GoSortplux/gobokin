@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import api from "@/services/api";
 import { Booking, Reservation, Venue } from "@/types";
+import { createVenueSlug } from "@/utils/slugify";
 import CustomLoader from "@/components/CustomLoader";
 import UnifiedReceipt from "@/components/shared/UnifiedReceipt";
 import withAuth from "@/components/auth/withAuth";
@@ -244,7 +245,7 @@ const BookingDetailsPage = () => {
                       {venue?.description || 'No description available for this venue.'}
                     </p>
                     <Link
-                      href={`/venues/${venue?.slug || venue?._id}`}
+                      href={`/venues/${venue ? createVenueSlug(venue.name, venue._id, venue.slug) : '#'}`}
                       className="inline-flex items-center gap-2 text-primary font-bold hover:underline"
                     >
                       View Venue Details
