@@ -23,19 +23,99 @@ const Pie = dynamic(() => import('recharts').then(mod => mod.Pie), { ssr: false 
 const Cell = dynamic(() => import('recharts').then(mod => mod.Cell), { ssr: false });
 
 // Type definitions for the analytics data
-interface PlatformRevenue {
-  totalBookingRevenue: number;
-  totalSubscriptionRevenue: number;
-  grandTotal: number;
-  totalGrossRevenue?: number;
-  totalRefunded?: number;
-  totalNetRevenue?: number;
+interface OverallStats {
+  systemGrossVolume: number;
+  totalOwnerPayouts: number;
+  totalPlatformNet: number;
+  totalRefunded: number;
+  totalViews: number;
+  totalDemoBookings: number;
+  totalBookings: {
+    confirmed: number;
+    cancelled: number;
+    pending: number;
+  };
+  totalReservations: {
+    new: number;
+    converted: number;
+    expired: number;
+    active: number;
+  };
 }
-interface CommissionAnalytics { commissionRate: string; totalCommission: number; commissionableRevenue: number; }
-interface VenuePerformance { _id: string; owner: { _id: string; fullName: string; email: string; }; name: string; revenue: number; bookingCount: number; viewCount: number; score: number; }
-interface InactiveVenue { hallId: string; hallName: string; ownerName?: string; }
-interface DataComparison { currentPeriod: { from: string; to: string; bookingRevenue: number; subscriptionRevenue: number; }; previousPeriod: { from: string; to: string; bookingRevenue: number; subscriptionRevenue: number; }; change: { bookingRevenuePercentage: string; subscriptionRevenuePercentage: string; }; }
-interface AdminAnalyticsData { platformRevenue: PlatformRevenue; commissionAnalytics: CommissionAnalytics; hallPerformance: { mostActiveHalls: VenuePerformance[]; inactiveHalls: InactiveVenue[]; }; dataComparison: DataComparison; }
+
+interface PlatformRevenue {
+  totalPlatformNet: number;
+  subscriptionRevenue: number;
+  bookingCommissionRevenue: number;
+  commissionRate: string;
+}
+
+interface VenuePerformance {
+  _id: string;
+  owner: {
+    _id: string;
+    fullName: string;
+    email: string;
+  };
+  name: string;
+  revenue: number;
+  bookingCount: number;
+  viewCount: number;
+  score: number;
+}
+
+interface InactiveVenue {
+  hallId: string;
+  hallName: string;
+  ownerName?: string;
+  reason?: string;
+}
+
+interface TopCustomer {
+  totalSpent: number;
+  userId: string;
+  fullName: string;
+  email: string;
+}
+
+interface UserInsights {
+  topCustomers: TopCustomer[];
+  subscriptionCounts: {
+    new: number;
+    expired: number;
+    totalActive: number;
+  };
+}
+
+interface DataComparison {
+  currentPeriod: {
+    from: string;
+    to: string;
+    bookingRevenue: number;
+    subscriptionRevenue: number;
+  };
+  previousPeriod: {
+    from: string;
+    to: string;
+    bookingRevenue: number;
+    subscriptionRevenue: number;
+  };
+  change: {
+    bookingRevenuePercentage: string;
+    subscriptionRevenuePercentage: string;
+  };
+}
+
+interface AdminAnalyticsData {
+  overallStats: OverallStats;
+  platformRevenue: PlatformRevenue;
+  hallPerformance: {
+    mostActiveHalls: VenuePerformance[];
+    inactiveHalls: InactiveVenue[];
+  };
+  userInsights: UserInsights;
+  dataComparison: DataComparison;
+}
 
 const formatCurrency = (amount: number) => new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(amount);
 
@@ -73,8 +153,23 @@ const AdminEnhancedAnalytics = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [dateRange, setDateRange] = useState<Range[]>([{ startDate: new Date(new Date().setDate(new Date().getDate() - 7)), endDate: new Date(), key: 'selection' }]);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [venues, setVenues] = useState<{ _id: string; name: string }[]>([]);
+  const [selectedHallId, setSelectedHallId] = useState<string>('');
   const datePickerRef = useRef<HTMLDivElement>(null);
   useOnClickOutside(datePickerRef, () => setShowDatePicker(false));
+
+  const fetchVenues = useCallback(async () => {
+    try {
+      const response = await api.get('/halls');
+      if (response.data?.success) {
+        setVenues(response.data.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch venues for filter:', err);
+    }
+  }, []);
+
+  useEffect(() => { fetchVenues(); }, [fetchVenues]);
 
   const fetchAdminAnalytics = useCallback(async () => {
     setLoading(true);
@@ -82,6 +177,7 @@ const AdminEnhancedAnalytics = () => {
       const startDateStr = dateRange[0].startDate ? formatDate(dateRange[0].startDate, 'yyyy-MM-dd') : '';
       const endDateStr = dateRange[0].endDate ? formatDate(dateRange[0].endDate, 'yyyy-MM-dd') : '';
       const params = new URLSearchParams({ startDate: startDateStr, endDate: endDateStr });
+      if (selectedHallId) params.append('hallId', selectedHallId);
       const response = await api.get(`../v2/analytics/super-admin?${params.toString()}`);
       if (response.data?.success) {
         setData(response.data.data);
@@ -90,14 +186,14 @@ const AdminEnhancedAnalytics = () => {
       }
     } catch (err: unknown) { console.error(err); setData(null); }
     finally { setLoading(false); }
-  }, [dateRange]);
+  }, [dateRange, selectedHallId]);
 
   useEffect(() => { fetchAdminAnalytics(); }, [fetchAdminAnalytics]);
 
   const topHallsData = data?.hallPerformance?.mostActiveHalls.slice(0, 5).map(venue => ({ name: venue.name, Revenue: venue.revenue })) || [];
   const revenueBreakdownData = data ? [
-    { name: 'Booking Revenue', value: data.platformRevenue.totalBookingRevenue },
-    { name: 'Subscription Revenue', value: data.platformRevenue.totalSubscriptionRevenue },
+    { name: 'Booking Commission', value: data.platformRevenue.bookingCommissionRevenue },
+    { name: 'Subscription Revenue', value: data.platformRevenue.subscriptionRevenue },
   ] : [];
   const COLORS = ['#295FA7', '#B68945'];
 
@@ -108,7 +204,16 @@ const AdminEnhancedAnalytics = () => {
           <h1 className="text-2xl sm:text-3xl font-black text-gray-900">Admin Dashboard</h1>
           <p className="text-sm text-gray-500 font-medium">Platform-wide overview and revenue analytics.</p>
         </div>
-        <div className="p-1.5 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center gap-2">
+        <div className="p-1.5 bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-wrap items-center gap-2">
+          <select
+            value={selectedHallId}
+            onChange={(e) => setSelectedHallId(e.target.value)}
+            className="bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm font-bold text-gray-700 focus:ring-2 focus:ring-primary/20 outline-none min-w-[180px]"
+          >
+            <option value="">All Venues</option>
+            {venues.map(v => <option key={v._id} value={v._id}>{v.name}</option>)}
+          </select>
+
           <div className="relative" ref={datePickerRef}>
               <button
                 onClick={() => setShowDatePicker(d => !d)}
@@ -157,14 +262,67 @@ const AdminEnhancedAnalytics = () => {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            <AdminStatCard title="Gross Revenue" value={formatCurrency(data.platformRevenue.totalGrossRevenue || 0)} icon={DollarSign} />
-            <AdminStatCard title="Total Refunded" value={formatCurrency(data.platformRevenue.totalRefunded || 0)} icon={TrendingDown} />
-            <AdminStatCard title="Net Revenue" value={formatCurrency(data.platformRevenue.totalNetRevenue || data.platformRevenue.grandTotal)} icon={TrendingUp} />
-            <AdminStatCard title="Total Revenue" value={formatCurrency(data.platformRevenue.grandTotal)} icon={DollarSign} />
-            <AdminStatCard title="Booking Revenue" value={formatCurrency(data.platformRevenue.totalBookingRevenue)} icon={Briefcase} trend={data.dataComparison.change.bookingRevenuePercentage} />
-            <AdminStatCard title="Subscriptions" value={formatCurrency(data.platformRevenue.totalSubscriptionRevenue)} icon={Shield} trend={data.dataComparison.change.subscriptionRevenuePercentage} />
-            <AdminStatCard title="Commission" value={formatCurrency(data.commissionAnalytics.totalCommission)} icon={Percent} />
+          <div className="space-y-2">
+            <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Overall Platform Statistics</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <AdminStatCard title="System Gross Volume" value={formatCurrency(data.overallStats.systemGrossVolume)} icon={DollarSign} />
+              <AdminStatCard title="Total Owner Payouts" value={formatCurrency(data.overallStats.totalOwnerPayouts)} icon={Briefcase} />
+              <AdminStatCard title="Total Refunded" value={formatCurrency(data.overallStats.totalRefunded)} icon={TrendingDown} />
+              <AdminStatCard title="Platform Net" value={formatCurrency(data.overallStats.totalPlatformNet)} icon={TrendingUp} />
+              <AdminStatCard title="Total Views" value={data.overallStats.totalViews.toLocaleString()} icon={TrendingUp} />
+              <AdminStatCard title="Demo Bookings" value={data.overallStats.totalDemoBookings} icon={Briefcase} />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Gobokin Revenue Performance</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <AdminStatCard title="Platform Net Revenue" value={formatCurrency(data.platformRevenue.totalPlatformNet)} icon={DollarSign} />
+              <AdminStatCard title="Booking Commission" value={formatCurrency(data.platformRevenue.bookingCommissionRevenue)} icon={Percent} trend={data.dataComparison.change.bookingRevenuePercentage} />
+              <AdminStatCard title="Subscription Revenue" value={formatCurrency(data.platformRevenue.subscriptionRevenue)} icon={Shield} trend={data.dataComparison.change.subscriptionRevenuePercentage} />
+              <AdminStatCard title="Commission Rate" value={data.platformRevenue.commissionRate} icon={Percent} />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+              <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider mb-4">Booking Status Breakdown</h3>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="bg-emerald-50 p-4 rounded-2xl text-center">
+                  <p className="text-[10px] font-bold text-emerald-600 uppercase mb-1">Confirmed</p>
+                  <p className="text-2xl font-black text-emerald-700">{data.overallStats.totalBookings.confirmed}</p>
+                </div>
+                <div className="bg-amber-50 p-4 rounded-2xl text-center">
+                  <p className="text-[10px] font-bold text-amber-600 uppercase mb-1">Pending</p>
+                  <p className="text-2xl font-black text-amber-700">{data.overallStats.totalBookings.pending}</p>
+                </div>
+                <div className="bg-rose-50 p-4 rounded-2xl text-center">
+                  <p className="text-[10px] font-bold text-rose-600 uppercase mb-1">Cancelled</p>
+                  <p className="text-2xl font-black text-rose-700">{data.overallStats.totalBookings.cancelled}</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+              <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider mb-4">Reservation Status</h3>
+              <div className="grid grid-cols-4 gap-2 sm:gap-4">
+                <div className="bg-blue-50 p-4 rounded-2xl text-center">
+                  <p className="text-[10px] font-bold text-blue-600 uppercase mb-1">New</p>
+                  <p className="text-xl font-black text-blue-700">{data.overallStats.totalReservations.new}</p>
+                </div>
+                <div className="bg-indigo-50 p-4 rounded-2xl text-center">
+                  <p className="text-[10px] font-bold text-indigo-600 uppercase mb-1">Active</p>
+                  <p className="text-xl font-black text-indigo-700">{data.overallStats.totalReservations.active}</p>
+                </div>
+                <div className="bg-emerald-50 p-4 rounded-2xl text-center">
+                  <p className="text-[10px] font-bold text-emerald-600 uppercase mb-1">Conv.</p>
+                  <p className="text-xl font-black text-emerald-700">{data.overallStats.totalReservations.converted}</p>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-2xl text-center">
+                  <p className="text-[10px] font-bold text-gray-600 uppercase mb-1">Exp.</p>
+                  <p className="text-xl font-black text-gray-700">{data.overallStats.totalReservations.expired}</p>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
@@ -225,7 +383,7 @@ const AdminEnhancedAnalytics = () => {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-50">
-                              {data.hallPerformance?.mostActiveHalls.map((venue) => (
+                              {data.hallPerformance.mostActiveHalls.map((venue) => (
                                   <tr key={venue._id} className="group hover:bg-gray-50/50 transition-colors">
                                       <td className="py-4">
                                           <div className="text-sm font-bold text-gray-900">{venue.name}</div>
@@ -252,22 +410,78 @@ const AdminEnhancedAnalytics = () => {
                             <tr className="border-b border-gray-50">
                                 <th className="pb-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Venue Name</th>
                                 <th className="pb-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Ownership</th>
-                                <th className="pb-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
+                                <th className="pb-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">Reason / Status</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-50">
-                              {data.hallPerformance?.inactiveHalls.map((venue) => (
+                              {data.hallPerformance.inactiveHalls.map((venue) => (
                                   <tr key={venue.hallId} className="hover:bg-gray-50/50 transition-colors">
                                       <td className="py-4 text-sm font-bold text-gray-900">{venue.hallName}</td>
                                       <td className="py-4 text-xs text-gray-500 font-medium">{venue.ownerName ?? 'Unassigned'}</td>
                                       <td className="py-4 text-right">
-                                          <span className="px-2 py-1 bg-rose-50 text-rose-600 text-[10px] font-black uppercase rounded-md">No Recent Bookings</span>
+                                          <span className="px-2 py-1 bg-rose-50 text-rose-600 text-[10px] font-black uppercase rounded-md">
+                                            {venue.reason || 'No Recent Bookings'}
+                                          </span>
                                       </td>
                                   </tr>
                               ))}
                               {data.hallPerformance?.inactiveHalls.length === 0 && (<tr><td colSpan={3} className="text-center py-20 text-gray-400 italic">All properties are currently active.</td></tr>)}
                           </tbody>
                       </table>
+                  </div>
+              </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+              <div className="lg:col-span-3 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                  <h2 className="text-lg font-black text-gray-900 uppercase tracking-tighter mb-6">Top Customers</h2>
+                  <div className="overflow-x-auto">
+                      <table className="min-w-full">
+                          <thead>
+                            <tr className="border-b border-gray-50">
+                                <th className="pb-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Customer Details</th>
+                                <th className="pb-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Spent</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-50">
+                              {data.userInsights?.topCustomers.map((customer) => (
+                                  <tr key={customer.userId} className="group hover:bg-gray-50/50 transition-colors">
+                                      <td className="py-4">
+                                          <div className="text-sm font-bold text-gray-900">{customer.fullName}</div>
+                                          <div className="text-[10px] text-gray-400 font-medium">{customer.email}</div>
+                                      </td>
+                                      <td className="py-4 text-right text-sm font-black text-gray-900">
+                                          {formatCurrency(customer.totalSpent)}
+                                      </td>
+                                  </tr>
+                              ))}
+                              {data.userInsights?.topCustomers.length === 0 && (<tr><td colSpan={2} className="text-center py-10 text-gray-400 italic">No customer data available.</td></tr>)}
+                          </tbody>
+                      </table>
+                  </div>
+              </div>
+              <div className="lg:col-span-2 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                  <h2 className="text-lg font-black text-gray-900 uppercase tracking-tighter mb-8">Platform Subscriptions</h2>
+                  <div className="space-y-6">
+                      <div className="flex items-center justify-between p-4 bg-blue-50 rounded-2xl">
+                          <div className="flex items-center space-x-3">
+                              <div className="bg-primary text-white p-2 rounded-lg">
+                                  <Shield size={20} />
+                              </div>
+                              <span className="text-sm font-bold text-gray-700">Total Active</span>
+                          </div>
+                          <span className="text-2xl font-black text-primary">{data.userInsights.subscriptionCounts.totalActive}</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                          <div className="p-4 border border-gray-100 rounded-2xl">
+                              <p className="text-[10px] font-black text-gray-400 uppercase mb-1">New This Period</p>
+                              <p className="text-xl font-black text-emerald-600">{data.userInsights.subscriptionCounts.new}</p>
+                          </div>
+                          <div className="p-4 border border-gray-100 rounded-2xl">
+                              <p className="text-[10px] font-black text-gray-400 uppercase mb-1">Expired</p>
+                              <p className="text-xl font-black text-rose-600">{data.userInsights.subscriptionCounts.expired}</p>
+                          </div>
+                      </div>
                   </div>
               </div>
           </div>
