@@ -109,13 +109,15 @@ input[type="reset"]:disabled {
   body * {
     visibility: hidden;
   }
-  #booking-details-content, #booking-details-content * {
+  #booking-details-content, #booking-details-content *,
+  .print-content, .print-content * {
     visibility: visible;
   }
-  #booking-details-content {
+  #booking-details-content, .print-content {
     position: absolute;
     left: 0;
     top: 0;
+    width: 100%;
   }
 }
 

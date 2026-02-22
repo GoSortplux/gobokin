@@ -161,7 +161,7 @@ const SubscriptionReceipt: React.FC<SubscriptionReceiptProps> = ({ data, isSucce
       {/* The Actual Receipt Content */}
       <div
         ref={receiptRef}
-        className="w-full bg-white shadow-2xl rounded-[2rem] overflow-hidden border border-gray-100 relative"
+        className="w-full bg-white shadow-2xl rounded-[2rem] overflow-hidden border border-gray-100 relative print-content"
         style={{ minHeight: '800px' }}
       >
         {/* Certificate Decoration */}
