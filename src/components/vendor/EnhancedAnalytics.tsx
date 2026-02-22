@@ -512,10 +512,11 @@ const EnhancedAnalytics = ({ initialData }: { initialData?: AnalyticsData | null
                         <ResponsiveContainer width="100%" height={350}>
                             <PieChart margin={{ top: 20, right: 100, bottom: 20, left: 100 }}>
                                 <Tooltip />
-                                {/* @ts-expect-error - activeIndex and activeShape are supported by recharts but may not be in the current type definitions */}
                                 <Pie
-                                  activeIndex={activeIndex}
-                                  activeShape={renderActiveShape}
+                                  {...({
+                                    activeIndex,
+                                    activeShape: renderActiveShape,
+                                  } as unknown as Record<string, unknown>)}
                                   data={pieData}
                                   cx="50%"
                                   cy="50%"
