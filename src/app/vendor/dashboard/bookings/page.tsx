@@ -657,7 +657,8 @@ const BookingsPage = () => {
                   <tr>
                     <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Booking ID</th>
                     <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Customer</th>
-                    <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Date Range</th>
+                    <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Event Date</th>
+                    <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Created At</th>
                     <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Status</th>
                     <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Payout</th>
                     <th className="px-6 py-3 text-right text-[10px] font-bold text-gray-500 uppercase tracking-wider">Actions</th>
@@ -704,6 +705,9 @@ const BookingsPage = () => {
                               <span className="text-xs text-gray-400">{new Date(booking.bookingDates[0].startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - {new Date(booking.bookingDates[0].endTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                             </div>
                           )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {new Date(booking.createdAt).toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex flex-col gap-1.5">
@@ -817,7 +821,7 @@ const BookingsPage = () => {
                       </tr>
                       {expandedBookingId === booking._id && (
                         <tr>
-                          <td colSpan={7} className="px-6 py-8 bg-white border-t border-gray-100 shadow-inner">
+                          <td colSpan={8} className="px-6 py-8 bg-white border-t border-gray-100 shadow-inner">
                             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
                               {/* Left Column: Customer & Event Info */}
                               <div className="space-y-6">
@@ -1009,7 +1013,7 @@ const BookingsPage = () => {
                     </React.Fragment>
                   )) : (
                     <tr>
-                      <td colSpan={6} className="px-6 py-20 text-center text-gray-500">
+                      <td colSpan={7} className="px-6 py-20 text-center text-gray-500">
                         {selectedVenue ? (searchTerm ? `No bookings found matching "${searchTerm}"` : 'No bookings found for this venue.') : 'Please select a venue.'}
                       </td>
                     </tr>
@@ -1050,7 +1054,7 @@ const BookingsPage = () => {
 
                     <div className="grid grid-cols-2 gap-3 mb-4">
                       <div className="bg-gray-50 p-2 rounded-lg">
-                        <p className="text-[9px] font-bold text-gray-400 uppercase">Date</p>
+                        <p className="text-[9px] font-bold text-gray-400 uppercase">Event Date</p>
                         <p className="text-xs font-semibold text-gray-800">
                           {new Date(booking.bookingDates[0].startTime).toLocaleDateString()}
                           {booking.isGroup && <span className="text-blue-600 block text-[9px]">Series End: {new Date(booking.bookingDates[0].endTime).toLocaleDateString()}</span>}
@@ -1220,7 +1224,8 @@ const BookingsPage = () => {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Customer</th>
-                    <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Date</th>
+                    <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Event Date</th>
+                    <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Created At</th>
                     <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Status</th>
                     <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Payment</th>
                     <th className="px-6 py-3 text-right text-[10px] font-bold text-gray-500 uppercase tracking-wider">Actions</th>
@@ -1235,6 +1240,9 @@ const BookingsPage = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <span className="block">{new Date(reservation.bookingDates[0].startTime).toLocaleDateString()}</span>
                         <span className="text-[10px] text-gray-400 font-medium">{new Date(reservation.bookingDates[0].startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {new Date(reservation.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2.5 py-1 text-[10px] font-bold rounded-full uppercase tracking-wider ${
@@ -1307,7 +1315,7 @@ const BookingsPage = () => {
                     </tr>
                   )) : (
                     <tr>
-                      <td colSpan={5} className="px-6 py-20 text-center text-gray-500">
+                      <td colSpan={6} className="px-6 py-20 text-center text-gray-500">
                          {selectedVenue ? "No reservations found." : "Select a venue."}
                       </td>
                     </tr>

@@ -490,7 +490,8 @@ const BookingsPage = () => {
                     <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Booking</th>
                     <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Venue</th>
                     <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Customer / Event</th>
-                    <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Timeline</th>
+                    <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Event Date</th>
+                    <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Created At</th>
                     <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status</th>
                     <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Financials</th>
                     <th className="py-4 px-6 text-right text-[10px] font-bold text-gray-400 uppercase tracking-widest">Actions</th>
@@ -529,6 +530,11 @@ const BookingsPage = () => {
                                 <div>{new Date(booking.bookingDates[0].startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
                               </div>
                             )}
+                          </td>
+                          <td className="py-4 px-6">
+                            <div className="text-xs font-medium text-gray-900">
+                              {new Date(booking.createdAt).toLocaleDateString()}
+                            </div>
                           </td>
                           <td className="py-4 px-6">
                             <div className="flex flex-col gap-1.5">
@@ -613,7 +619,7 @@ const BookingsPage = () => {
                         </tr>
                         {expandedBookingId === booking._id && (
                           <tr>
-                            <td colSpan={7} className="p-6 bg-gray-50 border-y border-gray-100">
+                            <td colSpan={8} className="p-6 bg-gray-50 border-y border-gray-100">
                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                                 {/* Column 1: Payment & Payout */}
                                 <div className="space-y-6">
@@ -875,7 +881,7 @@ const BookingsPage = () => {
 
                          <div className="grid grid-cols-2 gap-4 py-4 border-y border-gray-50">
                             <div>
-                               <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Timing</p>
+                               <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Event Date</p>
                                <p className="text-xs font-bold text-gray-800">{new Date(booking.bookingDates[0].startTime).toLocaleDateString()}</p>
                                {booking.isGroup ? <p className="text-[10px] text-blue-600 font-bold">Series: {booking.groupBookings?.length} events</p> : <p className="text-[10px] text-gray-500">{new Date(booking.bookingDates[0].startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>}
                             </div>
@@ -1066,7 +1072,8 @@ const BookingsPage = () => {
                           <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Reservation</th>
                           <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Venue</th>
                           <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Customer</th>
-                          <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Timeline</th>
+                          <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Event Date</th>
+                          <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Created At</th>
                           <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status</th>
                           <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Financials</th>
                           <th className="py-4 px-6 text-right text-[10px] font-bold text-gray-400 uppercase tracking-widest">Actions</th>
@@ -1087,6 +1094,11 @@ const BookingsPage = () => {
                                 <div className="text-xs font-medium text-gray-600">
                                    <div className="font-bold text-gray-900">{new Date(reservation.bookingDates[0].startTime).toLocaleDateString()}</div>
                                    <div>{new Date(reservation.bookingDates[0].startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                                </div>
+                              </td>
+                              <td className="py-4 px-6">
+                                <div className="text-xs font-medium text-gray-900">
+                                  {new Date(reservation.createdAt).toLocaleDateString()}
                                 </div>
                               </td>
                               <td className="py-4 px-6">
@@ -1173,7 +1185,7 @@ const BookingsPage = () => {
 
                                <div className="grid grid-cols-2 gap-4 py-4 border-y border-gray-50">
                                   <div>
-                                     <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Timing</p>
+                                     <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Event Date</p>
                                      <p className="text-xs font-bold text-gray-800">{new Date(res.bookingDates[0].startTime).toLocaleDateString()}</p>
                                      <p className="text-[10px] text-gray-500">{new Date(res.bookingDates[0].startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
                                   </div>
