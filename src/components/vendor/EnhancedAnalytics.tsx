@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import api from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
-import { BarChart as BarChartIcon, Eye, Briefcase, TrendingUp, TrendingDown, Target, CalendarCheck, Calendar as CalendarIcon, ChevronDown, Search, ChevronLeft, ChevronRight, CheckCircle, XCircle, Clock, RotateCcw } from 'lucide-react';
+import { BarChart as BarChartIcon, Eye, Briefcase, TrendingUp, TrendingDown, Target, CalendarCheck, Calendar as CalendarIcon, ChevronDown, Search, ChevronLeft, ChevronRight, Clock, RotateCcw } from 'lucide-react';
 import { DateRange, Range } from 'react-date-range';
 import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
@@ -12,9 +12,15 @@ import useOnClickOutside from '@/hooks/useOnClickOutside';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Sector } from 'recharts';
 interface OverallStats {
   totalRevenue: number;
-  totalGrossRevenue?: number;
-  totalRefunded?: number;
-  totalNetRevenue?: number;
+  grossRevenue: number;
+  netRevenueBeforeCommission: number;
+  totalCommission: number;
+  totalPayout: number;
+  totalRefunded: number;
+  totalBookingRevenue: number;
+  bookingGrossRevenue: number;
+  bookingRefundedAmount: number;
+  bookingRevenue: number;
   totalViews: number;
   totalDemoBookings: number;
   totalBookings: {
@@ -25,12 +31,31 @@ interface OverallStats {
 }
 
 interface RevenueBreakdown {
-  totalRevenue: number;
-  hallRevenue: number;
-  facilityRevenue: number;
   hallId: string;
   hallName: string;
-  [key: string]: string | number;
+  overallStats: {
+    totalRevenue: number;
+    grossRevenue: number;
+    netRevenueBeforeCommission: number;
+    commissionAmount: number;
+    payoutAmount: number;
+    totalRefunded: number;
+    totalViews: number;
+    totalBookings: {
+      confirmed: number;
+      cancelled: number;
+      pending: number;
+    };
+    hallRevenue: number;
+    facilityRevenue: number;
+  };
+  kpis: KPIs;
+  reservationAnalytics: {
+    new: number;
+    converted: number;
+    expired: number;
+    active: number;
+  };
 }
 
 interface Booking {
@@ -70,13 +95,14 @@ interface KPIs {
     day: string;
     count: number;
   }[];
+  repeatBookingRate: string;
+  occupancyRate: string;
+  averageBookingLeadTime: string;
 }
 
 interface AnalyticsData {
   overallStats: OverallStats;
-  revenueDetails: {
-    breakdownByHall: RevenueBreakdown[];
-  };
+  breakdownByHall: RevenueBreakdown[];
   recentBookings: {
     bookings: Booking[];
     pagination: {
@@ -86,7 +112,7 @@ interface AnalyticsData {
     };
   };
   kpis: KPIs;
-  reservationAnalytics?: {
+  reservationAnalytics: {
     new: number;
     converted: number;
     expired: number;
@@ -161,22 +187,37 @@ const formatDateRange = (start: Date | undefined, end: Date | undefined) => {
 const DEFAULT_DATA: AnalyticsData = {
   overallStats: {
     totalRevenue: 0,
-    totalGrossRevenue: 0,
+    grossRevenue: 0,
+    netRevenueBeforeCommission: 0,
+    totalCommission: 0,
+    totalPayout: 0,
     totalRefunded: 0,
-    totalNetRevenue: 0,
+    totalBookingRevenue: 0,
+    bookingGrossRevenue: 0,
+    bookingRefundedAmount: 0,
+    bookingRevenue: 0,
     totalViews: 0,
     totalDemoBookings: 0,
     totalBookings: { confirmed: 0, cancelled: 0, pending: 0 },
   },
-  revenueDetails: { breakdownByHall: [] },
+  breakdownByHall: [],
   recentBookings: {
     bookings: [],
     pagination: { currentPage: 1, totalPages: 1, totalBookings: 0 },
   },
   kpis: {
-    bookingConversionRate: '0.00',
+    bookingConversionRate: '0.00%',
     averageBookingValue: '0.00',
     busiestDays: [],
+    repeatBookingRate: '0.00%',
+    occupancyRate: '0.00%',
+    averageBookingLeadTime: '0.0 days',
+  },
+  reservationAnalytics: {
+    new: 0,
+    converted: 0,
+    expired: 0,
+    active: 0,
   },
 };
 
@@ -269,10 +310,10 @@ const EnhancedAnalytics = ({ initialData }: { initialData?: AnalyticsData | null
     ...data,
     overallStats: { ...DEFAULT_DATA.overallStats, ...data?.overallStats },
     kpis: { ...DEFAULT_DATA.kpis, ...data?.kpis },
-    revenueDetails: { ...DEFAULT_DATA.revenueDetails, ...data?.revenueDetails },
     recentBookings: { ...DEFAULT_DATA.recentBookings, ...data?.recentBookings },
+    reservationAnalytics: { ...DEFAULT_DATA.reservationAnalytics, ...data?.reservationAnalytics },
   };
-  const { overallStats, kpis, revenueDetails, recentBookings, reservationAnalytics } = analyticsData;
+  const { overallStats, kpis, breakdownByHall, recentBookings, reservationAnalytics } = analyticsData;
 
   const groupedRecentBookings = React.useMemo(() => {
     const groups: Record<string, Booking[]> = {};
@@ -371,23 +412,69 @@ const EnhancedAnalytics = ({ initialData }: { initialData?: AnalyticsData | null
 
         {loading ? ( <div className="animate-pulse space-y-6"><div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">{[...Array(12)].map((_, i) => ( <div key={i} className="bg-gray-200 p-6 rounded-xl h-28"></div> ))}</div><div className="grid grid-cols-1 lg:grid-cols-2 gap-6"><div className="bg-gray-200 rounded-3xl h-96"></div><div className="bg-gray-200 rounded-3xl h-96"></div></div><div className="bg-gray-200 rounded-3xl h-96"></div></div>)
         : ( <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                <StatCard title="Gross Revenue" value={formatCurrency(overallStats.totalGrossRevenue || 0)} icon={BarChartIcon} />
-                <StatCard title="Total Refunded" value={formatCurrency(overallStats.totalRefunded || 0)} icon={TrendingDown} />
-                <StatCard title="Net Revenue" value={formatCurrency(overallStats.totalNetRevenue || overallStats.totalRevenue)} icon={TrendingUp} />
-                <StatCard title="Total Venue Views" value={overallStats.totalViews} icon={Eye} />
-                <StatCard title="Confirmed Bookings" value={overallStats.totalBookings.confirmed} icon={Briefcase} />
-                <StatCard title="Booking Conversion" value={`${kpis.bookingConversionRate}`} icon={Target} />
-                <StatCard title="Avg. Booking Value" value={formatCurrency(Number(kpis.averageBookingValue))} icon={TrendingUp} />
-                <StatCard title="Demo Bookings" value={overallStats.totalDemoBookings} icon={CalendarCheck} />
-                {reservationAnalytics && (
-                  <>
-                    <StatCard title="New Reservations" value={reservationAnalytics.new} icon={Briefcase} />
-                    <StatCard title="Converted" value={reservationAnalytics.converted} icon={CheckCircle} />
-                    <StatCard title="Expired" value={reservationAnalytics.expired} icon={XCircle} />
-                    <StatCard title="Active" value={reservationAnalytics.active} icon={Clock} />
-                  </>
-                )}
+            <div className="space-y-2">
+                <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Financial Overview</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <StatCard title="Gross Revenue" value={formatCurrency(overallStats.grossRevenue)} icon={BarChartIcon} />
+                    <StatCard title="Net Rev (Pre-Comm)" value={formatCurrency(overallStats.netRevenueBeforeCommission)} icon={TrendingUp} />
+                    <StatCard title="Total Commission" value={formatCurrency(overallStats.totalCommission)} icon={TrendingDown} />
+                    <StatCard title="Total Payout" value={formatCurrency(overallStats.totalPayout)} icon={TrendingUp} />
+                    <StatCard title="Total Refunded" value={formatCurrency(overallStats.totalRefunded)} icon={TrendingDown} />
+                    <StatCard title="Avg. Booking Value" value={formatCurrency(Number(kpis.averageBookingValue))} icon={Target} />
+                </div>
+            </div>
+
+            <div className="space-y-2">
+                <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Engagement & Conversion</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <StatCard title="Total Venue Views" value={overallStats.totalViews.toLocaleString()} icon={Eye} />
+                    <StatCard title="Booking Conversion" value={kpis.bookingConversionRate} icon={Target} />
+                    <StatCard title="Repeat Booking Rate" value={kpis.repeatBookingRate} icon={TrendingUp} />
+                    <StatCard title="Occupancy Rate" value={kpis.occupancyRate} icon={Briefcase} />
+                    <StatCard title="Avg. Lead Time" value={kpis.averageBookingLeadTime} icon={Clock} />
+                    <StatCard title="Demo Bookings" value={overallStats.totalDemoBookings} icon={CalendarCheck} />
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+                    <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider mb-4">Booking Status</h3>
+                    <div className="grid grid-cols-3 gap-4">
+                        <div className="bg-emerald-50 p-4 rounded-2xl text-center">
+                            <p className="text-[10px] font-bold text-emerald-600 uppercase mb-1">Confirmed</p>
+                            <p className="text-2xl font-black text-emerald-700">{overallStats.totalBookings.confirmed}</p>
+                        </div>
+                        <div className="bg-amber-50 p-4 rounded-2xl text-center">
+                            <p className="text-[10px] font-bold text-amber-600 uppercase mb-1">Pending</p>
+                            <p className="text-2xl font-black text-amber-700">{overallStats.totalBookings.pending}</p>
+                        </div>
+                        <div className="bg-rose-50 p-4 rounded-2xl text-center">
+                            <p className="text-[10px] font-bold text-rose-600 uppercase mb-1">Cancelled</p>
+                            <p className="text-2xl font-black text-rose-700">{overallStats.totalBookings.cancelled}</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+                    <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider mb-4">Reservation Status</h3>
+                    <div className="grid grid-cols-4 gap-2">
+                        <div className="bg-blue-50 p-4 rounded-2xl text-center">
+                            <p className="text-[10px] font-bold text-blue-600 uppercase mb-1">New</p>
+                            <p className="text-xl font-black text-blue-700">{reservationAnalytics.new}</p>
+                        </div>
+                        <div className="bg-indigo-50 p-4 rounded-2xl text-center">
+                            <p className="text-[10px] font-bold text-indigo-600 uppercase mb-1">Active</p>
+                            <p className="text-xl font-black text-indigo-700">{reservationAnalytics.active}</p>
+                        </div>
+                        <div className="bg-emerald-50 p-4 rounded-2xl text-center">
+                            <p className="text-[10px] font-bold text-emerald-600 uppercase mb-1">Conv.</p>
+                            <p className="text-xl font-black text-emerald-700">{reservationAnalytics.converted}</p>
+                        </div>
+                        <div className="bg-gray-50 p-4 rounded-2xl text-center">
+                            <p className="text-[10px] font-bold text-gray-600 uppercase mb-1">Exp.</p>
+                            <p className="text-xl font-black text-gray-700">{reservationAnalytics.expired}</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
@@ -413,18 +500,73 @@ const EnhancedAnalytics = ({ initialData }: { initialData?: AnalyticsData | null
                 </div>
                 <div className="lg:col-span-2 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
                     <h2 className="text-lg font-black text-gray-900 uppercase tracking-tighter mb-8 text-center">Revenue by Venue</h2>
-                    {revenueDetails && revenueDetails.breakdownByHall && revenueDetails.breakdownByHall.length > 0 ? (
+                    {breakdownByHall && breakdownByHall.length > 0 ? (
                         <ResponsiveContainer width="100%" height={300}>
                             <PieChart>
                                 {/* @ts-expect-error - activeIndex and activeShape are supported by recharts but may not be in the current type definitions */}
-                                <Pie activeIndex={activeIndex} activeShape={renderActiveShape} data={revenueDetails.breakdownByHall} cx="50%" cy="50%" innerRadius={60} outerRadius={80} fill="#295FA7" dataKey="totalRevenue" onMouseEnter={onPieEnter}>
-                                    {revenueDetails.breakdownByHall.map((entry, index) => (<Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />))}
+                                <Pie
+                                  activeIndex={activeIndex}
+                                  activeShape={renderActiveShape}
+                                  data={breakdownByHall.map(h => ({ ...h, totalRevenue: h.overallStats.totalRevenue }))}
+                                  cx="50%"
+                                  cy="50%"
+                                  innerRadius={60}
+                                  outerRadius={80}
+                                  fill="#295FA7"
+                                  dataKey="totalRevenue"
+                                  onMouseEnter={onPieEnter}
+                                >
+                                    {breakdownByHall.map((entry, index) => (<Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />))}
                                 </Pie>
                             </PieChart>
                         </ResponsiveContainer>
                     ) : (
                         <div className="flex items-center justify-center h-full min-h-[300px] text-gray-500">No data available for this period.</div>
                     )}
+                </div>
+            </div>
+
+            <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                <h2 className="text-lg font-black text-gray-900 uppercase tracking-tighter mb-6">Venue Performance Details</h2>
+                <div className="overflow-x-auto">
+                    <table className="min-w-full">
+                        <thead>
+                            <tr className="border-b border-gray-50">
+                                <th className="pb-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Venue Name</th>
+                                <th className="pb-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Revenue (Hall/Facility)</th>
+                                <th className="pb-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Commission</th>
+                                <th className="pb-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Net Payout</th>
+                                <th className="pb-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">Conversion</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                            {breakdownByHall.map((hall) => (
+                                <tr key={hall.hallId} className="group hover:bg-gray-50/50 transition-colors">
+                                    <td className="py-4 whitespace-nowrap">
+                                        <div className="text-sm font-bold text-gray-900">{hall.hallName}</div>
+                                        <div className="text-[10px] text-gray-400 font-medium">{hall.overallStats.totalBookings.confirmed} Confirmed Bookings</div>
+                                    </td>
+                                    <td className="py-4 text-center">
+                                        <div className="text-sm font-black text-gray-900">{formatCurrency(hall.overallStats.totalRevenue)}</div>
+                                        <div className="text-[10px] text-gray-400">
+                                            {formatCurrency(hall.overallStats.hallRevenue)} / {formatCurrency(hall.overallStats.facilityRevenue)}
+                                        </div>
+                                    </td>
+                                    <td className="py-4 text-center text-sm font-medium text-rose-500">
+                                        -{formatCurrency(hall.overallStats.commissionAmount)}
+                                    </td>
+                                    <td className="py-4 text-center text-sm font-black text-emerald-600">
+                                        {formatCurrency(hall.overallStats.payoutAmount)}
+                                    </td>
+                                    <td className="py-4 text-right">
+                                        <span className="inline-block px-3 py-1 bg-blue-50 text-blue-600 text-xs font-bold rounded-lg">
+                                            {hall.kpis.bookingConversionRate}
+                                        </span>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
