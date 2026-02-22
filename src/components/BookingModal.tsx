@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useState, useEffect, useCallback } from 'react';
+import { FC, useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { X } from 'lucide-react';
 import api from '@/services/api';
@@ -75,6 +75,23 @@ const BookingModal: FC<BookingModalProps> = ({
   const [usePerDateTimes, setUsePerDateTimes] = useState(false);
   const [dateTimes, setDateTimes] = useState<Record<string, { startTime: string; endTime: string }>>({});
   const [durationInHours, setDurationInHours] = useState(0);
+
+  const totalHours = useMemo(() => {
+    if (!selectedDates || selectedDates.length === 0) return 0;
+    let total = 0;
+    selectedDates.forEach(date => {
+      const dateStr = date.toDateString();
+      const times = usePerDateTimes && dateTimes[dateStr] ? dateTimes[dateStr] : { startTime, endTime };
+      if (times.startTime && times.endTime) {
+        const [startH, startM] = times.startTime.split(':').map(Number);
+        const [endH, endM] = times.endTime.split(':').map(Number);
+        const diff = (endH + endM / 60) - (startH + startM / 60);
+        if (diff > 0) total += diff;
+      }
+    });
+    return total;
+  }, [selectedDates, usePerDateTimes, dateTimes, startTime, endTime]);
+
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showRefundPolicy, setShowRefundPolicy] = useState(false);
@@ -422,8 +439,12 @@ const BookingModal: FC<BookingModalProps> = ({
         return;
       }
 
-      // Fetch quote before moving to step 3
+      setError('');
+      // Set calculating state before moving to step 3 to ensure loader shows immediately
+      setIsCalculatingQuote(true);
+      nextStep();
       await fetchQuote();
+      return;
     }
     setError('');
     if (step < 3) {
@@ -534,6 +555,9 @@ const BookingModal: FC<BookingModalProps> = ({
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">Selected</span>
                     <div className="text-2xl font-black text-gray-900">
                       {selectedDates.length} {selectedDates.length === 1 ? 'Date' : 'Dates'}
+                      {totalHours > 0 && (
+                        <span className="text-sm text-gray-500 ml-2 font-medium">({totalHours} {totalHours === 1 ? 'Hour' : 'Hours'})</span>
+                      )}
                     </div>
                   </div>
                 )}
@@ -718,7 +742,11 @@ const BookingModal: FC<BookingModalProps> = ({
                   </div>
 
                   <div className="mt-6 flex flex-col items-end">
-                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Running Total</span>
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                      Total Selection: {selectedDates?.length} {selectedDates?.length === 1 ? 'Date' : 'Dates'}
+                      {totalHours > 0 && ` (${totalHours} ${totalHours === 1 ? 'Hour' : 'Hours'})`}
+                    </span>
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-2">Running Total</span>
                     <div className="text-3xl font-black text-gray-900">
                       ₦{totalPrice.toLocaleString()}
                     </div>
@@ -760,9 +788,22 @@ const BookingModal: FC<BookingModalProps> = ({
                             {selectedDates?.map(date => {
                               const dateStr = date.toDateString();
                               const times = usePerDateTimes && dateTimes[dateStr] ? dateTimes[dateStr] : { startTime, endTime };
+
+                              let dateDuration = 0;
+                              if (times.startTime && times.endTime) {
+                                const [startH, startM] = times.startTime.split(':').map(Number);
+                                const [endH, endM] = times.endTime.split(':').map(Number);
+                                dateDuration = (endH + endM / 60) - (startH + startM / 60);
+                              }
+
                               return (
                                 <div key={dateStr} className="flex justify-between items-center bg-white p-2 rounded-lg border border-gray-100 text-sm shadow-sm">
-                                  <span className="font-medium text-gray-700">{date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+                                  <div className="flex flex-col">
+                                    <span className="font-medium text-gray-700">{date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+                                    {dateDuration > 0 && (
+                                      <span className="text-[10px] text-gray-400 font-medium">{dateDuration} {dateDuration === 1 ? 'Hour' : 'Hours'}</span>
+                                    )}
+                                  </div>
                                   <span className="font-black text-primary">{times.startTime} - {times.endTime}</span>
                                 </div>
                               );
@@ -934,12 +975,19 @@ const BookingModal: FC<BookingModalProps> = ({
               {step < 3 ? (
                 <button
                   type="submit"
-                  className="px-10 py-3 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl shadow-lg shadow-primary/20 transition-all transform active:scale-95 flex items-center uppercase tracking-widest text-xs"
+                  disabled={isCalculatingQuote}
+                  className="px-10 py-3 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl shadow-lg shadow-primary/20 transition-all transform active:scale-95 flex items-center uppercase tracking-widest text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Next Step
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
+                  {isCalculatingQuote ? (
+                    <CustomLoader size={16} />
+                  ) : (
+                    <>
+                      Next Step
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </>
+                  )}
                 </button>
               ) : null}
             </div>
