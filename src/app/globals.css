@@ -106,18 +106,61 @@ input[type="reset"]:disabled {
 }
 
 @media print {
-  body * {
+  @page {
+    margin: 1cm;
+    size: auto;
+  }
+
+  body {
     visibility: hidden;
+    background: white !important;
+    overflow: visible !important;
   }
-  #booking-details-content, #booking-details-content *,
-  .print-content, .print-content * {
-    visibility: visible;
+
+  /* Reset layout constraints for printing */
+  main,
+  #__next,
+  [role="dialog"],
+  .fixed,
+  .absolute {
+    position: static !important;
+    overflow: visible !important;
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
   }
-  #booking-details-content, .print-content {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
+
+  .print-content,
+  .print-content * {
+    visibility: visible !important;
+  }
+
+  .print-content {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    display: block !important;
+    background: white !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Extra assurance for hiding interactive elements */
+  .print-hidden,
+  button,
+  .swal2-container,
+  .no-print {
+    display: none !important;
+    visibility: hidden !important;
   }
 }
 
