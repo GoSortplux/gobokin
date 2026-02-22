@@ -153,20 +153,22 @@ const renderActiveShape = (props: unknown) => {
     const RADIAN = Math.PI / 180;
     const { cx, cy, midAngle, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent, value } = props as ActiveShapeProps;
     const sin = Math.sin(-RADIAN * midAngle); const cos = Math.cos(-RADIAN * midAngle);
-    const sx = cx + (outerRadius + 10) * cos; const sy = cy + (outerRadius + 10) * sin;
-    const mx = cx + (outerRadius + 30) * cos; const my = cy + (outerRadius + 30) * sin;
-    const ex = mx + (cos >= 0 ? 1 : -1) * 22; const ey = my;
+    const sx = cx + (outerRadius + 5) * cos; const sy = cy + (outerRadius + 5) * sin;
+    const mx = cx + (outerRadius + 15) * cos; const my = cy + (outerRadius + 15) * sin;
+    const ex = mx + (cos >= 0 ? 1 : -1) * 10; const ey = my;
     const textAnchor = cos >= 0 ? 'start' : 'end';
+
+    const name = payload.hallName || 'Unknown';
+    const displayName = name.length > 12 ? name.substring(0, 10) + '...' : name;
 
     return (
         <g>
-            <text x={cx} y={cy} dy={8} textAnchor="middle" fill={fill} className="font-bold">{payload.hallName}</text>
-            <Sector cx={cx} cy={cy} innerRadius={innerRadius} outerRadius={outerRadius} startAngle={startAngle} endAngle={endAngle} fill={fill} />
-            <Sector cx={cx} cy={cy} startAngle={startAngle} endAngle={endAngle} innerRadius={outerRadius + 6} outerRadius={outerRadius + 10} fill={fill} />
+            <text x={cx} y={cy} dy={8} textAnchor="middle" fill="#333" style={{ fontSize: '10px', fontWeight: 'bold' }}>{displayName}</text>
+            <Sector cx={cx} cy={cy} innerRadius={innerRadius} outerRadius={outerRadius + 4} startAngle={startAngle} endAngle={endAngle} fill={fill} />
             <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={fill} fill="none" />
             <circle cx={ex} cy={ey} r={2} fill={fill} stroke="none" />
-            <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="#333">{`Revenue ${formatCurrency(value)}`}</text>
-            <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} dy={18} textAnchor={textAnchor} fill="#999">{`( ${(percent * 100).toFixed(2)}% )`}</text>
+            <text x={ex + (cos >= 0 ? 1 : -1) * 8} y={ey} textAnchor={textAnchor} fill="#333" style={{ fontSize: '10px', fontWeight: 'bold' }}>{formatCurrency(value)}</text>
+            <text x={ex + (cos >= 0 ? 1 : -1) * 8} y={ey} dy={12} textAnchor={textAnchor} fill="#666" style={{ fontSize: '9px' }}>{`${(percent * 100).toFixed(1)}%`}</text>
         </g>
     );
 };
@@ -242,6 +244,7 @@ const EnhancedAnalytics = ({ initialData }: { initialData?: AnalyticsData | null
   useOnClickOutside(hallPickerRef, () => setShowHallPicker(false));
 
   const onPieEnter = (_: unknown, index: number) => setActiveIndex(index);
+  const onPieLeave = () => setActiveIndex(-1);
 
   const fetchAnalytics = useCallback(async (page: number) => {
     setLoading(true);
@@ -314,6 +317,11 @@ const EnhancedAnalytics = ({ initialData }: { initialData?: AnalyticsData | null
     reservationAnalytics: { ...DEFAULT_DATA.reservationAnalytics, ...data?.reservationAnalytics },
   };
   const { overallStats, kpis, breakdownByHall, recentBookings, reservationAnalytics } = analyticsData;
+
+  const pieData = React.useMemo(() =>
+    breakdownByHall.map(h => ({ ...h, totalRevenue: h.overallStats.totalRevenue })),
+    [breakdownByHall]
+  );
 
   const groupedRecentBookings = React.useMemo(() => {
     const groups: Record<string, Booking[]> = {};
@@ -501,13 +509,14 @@ const EnhancedAnalytics = ({ initialData }: { initialData?: AnalyticsData | null
                 <div className="lg:col-span-2 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
                     <h2 className="text-lg font-black text-gray-900 uppercase tracking-tighter mb-8 text-center">Revenue by Venue</h2>
                     {breakdownByHall && breakdownByHall.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={300}>
-                            <PieChart>
+                        <ResponsiveContainer width="100%" height={350}>
+                            <PieChart margin={{ top: 20, right: 100, bottom: 20, left: 100 }}>
+                                <Tooltip />
                                 {/* @ts-expect-error - activeIndex and activeShape are supported by recharts but may not be in the current type definitions */}
                                 <Pie
                                   activeIndex={activeIndex}
                                   activeShape={renderActiveShape}
-                                  data={breakdownByHall.map(h => ({ ...h, totalRevenue: h.overallStats.totalRevenue }))}
+                                  data={pieData}
                                   cx="50%"
                                   cy="50%"
                                   innerRadius={60}
@@ -515,6 +524,7 @@ const EnhancedAnalytics = ({ initialData }: { initialData?: AnalyticsData | null
                                   fill="#295FA7"
                                   dataKey="totalRevenue"
                                   onMouseEnter={onPieEnter}
+                                  onMouseLeave={onPieLeave}
                                 >
                                     {breakdownByHall.map((entry, index) => (<Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />))}
                                 </Pie>
