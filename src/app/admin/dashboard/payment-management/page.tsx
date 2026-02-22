@@ -30,6 +30,7 @@ interface Subaccount {
   _id: string;
   user: {
       _id: string;
+      fullName: string;
       email: string;
   };
   subAccountCode: string;
@@ -453,6 +454,7 @@ const SubaccountsTab = () => {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Venue Owner</th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Account Name</th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Account Number</th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bank Name</th>
@@ -462,6 +464,10 @@ const SubaccountsTab = () => {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {subaccounts.map((subaccount) => (
                       <tr key={subaccount._id}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">{subaccount.user?.fullName || 'N/A'}</div>
+                          <div className="text-xs text-gray-500">{subaccount.user?.email || 'N/A'}</div>
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{subaccount.accountName}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{subaccount.accountNumber}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{subaccount.bankName}</td>
