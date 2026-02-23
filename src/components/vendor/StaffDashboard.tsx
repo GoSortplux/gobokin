@@ -2,9 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '@/services/api';
-import { Building, Briefcase, Plus } from 'lucide-react';
+import { Building, Briefcase } from 'lucide-react';
 import { format as formatDate } from 'date-fns';
-import { useRouter } from 'next/navigation';
 
 interface Booking {
   _id: string;
@@ -53,7 +52,6 @@ const StatCard = ({ title, value, icon: Icon }: { title: string; value: string |
 );
 
 const StaffDashboard = () => {
-  const router = useRouter();
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [hallsCount, setHallsCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
@@ -133,13 +131,6 @@ const StaffDashboard = () => {
           <h1 className="text-3xl font-bold text-gray-800">Staff Dashboard</h1>
           <p className="text-gray-500">Welcome! Here is an overview of the venues and bookings you manage.</p>
         </div>
-        <button
-          onClick={() => router.push('/vendor/dashboard/bookings?action=create')}
-          className="bg-primary text-white px-5 py-2.5 rounded-2xl flex items-center space-x-2 font-bold text-sm shadow-lg shadow-blue-200 hover:bg-primary-dark transition-all active:scale-95 w-fit"
-        >
-          <Plus size={18} />
-          <span>Create Booking</span>
-        </button>
       </div>
 
       {loading ? (
