@@ -489,7 +489,7 @@ const BookingsPage = () => {
                   <tr>
                     <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Booking</th>
                     <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Venue</th>
-                    <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Event</th>
+                    <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Customer</th>
                     <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Event Date</th>
                     <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Booked On</th>
                     <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Status</th>
@@ -539,20 +539,20 @@ const BookingsPage = () => {
                           <td className="py-4 px-4">
                             <div className="flex flex-col gap-1.5">
                               <span className={`px-2.5 py-1 w-fit text-[10px] font-black rounded-full uppercase tracking-tighter ${
-                                (booking.status || booking.bookingStatus) === 'confirmed' ? 'bg-emerald-100 text-emerald-700' :
-                                (booking.status || booking.bookingStatus) === 'pending' ? 'bg-amber-100 text-amber-700' :
-                                'bg-rose-100 text-rose-700'
+                                (booking.status || booking.bookingStatus) === 'confirmed' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
+                                (booking.status || booking.bookingStatus) === 'pending' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
+                                'bg-rose-50 text-rose-700 border border-rose-100'
                               }`}>{booking.status || booking.bookingStatus}</span>
                               {booking.paymentStatus && (
                                 <span className={`px-2.5 py-1 w-fit text-[10px] font-black rounded-full uppercase tracking-tighter ${
-                                  booking.paymentStatus.toLowerCase() === 'paid' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'
+                                  booking.paymentStatus.toLowerCase() === 'paid' ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-gray-50 text-gray-700 border border-gray-100'
                                 }`}>
                                   {booking.paymentStatus}
                                 </span>
                               )}
                               {booking.payout && (
-                                <span className={`px-2.5 py-1 w-fit text-[10px] font-black rounded-full uppercase tracking-tighter ${
-                                  booking.payout.status === 'completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700 border border-amber-200'
+                                <span className={`px-2 py-0.5 w-fit text-[9px] font-black rounded-full uppercase tracking-tight ${
+                                  booking.payout.status === 'completed' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-amber-50 text-amber-700 border border-amber-100'
                                 }`}>
                                   Payout: {booking.payout.status}
                                 </span>
@@ -1103,9 +1103,9 @@ const BookingsPage = () => {
                               </td>
                               <td className="py-4 px-4">
                                  <span className={`px-2.5 py-1 text-[10px] font-black rounded-full uppercase tracking-tighter ${
-                                   reservation.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' :
-                                   reservation.status === 'PENDING' ? 'bg-amber-100 text-amber-700' :
-                                   'bg-rose-100 text-rose-700'
+                                   reservation.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
+                                   reservation.status === 'PENDING' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
+                                   'bg-rose-50 text-rose-700 border border-rose-100'
                                  }`}>{reservation.status}</span>
                               </td>
                               <td className="py-4 px-4">
@@ -1155,7 +1155,7 @@ const BookingsPage = () => {
                           ))
                         ) : (
                           <tr>
-                            <td colSpan={7} className="py-20 text-center text-gray-400 font-medium italic">
+                            <td colSpan={8} className="py-20 text-center text-gray-400 font-medium italic">
                                {!selectedVenue ? 'Please select a venue to view reservations.' : 'No active reservations found for this match.'}
                             </td>
                           </tr>

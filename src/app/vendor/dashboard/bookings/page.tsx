@@ -712,9 +712,9 @@ const BookingsPage = () => {
                         <td className="px-4 py-4 whitespace-nowrap">
                           <div className="flex flex-col gap-1.5">
                             <span className={`px-2.5 py-1 w-fit text-[10px] font-bold rounded-full uppercase tracking-wider ${
-                                booking.status === "confirmed" ? "bg-green-100 text-green-800" :
-                                booking.status === "pending" ? "bg-yellow-100 text-yellow-800" :
-                                "bg-red-100 text-red-800"
+                                booking.status === "confirmed" ? "bg-emerald-50 text-emerald-700 border border-emerald-100" :
+                                booking.status === "pending" ? "bg-amber-50 text-amber-700 border border-amber-100" :
+                                "bg-rose-50 text-rose-700 border border-rose-100"
                             }`}>
                               {booking.status}
                             </span>
@@ -727,14 +727,14 @@ const BookingsPage = () => {
                             )}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-4 py-4 whitespace-nowrap">
                           {booking.payout ? (
-                            <span className={`px-2.5 py-1 text-[10px] font-bold rounded-full uppercase tracking-wider ${
-                              booking.payout.status === 'completed' ? 'bg-green-100 text-green-800' :
-                              booking.payout.status === 'pending' ? 'bg-orange-100 text-orange-800' :
-                              'bg-gray-100 text-gray-800'
+                            <span className={`px-2 py-0.5 w-fit text-[9px] font-black rounded-full uppercase tracking-tight ${
+                              booking.payout.status === 'completed' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
+                              booking.payout.status === 'pending' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
+                              'bg-gray-50 text-gray-500 border border-gray-100'
                             }`}>
-                              {booking.payout.status}
+                              Payout: {booking.payout.status}
                             </span>
                           ) : (
                             <span className="text-[10px] text-gray-400 font-bold uppercase">N/A</span>
@@ -1246,7 +1246,7 @@ const BookingsPage = () => {
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
                         <span className={`px-2.5 py-1 text-[10px] font-bold rounded-full uppercase tracking-wider ${
-                            reservation.status === "ACTIVE" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
+                            reservation.status === "ACTIVE" ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-amber-50 text-amber-700 border border-amber-100"
                         }`}>
                           {reservation.status}
                         </span>
