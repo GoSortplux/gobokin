@@ -489,7 +489,7 @@ const BookingsPage = () => {
                   <tr>
                     <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Booking</th>
                     <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Venue</th>
-                    <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Customer</th>
+                    <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Event</th>
                     <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Event Date</th>
                     <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Booked On</th>
                     <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Status</th>
