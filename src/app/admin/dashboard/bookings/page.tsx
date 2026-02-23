@@ -483,18 +483,18 @@ const BookingsPage = () => {
             {(activeTab === 'bookings' || activeTab === 'pending' || activeTab === 'cancellations') ? (
               <>
             {/* Desktop Table */}
-            <div className="hidden xl:block overflow-hidden shadow-sm border border-gray-100 rounded-xl">
+            <div className="hidden xl:block overflow-x-auto shadow-sm border border-gray-100 rounded-xl">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Booking</th>
-                    <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Venue</th>
-                    <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Customer</th>
-                    <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Event Date</th>
-                    <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Booked On</th>
-                    <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Status</th>
-                    <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Amount</th>
-                    <th className="py-4 px-6 text-right text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Actions</th>
+                    <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Booking</th>
+                    <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Venue</th>
+                    <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Customer</th>
+                    <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Event Date</th>
+                    <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Booked On</th>
+                    <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Status</th>
+                    <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Amount</th>
+                    <th className="py-4 px-4 text-right text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-100">
@@ -502,7 +502,7 @@ const BookingsPage = () => {
                     paginatedBookings.map((booking) => (
                       <React.Fragment key={booking._id}>
                         <tr onClick={() => setExpandedBookingId(expandedBookingId === booking._id ? null : booking._id)} className="cursor-pointer hover:bg-blue-50/30 transition-colors">
-                          <td className="py-4 px-6">
+                          <td className="py-4 px-4">
                             <div className="flex flex-col gap-1.5">
                               <span className="font-mono text-xs font-black text-gray-900 uppercase">#{booking.bookingId}</span>
                               {(booking as Booking & { isReservation?: boolean }).isReservation && (
@@ -513,12 +513,12 @@ const BookingsPage = () => {
                               )}
                             </div>
                           </td>
-                          <td className="py-4 px-6 text-sm text-gray-700 font-medium">{getHallName(booking.hall)}</td>
-                          <td className="py-4 px-6">
+                          <td className="py-4 px-4 text-sm text-gray-700 font-medium">{getHallName(booking.hall)}</td>
+                          <td className="py-4 px-4">
                             <div className="text-sm font-bold text-gray-900">{(booking.user as {fullName: string})?.fullName || booking.walkInUserDetails?.fullName}</div>
                             <div className="text-xs text-gray-400 line-clamp-1 italic">{booking.eventDetails || 'Private Event'}</div>
                           </td>
-                          <td className="py-4 px-6">
+                          <td className="py-4 px-4">
                             {booking.isGroup ? (
                               <div className="text-xs font-medium text-gray-600">
                                 <div>{new Date(booking.bookingDates[0].startTime).toLocaleDateString()}</div>
@@ -531,12 +531,12 @@ const BookingsPage = () => {
                               </div>
                             )}
                           </td>
-                          <td className="py-4 px-6">
+                          <td className="py-4 px-4">
                             <div className="text-xs font-medium text-gray-900">
                               {new Date(booking.createdAt).toLocaleDateString()}
                             </div>
                           </td>
-                          <td className="py-4 px-6">
+                          <td className="py-4 px-4">
                             <div className="flex flex-col gap-1.5">
                               <span className={`px-2.5 py-1 w-fit text-[10px] font-black rounded-full uppercase tracking-tighter ${
                                 (booking.status || booking.bookingStatus) === 'confirmed' ? 'bg-emerald-100 text-emerald-700' :
@@ -552,15 +552,15 @@ const BookingsPage = () => {
                               )}
                               {booking.payout && (
                                 <span className={`px-2.5 py-1 w-fit text-[10px] font-black rounded-full uppercase tracking-tighter ${
-                                  booking.payout.status === 'completed' ? 'bg-emerald-600 text-white' : 'bg-amber-100 text-amber-700 border border-amber-200'
+                                  booking.payout.status === 'completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700 border border-amber-200'
                                 }`}>
                                   Payout: {booking.payout.status}
                                 </span>
                               )}
                             </div>
                           </td>
-                          <td className="py-4 px-6 text-sm font-black text-gray-900">₦{booking.totalPrice?.toLocaleString()}</td>
-                          <td className="py-4 px-6 text-right">
+                          <td className="py-4 px-4 text-sm font-black text-gray-900 whitespace-nowrap">₦{booking.totalPrice?.toLocaleString()}</td>
+                          <td className="py-4 px-4 text-right">
                             <div className="flex justify-end items-center gap-2">
                               {activeTab === 'pending' && (
                                 <button
@@ -1065,54 +1065,54 @@ const BookingsPage = () => {
               </>
             ) : (
               <div className="space-y-4">
-                 <div className="hidden xl:block overflow-hidden shadow-sm border border-gray-100 rounded-xl">
+                 <div className="hidden xl:block overflow-x-auto shadow-sm border border-gray-100 rounded-xl">
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Reservation</th>
-                          <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Venue</th>
-                          <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Customer</th>
-                          <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Event Date</th>
-                          <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Booked On</th>
-                          <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Status</th>
-                          <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Amount</th>
-                          <th className="py-4 px-6 text-right text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Actions</th>
+                          <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Reservation</th>
+                          <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Venue</th>
+                          <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Customer</th>
+                          <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Event Date</th>
+                          <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Booked On</th>
+                          <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Status</th>
+                          <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Amount</th>
+                          <th className="py-4 px-4 text-right text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-100">
                         {paginatedReservations.length > 0 ? (
                           paginatedReservations.map((reservation) => (
                             <tr key={reservation._id} className="hover:bg-blue-50/30 transition-colors">
-                              <td className="py-4 px-6">
+                              <td className="py-4 px-4">
                                 <span className="font-mono text-xs font-black text-gray-900 uppercase">#{reservation.reservationId}</span>
                               </td>
-                              <td className="py-4 px-6 text-sm text-gray-700 font-medium">{getHallName(reservation.hall)}</td>
-                              <td className="py-4 px-6">
+                              <td className="py-4 px-4 text-sm text-gray-700 font-medium">{getHallName(reservation.hall)}</td>
+                              <td className="py-4 px-4">
                                 <div className="text-sm font-bold text-gray-900">{(reservation.user as {fullName: string})?.fullName || reservation.walkInUserDetails?.fullName}</div>
                               </td>
-                              <td className="py-4 px-6">
+                              <td className="py-4 px-4">
                                 <div className="text-xs font-medium text-gray-600">
                                    <div className="font-bold text-gray-900">{new Date(reservation.bookingDates[0].startTime).toLocaleDateString()}</div>
                                    <div>{new Date(reservation.bookingDates[0].startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
                                 </div>
                               </td>
-                              <td className="py-4 px-6">
+                              <td className="py-4 px-4">
                                 <div className="text-xs font-medium text-gray-900">
                                   {new Date(reservation.createdAt).toLocaleDateString()}
                                 </div>
                               </td>
-                              <td className="py-4 px-6">
+                              <td className="py-4 px-4">
                                  <span className={`px-2.5 py-1 text-[10px] font-black rounded-full uppercase tracking-tighter ${
                                    reservation.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' :
                                    reservation.status === 'PENDING' ? 'bg-amber-100 text-amber-700' :
                                    'bg-rose-100 text-rose-700'
                                  }`}>{reservation.status}</span>
                               </td>
-                              <td className="py-4 px-6">
+                              <td className="py-4 px-4">
                                 <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{reservation.paymentStatus}</div>
-                                <div className="text-xs font-bold text-gray-900">₦{reservation.paidAmount?.toLocaleString() || 0}</div>
+                                <div className="text-xs font-bold text-gray-900 whitespace-nowrap">₦{reservation.paidAmount?.toLocaleString() || 0}</div>
                               </td>
-                              <td className="py-4 px-6 text-right">
+                              <td className="py-4 px-4 text-right">
                                 <div className="flex justify-end items-center gap-2">
                                   {reservation.cancellationRequest?.status === 'pending' ? (
                                     <>
