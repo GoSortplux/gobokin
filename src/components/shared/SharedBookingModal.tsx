@@ -52,6 +52,7 @@ interface HallItem {
     percentage: number;
     minBookings: number;
   };
+  allowRecurringBookings?: boolean;
   reservationFeePercentage?: number;
   openingHour?: number;
   closingHour?: number;
@@ -142,6 +143,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
     paymentMethod: 'CASH',
     paymentStatus: 'pending',
     selectedFacilities: [] as { facilityId: string; quantity: number }[],
+    manualDiscount: 0,
   });
 
   const selectedVenueObj = useMemo(() => venues.find(h => h._id === formData.hall) || null, [venues, formData.hall]);
@@ -197,6 +199,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
         paymentMethod: 'CASH',
         paymentStatus: 'pending',
         selectedFacilities: [],
+        manualDiscount: 0,
       });
       setError('');
 
@@ -329,11 +332,13 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
       const subTotal = calculatedHallPrice + currentFacilitiesPrice;
       let calculatedDiscount = 0;
 
-      if (activeTab === 'recurring' && selectedVenue.recurringBookingDiscount) {
+      if (activeTab === 'recurring' && selectedVenue.allowRecurringBookings && selectedVenue.recurringBookingDiscount) {
         const { percentage, minBookings } = selectedVenue.recurringBookingDiscount;
         if (formData.dates.length >= minBookings) {
           calculatedDiscount = subTotal * (percentage / 100);
         }
+      } else if ((activeTab === 'walk-in' || activeTab === 'reservation') && formData.manualDiscount > 0) {
+        calculatedDiscount = subTotal * (formData.manualDiscount / 100);
       }
 
       setDiscountAmount(calculatedDiscount);
@@ -379,12 +384,22 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
           return;
         }
 
+        let applicableManualDiscount = 0;
+
+        if (activeTab === 'recurring' && selectedVenueObj?.allowRecurringBookings && selectedVenueObj?.recurringBookingDiscount) {
+          if (formData.dates.length >= selectedVenueObj.recurringBookingDiscount.minBookings) {
+            applicableManualDiscount = selectedVenueObj.recurringBookingDiscount.percentage;
+          }
+        } else if (activeTab === 'walk-in' || activeTab === 'reservation') {
+          applicableManualDiscount = formData.manualDiscount;
+        }
+
         const payload = {
           hallId: formData.hall,
           bookingDates,
           selectedFacilities: formData.selectedFacilities,
           isRecurring: activeTab === 'recurring' || formData.dates.length > 1,
-          manualDiscount: 0, // Default to 0 as requested or until we find the check button
+          manualDiscount: applicableManualDiscount,
           paymentMethod: formData.paymentMethod
         };
 
@@ -579,6 +594,13 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
       return;
     }
 
+    let applicableDiscount = 0;
+    if (selectedVenueObj?.allowRecurringBookings && selectedVenueObj?.recurringBookingDiscount) {
+      if (dates.length >= selectedVenueObj.recurringBookingDiscount.minBookings) {
+        applicableDiscount = selectedVenueObj.recurringBookingDiscount.percentage;
+      }
+    }
+
     const bookingPayload: Record<string, unknown> = {
       hallId: venue,
       eventDetails,
@@ -589,6 +611,8 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
       bookingDates,
       startTime: bookingDates[0].startTime,
       endTime: bookingDates[0].endTime,
+      manualDiscount: applicableDiscount,
+      discountPercentage: applicableDiscount,
     };
 
     if (recurrenceType === 'weekly' || recurrenceType === 'monthly') {
@@ -681,7 +705,9 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
       walkInUserDetails,
       paymentMethod,
       paymentStatus,
-      selectedFacilities
+      selectedFacilities,
+      manualDiscount: formData.manualDiscount,
+      discountPercentage: formData.manualDiscount,
     }, 'walk-in');
   };
 
@@ -725,7 +751,9 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
       eventDetails,
       walkInUserDetails,
       paymentMethod,
-      selectedFacilities
+      selectedFacilities,
+      manualDiscount: formData.manualDiscount,
+      discountPercentage: formData.manualDiscount,
     }, 'reservation');
   };
 
@@ -889,9 +917,24 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                   })}
                 </div>
               )}
-              <div>
-                <label className="block text-sm font-medium text-gray-800">Event Details</label>
-                <input type="text" name="eventDetails" placeholder="Enter Event Details" value={formData.eventDetails} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900" />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-800">Event Details</label>
+                  <input type="text" name="eventDetails" placeholder="Enter Event Details" value={formData.eventDetails} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-800">Discount Percentage (%)</label>
+                  <input
+                    type="number"
+                    name="manualDiscount"
+                    placeholder="e.g. 10"
+                    min="0"
+                    max="100"
+                    value={formData.manualDiscount}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-1 focus:ring-primary outline-none"
+                  />
+                </div>
               </div>
               <fieldset className="border p-4 rounded-md">
                 <legend className="text-lg font-medium text-gray-800">Walk-in User Details</legend>
@@ -1010,7 +1053,10 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                     <div>
                       <div className="text-sm">Venue Price: ₦{hallPrice.toLocaleString()}</div>
                       <div className="text-sm">Facilities Price: ₦{facilitiesPrice.toLocaleString()}</div>
-                      <div className="text-sm font-semibold">Total Price: ₦{totalPrice.toLocaleString()}</div>
+                      {discountAmount > 0 && (
+                        <div className="text-sm text-green-600 font-medium">Discount Applied: -₦{discountAmount.toLocaleString()}</div>
+                      )}
+                      <div className="text-sm font-bold">Total Price: ₦{totalPrice.toLocaleString()}</div>
                     </div>
                   </div>
                 )}
@@ -1442,9 +1488,24 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                   })}
                 </div>
               )}
-              <div>
-                <label className="block text-sm font-medium text-gray-800">Event Details</label>
-                <input type="text" name="eventDetails" placeholder="Enter Event Details" value={formData.eventDetails} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900" />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-800">Event Details</label>
+                  <input type="text" name="eventDetails" placeholder="Enter Event Details" value={formData.eventDetails} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-800">Discount Percentage (%)</label>
+                  <input
+                    type="number"
+                    name="manualDiscount"
+                    placeholder="e.g. 10"
+                    min="0"
+                    max="100"
+                    value={formData.manualDiscount}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-1 focus:ring-primary outline-none"
+                  />
+                </div>
               </div>
               <fieldset className="border p-4 rounded-md">
                 <legend className="text-lg font-medium text-gray-800">Walk-in User Details</legend>
@@ -1569,6 +1630,9 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                     <div>
                       <div className="text-sm">Venue Price: ₦{hallPrice.toLocaleString()}</div>
                       <div className="text-sm">Facilities Price: ₦{facilitiesPrice.toLocaleString()}</div>
+                      {discountAmount > 0 && (
+                        <div className="text-sm text-green-600 font-medium">Discount Applied: -₦{discountAmount.toLocaleString()}</div>
+                      )}
                       <div className="text-sm font-bold">Total Price: ₦{totalPrice.toLocaleString()}</div>
                     </div>
                   </div>
