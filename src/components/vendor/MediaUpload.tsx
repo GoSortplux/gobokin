@@ -268,7 +268,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ hallId, initialImages = [], i
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {currentVideos.map((url, index) => (
-              <div key={`vid-${index}`} className="relative group h-32">
+              <div key={`vid-${index}`} className="relative group h-32 cursor-pointer">
                 <div className="relative w-full h-full bg-black rounded-md border border-gray-200 flex items-center justify-center overflow-hidden">
                   <video
                     src={url}
@@ -289,7 +289,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ hallId, initialImages = [], i
               </div>
             ))}
             {currentImages.map((url, index) => (
-              <div key={`img-${index}`} className="relative group h-32">
+              <div key={`img-${index}`} className="relative group h-32 cursor-pointer">
                 <Image
                   src={url}
                   alt={`venue image ${index}`}
@@ -323,13 +323,13 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ hallId, initialImages = [], i
         onDrop={onDrop}
         className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300
                     ${isDragging ? 'border-primary bg-blue-50' : 'border-gray-300 bg-white'}
-                    ${!hallId ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+                    ${!hallId ? 'opacity-50' : ''} cursor-pointer`}
       >
         <input
           type="file"
           multiple
           onChange={(e) => handleFileChange(e.target.files)}
-          className="absolute inset-0 w-full h-full opacity-0"
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           disabled={!hallId || (currentImages.length >= MAX_IMAGES && currentVideos.length >= MAX_VIDEOS)}
           accept="image/*,video/*"
         />
@@ -347,7 +347,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ hallId, initialImages = [], i
           <h4 className="font-semibold text-gray-800 mb-2">Selected for Upload:</h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {previews.map((preview, index) => (
-              <div key={`new-${index}`} className="relative group h-32">
+              <div key={`new-${index}`} className="relative group h-32 cursor-pointer">
                 {files[index] && isVideoFile(files[index]) ? (
                   <div className="relative w-full h-full bg-black rounded-md border border-gray-200 flex items-center justify-center overflow-hidden">
                     <video
