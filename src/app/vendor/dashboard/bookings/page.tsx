@@ -11,6 +11,7 @@ import RefundModal from "@/components/vendor/RefundModal";
 import ConversionModal from "@/components/shared/ConversionModal";
 import PaymentLinkModal from "@/components/shared/PaymentLinkModal";
 import CustomLoader from "@/components/CustomLoader";
+import ErrorState from "@/components/ErrorState";
 import Swal from "@/utils/sweetalert";
 import { ChevronDown, XCircle, Share2 } from "lucide-react";
 import { Booking, Reservation, Venue } from "@/types";
@@ -103,6 +104,8 @@ const BookingsPage = () => {
 
   const fetchVenues = useCallback(async () => {
     try {
+      setLoading(true);
+      setError('');
       const response = await api.get("/halls/by-owner");
       if (response.data && Array.isArray(response.data.data)) {
         setVenues(response.data.data);
@@ -114,6 +117,8 @@ const BookingsPage = () => {
     } catch (err) {
       console.error("Error fetching venues:", err);
       setError(translateError(err));
+    } finally {
+      setLoading(false);
     }
   }, [venueIdFromQuery]);
 
@@ -219,6 +224,17 @@ const BookingsPage = () => {
     setBookingsPage(1);
     setReservationsPage(1);
   };
+
+  const handleRetry = useCallback(() => {
+    fetchVenues();
+    if (selectedVenue) {
+      if (activeTab === 'reservations') {
+        fetchReservations(selectedVenue, reservationsPage);
+      } else {
+        fetchBookings(selectedVenue, bookingsPage);
+      }
+    }
+  }, [fetchVenues, selectedVenue, activeTab, reservationsPage, bookingsPage, fetchReservations, fetchBookings]);
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -640,10 +656,18 @@ const BookingsPage = () => {
         </button>
       </div>
 
-      {error && <p className="bg-red-50 text-red-600 p-4 rounded-lg border border-red-100 mb-6">{error}</p>}
 
-      <div className="space-y-4">
-        {loading ? (
+      {error && (
+        <ErrorState
+          message={error}
+          onRetry={handleRetry}
+          className="bg-white rounded-xl shadow-sm border border-gray-50 py-20 mb-6"
+        />
+      )}
+
+      {!error && (
+        <div className="space-y-4">
+          {loading ? (
           <div className="py-20 flex flex-col items-center justify-center bg-white rounded-3xl shadow-sm border border-gray-50">
              <CustomLoader size={48} className="mb-4" />
              <p className="text-gray-500 font-bold uppercase text-xs tracking-widest">Fetching your {activeTab}...</p>
@@ -1418,7 +1442,8 @@ const BookingsPage = () => {
             />
           </>
         )}
-      </div>
+        </div>
+      )}
       <BookingModal
         key={isBookingModalOpen ? 'open' : 'closed'}
         isOpen={isBookingModalOpen}
