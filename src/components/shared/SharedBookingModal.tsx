@@ -346,7 +346,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
     };
 
     calculateTotalPrice();
-  }, [formData.hall, formData.startTime, formData.endTime, formData.dates, formData.selectedFacilities, venues, facilities, activeTab, usePerDateTimes, dateTimes]);
+  }, [formData.hall, formData.startTime, formData.endTime, formData.dates, formData.selectedFacilities, venues, facilities, activeTab, usePerDateTimes, dateTimes, formData.manualDiscount]);
 
   useEffect(() => {
     const fetchQuote = async () => {
@@ -417,7 +417,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
     }, 500); // Debounce quote calculation
 
     return () => clearTimeout(timer);
-  }, [formData.hall, formData.dates, formData.startTime, formData.endTime, formData.selectedFacilities, formData.paymentMethod, activeTab, usePerDateTimes, dateTimes]);
+  }, [formData.hall, formData.dates, formData.startTime, formData.endTime, formData.selectedFacilities, formData.paymentMethod, activeTab, usePerDateTimes, dateTimes, formData.manualDiscount]);
 
   const generateRecurringDates = useCallback((startDate: Date, endDate: Date, pattern: string) => {
     if (!startDate || !endDate || endDate < startDate || pattern === 'none') return [startDate];
