@@ -487,14 +487,14 @@ const BookingsPage = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Booking</th>
-                    <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Venue</th>
-                    <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Customer / Event</th>
-                    <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Event Date</th>
-                    <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Created At</th>
-                    <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status</th>
-                    <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Financials</th>
-                    <th className="py-4 px-6 text-right text-[10px] font-bold text-gray-400 uppercase tracking-widest">Actions</th>
+                    <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Booking</th>
+                    <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Venue</th>
+                    <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Customer</th>
+                    <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Event Date</th>
+                    <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Booked On</th>
+                    <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Status</th>
+                    <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Amount</th>
+                    <th className="py-4 px-6 text-right text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-100">
@@ -1069,14 +1069,14 @@ const BookingsPage = () => {
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Reservation</th>
-                          <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Venue</th>
-                          <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Customer</th>
-                          <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Event Date</th>
-                          <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Created At</th>
-                          <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status</th>
-                          <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Financials</th>
-                          <th className="py-4 px-6 text-right text-[10px] font-bold text-gray-400 uppercase tracking-widest">Actions</th>
+                          <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Reservation</th>
+                          <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Venue</th>
+                          <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Customer</th>
+                          <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Event Date</th>
+                          <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Booked On</th>
+                          <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Status</th>
+                          <th className="py-4 px-6 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Amount</th>
+                          <th className="py-4 px-6 text-right text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-100">
