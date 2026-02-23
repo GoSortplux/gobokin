@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '@/services/api';
-import { Building, Briefcase } from 'lucide-react';
+import { Building, Briefcase, Plus } from 'lucide-react';
 import { format as formatDate } from 'date-fns';
+import { useRouter } from 'next/navigation';
 
 interface Booking {
   _id: string;
@@ -52,6 +53,7 @@ const StatCard = ({ title, value, icon: Icon }: { title: string; value: string |
 );
 
 const StaffDashboard = () => {
+  const router = useRouter();
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [hallsCount, setHallsCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
@@ -126,9 +128,18 @@ const StaffDashboard = () => {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-800">Staff Dashboard</h1>
-        <p className="text-gray-500">Welcome! Here is an overview of the venues and bookings you manage.</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">Staff Dashboard</h1>
+          <p className="text-gray-500">Welcome! Here is an overview of the venues and bookings you manage.</p>
+        </div>
+        <button
+          onClick={() => router.push('/vendor/dashboard/bookings?action=create')}
+          className="bg-primary text-white px-6 py-3 rounded-xl flex items-center justify-center space-x-2 font-bold shadow-lg shadow-blue-100 hover:bg-primary-dark transition-all active:scale-95"
+        >
+          <Plus size={20} />
+          <span>Create Booking</span>
+        </button>
       </div>
 
       {loading ? (

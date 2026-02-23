@@ -222,7 +222,7 @@ const VendorHeader = () => {
           <Search size={20} />
         </button>
 
-        {(user?.activeRole === "hall-owner" || user?.activeRole === "staff") && (
+        {(user?.activeRole === "hall-owner" || user?.activeRole === "staff" || user?.role?.includes("hall-owner") || user?.role?.includes("staff")) && (
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -280,7 +280,7 @@ const VendorHeader = () => {
                   }}
                   className="w-full text-left px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
                 >
-                  Walk-In / Recurring
+                  Create Booking
                 </button>
               </div>
             </div>
