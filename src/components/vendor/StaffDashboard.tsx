@@ -135,9 +135,9 @@ const StaffDashboard = () => {
         </div>
         <button
           onClick={() => router.push('/vendor/dashboard/bookings?action=create')}
-          className="bg-primary text-white px-6 py-3 rounded-xl flex items-center justify-center space-x-2 font-bold shadow-lg shadow-blue-100 hover:bg-primary-dark transition-all active:scale-95"
+          className="bg-primary text-white px-5 py-2.5 rounded-2xl flex items-center space-x-2 font-bold text-sm shadow-lg shadow-blue-200 hover:bg-primary-dark transition-all active:scale-95 w-fit"
         >
-          <Plus size={20} />
+          <Plus size={18} />
           <span>Create Booking</span>
         </button>
       </div>

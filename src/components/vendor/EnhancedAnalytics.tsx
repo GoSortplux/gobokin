@@ -3,7 +3,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import api from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
-import { BarChart as BarChartIcon, Eye, Briefcase, TrendingUp, TrendingDown, Target, CalendarCheck, Calendar as CalendarIcon, ChevronDown, Search, ChevronLeft, ChevronRight, Clock, RotateCcw } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { BarChart as BarChartIcon, Eye, Briefcase, TrendingUp, TrendingDown, Target, CalendarCheck, Calendar as CalendarIcon, ChevronDown, Search, ChevronLeft, ChevronRight, Clock, RotateCcw, Plus } from 'lucide-react';
 import { DateRange, Range } from 'react-date-range';
 import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
@@ -225,6 +226,7 @@ const DEFAULT_DATA: AnalyticsData = {
 
 const EnhancedAnalytics = ({ initialData }: { initialData?: AnalyticsData | null }) => {
   const { user } = useAuth();
+  const router = useRouter();
   const [data, setData] = useState<AnalyticsData | null>(initialData || null);
   const [loading, setLoading] = useState<boolean>(!initialData);
   const [venues, setVenues] = useState<Venue[]>([]);
@@ -375,9 +377,18 @@ const EnhancedAnalytics = ({ initialData }: { initialData?: AnalyticsData | null
   return (
     <div id="vendor-analytics" className="p-6 bg-gray-50 min-h-screen space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-black text-gray-900">Dashboard</h1>
-            <p className="text-sm text-gray-500 font-medium">An overview of your business performance.</p>
+          <div className="flex flex-col md:flex-row md:items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-black text-gray-900">Dashboard</h1>
+              <p className="text-sm text-gray-500 font-medium">An overview of your business performance.</p>
+            </div>
+            <button
+              onClick={() => router.push('/vendor/dashboard/bookings?action=create')}
+              className="bg-primary text-white px-5 py-2.5 rounded-2xl flex items-center space-x-2 font-bold text-sm shadow-lg shadow-blue-200 hover:bg-primary-dark transition-all active:scale-95 w-fit"
+            >
+              <Plus size={18} />
+              <span>Create Booking</span>
+            </button>
           </div>
           <div className="p-1.5 bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-wrap items-center gap-2">
               <div className="relative flex-grow md:flex-grow-0" ref={datePickerRef}>
