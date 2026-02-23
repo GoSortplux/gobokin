@@ -111,32 +111,49 @@ input[type="reset"]:disabled {
     size: auto;
   }
 
-  body {
+  html, body {
     visibility: hidden;
     background: white !important;
     overflow: visible !important;
+    height: auto !important;
+    min-height: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
-  /* Reset layout constraints for printing */
+  /* Reset layout constraints for printing to prevent clipping and layout jumps */
   main,
   #__next,
   [role="dialog"],
   .fixed,
-  .absolute {
+  .absolute,
+  .relative {
     position: static !important;
     overflow: visible !important;
     display: block !important;
     height: auto !important;
     min-height: 0 !important;
+    max-height: none !important;
     width: 100% !important;
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
+    transform: none !important;
+    animation: none !important;
+    opacity: 1 !important;
+  }
+
+  /* Ensure all nested divs and sections don't clip content */
+  div, section, article {
+    overflow: visible !important;
+    max-height: none !important;
   }
 
   .print-content,
   .print-content * {
     visibility: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .print-content {
@@ -152,15 +169,26 @@ input[type="reset"]:disabled {
     overflow: visible !important;
     padding: 0 !important;
     margin: 0 !important;
+    z-index: 99999;
   }
 
-  /* Extra assurance for hiding interactive elements */
+  /* Extra assurance for hiding interactive elements and common UI */
+  header,
+  footer,
+  nav,
+  .no-print,
   .print-hidden,
   button,
   .swal2-container,
-  .no-print {
+  .tour-guide,
+  .cookie-consent,
+  [aria-label="Close"],
+  .custom-arrow {
     display: none !important;
     visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 }
 
