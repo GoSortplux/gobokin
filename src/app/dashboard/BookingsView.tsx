@@ -9,6 +9,7 @@ import Swal from "@/utils/sweetalert";
 import CustomLoader from "@/components/CustomLoader";
 import { useAuth } from "@/context/AuthContext";
 import { Booking, Review, Venue } from "@/types";
+import { Search } from "lucide-react";
 
 const BookingsView = () => {
   const router = useRouter();
@@ -175,15 +176,15 @@ const BookingsView = () => {
           <input
             type="text"
             placeholder="Search by booking ID..."
-            className="w-full p-3 pl-10 bg-gray-50 border-none rounded-xl text-gray-800 text-sm focus:ring-2 focus:ring-primary/20 transition-all"
+            className="w-full p-3 pl-10 pr-20 bg-gray-50 border-none rounded-xl text-gray-800 text-sm focus:ring-2 focus:ring-primary/20 transition-all"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
           <div className="absolute left-3.5 text-gray-400">
-             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" id="search-icon" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+             <Search className="w-4 h-4" />
           </div>
           <button
-            className="absolute right-2 px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-lg hover:bg-gray-800 transition-all shadow-sm"
+            className="absolute right-2 px-4 py-1.5 bg-primary text-white text-xs font-bold rounded-lg hover:bg-opacity-90 transition-all shadow-md shadow-primary/20"
             onClick={handleSearch}
           >
             Search

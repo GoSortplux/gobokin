@@ -231,7 +231,7 @@ const BookingCard: React.FC<BookingCardProps> = ({ booking, onViewReceipt, onRev
             <button
               onClick={() => router.push(`/booking/details/${booking.bookingId}`)}
               disabled={!venue}
-              className="flex-grow bg-gray-900 text-white text-sm font-bold py-3 rounded-xl hover:bg-gray-800 transition-all flex items-center justify-center gap-2"
+              className="flex-grow bg-primary text-white text-sm font-bold py-3 rounded-xl hover:bg-opacity-90 transition-all shadow-sm shadow-primary/20 flex items-center justify-center gap-2"
             >
               <Eye className="w-4 h-4" />
               View Details
