@@ -230,7 +230,6 @@ const EnhancedAnalytics = ({ initialData }: { initialData?: AnalyticsData | null
   const [data, setData] = useState<AnalyticsData | null>(initialData || null);
   const [loading, setLoading] = useState<boolean>(!initialData);
   const [venues, setVenues] = useState<Venue[]>([]);
-  const [hallsLoading, setHallsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [dateRange, setDateRange] = useState<Range[]>([{ startDate: new Date(new Date().setDate(new Date().getDate() - 7)), endDate: new Date(), key: 'selection' }]);
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
@@ -261,9 +260,6 @@ const EnhancedAnalytics = ({ initialData }: { initialData?: AnalyticsData | null
       });
       if (selectedVenue) {
         params.append('hallId', selectedVenue._id);
-      } else if (user?.activeRole === 'staff' && venues.length > 0) {
-        // Explicitly pass all assigned venue IDs for staff if no specific venue is selected
-        venues.forEach(h => params.append('hallId', h._id));
       }
 
       const response = await api.get(`../v2/analytics/hall-owner?${params.toString()}`);
@@ -280,27 +276,22 @@ const EnhancedAnalytics = ({ initialData }: { initialData?: AnalyticsData | null
     } finally {
       setLoading(false);
     }
-  }, [dateRange, selectedVenue, user?.activeRole, venues]);
+  }, [dateRange, selectedVenue]);
 
   useEffect(() => {
     if (!initialData) {
-      // For staff, wait for assigned venues to load before fetching analytics to ensure correct filtering
-      if (user?.activeRole === 'staff' && hallsLoading) return;
-
       fetchAnalytics(currentPage);
     }
-  }, [fetchAnalytics, currentPage, initialData, user?.activeRole, hallsLoading]);
+  }, [fetchAnalytics, currentPage, initialData]);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [dateRange, selectedVenue]);
 
   useEffect(() => {
-    setHallsLoading(true);
     api.get('/halls/by-owner')
       .then(res => res.data?.success && setVenues(res.data.data))
-      .catch(err => console.error("Failed to fetch venues", err))
-      .finally(() => setHallsLoading(false));
+      .catch(err => console.error("Failed to fetch venues", err));
   }, []);
 
   const handleClearFilters = () => {
