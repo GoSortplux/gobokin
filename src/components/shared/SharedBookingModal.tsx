@@ -1061,7 +1061,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                   </div>
                 )}
                 <div className="flex justify-end mt-6">
-                  <button type="submit" disabled={isCalculatingQuote} className="px-8 py-4 rounded-2xl text-white bg-primary hover:bg-primary/90 font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20 transition-all active:scale-95 disabled:opacity-50">
+                  <button type="submit" disabled={isCalculatingQuote || formData.dates.length === 0} className="px-8 py-4 rounded-2xl text-white bg-primary hover:bg-primary/90 font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20 transition-all active:scale-95 disabled:opacity-50">
                     Reserve with Part Payment
                   </button>
                 </div>
@@ -1368,7 +1368,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                   </div>
                 )}
                 <div className="flex justify-end mt-6">
-                  <button type="submit" disabled={isCalculatingQuote} className="px-8 py-4 rounded-2xl text-white bg-primary hover:bg-primary/90 font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20 transition-all active:scale-95 disabled:opacity-50">
+                  <button type="submit" disabled={isCalculatingQuote || formData.dates.length === 0} className="px-8 py-4 rounded-2xl text-white bg-primary hover:bg-primary/90 font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20 transition-all active:scale-95 disabled:opacity-50">
                     Create Recurring Booking
                   </button>
                 </div>
@@ -1638,7 +1638,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                   </div>
                 )}
                 <div className="flex justify-end mt-6">
-                  <button type="submit" disabled={isCalculatingQuote} className="px-8 py-4 rounded-2xl text-white bg-primary hover:bg-primary/90 font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20 transition-all active:scale-95 disabled:opacity-50">
+                  <button type="submit" disabled={isCalculatingQuote || formData.dates.length === 0} className="px-8 py-4 rounded-2xl text-white bg-primary hover:bg-primary/90 font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20 transition-all active:scale-95 disabled:opacity-50">
                     Pay in Full
                   </button>
                 </div>

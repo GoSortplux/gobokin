@@ -975,7 +975,7 @@ const BookingModal: FC<BookingModalProps> = ({
               {step < 3 ? (
                 <button
                   type="submit"
-                  disabled={isCalculatingQuote}
+                  disabled={isCalculatingQuote || (step === 1 && (!selectedDates || selectedDates.length === 0))}
                   className="px-10 py-3 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl shadow-lg shadow-primary/20 transition-all transform active:scale-95 flex items-center uppercase tracking-widest text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isCalculatingQuote ? (
