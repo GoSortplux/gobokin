@@ -147,58 +147,52 @@ const BookingsView = () => {
           <CustomLoader size={64} />
         </div>
       )}
-      <h2 className="text-2xl lg:text-3xl font-bold text-gray-800 mb-6">My Bookings</h2>
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8 gap-6">
-        <div className="flex border-b w-full lg:w-auto">
-          <button
-            className={`flex-1 lg:flex-none px-6 py-3 font-semibold transition-colors duration-200 ${
-              activeTab === "upcoming"
-                ? "border-b-2 border-primary text-primary"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-            onClick={() => setActiveTab("upcoming")}
-          >
-            Upcoming
-          </button>
-          <button
-            className={`flex-1 lg:flex-none px-6 py-3 font-semibold transition-colors duration-200 ${
-              activeTab === "past"
-                ? "border-b-2 border-primary text-primary"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-            onClick={() => setActiveTab("past")}
-          >
-            Past
-          </button>
-          <button
-            className={`flex-1 lg:flex-none px-6 py-3 font-semibold transition-colors duration-200 ${
-              activeTab === "pending"
-                ? "border-b-2 border-primary text-primary"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-            onClick={() => setActiveTab("pending")}
-          >
-            Pending Payment
-          </button>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl lg:text-3xl font-black text-gray-900 tracking-tight">My Bookings</h2>
+        <div className="hidden lg:flex items-center gap-2 text-sm text-gray-500 font-medium bg-gray-100/50 px-4 py-2 rounded-full">
+           <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+           {bookings.length} Total Bookings
         </div>
-        <div className="flex items-center w-full lg:max-w-md">
+      </div>
+
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8 gap-6 bg-white p-2 rounded-2xl shadow-sm border border-gray-100">
+        <div className="flex p-1 bg-gray-50 rounded-xl w-full lg:w-auto">
+          {["upcoming", "past", "pending"].map((tab) => (
+            <button
+              key={tab}
+              className={`flex-1 lg:flex-none px-6 py-2.5 text-sm font-bold capitalize transition-all duration-200 rounded-lg ${
+                activeTab === tab
+                  ? "bg-white text-primary shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+              onClick={() => setActiveTab(tab)}
+            >
+              {tab === "pending" ? "Pending Payment" : tab}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center w-full lg:max-w-md relative">
           <input
             type="text"
             placeholder="Search by booking ID..."
-            className="flex-grow p-3 border border-gray-300 rounded-l-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            className="w-full p-3 pl-10 bg-gray-50 border-none rounded-xl text-gray-800 text-sm focus:ring-2 focus:ring-primary/20 transition-all"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
+          <div className="absolute left-3.5 text-gray-400">
+             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" id="search-icon" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          </div>
           <button
-            className="px-6 py-3 bg-primary text-white font-semibold rounded-r-lg hover:bg-opacity-90 transition-all shadow-sm"
+            className="absolute right-2 px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-lg hover:bg-gray-800 transition-all shadow-sm"
             onClick={handleSearch}
           >
             Search
           </button>
         </div>
       </div>
+
       {filteredBookings.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredBookings.map((booking: Booking) => (
             <BookingCard
               key={booking._id}
@@ -211,8 +205,12 @@ const BookingsView = () => {
           ))}
         </div>
       ) : (
-        <div className="text-center py-10 bg-white rounded-lg shadow">
-          <p className="text-gray-500 text-lg">No {activeTab} bookings found.</p>
+        <div className="text-center py-20 bg-white rounded-3xl shadow-sm border border-gray-100">
+          <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/></svg>
+          </div>
+          <p className="text-gray-900 font-bold text-xl">No {activeTab} bookings</p>
+          <p className="text-gray-500 mt-1">We couldn't find any bookings in this category.</p>
         </div>
       )}
       {isModalOpen && (
