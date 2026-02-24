@@ -8,7 +8,6 @@ import {
   Calendar,
   Clock,
   MoreVertical,
-  CreditCard,
   Receipt,
   XCircle,
   Undo2,

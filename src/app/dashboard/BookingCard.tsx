@@ -12,7 +12,6 @@ import {
   Star,
   XCircle,
   Undo2,
-  ChevronRight,
   Hash,
   Eye
 } from 'lucide-react';
