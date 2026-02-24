@@ -9,7 +9,6 @@ import {
   LayoutDashboard,
   Building,
   Calendar,
-  BarChart,
   Users,
   Settings,
   LogOut,
@@ -53,12 +52,6 @@ const Sidebar = () => {
   // Only add these links if the user is a hall-owner
   if (user?.activeRole === "hall-owner") {
     navLinks.push(
-      {
-        href: "/vendor/dashboard/analytics",
-        label: "Analytics",
-        icon: <BarChart size={24} />,
-        id: "vendor-nav-analytics",
-      },
       {
         href: "/vendor/dashboard/staff",
         label: "Staff",

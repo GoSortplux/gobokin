@@ -46,7 +46,7 @@ const AdminSidebar = () => {
     },
     {
       href: "/admin/dashboard/analytics",
-      label: "Analytics",
+      label: "Subscription Analytics",
       icon: <BarChart size={24} />,
     },
     {

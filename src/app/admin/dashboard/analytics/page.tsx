@@ -1,10 +1,10 @@
 "use client";
 import React from 'react';
-import AdminEnhancedAnalytics from '@/components/admin/AdminEnhancedAnalytics';
+import SubscriptionAnalytics from '@/components/admin/SubscriptionAnalytics';
 import withAuth from "@/components/auth/withAuth";
 
 const AnalyticsPage = () => {
-  return <AdminEnhancedAnalytics />;
+  return <SubscriptionAnalytics />;
 };
 
 export default withAuth(AnalyticsPage, ["super-admin"]);
