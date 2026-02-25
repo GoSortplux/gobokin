@@ -98,7 +98,7 @@ const SettingsView = () => {
     try {
       Swal.showLoading();
       await api.post("/auth/change-password", {
-        oldPassword: currentPassword,
+        currentPassword,
         newPassword,
         confirmPassword,
       });
