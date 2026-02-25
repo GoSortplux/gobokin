@@ -425,9 +425,7 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
                           ) : (
                             <>
                               <CircleDollarSign className="h-4 w-4 text-yellow-600 mr-1.5" />
-                              <span>
-                                ₦{facility.cost?.toLocaleString()}{facility.chargeMethod === 'per_day' ? '/day' : (facility.chargeMethod === 'per_hour' ? '/hour' : '')}
-                              </span>
+                              <span>Paid</span>
                             </>
                           )}
                         </div>
