@@ -79,10 +79,24 @@ const StaffModal: React.FC<StaffModalProps> = ({ isOpen, onClose, onSubmit, staf
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleVenueSelection = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedIds = Array.from(e.target.selectedOptions, (option) => option.value);
-    setFormData((prev) => ({ ...prev, venueIds: selectedIds }));
+  const handleAddVenue = (venueId: string) => {
+    if (!venueId) return;
+    setFormData((prev) => ({
+      ...prev,
+      venueIds: [...prev.venueIds, venueId],
+    }));
   };
+
+  const handleRemoveVenue = (venueId: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      venueIds: prev.venueIds.filter((id) => id !== venueId),
+    }));
+  };
+
+  const unassignedVenues = allVenues.filter(
+    (venue) => !formData.venueIds.includes(venue._id)
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,42 +149,70 @@ const StaffModal: React.FC<StaffModalProps> = ({ isOpen, onClose, onSubmit, staf
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-800">Full Name</label>
-            <input type="text" name="fullName" placeholder="Enter Full Name" value={formData.fullName} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500" required />
+            <label className="block text-sm font-medium text-gray-800 mb-1">Full Name</label>
+            <input type="text" name="fullName" placeholder="Enter Full Name" value={formData.fullName} onChange={handleChange} className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" required />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-800">Email Address</label>
-            <input type="email" name="email" placeholder="Enter Email Address" value={formData.email} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500" required />
+            <label className="block text-sm font-medium text-gray-800 mb-1">Email Address</label>
+            <input type="email" name="email" placeholder="Enter Email Address" value={formData.email} onChange={handleChange} className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" required />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-800">Phone Number</label>
-            <input type="tel" name="phone" placeholder="Enter Phone Number" value={formData.phone} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500" required />
+            <label className="block text-sm font-medium text-gray-800 mb-1">Phone Number</label>
+            <input type="tel" name="phone" placeholder="Enter Phone Number" value={formData.phone} onChange={handleChange} className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" required />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-800">Password</label>
-            <input type="password" name="password" placeholder={staff ? 'Enter New Password (leave blank to keep current)' : 'Enter Password'} value={formData.password} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500" />
+            <label className="block text-sm font-medium text-gray-800 mb-1">Password</label>
+            <input type="password" name="password" placeholder={staff ? 'Enter New Password (leave blank to keep current)' : 'Enter Password'} value={formData.password} onChange={handleChange} className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
           </div>
-          <div>
-            <label htmlFor="venueIds" className="block text-sm font-medium text-gray-800 flex justify-between">
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-gray-800 flex justify-between items-center">
               Assign Venues
               {venuesLoading && <CustomLoader size={16} />}
             </label>
+
+            {/* Pills Container */}
+            <div className="flex flex-wrap gap-2 min-h-[40px] p-2 border border-gray-100 bg-gray-50/50 rounded-xl">
+              {formData.venueIds.length > 0 ? (
+                formData.venueIds.map((id) => {
+                  const venue = allVenues.find((v) => v._id === id);
+                  return (
+                    <div
+                      key={id}
+                      className="flex items-center gap-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-full shadow-sm animate-in fade-in zoom-in duration-200"
+                    >
+                      <span className="text-xs font-bold text-gray-700">{venue?.name || 'Unknown Venue'}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveVenue(id)}
+                        className="p-0.5 hover:bg-gray-100 rounded-full text-gray-400 hover:text-rose-500 transition-colors cursor-pointer"
+                        aria-label={`Remove ${venue?.name}`}
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  );
+                })
+              ) : (
+                <span className="text-xs text-gray-400 py-1.5 px-1">No venues assigned yet.</span>
+              )}
+            </div>
+
+            {/* Dropdown for adding new venues */}
             <select
-              id="venueIds"
-              name="venueIds"
-              multiple
-              disabled={venuesLoading}
-              value={formData.venueIds}
-              onChange={handleVenueSelection}
-              className="w-full h-32 px-4 py-2 border border-gray-300 rounded-md text-gray-900 disabled:bg-gray-50 disabled:cursor-wait"
+              disabled={venuesLoading || unassignedVenues.length === 0}
+              value=""
+              onChange={(e) => handleAddVenue(e.target.value)}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm text-gray-900 bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all disabled:bg-gray-50 disabled:text-gray-400 cursor-pointer"
             >
-              {allVenues.map((venue) => (
-                <option key={venue._id} value={venue._id} className="text-gray-900">
+              <option value="" disabled>
+                {unassignedVenues.length === 0 ? (allVenues.length > 0 ? 'All venues assigned' : 'No venues available') : 'Add a venue...'}
+              </option>
+              {unassignedVenues.map((venue) => (
+                <option key={venue._id} value={venue._id}>
                   {venue.name}
                 </option>
               ))}
             </select>
-            <p className="text-xs text-gray-500 mt-1">Hold Ctrl (Cmd on Mac) to select multiple venues.</p>
           </div>
           <div className="flex justify-end mt-8 space-x-3">
             <button
