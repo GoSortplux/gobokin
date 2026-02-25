@@ -19,6 +19,7 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
     pathname.startsWith("/auth/register") ||
     pathname.startsWith("/auth/forgot-password") ||
     pathname.startsWith("/auth/reset-password") ||
+    pathname.startsWith("/auth/password-reset") ||
     pathname.startsWith("/auth/verify-email");
   const isDashboardPage =
     pathname.startsWith("/vendor") ||
