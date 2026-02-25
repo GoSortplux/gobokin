@@ -93,11 +93,16 @@ const SettingsView = () => {
     }
 
     try {
-      await api.patch("/users/change-password", {
-        currentPassword,
+      Swal.showLoading();
+      await api.post("/auth/change-password", {
+        oldPassword: currentPassword,
         newPassword,
+        confirmPassword,
       });
       Swal.fire("Success!", "Your password has been changed.", "success");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
     } catch (error) {
       console.error("Error changing password:", error);
       Swal.fire("Oops...", "Something went wrong!", "error");
