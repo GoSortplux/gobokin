@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
-import { X } from 'lucide-react';
+import { X, Plus, Trash2, Info } from 'lucide-react';
 import MediaUpload from './MediaUpload';
 import { isVideo } from '@/utils/media';
 import api from '@/services/api';
@@ -1181,124 +1181,174 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
                 </div>
               </div>
 
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <label className="block text-sm font-medium text-gray-800">Facilities</label>
-                  <button type="button" onClick={addFacility} className="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200">Add Facility</button>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+                      Facilities
+                      <span className="bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-full">{formData.facilities.length}</span>
+                    </h3>
+                    <p className="text-[10px] text-gray-500 font-medium mt-0.5">Manage amenities and equipment for this venue</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={addFacility}
+                    className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary-dark transition-all shadow-sm shadow-primary/20"
+                  >
+                    <Plus size={14} />
+                    <span>Add New</span>
+                  </button>
                 </div>
-                <div className="space-y-3 max-h-48 overflow-y-auto border p-3 rounded-md border-gray-300">
-                  {formData.facilities.map((facility, index) => (
-                    <div key={index} className="p-3 border rounded-md border-gray-300 flex flex-wrap gap-4 items-center">
-                      {/* Facility Select */}
-                      <div className="flex-1 min-w-[150px]">
-                        <select
-                          value={facility.facility}
-                          onChange={(e) => handleFacilityChange(index, 'facility', e.target.value)}
-                          className={`w-full px-2 py-1 border ${errors[`facility_${index}`] ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-900`}
-                        >
-                          <option value="">Select Facility</option>
-                          {availableFacilities.map((f) => (
-                            <option key={f._id} value={f._id}>{f.name}</option>
-                          ))}
-                        </select>
-                        {errors[`facility_${index}`] && <p className="text-red-500 text-[10px] mt-0.5">{errors[`facility_${index}`]}</p>}
-                      </div>
 
-                      {/* Variant Name */}
-                      <div className="flex-1 min-w-[120px]">
-                        <input
-                          type="text"
-                          placeholder="Variant (e.g. 50kVA)"
-                          value={facility.variantName || ''}
-                          onChange={(e) => handleFacilityChange(index, 'variantName', e.target.value)}
-                          className="w-full px-2 py-1 border border-gray-300 rounded-md text-gray-900 text-sm"
-                        />
-                      </div>
-
-                      {/* Description */}
-                      <div className="flex-1 min-w-[150px]">
-                        <input
-                          type="text"
-                          placeholder="Short Description"
-                          value={facility.description || ''}
-                          onChange={(e) => handleFacilityChange(index, 'description', e.target.value)}
-                          className="w-full px-2 py-1 border border-gray-300 rounded-md text-gray-900 text-sm"
-                        />
-                      </div>
-
-                      {/* Checkboxes */}
-                      <div className="flex items-center gap-x-4">
-                        <label className="flex items-center whitespace-nowrap">
-                          <input type="checkbox" checked={facility.available} onChange={(e) => handleFacilityChange(index, 'available', e.target.checked)} className="mr-1" />
-                          <span className="text-sm">Available</span>
-                        </label>
-                        <label className="flex items-center whitespace-nowrap">
-                          <input type="checkbox" checked={facility.chargeable} onChange={(e) => handleFacilityChange(index, 'chargeable', e.target.checked)} className="mr-1" />
-                          <span className="text-sm">Chargeable</span>
-                        </label>
-                      </div>
-
-                      {/* Remove Button */}
-                      <div className="ml-auto">
-                        <button type="button" onClick={() => removeFacility(index)} className="text-red-500 hover:text-red-700">X</button>
-                      </div>
-
-                      {/* Chargeable Fields */}
-                      {facility.chargeable && (
-                        <div className="w-full flex flex-wrap gap-4 items-center pt-3 mt-3 border-t border-gray-200">
-                          <div className="flex-1 min-w-[150px]">
+                <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                  {formData.facilities.length === 0 ? (
+                    <div className="text-center py-10 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
+                       <Info className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                       <p className="text-sm text-gray-500 font-medium">No facilities added yet.</p>
+                       <p className="text-[10px] text-gray-400">Click the button above to add amenities.</p>
+                    </div>
+                  ) : (
+                    formData.facilities.map((facility, index) => (
+                      <div key={index} className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all">
+                        {/* Header */}
+                        <div className="bg-gray-50/50 px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                          <div className="flex-1 max-w-xs">
                             <select
-                              value={facility.chargeMethod || ''}
-                              onChange={(e) => handleFacilityChange(index, 'chargeMethod', e.target.value)}
-                              className={`w-full px-2 py-1 border ${errors[`facility_method_${index}`] ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-900`}
+                              value={facility.facility}
+                              onChange={(e) => handleFacilityChange(index, 'facility', e.target.value)}
+                              className={`w-full bg-white px-3 py-1.5 border ${errors[`facility_${index}`] ? 'border-red-500' : 'border-gray-200'} rounded-lg text-sm font-semibold text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all`}
                             >
-                              <option value="" disabled>Charge Method</option>
-                              {chargeMethods.map((method) => (
-                                <option key={method} value={method}>{method.replace('_', ' ')}</option>
+                              <option value="">Select Amenity</option>
+                              {availableFacilities.map((f) => (
+                                <option key={f._id} value={f._id}>{f.name}</option>
                               ))}
                             </select>
-                            {errors[`facility_method_${index}`] && <p className="text-red-500 text-[10px] mt-0.5">{errors[`facility_method_${index}`]}</p>}
+                            {errors[`facility_${index}`] && <p className="text-red-500 text-[10px] mt-1 font-bold ml-1">{errors[`facility_${index}`]}</p>}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeFacility(index)}
+                            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                            title="Remove Facility"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+
+                        {/* Body */}
+                        <div className="p-4 space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Variant Name</label>
+                              <input
+                                type="text"
+                                placeholder="e.g. 100kVA, 50-inch, LED"
+                                value={facility.variantName || ''}
+                                onChange={(e) => handleFacilityChange(index, 'variantName', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                              />
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Short Description</label>
+                              <input
+                                type="text"
+                                placeholder="Briefly describe this variant"
+                                value={facility.description || ''}
+                                onChange={(e) => handleFacilityChange(index, 'description', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                              />
+                            </div>
                           </div>
 
-                          {facility.chargeMethod !== 'free' && (
-                            <>
-                              <div className="flex-shrink-0 w-24">
-                                <input
-                                  type="number"
-                                  placeholder="Enter Cost"
-                                  value={facility.cost || ''}
-                                  onChange={(e) => handleFacilityChange(index, 'cost', e.target.value)}
-                                  className={`w-full px-2 py-1 border ${errors[`facility_cost_${index}`] ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-900 placeholder-gray-500`}
-                                />
-                                {errors[`facility_cost_${index}`] && <p className="text-red-500 text-[10px] mt-0.5">{errors[`facility_cost_${index}`]}</p>}
+                          <div className="flex items-center gap-6 bg-gray-50/50 p-3 rounded-xl border border-gray-100">
+                             <label className="flex items-center gap-2 cursor-pointer group">
+                               <input
+                                 type="checkbox"
+                                 checked={facility.available}
+                                 onChange={(e) => handleFacilityChange(index, 'available', e.target.checked)}
+                                 className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                               />
+                               <span className="text-xs font-bold text-gray-700 group-hover:text-gray-900">Mark as Available</span>
+                             </label>
+
+                             <label className="flex items-center gap-2 cursor-pointer group">
+                               <input
+                                 type="checkbox"
+                                 checked={facility.chargeable}
+                                 onChange={(e) => handleFacilityChange(index, 'chargeable', e.target.checked)}
+                                 className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                               />
+                               <span className="text-xs font-bold text-gray-700 group-hover:text-gray-900">Paid Facility</span>
+                             </label>
+                          </div>
+
+                          {/* Pricing Details */}
+                          {facility.chargeable && (
+                            <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="space-y-1.5">
+                                  <label className="text-[10px] font-bold text-blue-400 uppercase tracking-widest ml-1">Charge Method</label>
+                                  <select
+                                    value={facility.chargeMethod || ''}
+                                    onChange={(e) => handleFacilityChange(index, 'chargeMethod', e.target.value)}
+                                    className={`w-full bg-white px-3 py-2 border ${errors[`facility_method_${index}`] ? 'border-red-500' : 'border-blue-100'} rounded-xl text-sm font-semibold text-gray-900 focus:ring-2 focus:ring-primary/20 transition-all`}
+                                  >
+                                    <option value="" disabled>Select Method</option>
+                                    {chargeMethods.map((method) => (
+                                      <option key={method} value={method}>{method.replace('_', ' ')}</option>
+                                    ))}
+                                  </select>
+                                  {errors[`facility_method_${index}`] && <p className="text-red-500 text-[10px] mt-1 font-bold ml-1">{errors[`facility_method_${index}`]}</p>}
+                                </div>
+
+                                {facility.chargeMethod !== 'free' && (
+                                  <>
+                                    <div className="space-y-1.5">
+                                      <label className="text-[10px] font-bold text-blue-400 uppercase tracking-widest ml-1">Price (₦)</label>
+                                      <input
+                                        type="number"
+                                        placeholder="0.00"
+                                        value={facility.cost || ''}
+                                        onChange={(e) => handleFacilityChange(index, 'cost', e.target.value)}
+                                        className={`w-full bg-white px-3 py-2 border ${errors[`facility_cost_${index}`] ? 'border-red-500' : 'border-blue-100'} rounded-xl text-sm font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 transition-all`}
+                                      />
+                                      {errors[`facility_cost_${index}`] && <p className="text-red-500 text-[10px] mt-1 font-bold ml-1">{errors[`facility_cost_${index}`]}</p>}
+                                    </div>
+                                    <div className="space-y-1.5">
+                                      <label className="text-[10px] font-bold text-blue-400 uppercase tracking-widest ml-1">Available Qty</label>
+                                      <input
+                                        type="number"
+                                        placeholder="1"
+                                        value={facility.quantity || ''}
+                                        onChange={(e) => handleFacilityChange(index, 'quantity', e.target.value)}
+                                        className={`w-full bg-white px-3 py-2 border ${errors[`facility_qty_${index}`] ? 'border-red-500' : 'border-blue-100'} rounded-xl text-sm font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 transition-all`}
+                                      />
+                                      {errors[`facility_qty_${index}`] && <p className="text-red-500 text-[10px] mt-1 font-bold ml-1">{errors[`facility_qty_${index}`]}</p>}
+                                    </div>
+                                  </>
+                                )}
                               </div>
-                              <div className="flex-shrink-0 w-24">
-                                <input
-                                  type="number"
-                                  placeholder="Enter Qty"
-                                  value={facility.quantity || ''}
-                                  onChange={(e) => handleFacilityChange(index, 'quantity', e.target.value)}
-                                  className={`w-full px-2 py-1 border ${errors[`facility_qty_${index}`] ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-900 placeholder-gray-500`}
-                                />
-                                {errors[`facility_qty_${index}`] && <p className="text-red-500 text-[10px] mt-0.5">{errors[`facility_qty_${index}`]}</p>}
-                              </div>
-                              <div className="flex items-center">
-                                <label className="flex items-center whitespace-nowrap text-sm">
+
+                              {facility.chargeMethod !== 'free' && (
+                                <label className="flex items-center gap-2 cursor-pointer w-fit group">
                                   <input
                                     type="checkbox"
                                     checked={!!facility.chargePerUnit}
                                     onChange={(e) => handleFacilityChange(index, 'chargePerUnit', e.target.checked)}
-                                    className="mr-1"
+                                    className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
                                   />
-                                  Charge Per Unit
+                                  <div className="flex flex-col">
+                                    <span className="text-xs font-bold text-gray-700 group-hover:text-gray-900">Charge Per Unit</span>
+                                    <span className="text-[9px] text-gray-400 italic">Price will be multiplied by selected quantity</span>
+                                  </div>
                                 </label>
-                              </div>
-                            </>
+                              )}
+                            </div>
                           )}
                         </div>
-                      )}
-                    </div>
-                  ))}
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
 
@@ -1625,124 +1675,174 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
                     {errors.suitableFor && <p className="text-red-500 text-xs mt-1 mb-4">{errors.suitableFor}</p>}
                   </div>
 
-                  <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <label className="block text-sm font-medium text-gray-800">Facilities</label>
-                      <button type="button" onClick={addFacility} className="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200">Add Facility</button>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                      <div>
+                        <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+                          Facilities
+                          <span className="bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-full">{formData.facilities.length}</span>
+                        </h3>
+                        <p className="text-[10px] text-gray-500 font-medium mt-0.5">Manage amenities and equipment for this venue</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={addFacility}
+                        className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary-dark transition-all shadow-sm shadow-primary/20"
+                      >
+                        <Plus size={14} />
+                        <span>Add New</span>
+                      </button>
                     </div>
-                    <div className="space-y-3 max-h-48 overflow-y-auto border p-3 rounded-md border-gray-300">
-                      {formData.facilities.map((facility, index) => (
-                        <div key={index} className={`p-3 border rounded-md ${errors[`facility_${index}`] || errors[`facility_method_${index}`] || errors[`facility_cost_${index}`] || errors[`facility_qty_${index}`] ? 'border-red-500' : 'border-gray-300'} flex flex-wrap gap-4 items-center`}>
-                          {/* Facility Select */}
-                          <div className="flex-1 min-w-[150px]">
-                            <select
-                              value={facility.facility}
-                              onChange={(e) => handleFacilityChange(index, 'facility', e.target.value)}
-                              className={`w-full px-2 py-1 border ${errors[`facility_${index}`] ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-900`}
-                            >
-                              <option value="">Select Facility</option>
-                              {availableFacilities.map((f) => (
-                                <option key={f._id} value={f._id}>{f.name}</option>
-                              ))}
-                            </select>
-                            {errors[`facility_${index}`] && <p className="text-red-500 text-[10px] mt-0.5">{errors[`facility_${index}`]}</p>}
-                          </div>
 
-                          {/* Variant Name */}
-                          <div className="flex-1 min-w-[120px]">
-                            <input
-                              type="text"
-                              placeholder="Variant (e.g. 50kVA)"
-                              value={facility.variantName || ''}
-                              onChange={(e) => handleFacilityChange(index, 'variantName', e.target.value)}
-                              className="w-full px-2 py-1 border border-gray-300 rounded-md text-gray-900 text-sm"
-                            />
-                          </div>
-
-                          {/* Description */}
-                          <div className="flex-1 min-w-[150px]">
-                            <input
-                              type="text"
-                              placeholder="Short Description"
-                              value={facility.description || ''}
-                              onChange={(e) => handleFacilityChange(index, 'description', e.target.value)}
-                              className="w-full px-2 py-1 border border-gray-300 rounded-md text-gray-900 text-sm"
-                            />
-                          </div>
-
-                          {/* Checkboxes */}
-                          <div className="flex items-center gap-x-4">
-                            <label className="flex items-center whitespace-nowrap">
-                              <input type="checkbox" checked={facility.available} onChange={(e) => handleFacilityChange(index, 'available', e.target.checked)} className="mr-1" />
-                              <span className="text-sm">Available</span>
-                            </label>
-                            <label className="flex items-center whitespace-nowrap">
-                              <input type="checkbox" checked={facility.chargeable} onChange={(e) => handleFacilityChange(index, 'chargeable', e.target.checked)} className="mr-1" />
-                              <span className="text-sm">Chargeable</span>
-                            </label>
-                          </div>
-
-                          {/* Remove Button */}
-                          <div className="ml-auto">
-                            <button type="button" onClick={() => removeFacility(index)} className="text-red-500 hover:text-red-700">X</button>
-                          </div>
-
-                          {/* Chargeable Fields */}
-                          {facility.chargeable && (
-                            <div className="w-full flex flex-wrap gap-4 items-center pt-3 mt-3 border-t border-gray-200">
-                              <div className="flex-1 min-w-[150px]">
+                    <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                      {formData.facilities.length === 0 ? (
+                        <div className="text-center py-10 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
+                           <Info className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                           <p className="text-sm text-gray-500 font-medium">No facilities added yet.</p>
+                           <p className="text-[10px] text-gray-400">Click the button above to add amenities.</p>
+                        </div>
+                      ) : (
+                        formData.facilities.map((facility, index) => (
+                          <div key={index} className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all">
+                            {/* Header */}
+                            <div className="bg-gray-50/50 px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                              <div className="flex-1 max-w-xs">
                                 <select
-                                  value={facility.chargeMethod || ''}
-                                  onChange={(e) => handleFacilityChange(index, 'chargeMethod', e.target.value)}
-                                  className={`w-full px-2 py-1 border ${errors[`facility_method_${index}`] ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-900`}
+                                  value={facility.facility}
+                                  onChange={(e) => handleFacilityChange(index, 'facility', e.target.value)}
+                                  className={`w-full bg-white px-3 py-1.5 border ${errors[`facility_${index}`] ? 'border-red-500' : 'border-gray-200'} rounded-lg text-sm font-semibold text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all`}
                                 >
-                                  <option value="" disabled>Charge Method</option>
-                                  {chargeMethods.map((method) => (
-                                    <option key={method} value={method}>{method.replace('_', ' ')}</option>
+                                  <option value="">Select Amenity</option>
+                                  {availableFacilities.map((f) => (
+                                    <option key={f._id} value={f._id}>{f.name}</option>
                                   ))}
                                 </select>
-                                {errors[`facility_method_${index}`] && <p className="text-red-500 text-[10px] mt-0.5">{errors[`facility_method_${index}`]}</p>}
+                                {errors[`facility_${index}`] && <p className="text-red-500 text-[10px] mt-1 font-bold ml-1">{errors[`facility_${index}`]}</p>}
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => removeFacility(index)}
+                                className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                title="Remove Facility"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+
+                            {/* Body */}
+                            <div className="p-4 space-y-4">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Variant Name</label>
+                                  <input
+                                    type="text"
+                                    placeholder="e.g. 100kVA, 50-inch, LED"
+                                    value={facility.variantName || ''}
+                                    onChange={(e) => handleFacilityChange(index, 'variantName', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                  />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Short Description</label>
+                                  <input
+                                    type="text"
+                                    placeholder="Briefly describe this variant"
+                                    value={facility.description || ''}
+                                    onChange={(e) => handleFacilityChange(index, 'description', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                  />
+                                </div>
                               </div>
 
-                              {facility.chargeMethod !== 'free' && (
-                                <>
-                                  <div className="flex-shrink-0 w-24">
-                                    <input
-                                      type="number"
-                                      placeholder="Enter Cost"
-                                      value={facility.cost || ''}
-                                      onChange={(e) => handleFacilityChange(index, 'cost', e.target.value)}
-                                      className={`w-full px-2 py-1 border ${errors[`facility_cost_${index}`] ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-900 placeholder-gray-500`}
-                                    />
-                                    {errors[`facility_cost_${index}`] && <p className="text-red-500 text-[10px] mt-0.5">{errors[`facility_cost_${index}`]}</p>}
+                              <div className="flex items-center gap-6 bg-gray-50/50 p-3 rounded-xl border border-gray-100">
+                                 <label className="flex items-center gap-2 cursor-pointer group">
+                                   <input
+                                     type="checkbox"
+                                     checked={facility.available}
+                                     onChange={(e) => handleFacilityChange(index, 'available', e.target.checked)}
+                                     className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                   />
+                                   <span className="text-xs font-bold text-gray-700 group-hover:text-gray-900">Mark as Available</span>
+                                 </label>
+
+                                 <label className="flex items-center gap-2 cursor-pointer group">
+                                   <input
+                                     type="checkbox"
+                                     checked={facility.chargeable}
+                                     onChange={(e) => handleFacilityChange(index, 'chargeable', e.target.checked)}
+                                     className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                   />
+                                   <span className="text-xs font-bold text-gray-700 group-hover:text-gray-900">Paid Facility</span>
+                                 </label>
+                              </div>
+
+                              {/* Pricing Details */}
+                              {facility.chargeable && (
+                                <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="space-y-1.5">
+                                      <label className="text-[10px] font-bold text-blue-400 uppercase tracking-widest ml-1">Charge Method</label>
+                                      <select
+                                        value={facility.chargeMethod || ''}
+                                        onChange={(e) => handleFacilityChange(index, 'chargeMethod', e.target.value)}
+                                        className={`w-full bg-white px-3 py-2 border ${errors[`facility_method_${index}`] ? 'border-red-500' : 'border-blue-100'} rounded-xl text-sm font-semibold text-gray-900 focus:ring-2 focus:ring-primary/20 transition-all`}
+                                      >
+                                        <option value="" disabled>Select Method</option>
+                                        {chargeMethods.map((method) => (
+                                          <option key={method} value={method}>{method.replace('_', ' ')}</option>
+                                        ))}
+                                      </select>
+                                      {errors[`facility_method_${index}`] && <p className="text-red-500 text-[10px] mt-1 font-bold ml-1">{errors[`facility_method_${index}`]}</p>}
+                                    </div>
+
+                                    {facility.chargeMethod !== 'free' && (
+                                      <>
+                                        <div className="space-y-1.5">
+                                          <label className="text-[10px] font-bold text-blue-400 uppercase tracking-widest ml-1">Price (₦)</label>
+                                          <input
+                                            type="number"
+                                            placeholder="0.00"
+                                            value={facility.cost || ''}
+                                            onChange={(e) => handleFacilityChange(index, 'cost', e.target.value)}
+                                            className={`w-full bg-white px-3 py-2 border ${errors[`facility_cost_${index}`] ? 'border-red-500' : 'border-blue-100'} rounded-xl text-sm font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 transition-all`}
+                                          />
+                                          {errors[`facility_cost_${index}`] && <p className="text-red-500 text-[10px] mt-1 font-bold ml-1">{errors[`facility_cost_${index}`]}</p>}
+                                        </div>
+                                        <div className="space-y-1.5">
+                                          <label className="text-[10px] font-bold text-blue-400 uppercase tracking-widest ml-1">Available Qty</label>
+                                          <input
+                                            type="number"
+                                            placeholder="1"
+                                            value={facility.quantity || ''}
+                                            onChange={(e) => handleFacilityChange(index, 'quantity', e.target.value)}
+                                            className={`w-full bg-white px-3 py-2 border ${errors[`facility_qty_${index}`] ? 'border-red-500' : 'border-blue-100'} rounded-xl text-sm font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 transition-all`}
+                                          />
+                                          {errors[`facility_qty_${index}`] && <p className="text-red-500 text-[10px] mt-1 font-bold ml-1">{errors[`facility_qty_${index}`]}</p>}
+                                        </div>
+                                      </>
+                                    )}
                                   </div>
-                                  <div className="flex-shrink-0 w-24">
-                                    <input
-                                      type="number"
-                                      placeholder="Enter Qty"
-                                      value={facility.quantity || ''}
-                                      onChange={(e) => handleFacilityChange(index, 'quantity', e.target.value)}
-                                      className={`w-full px-2 py-1 border ${errors[`facility_qty_${index}`] ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-900 placeholder-gray-500`}
-                                    />
-                                    {errors[`facility_qty_${index}`] && <p className="text-red-500 text-[10px] mt-0.5">{errors[`facility_qty_${index}`]}</p>}
-                                  </div>
-                                  <div className="flex items-center">
-                                    <label className="flex items-center whitespace-nowrap text-sm">
+
+                                  {facility.chargeMethod !== 'free' && (
+                                    <label className="flex items-center gap-2 cursor-pointer w-fit group">
                                       <input
                                         type="checkbox"
                                         checked={!!facility.chargePerUnit}
                                         onChange={(e) => handleFacilityChange(index, 'chargePerUnit', e.target.checked)}
-                                        className="mr-1"
+                                        className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
                                       />
-                                      Charge Per Unit
+                                      <div className="flex flex-col">
+                                        <span className="text-xs font-bold text-gray-700 group-hover:text-gray-900">Charge Per Unit</span>
+                                        <span className="text-[9px] text-gray-400 italic">Price will be multiplied by selected quantity</span>
+                                      </div>
                                     </label>
-                                  </div>
-                                </>
+                                  )}
+                                </div>
                               )}
                             </div>
-                          )}
-                        </div>
-                      ))}
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
                 </>
