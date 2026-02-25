@@ -126,6 +126,20 @@ const BookingModal: FC<BookingModalProps> = ({
           return updated;
         });
       }
+    } else {
+      setStartTime('');
+      setEndTime('');
+      if (usePerDateTimes && selectedDates) {
+        setDateTimes(prev => {
+          const updated = { ...prev };
+          selectedDates.forEach(date => {
+            if (getDateAvailability(date) === 'fully available') {
+              updated[date.toDateString()] = { startTime: '', endTime: '' };
+            }
+          });
+          return updated;
+        });
+      }
     }
   };
 
@@ -691,6 +705,11 @@ const BookingModal: FC<BookingModalProps> = ({
                                             ...prev,
                                             [dateStr]: { startTime: open, endTime: close }
                                           }));
+                                        } else {
+                                          setDateTimes(prev => ({
+                                            ...prev,
+                                            [dateStr]: { startTime: '', endTime: '' }
+                                          }));
                                         }
                                       }}
                                     />
@@ -805,17 +824,6 @@ const BookingModal: FC<BookingModalProps> = ({
                     )}
                   </div>
 
-                  <div className="mt-6 flex flex-col items-end">
-                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-                      Total Selection: {selectedDates?.length} {selectedDates?.length === 1 ? 'Date' : 'Dates'}
-                      {totalHours > 0 && ` (${totalHours} ${totalHours === 1 ? 'Hour' : 'Hours'})`}
-                    </span>
-                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-2">Running Total</span>
-                    <div className="text-3xl font-black text-gray-900">
-                      ₦{totalPrice.toLocaleString()}
-                    </div>
-                    <p className="text-[10px] text-gray-500 font-medium mt-1">Includes taxes and charges</p>
-                  </div>
                 </div>
               </div>
             </div>
