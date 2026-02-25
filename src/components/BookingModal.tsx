@@ -101,6 +101,34 @@ const BookingModal: FC<BookingModalProps> = ({
 
   const { disabledHours, getDateAvailability, getDisabledHoursForDate } = useBookingAvailability(venue, selectedDates, displayedMonth);
 
+  const isAllFullyAvailable = useMemo(() => {
+    if (!selectedDates || selectedDates.length === 0) return false;
+    return selectedDates.every(date => getDateAvailability(date) === 'fully available');
+  }, [selectedDates, getDateAvailability]);
+
+  const handleBookFullDay = (checked: boolean) => {
+    if (!venue) return;
+    const open = `${(venue.openingHour || 0).toString().padStart(2, '0')}:00`;
+    const close = `${(venue.closingHour || 24).toString().padStart(2, '0')}:00`;
+
+    if (checked) {
+      setStartTime(open);
+      setEndTime(close);
+      // If we are in per-date mode, we also update all fully available dates
+      if (usePerDateTimes && selectedDates) {
+        setDateTimes(prev => {
+          const updated = { ...prev };
+          selectedDates.forEach(date => {
+            if (getDateAvailability(date) === 'fully available') {
+              updated[date.toDateString()] = { startTime: open, endTime: close };
+            }
+          });
+          return updated;
+        });
+      }
+    }
+  };
+
   const nextStep = () => setStep(step + 1);
   const prevStep = () => setStep(step - 1);
 
@@ -563,7 +591,8 @@ const BookingModal: FC<BookingModalProps> = ({
           )}
 
           {step === 2 && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="space-y-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Left Column: Event Details & Times */}
               <div className="space-y-6">
                 <div>
@@ -594,7 +623,19 @@ const BookingModal: FC<BookingModalProps> = ({
                   </h3>
                   <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
                     {!usePerDateTimes ? (
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-4">
+                        {isAllFullyAvailable && (
+                          <label className="flex items-center text-sm font-bold text-primary cursor-pointer hover:opacity-80 transition-opacity mb-4 bg-primary/5 p-3 rounded-lg border border-primary/10">
+                            <input
+                              type="checkbox"
+                              className="mr-2 h-4 w-4 text-primary rounded border-gray-300 focus:ring-primary"
+                              checked={startTime === `${(venue?.openingHour || 0).toString().padStart(2, '0')}:00` && endTime === `${(venue?.closingHour || 24).toString().padStart(2, '0')}:00`}
+                              onChange={(e) => handleBookFullDay(e.target.checked)}
+                            />
+                            Book Full Day ({(venue?.openingHour || 0).toString().padStart(2, '0')}:00 - {(venue?.closingHour || 24).toString().padStart(2, '0')}:00)
+                          </label>
+                        )}
+                        <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label htmlFor="startTime" className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Start Time</label>
                           <select
@@ -622,15 +663,41 @@ const BookingModal: FC<BookingModalProps> = ({
                           </select>
                         </div>
                       </div>
+                    </div>
                     ) : (
                       <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                         {selectedDates?.map((date) => {
                           const dateStr = date.toDateString();
                           const times = dateTimes[dateStr] || { startTime, endTime };
                           const dateDisabledHours = getDisabledHoursForDate(date);
+                          const isFullyAvailable = getDateAvailability(date) === 'fully available';
+                          const open = `${(venue?.openingHour || 0).toString().padStart(2, '0')}:00`;
+                          const close = `${(venue?.closingHour || 24).toString().padStart(2, '0')}:00`;
+                          const isFullDay = times.startTime === open && times.endTime === close;
+
                           return (
-                            <div key={dateStr} className="bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
-                              <p className="text-xs font-bold text-primary mb-2">{dateStr}</p>
+                            <div key={dateStr} data-testid={`date-row-${dateStr}`} className="bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
+                              <div className="flex justify-between items-center mb-2">
+                                <p className="text-xs font-bold text-primary">{dateStr}</p>
+                                {isFullyAvailable && (
+                                  <label data-testid="full-day-checkbox" className="flex items-center text-[10px] font-bold text-primary cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      className="mr-1 h-3 w-3 text-primary rounded border-gray-300 focus:ring-primary"
+                                      checked={isFullDay}
+                                      onChange={(e) => {
+                                        if (e.target.checked) {
+                                          setDateTimes(prev => ({
+                                            ...prev,
+                                            [dateStr]: { startTime: open, endTime: close }
+                                          }));
+                                        }
+                                      }}
+                                    />
+                                    Full Day
+                                  </label>
+                                )}
+                              </div>
                               <div className="grid grid-cols-2 gap-3">
                                 <select
                                   value={times.startTime}
@@ -748,6 +815,37 @@ const BookingModal: FC<BookingModalProps> = ({
                       ₦{totalPrice.toLocaleString()}
                     </div>
                     <p className="text-[10px] text-gray-500 font-medium mt-1">Includes taxes and charges</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 2 Duration & Price Feedback */}
+              <div className="bg-primary/5 border border-primary/10 rounded-2xl p-6 animate-in fade-in slide-in-from-bottom-4 shadow-sm">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+                  <div className="flex gap-12">
+                    <div>
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1 text-center sm:text-left">Selected Dates</span>
+                      <div className="text-xl font-black text-gray-900 text-center sm:text-left">
+                        {selectedDates?.length || 0} {selectedDates?.length === 1 ? 'Date' : 'Dates'}
+                      </div>
+                    </div>
+                    {totalHours > 0 && (
+                      <div className="animate-in zoom-in duration-300">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1 text-center sm:text-left">Total Duration</span>
+                        <div className="text-xl font-black text-primary text-center sm:text-left">
+                          {totalHours} {totalHours === 1 ? 'Hour' : 'Hours'}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col items-center sm:items-end">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Estimated Total</span>
+                    <div className="text-2xl font-black text-gray-900">
+                      ₦{totalPrice.toLocaleString()}
+                    </div>
+                    <p className="text-[10px] text-gray-500 font-medium">Includes taxes and charges</p>
                   </div>
                 </div>
               </div>
