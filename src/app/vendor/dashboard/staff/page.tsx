@@ -38,11 +38,21 @@ const StaffContent = () => {
     try {
       setLoading(true);
       const response = await api.get('/users/my-staff');
-      // Map hallIds from API to venueIds for frontend
-      const mappedStaff = (response.data.data || []).map((s: { hallIds?: string[]; [key: string]: unknown }) => ({
-        ...s,
-        venueIds: s.hallIds,
-      }));
+      // Map assignedHalls or hallIds from API to venueIds for frontend
+      const mappedStaff = (response.data.data || []).map((s: {
+        hallIds?: string[];
+        assignedHalls?: { _id: string }[];
+        [key: string]: unknown
+      }) => {
+        const venueIds = s.assignedHalls
+          ? s.assignedHalls.map(h => h._id)
+          : (s.hallIds || []);
+
+        return {
+          ...s,
+          venueIds,
+        };
+      });
       setStaff(mappedStaff);
       setError('');
     } catch (err) {
