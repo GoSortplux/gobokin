@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import api from '@/services/api';
 import CustomLoader from '@/components/CustomLoader';
@@ -10,6 +10,15 @@ const ForgotPasswordPage = () => {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (countdown > 0) {
+      timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [countdown]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,8 +31,9 @@ const ForgotPasswordPage = () => {
         icon: 'success',
         title: 'Reset Link Sent',
         text: 'A password reset link has been sent to your email address.',
-        confirmButtonColor: '#2563eb',
+        confirmButtonColor: '#295FA7',
       });
+      setCountdown(60);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred.');
     } finally {
@@ -60,10 +70,16 @@ const ForgotPasswordPage = () => {
             {error && <p className="text-sm text-red-600">{error}</p>}
             <button
               type="submit"
-            disabled={isLoading}
-            className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center min-h-[48px]"
+              disabled={isLoading || countdown > 0}
+              className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center min-h-[48px]"
             >
-            {isLoading ? <CustomLoader size={24} /> : 'Send Reset Link'}
+              {isLoading ? (
+                <CustomLoader size={24} />
+              ) : countdown > 0 ? (
+                `Resend in ${countdown}s`
+              ) : (
+                'Send Reset Link'
+              )}
             </button>
           </form>
           <p className="text-sm text-center text-gray-600">

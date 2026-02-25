@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import api from "../../services/api";
 import Swal from "@/utils/sweetalert";
-import { User as UserIcon, Shield, Mail, AlertTriangle, Trash2 } from "lucide-react";
+import { User as UserIcon, Shield, Mail, AlertTriangle, Trash2, Eye, EyeOff } from "lucide-react";
 import CustomLoader from "@/components/CustomLoader";
 
 interface UserProfile {
@@ -20,6 +20,9 @@ const SettingsView = () => {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -167,36 +170,80 @@ const SettingsView = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block mb-1 font-medium text-gray-700">Current Password</label>
-            <input
-              type="password"
-              className="w-full p-2 border rounded-md text-gray-600"
-              placeholder="Enter Current Password"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-            />
+            <div className="relative">
+              <input
+                type={showCurrent ? "text" : "password"}
+                className="w-full p-2 pr-10 border rounded-md text-gray-600 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                placeholder="Enter Current Password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowCurrent(!showCurrent)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                {showCurrent ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
           <div>
             <label className="block mb-1 font-medium text-gray-700">New Password</label>
-            <input
-              type="password"
-              className="w-full p-2 border rounded-md text-gray-600"
-              placeholder="Enter New Password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-            />
+            <div className="relative">
+              <input
+                type={showNew ? "text" : "password"}
+                className="w-full p-2 pr-10 border rounded-md text-gray-600 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                placeholder="Enter New Password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+                minLength={6}
+              />
+              <button
+                type="button"
+                onClick={() => setShowNew(!showNew)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                {showNew ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
           <div>
             <label className="block mb-1 font-medium text-gray-700">Confirm New Password</label>
-            <input
-              type="password"
-              className="w-full p-2 border rounded-md text-gray-600"
-              placeholder="Confirm New Password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
+            <div className="relative">
+              <input
+                type={showConfirm ? "text" : "password"}
+                className={`w-full p-2 pr-10 border rounded-md text-gray-600 focus:ring-2 outline-none transition-all ${
+                  confirmPassword && newPassword !== confirmPassword
+                    ? "border-red-500 focus:ring-red-500"
+                    : confirmPassword && newPassword === confirmPassword
+                    ? "border-green-500 focus:ring-green-500"
+                    : "focus:ring-primary focus:border-transparent"
+                }`}
+                placeholder="Confirm New Password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirm(!showConfirm)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+            {confirmPassword && newPassword !== confirmPassword && (
+              <p className="text-xs text-red-500 mt-1">Passwords do not match</p>
+            )}
           </div>
-          <div className="flex justify-end">
-            <button type="submit" className="bg-primary text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors duration-300">
+          <div className="flex justify-end pt-2">
+            <button
+              type="submit"
+              disabled={!currentPassword || !newPassword || !confirmPassword || newPassword !== confirmPassword}
+              className="bg-primary text-white py-2 px-6 rounded-md hover:bg-primary/90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm font-semibold"
+            >
               Change Password
             </button>
           </div>

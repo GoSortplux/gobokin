@@ -50,6 +50,11 @@ const nextConfig = {
         destination: '/vendor/dashboard/venues',
         permanent: true,
       },
+      {
+        source: '/auth/reset-password/:path*',
+        destination: '/auth/password-reset/:path*',
+        permanent: true,
+      },
     ];
   },
 };
