@@ -6,6 +6,8 @@ export interface Facility {
   cost: number;
   quantity: number;
   chargePerUnit: boolean;
+  variantName?: string;
+  description?: string;
   facility?: {
     _id: string;
     name: string;
@@ -229,6 +231,8 @@ export interface Venue {
   openingHour?: number;
   closingHour?: number;
   bookingBufferInHours?: number;
+  shortBookingBufferInHours?: number;
+  reservationCutoffHours?: number;
   isListed?: boolean;
   isOnlineBookingEnabled?: boolean;
   allowRecurringBookings?: boolean;

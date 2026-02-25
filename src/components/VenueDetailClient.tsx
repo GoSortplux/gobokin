@@ -410,7 +410,12 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
                     <div key={index} className="flex items-center space-x-4">
                       <FacilityIcon name={facility.facility?.name || facility.name || ''} />
                       <div className="flex-grow">
-                        <p className="text-gray-800 font-medium">{facility.facility?.name || facility.name}</p>
+                        <p className="text-gray-800 font-medium">
+                          {facility.facility?.name || facility.name}
+                          {facility.variantName && (
+                            <span className="text-gray-500 ml-1">({facility.variantName})</span>
+                          )}
+                        </p>
                         <div className="flex items-center text-sm text-gray-500">
                           {facility.chargeMethod === 'free' ? (
                             <>
@@ -420,10 +425,15 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
                           ) : (
                             <>
                               <CircleDollarSign className="h-4 w-4 text-yellow-600 mr-1.5" />
-                              <span>Paid</span>
+                              <span>
+                                ₦{facility.cost?.toLocaleString()}{facility.chargeMethod === 'per_day' ? '/day' : (facility.chargeMethod === 'per_hour' ? '/hour' : '')}
+                              </span>
                             </>
                           )}
                         </div>
+                        {facility.description && (
+                          <p className="text-xs text-gray-400 mt-0.5">{facility.description}</p>
+                        )}
                       </div>
                     </div>
                   ))

@@ -19,6 +19,8 @@ interface Facility {
   cost?: number;
   quantity?: number;
   chargePerUnit?: boolean;
+  variantName?: string;
+  description?: string;
 }
 interface APIFacility {
   _id: string;
@@ -54,11 +56,16 @@ interface VenueData {
     cost?: number;
     quantity?: number;
     chargePerUnit?: boolean;
+    variantName?: string;
+    description?: string;
   }>;
   suitableFor?: Array<string | { _id: string }>;
   carParkCapacity?: number;
   hallSize?: string;
   rules?: string[] | string;
+  bookingBufferInHours?: number;
+  shortBookingBufferInHours?: number;
+  reservationCutoffHours?: number;
   country?: string;
   state?: string;
   localGovernment?: string;
@@ -139,6 +146,9 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
         },
       },
       maxStaffManualDiscount: 0 as number | string,
+      bookingBufferInHours: 0 as number | string,
+      shortBookingBufferInHours: 0 as number | string,
+      reservationCutoffHours: 0 as number | string,
     });
     setCurrentStep(1);
     setVenueId(null);
@@ -200,6 +210,9 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
       },
     },
     maxStaffManualDiscount: 0 as number | string,
+    bookingBufferInHours: 0 as number | string,
+    shortBookingBufferInHours: 0 as number | string,
+    reservationCutoffHours: 0 as number | string,
   });
 
   useEffect(() => {
@@ -278,6 +291,8 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
         cost: fac.cost,
         quantity: fac.quantity || 1,
         chargePerUnit: fac.chargePerUnit || false,
+        variantName: fac.variantName || '',
+        description: fac.description || '',
       })) : [];
 
       const formatTime = (time: string | number | undefined, defaultTime: string) => {
@@ -334,6 +349,9 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
           },
         },
         maxStaffManualDiscount: venue.maxStaffManualDiscount || 0,
+        bookingBufferInHours: venue.bookingBufferInHours || 0,
+        shortBookingBufferInHours: venue.shortBookingBufferInHours || 0,
+        reservationCutoffHours: venue.reservationCutoffHours || 0,
       });
       setVenueId(venue._id || venue.id || null);
     } else {
@@ -376,6 +394,9 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
               },
             },
             maxStaffManualDiscount: 0,
+            bookingBufferInHours: 0,
+            shortBookingBufferInHours: 0,
+            reservationCutoffHours: 0,
             ...parsedData
           });
           setCurrentStep(1);
@@ -421,6 +442,9 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
           },
         },
         maxStaffManualDiscount: 0,
+          bookingBufferInHours: 0,
+          shortBookingBufferInHours: 0,
+          reservationCutoffHours: 0,
       });
       setCurrentStep(1);
       setVenueId(null);
@@ -514,7 +538,7 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
       facilities: [
         ...prev.facilities,
         // Initialize with empty values, user will select a facility
-        { facility: '', name: '', available: true, chargeable: false, quantity: 1, chargePerUnit: false },
+        { facility: '', name: '', available: true, chargeable: false, quantity: 1, chargePerUnit: false, variantName: '', description: '' },
       ],
     }));
   };
@@ -659,6 +683,9 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
         capacity: Number(formData.capacity),
         carParkCapacity: Number(formData.carParkCapacity),
         maxStaffManualDiscount: Number(formData.maxStaffManualDiscount),
+        bookingBufferInHours: Number(formData.bookingBufferInHours),
+        shortBookingBufferInHours: Number(formData.shortBookingBufferInHours),
+        reservationCutoffHours: Number(formData.reservationCutoffHours),
         openingHour: parseHour(openingHour),
         closingHour: parseHour(closingHour),
         country,
@@ -745,6 +772,9 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
         suitableFor: formData.suitableFor,
         allowRecurringBookings: formData.allowRecurringBookings,
         maxStaffManualDiscount: Number(formData.maxStaffManualDiscount),
+        bookingBufferInHours: Number(formData.bookingBufferInHours),
+        shortBookingBufferInHours: Number(formData.shortBookingBufferInHours),
+        reservationCutoffHours: Number(formData.reservationCutoffHours),
         discountSettings: {
           enabled: formData.discountSettings.enabled,
           hourly: {
@@ -1075,17 +1105,57 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
                 </div>
               )}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-800">Max Staff Manual Discount (%)</label>
-                <input
-                  type="number"
-                  name="maxStaffManualDiscount"
-                  placeholder="e.g., 15"
-                  value={formData.maxStaffManualDiscount}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-2 border ${errors.maxStaffManualDiscount ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-900 placeholder-gray-500`}
-                />
-                {errors.maxStaffManualDiscount && <p className="text-red-500 text-xs mt-1">{errors.maxStaffManualDiscount}</p>}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-800">Max Staff Manual Discount (%)</label>
+                  <input
+                    type="number"
+                    name="maxStaffManualDiscount"
+                    placeholder="e.g., 15"
+                    value={formData.maxStaffManualDiscount}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-2 border ${errors.maxStaffManualDiscount ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-900 placeholder-gray-500`}
+                  />
+                  {errors.maxStaffManualDiscount && <p className="text-red-500 text-xs mt-1">{errors.maxStaffManualDiscount}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-800">Reservation Cutoff (Hours)</label>
+                  <input
+                    type="number"
+                    name="reservationCutoffHours"
+                    placeholder="e.g., 72"
+                    value={formData.reservationCutoffHours}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500"
+                  />
+                  <p className="text-[10px] text-gray-500 mt-1">Hours before a reservation expires if not paid</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-800">Long Booking Buffer (Hours)</label>
+                  <input
+                    type="number"
+                    name="bookingBufferInHours"
+                    placeholder="e.g., 5"
+                    value={formData.bookingBufferInHours}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-800">Short Booking Buffer (Hours)</label>
+                  <input
+                    type="number"
+                    name="shortBookingBufferInHours"
+                    placeholder="e.g., 2"
+                    value={formData.shortBookingBufferInHours}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500"
+                  />
+                </div>
+                <p className="col-span-2 text-[10px] text-gray-500 -mt-2 italic">Minimum time required between bookings on the same date</p>
               </div>
 
               <div>
@@ -1120,7 +1190,7 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
                   {formData.facilities.map((facility, index) => (
                     <div key={index} className="p-3 border rounded-md border-gray-300 flex flex-wrap gap-4 items-center">
                       {/* Facility Select */}
-                      <div className="flex-1 min-w-[200px]">
+                      <div className="flex-1 min-w-[150px]">
                         <select
                           value={facility.facility}
                           onChange={(e) => handleFacilityChange(index, 'facility', e.target.value)}
@@ -1132,6 +1202,28 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
                           ))}
                         </select>
                         {errors[`facility_${index}`] && <p className="text-red-500 text-[10px] mt-0.5">{errors[`facility_${index}`]}</p>}
+                      </div>
+
+                      {/* Variant Name */}
+                      <div className="flex-1 min-w-[120px]">
+                        <input
+                          type="text"
+                          placeholder="Variant (e.g. 50kVA)"
+                          value={facility.variantName || ''}
+                          onChange={(e) => handleFacilityChange(index, 'variantName', e.target.value)}
+                          className="w-full px-2 py-1 border border-gray-300 rounded-md text-gray-900 text-sm"
+                        />
+                      </div>
+
+                      {/* Description */}
+                      <div className="flex-1 min-w-[150px]">
+                        <input
+                          type="text"
+                          placeholder="Short Description"
+                          value={facility.description || ''}
+                          onChange={(e) => handleFacilityChange(index, 'description', e.target.value)}
+                          className="w-full px-2 py-1 border border-gray-300 rounded-md text-gray-900 text-sm"
+                        />
                       </div>
 
                       {/* Checkboxes */}
@@ -1457,17 +1549,57 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
                     </div>
                   )}
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-800">Max Staff Manual Discount (%)</label>
-                    <input
-                      type="number"
-                      name="maxStaffManualDiscount"
-                      placeholder="e.g., 15"
-                      value={formData.maxStaffManualDiscount}
-                      onChange={handleChange}
-                      className={`w-full px-4 py-2 border ${errors.maxStaffManualDiscount ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-900 placeholder-gray-500`}
-                    />
-                    {errors.maxStaffManualDiscount && <p className="text-red-500 text-xs mt-1">{errors.maxStaffManualDiscount}</p>}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-800">Max Staff Manual Discount (%)</label>
+                      <input
+                        type="number"
+                        name="maxStaffManualDiscount"
+                        placeholder="e.g., 15"
+                        value={formData.maxStaffManualDiscount}
+                        onChange={handleChange}
+                        className={`w-full px-4 py-2 border ${errors.maxStaffManualDiscount ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-900 placeholder-gray-500`}
+                      />
+                      {errors.maxStaffManualDiscount && <p className="text-red-500 text-xs mt-1">{errors.maxStaffManualDiscount}</p>}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-800">Reservation Cutoff (Hours)</label>
+                      <input
+                        type="number"
+                        name="reservationCutoffHours"
+                        placeholder="e.g., 72"
+                        value={formData.reservationCutoffHours}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500"
+                      />
+                      <p className="text-[10px] text-gray-500 mt-1">Hours before a reservation expires if not paid</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-800">Long Booking Buffer (Hours)</label>
+                      <input
+                        type="number"
+                        name="bookingBufferInHours"
+                        placeholder="e.g., 5"
+                        value={formData.bookingBufferInHours}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-800">Short Booking Buffer (Hours)</label>
+                      <input
+                        type="number"
+                        name="shortBookingBufferInHours"
+                        placeholder="e.g., 2"
+                        value={formData.shortBookingBufferInHours}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500"
+                      />
+                    </div>
+                    <p className="col-span-2 text-[10px] text-gray-500 -mt-2 italic">Minimum time required between bookings on the same date</p>
                   </div>
 
                   <div>
@@ -1502,7 +1634,7 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
                       {formData.facilities.map((facility, index) => (
                         <div key={index} className={`p-3 border rounded-md ${errors[`facility_${index}`] || errors[`facility_method_${index}`] || errors[`facility_cost_${index}`] || errors[`facility_qty_${index}`] ? 'border-red-500' : 'border-gray-300'} flex flex-wrap gap-4 items-center`}>
                           {/* Facility Select */}
-                          <div className="flex-1 min-w-[200px]">
+                          <div className="flex-1 min-w-[150px]">
                             <select
                               value={facility.facility}
                               onChange={(e) => handleFacilityChange(index, 'facility', e.target.value)}
@@ -1514,6 +1646,28 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
                               ))}
                             </select>
                             {errors[`facility_${index}`] && <p className="text-red-500 text-[10px] mt-0.5">{errors[`facility_${index}`]}</p>}
+                          </div>
+
+                          {/* Variant Name */}
+                          <div className="flex-1 min-w-[120px]">
+                            <input
+                              type="text"
+                              placeholder="Variant (e.g. 50kVA)"
+                              value={facility.variantName || ''}
+                              onChange={(e) => handleFacilityChange(index, 'variantName', e.target.value)}
+                              className="w-full px-2 py-1 border border-gray-300 rounded-md text-gray-900 text-sm"
+                            />
+                          </div>
+
+                          {/* Description */}
+                          <div className="flex-1 min-w-[150px]">
+                            <input
+                              type="text"
+                              placeholder="Short Description"
+                              value={facility.description || ''}
+                              onChange={(e) => handleFacilityChange(index, 'description', e.target.value)}
+                              className="w-full px-2 py-1 border border-gray-300 rounded-md text-gray-900 text-sm"
+                            />
                           </div>
 
                           {/* Checkboxes */}

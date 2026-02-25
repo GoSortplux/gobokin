@@ -38,6 +38,8 @@ interface FacilityItem {
   chargeMethod: string;
   quantity: number;
   chargePerUnit: boolean;
+  variantName?: string;
+  description?: string;
 }
 
 interface HallItem {
@@ -969,7 +971,12 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                               checked={isSelected}
                               onChange={() => handleFacilityChange(facility)}
                             />
-                            <span className="text-gray-700">{facility.facility?.name || facility.name}</span>
+                            <span className="text-gray-700">
+                              {facility.facility?.name || facility.name}
+                              {facility.variantName && (
+                                <span className="text-gray-500 text-xs ml-1 font-normal">({facility.variantName})</span>
+                              )}
+                            </span>
                             <span className="text-gray-500 font-medium">
                               + ₦{facility.cost.toLocaleString()}{facility.chargeMethod === 'per_day' ? '/day' : (facility.chargeMethod === 'per_hour' ? '/hour' : '')}
                             </span>
@@ -1267,7 +1274,12 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                               checked={isSelected}
                               onChange={() => handleFacilityChange(facility)}
                             />
-                            <span className="text-gray-700">{facility.facility?.name || facility.name}</span>
+                            <span className="text-gray-700">
+                              {facility.facility?.name || facility.name}
+                              {facility.variantName && (
+                                <span className="text-gray-500 text-xs ml-1 font-normal">({facility.variantName})</span>
+                              )}
+                            </span>
                             <span className="text-gray-500 font-medium">
                               + ₦{facility.cost.toLocaleString()}{facility.chargeMethod === 'per_day' ? '/day' : (facility.chargeMethod === 'per_hour' ? '/hour' : '')}
                             </span>
@@ -1540,7 +1552,12 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                               checked={isSelected}
                               onChange={() => handleFacilityChange(facility)}
                             />
-                            <span className="text-gray-700">{facility.facility?.name || facility.name}</span>
+                            <span className="text-gray-700">
+                              {facility.facility?.name || facility.name}
+                              {facility.variantName && (
+                                <span className="text-gray-500 text-xs ml-1 font-normal">({facility.variantName})</span>
+                              )}
+                            </span>
                             <span className="text-gray-500 font-medium">
                               + ₦{facility.cost.toLocaleString()}{facility.chargeMethod === 'per_day' ? '/day' : (facility.chargeMethod === 'per_hour' ? '/hour' : '')}
                             </span>

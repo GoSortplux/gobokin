@@ -794,6 +794,9 @@ const BookingModal: FC<BookingModalProps> = ({
                                 <div className="flex flex-col">
                                   <span className={`font-bold ${isSelected ? 'text-gray-900' : 'text-gray-700'}`}>
                                     {facility.facility?.name || facility.name}
+                                    {facility.variantName && (
+                                      <span className="text-gray-500 text-xs ml-1 font-normal">({facility.variantName})</span>
+                                    )}
                                   </span>
                                   <span className="text-[10px] text-gray-500 font-medium">
                                     + ₦{facility.cost.toLocaleString()}{facility.chargeMethod === 'per_day' ? '/day' : (facility.chargeMethod === 'per_hour' ? '/hour' : '')}
@@ -925,7 +928,13 @@ const BookingModal: FC<BookingModalProps> = ({
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {selectedFacilities.map(f => (
                             <div key={f._id} className="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center">
-                              <span className="text-sm font-medium text-gray-700">{f.facility?.name || f.name} <span className="text-gray-400">x{f.quantity}</span></span>
+                            <span className="text-sm font-medium text-gray-700">
+                              {f.facility?.name || f.name}
+                              {f.variantName && (
+                                <span className="text-gray-500 text-xs ml-1">({f.variantName})</span>
+                              )}
+                              <span className="text-gray-400 ml-1">x{f.quantity}</span>
+                            </span>
                               <span className="text-sm font-bold text-gray-900">₦{calculateFacilityCost(f).toLocaleString()}</span>
                             </div>
                           ))}
