@@ -555,9 +555,6 @@ const BookingModal: FC<BookingModalProps> = ({
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">Selected</span>
                     <div className="text-2xl font-black text-gray-900">
                       {selectedDates.length} {selectedDates.length === 1 ? 'Date' : 'Dates'}
-                      {totalHours > 0 && (
-                        <span className="text-sm text-gray-500 ml-2 font-medium">({totalHours} {totalHours === 1 ? 'Hour' : 'Hours'})</span>
-                      )}
                     </div>
                   </div>
                 )}
