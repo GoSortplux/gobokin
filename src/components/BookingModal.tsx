@@ -7,6 +7,7 @@ import api from '@/services/api';
 import CustomLoader from './CustomLoader';
 import Calendar from './Calendar';
 import { Venue, Facility } from '@/types';
+import FacilityIcon from './FacilityIcon';
 import { useBookingAvailability } from '@/hooks/useBookingAvailability';
 import { useAuth } from '@/context/AuthContext';
 import Swal from "@/utils/sweetalert";
@@ -480,8 +481,8 @@ const BookingModal: FC<BookingModalProps> = ({
     if (step === 2) {
       if (usePerDateTimes && selectedDates) {
         for (const date of selectedDates) {
-          const times = dateTimes[date.toDateString()];
-          if (!times || !times.startTime || !times.endTime) {
+          const times = dateTimes[date.toDateString()] || { startTime, endTime };
+          if (!times.startTime || !times.endTime) {
             setError(`Please select start and end times for ${date.toLocaleDateString()}.`);
             return;
           }
@@ -935,17 +936,15 @@ const BookingModal: FC<BookingModalProps> = ({
                            <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Added Facilities</h3>
                            <span className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full">{selectedFacilities.length} Item{selectedFacilities.length > 1 ? 's' : ''}</span>
                         </div>
-                        <div className="bg-gray-50/50 rounded-2xl border border-gray-100 overflow-hidden divide-y divide-gray-100">
+                        <div className="bg-gray-50/50 rounded-2xl border border-gray-100 overflow-hidden divide-y divide-gray-100 shadow-inner">
                           {selectedFacilities.map(f => (
-                            <div key={f._id} className="p-4 flex items-center justify-between hover:bg-white transition-colors group">
+                            <div key={f._id} className="p-4 flex items-center justify-between hover:bg-white transition-colors group relative">
                                <div className="flex items-center gap-4">
-                                  <div className="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-all duration-300">
-                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                     </svg>
+                                  <div className="w-12 h-12 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-primary shadow-sm group-hover:shadow-md group-hover:border-primary/20 transition-all duration-300">
+                                     <FacilityIcon name={f.facility?.name || f.name} />
                                   </div>
                                   <div>
-                                     <p className="text-sm font-bold text-gray-900 leading-tight">
+                                     <p className="text-sm font-black text-gray-900 leading-tight tracking-tight uppercase">
                                         {f.facility?.name || f.name}
                                         {f.variantName && (
                                           <span className="text-[11px] text-primary font-bold ml-1">({f.variantName})</span>
