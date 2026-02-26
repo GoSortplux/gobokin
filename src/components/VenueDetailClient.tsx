@@ -1,10 +1,9 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { VIEW_COUNT_ROLES } from '@/constants/auth';
 import api from '@/services/api';
 import BookingModal, { FacilityWithQuantity } from '@/components/BookingModal';
 import DemoModal from '@/components/DemoModal';
@@ -45,8 +44,31 @@ interface VenueDetailClientProps {
 const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) => {
   const { user } = useAuth();
   const router = useRouter();
-  const canSeeViews = user && VIEW_COUNT_ROLES.includes(user.activeRole);
   const [venue, setVenue] = useState<Venue | null>(initialVenue || null);
+
+  const canSeeViews = useMemo(() => {
+    if (!user || !venue) return false;
+    if (user.activeRole === 'super-admin') return true;
+
+    const venueOwnerId = typeof venue.owner === 'object' ? venue.owner?._id : venue.owner;
+    const userId = user._id || user.id;
+
+    if (user.activeRole === 'hall-owner') {
+      return venueOwnerId === userId;
+    }
+
+    if (user.activeRole === 'staff') {
+      // @ts-expect-error - staff might have assignedHalls or hallIds
+      const assignedHalls = user.assignedHalls || user.hallIds || [];
+      return assignedHalls.some((h: string | { _id: string }) => {
+        const hId = typeof h === 'object' ? h._id : h;
+        return hId === venue._id || hId === venue.id;
+      });
+    }
+
+    return false;
+  }, [user, venue]);
+
   const [recommendations, setRecommendations] = useState<Venue[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(!initialVenue);

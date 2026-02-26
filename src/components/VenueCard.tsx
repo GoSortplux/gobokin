@@ -1,4 +1,5 @@
 'use client';
+import React, { useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Star, Eye } from "lucide-react";
@@ -7,7 +8,6 @@ import Slider from "react-slick";
 import { Venue } from "@/types/venue";
 import { useAuth } from "@/context/AuthContext";
 import { createVenueSlug } from "@/utils/slugify";
-import { VIEW_COUNT_ROLES } from '@/constants/auth';
 
 interface VenueCardProps {
   venue: Venue;
@@ -15,7 +15,30 @@ interface VenueCardProps {
 
 const VenueCard = ({ venue }: VenueCardProps) => {
   const { user } = useAuth();
-  const canSeeViews = user && VIEW_COUNT_ROLES.includes(user.activeRole);
+
+  const canSeeViews = useMemo(() => {
+    if (!user) return false;
+    if (user.activeRole === 'super-admin') return true;
+
+    const venueOwnerId = typeof venue.owner === 'object' ? venue.owner?._id : venue.owner;
+    const userId = user._id || user.id;
+
+    if (user.activeRole === 'hall-owner') {
+      return venueOwnerId === userId;
+    }
+
+    if (user.activeRole === 'staff') {
+      // @ts-expect-error - staff might have assignedHalls or hallIds
+      const assignedHalls = user.assignedHalls || user.hallIds || [];
+      return assignedHalls.some((h: string | { _id: string }) => {
+        const hId = typeof h === 'object' ? h._id : h;
+        return hId === venue._id || hId === venue.id;
+      });
+    }
+
+    return false;
+  }, [user, venue]);
+
   const { dailyRate, hourlyRate } = venue.pricing || {};
 
   const settings = {
