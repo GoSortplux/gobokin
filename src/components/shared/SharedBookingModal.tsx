@@ -112,6 +112,16 @@ const AvailabilityLegend = () => (
   </div>
 );
 
+const parseTimeToHours = (timeStr: string) => {
+  if (!timeStr) return 0;
+  if (timeStr.includes('T')) {
+    const date = new Date(timeStr);
+    return date.getHours() + date.getMinutes() / 60;
+  }
+  const [h, m] = timeStr.split(':').map(Number);
+  return (h || 0) + (m || 0) / 60;
+};
+
 const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSubmit, userRole }) => {
   const [activeTab, setActiveTab] = useState('reservation');
   const [venues, setVenues] = useState<HallItem[]>([]);
@@ -152,6 +162,53 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
   const selectedDatesArray = useMemo(() => formData.dates.map(date => parseLocalDate(date)), [formData.dates]);
   // @ts-expect-error - selectedVenueObj matches required properties of Venue
   const { getDateAvailability, disabledHours, getDisabledHoursForDate } = useBookingAvailability(selectedVenueObj, selectedDatesArray, displayedMonth);
+
+  const handleBookFullDay = useCallback((checked: boolean) => {
+    if (!selectedVenueObj) return;
+    const open = `${(selectedVenueObj.openingHour || 0).toString().padStart(2, '0')}:00`;
+    const close = `${(selectedVenueObj.closingHour || 24).toString().padStart(2, '0')}:00`;
+
+    if (checked) {
+      setFormData(prev => ({ ...prev, startTime: open, endTime: close }));
+      if (usePerDateTimes && formData.dates.length > 0) {
+        setDateTimes(prev => {
+          const updated = { ...prev };
+          formData.dates.forEach(date => {
+            updated[date] = { startTime: open, endTime: close };
+          });
+          return updated;
+        });
+      }
+    } else {
+      setFormData(prev => ({ ...prev, startTime: '', endTime: '' }));
+      if (usePerDateTimes && formData.dates.length > 0) {
+        setDateTimes(prev => {
+          const updated = { ...prev };
+          formData.dates.forEach(date => {
+            updated[date] = { startTime: '', endTime: '' };
+          });
+          return updated;
+        });
+      }
+    }
+  }, [selectedVenueObj, usePerDateTimes, formData.dates]);
+
+  const FullDayCheckbox = ({ isChecked, onChange, labelClass = "text-sm", containerClass = "bg-primary/5 p-3 rounded-lg border border-primary/10" }: { isChecked: boolean; onChange: (checked: boolean) => void; labelClass?: string; containerClass?: string }) => {
+    const open = (selectedVenueObj?.openingHour || 0).toString().padStart(2, '0') + ':00';
+    const close = (selectedVenueObj?.closingHour || 24).toString().padStart(2, '0') + ':00';
+
+    return (
+      <label className={`flex items-center font-bold text-primary cursor-pointer hover:opacity-80 transition-opacity ${labelClass} ${containerClass}`}>
+        <input
+          type="checkbox"
+          className="mr-2 h-4 w-4 text-primary rounded border-gray-300 focus:ring-primary"
+          checked={isChecked}
+          onChange={(e) => onChange(e.target.checked)}
+        />
+        Book Full Day ({open} - {close})
+      </label>
+    );
+  };
 
   const generateTimeOptions = (openingHour: number, closingHour: number, disabled: number[]) => {
     const options = [];
@@ -300,12 +357,47 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
 
       const dailyRate = selectedVenue.pricing.dailyRate || 0;
       const hourlyRate = selectedVenue.pricing.hourlyRate || 0;
+      const openTime = `${(selectedVenue.openingHour || 0).toString().padStart(2, '0')}:00`;
+      const closeTime = `${(selectedVenue.closingHour || 24).toString().padStart(2, '0')}:00`;
 
       let calculatedHallPrice = 0;
-      if (hourlyRate > 0) {
-        calculatedHallPrice = hourlyRate * durationInHours;
-      } else if (dailyRate > 0) {
-        calculatedHallPrice = dailyRate * durationInDays;
+      if ((activeTab === 'reservation' || activeTab === 'walk-in' || activeTab === 'recurring') && formData.dates.length > 0) {
+        formData.dates.forEach(date => {
+          const times = usePerDateTimes && dateTimes[date] ? dateTimes[date] : { startTime: formData.startTime, endTime: formData.endTime };
+          if (times.startTime && times.endTime) {
+            const startHours = parseTimeToHours(times.startTime);
+            const endHours = parseTimeToHours(times.endTime);
+            const openHours = parseTimeToHours(openTime);
+            const closeHours = parseTimeToHours(closeTime);
+
+            const isFullDay = startHours === openHours && endHours === closeHours;
+            if (isFullDay && dailyRate > 0) {
+              calculatedHallPrice += dailyRate;
+            } else if (hourlyRate > 0) {
+              const diff = endHours - startHours;
+              if (diff > 0) calculatedHallPrice += (hourlyRate * diff);
+            } else if (dailyRate > 0) {
+              calculatedHallPrice += dailyRate;
+            }
+          }
+        });
+      } else if (formData.startTime && formData.endTime) {
+        const startHours = parseTimeToHours(formData.startTime);
+        const endHours = parseTimeToHours(formData.endTime);
+        const openHours = parseTimeToHours(openTime);
+        const closeHours = parseTimeToHours(closeTime);
+
+        const isFullDay = startHours === openHours && endHours === closeHours;
+        const hours = endHours - startHours;
+        const days = Math.ceil(hours / 24) || 1;
+
+        if (isFullDay && dailyRate > 0) {
+          calculatedHallPrice = dailyRate * days;
+        } else if (hourlyRate > 0) {
+          calculatedHallPrice = hourlyRate * (hours > 0 ? hours : 0);
+        } else if (dailyRate > 0) {
+          calculatedHallPrice = dailyRate * days;
+        }
       }
       setHallPrice(calculatedHallPrice);
 
@@ -842,30 +934,36 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
               </div>
 
               {!usePerDateTimes && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-800">Start Time</label>
-                    <select
-                      name="startTime"
-                      value={formData.startTime}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-1 focus:ring-primary outline-none"
-                    >
-                      <option value="">Select Time</option>
-                      {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, disabledHours)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-800">End Time</label>
-                    <select
-                      name="endTime"
-                      value={formData.endTime}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-1 focus:ring-primary outline-none"
-                    >
-                      <option value="">Select Time</option>
-                      {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, disabledHours)}
-                    </select>
+                <div className="space-y-4">
+                  <FullDayCheckbox
+                    isChecked={formData.startTime === `${(selectedVenueObj?.openingHour || 0).toString().padStart(2, '0')}:00` && formData.endTime === `${(selectedVenueObj?.closingHour || 24).toString().padStart(2, '0')}:00`}
+                    onChange={handleBookFullDay}
+                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-800">Start Time</label>
+                      <select
+                        name="startTime"
+                        value={formData.startTime}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-1 focus:ring-primary outline-none"
+                      >
+                        <option value="">Select Time</option>
+                        {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, disabledHours)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-800">End Time</label>
+                      <select
+                        name="endTime"
+                        value={formData.endTime}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-1 focus:ring-primary outline-none"
+                      >
+                        <option value="">Select Time</option>
+                        {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, disabledHours)}
+                      </select>
+                    </div>
                   </div>
                 </div>
               )}
@@ -891,28 +989,54 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                   {formData.dates.map((dateStr) => {
                     const times = dateTimes[dateStr] || { startTime: formData.startTime, endTime: formData.endTime };
                     const dateDisabledHours = getDisabledHoursForDate(parseLocalDate(dateStr));
+                    const open = `${(selectedVenueObj?.openingHour || 0).toString().padStart(2, '0')}:00`;
+                    const close = `${(selectedVenueObj?.closingHour || 24).toString().padStart(2, '0')}:00`;
+                    const isFullDay = times.startTime === open && times.endTime === close;
+
                     return (
-                      <div key={dateStr} className="grid grid-cols-2 gap-4 border-b pb-2 last:border-b-0">
-                        <div className="col-span-2 text-xs font-medium text-gray-600">{dateStr}</div>
-                        <div>
-                          <select
-                            value={times.startTime}
-                            onChange={(e) => handleDateTimeChange(dateStr, 'startTime', e.target.value)}
-                            className="w-full px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-1 focus:ring-primary outline-none"
-                          >
-                            <option value="">Start</option>
-                            {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, dateDisabledHours)}
-                          </select>
+                      <div key={dateStr} className="flex flex-col space-y-2 border-b pb-2 last:border-b-0">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-medium text-gray-600">{dateStr}</span>
+                          <FullDayCheckbox
+                            isChecked={isFullDay}
+                            containerClass=""
+                            labelClass="text-[10px]"
+                            onChange={(checked) => {
+                              if (checked) {
+                                setDateTimes(prev => ({
+                                  ...prev,
+                                  [dateStr]: { startTime: open, endTime: close }
+                                }));
+                              } else {
+                                setDateTimes(prev => ({
+                                  ...prev,
+                                  [dateStr]: { startTime: '', endTime: '' }
+                                }));
+                              }
+                            }}
+                          />
                         </div>
-                        <div>
-                          <select
-                            value={times.endTime}
-                            onChange={(e) => handleDateTimeChange(dateStr, 'endTime', e.target.value)}
-                            className="w-full px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-1 focus:ring-primary outline-none"
-                          >
-                            <option value="">End</option>
-                            {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, dateDisabledHours)}
-                          </select>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <select
+                              value={times.startTime}
+                              onChange={(e) => handleDateTimeChange(dateStr, 'startTime', e.target.value)}
+                              className="w-full px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-1 focus:ring-primary outline-none"
+                            >
+                              <option value="">Start</option>
+                              {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, dateDisabledHours)}
+                            </select>
+                          </div>
+                          <div>
+                            <select
+                              value={times.endTime}
+                              onChange={(e) => handleDateTimeChange(dateStr, 'endTime', e.target.value)}
+                              className="w-full px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-1 focus:ring-primary outline-none"
+                            >
+                              <option value="">End</option>
+                              {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, dateDisabledHours)}
+                            </select>
+                          </div>
                         </div>
                       </div>
                     );
@@ -1149,30 +1273,36 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
               )}
 
               {!usePerDateTimes && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-800">Start Time</label>
-                    <select
-                      name="startTime"
-                      value={formData.startTime}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-1 focus:ring-primary outline-none"
-                    >
-                      <option value="">Select Time</option>
-                      {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, disabledHours)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-800">End Time</label>
-                    <select
-                      name="endTime"
-                      value={formData.endTime}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-1 focus:ring-primary outline-none"
-                    >
-                      <option value="">Select Time</option>
-                      {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, disabledHours)}
-                    </select>
+                <div className="space-y-4">
+                  <FullDayCheckbox
+                    isChecked={formData.startTime === `${(selectedVenueObj?.openingHour || 0).toString().padStart(2, '0')}:00` && formData.endTime === `${(selectedVenueObj?.closingHour || 24).toString().padStart(2, '0')}:00`}
+                    onChange={handleBookFullDay}
+                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-800">Start Time</label>
+                      <select
+                        name="startTime"
+                        value={formData.startTime}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-1 focus:ring-primary outline-none"
+                      >
+                        <option value="">Select Time</option>
+                        {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, disabledHours)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-800">End Time</label>
+                      <select
+                        name="endTime"
+                        value={formData.endTime}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-1 focus:ring-primary outline-none"
+                      >
+                        <option value="">Select Time</option>
+                        {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, disabledHours)}
+                      </select>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1197,10 +1327,34 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                   <h4 className="text-sm font-semibold text-gray-800">Selected Dates & Times</h4>
                   {formData.dates.map((dateStr) => {
                     const times = dateTimes[dateStr] || { startTime: formData.startTime, endTime: formData.endTime };
+                    const open = `${(selectedVenueObj?.openingHour || 0).toString().padStart(2, '0')}:00`;
+                    const close = `${(selectedVenueObj?.closingHour || 24).toString().padStart(2, '0')}:00`;
+                    const isFullDay = times.startTime === open && times.endTime === close;
+
                     return (
                       <div key={dateStr} className="flex flex-col space-y-2 border-b pb-2 last:border-b-0">
                         <div className="flex justify-between items-center">
-                          <span className="text-xs font-medium text-gray-600">{dateStr}</span>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-xs font-medium text-gray-600">{dateStr}</span>
+                            <FullDayCheckbox
+                              isChecked={isFullDay}
+                              containerClass=""
+                              labelClass="text-[10px]"
+                              onChange={(checked) => {
+                                if (checked) {
+                                  setDateTimes(prev => ({
+                                    ...prev,
+                                    [dateStr]: { startTime: open, endTime: close }
+                                  }));
+                                } else {
+                                  setDateTimes(prev => ({
+                                    ...prev,
+                                    [dateStr]: { startTime: '', endTime: '' }
+                                  }));
+                                }
+                              }}
+                            />
+                          </div>
                           <button
                             type="button"
                             onClick={() => removeDate(dateStr)}
@@ -1423,30 +1577,36 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
               </div>
 
               {!usePerDateTimes && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-800">Start Time</label>
-                    <select
-                      name="startTime"
-                      value={formData.startTime}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-1 focus:ring-primary outline-none"
-                    >
-                      <option value="">Select Time</option>
-                      {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, disabledHours)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-800">End Time</label>
-                    <select
-                      name="endTime"
-                      value={formData.endTime}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-1 focus:ring-primary outline-none"
-                    >
-                      <option value="">Select Time</option>
-                      {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, disabledHours)}
-                    </select>
+                <div className="space-y-4">
+                  <FullDayCheckbox
+                    isChecked={formData.startTime === `${(selectedVenueObj?.openingHour || 0).toString().padStart(2, '0')}:00` && formData.endTime === `${(selectedVenueObj?.closingHour || 24).toString().padStart(2, '0')}:00`}
+                    onChange={handleBookFullDay}
+                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-800">Start Time</label>
+                      <select
+                        name="startTime"
+                        value={formData.startTime}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-1 focus:ring-primary outline-none"
+                      >
+                        <option value="">Select Time</option>
+                        {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, disabledHours)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-800">End Time</label>
+                      <select
+                        name="endTime"
+                        value={formData.endTime}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-1 focus:ring-primary outline-none"
+                      >
+                        <option value="">Select Time</option>
+                        {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, disabledHours)}
+                      </select>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1472,28 +1632,54 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                   {formData.dates.map((dateStr) => {
                     const times = dateTimes[dateStr] || { startTime: formData.startTime, endTime: formData.endTime };
                     const dateDisabledHours = getDisabledHoursForDate(parseLocalDate(dateStr));
+                    const open = `${(selectedVenueObj?.openingHour || 0).toString().padStart(2, '0')}:00`;
+                    const close = `${(selectedVenueObj?.closingHour || 24).toString().padStart(2, '0')}:00`;
+                    const isFullDay = times.startTime === open && times.endTime === close;
+
                     return (
-                      <div key={dateStr} className="grid grid-cols-2 gap-4 border-b pb-2 last:border-b-0">
-                        <div className="col-span-2 text-xs font-medium text-gray-600">{dateStr}</div>
-                        <div>
-                          <select
-                            value={times.startTime}
-                            onChange={(e) => handleDateTimeChange(dateStr, 'startTime', e.target.value)}
-                            className="w-full px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-1 focus:ring-primary outline-none"
-                          >
-                            <option value="">Start</option>
-                            {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, dateDisabledHours)}
-                          </select>
+                      <div key={dateStr} className="flex flex-col space-y-2 border-b pb-2 last:border-b-0">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-medium text-gray-600">{dateStr}</span>
+                          <FullDayCheckbox
+                            isChecked={isFullDay}
+                            containerClass=""
+                            labelClass="text-[10px]"
+                            onChange={(checked) => {
+                              if (checked) {
+                                setDateTimes(prev => ({
+                                  ...prev,
+                                  [dateStr]: { startTime: open, endTime: close }
+                                }));
+                              } else {
+                                setDateTimes(prev => ({
+                                  ...prev,
+                                  [dateStr]: { startTime: '', endTime: '' }
+                                }));
+                              }
+                            }}
+                          />
                         </div>
-                        <div>
-                          <select
-                            value={times.endTime}
-                            onChange={(e) => handleDateTimeChange(dateStr, 'endTime', e.target.value)}
-                            className="w-full px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-1 focus:ring-primary outline-none"
-                          >
-                            <option value="">End</option>
-                            {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, dateDisabledHours)}
-                          </select>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <select
+                              value={times.startTime}
+                              onChange={(e) => handleDateTimeChange(dateStr, 'startTime', e.target.value)}
+                              className="w-full px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-1 focus:ring-primary outline-none"
+                            >
+                              <option value="">Start</option>
+                              {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, dateDisabledHours)}
+                            </select>
+                          </div>
+                          <div>
+                            <select
+                              value={times.endTime}
+                              onChange={(e) => handleDateTimeChange(dateStr, 'endTime', e.target.value)}
+                              className="w-full px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-1 focus:ring-primary outline-none"
+                            >
+                              <option value="">End</option>
+                              {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, dateDisabledHours)}
+                            </select>
+                          </div>
                         </div>
                       </div>
                     );
