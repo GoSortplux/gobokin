@@ -24,6 +24,8 @@ interface BookingModalProps {
   initialStartTime?: string;
   initialEndTime?: string;
   initialSelectedFacilities?: FacilityWithQuantity[];
+  initialUsePerDateTimes?: boolean;
+  initialDateTimes?: Record<string, { startTime: string; endTime: string }>;
 }
 
 export interface FacilityWithQuantity extends Facility {
@@ -59,7 +61,9 @@ const BookingModal: FC<BookingModalProps> = ({
   initialEventDetails = '',
   initialStartTime = '',
   initialEndTime = '',
-  initialSelectedFacilities = []
+  initialSelectedFacilities = [],
+  initialUsePerDateTimes = false,
+  initialDateTimes = {}
 }) => {
   const [venue, setHall] = useState<Venue | null>(null);
   const [step, setStep] = useState(initialStep || 1);
@@ -73,8 +77,8 @@ const BookingModal: FC<BookingModalProps> = ({
   const [isCalculatingQuote, setIsCalculatingQuote] = useState(false);
   const [startTime, setStartTime] = useState(initialStartTime);
   const [endTime, setEndTime] = useState(initialEndTime);
-  const [usePerDateTimes, setUsePerDateTimes] = useState(false);
-  const [dateTimes, setDateTimes] = useState<Record<string, { startTime: string; endTime: string }>>({});
+  const [usePerDateTimes, setUsePerDateTimes] = useState(initialUsePerDateTimes);
+  const [dateTimes, setDateTimes] = useState<Record<string, { startTime: string; endTime: string }>>(initialDateTimes);
   const [durationInHours, setDurationInHours] = useState(0);
 
   const totalHours = useMemo(() => {
@@ -277,8 +281,8 @@ const BookingModal: FC<BookingModalProps> = ({
       setSelectedFacilities(initialSelectedFacilities || []);
       setStartTime(initialStartTime || '');
       setEndTime(initialEndTime || '');
-      setUsePerDateTimes(false);
-      setDateTimes({});
+      setUsePerDateTimes(initialUsePerDateTimes || false);
+      setDateTimes(initialDateTimes || {});
       setError('');
       setLoading(false);
       setHasAcceptedRefundPolicy(false);
@@ -293,6 +297,10 @@ const BookingModal: FC<BookingModalProps> = ({
         }
       };
       fetchHallDetails();
+
+      if (initialStep === 3) {
+        fetchQuote();
+      }
     }
     // Only re-run when modal is opened/closed or hallId changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -340,6 +348,8 @@ const BookingModal: FC<BookingModalProps> = ({
         endTime,
         selectedFacilities,
         step,
+        usePerDateTimes,
+        dateTimes,
       };
       localStorage.setItem('pendingBooking', JSON.stringify(bookingState));
       localStorage.setItem('returnUrl', window.location.pathname + window.location.search);

@@ -82,6 +82,8 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
   const [initialStartTime, setInitialStartTime] = useState('08:00');
   const [initialEndTime, setInitialEndTime] = useState('22:00');
   const [initialSelectedFacilities, setInitialSelectedFacilities] = useState<FacilityWithQuantity[]>([]);
+  const [initialUsePerDateTimes, setInitialUsePerDateTimes] = useState(false);
+  const [initialDateTimes, setInitialDateTimes] = useState<Record<string, { startTime: string; endTime: string }>>({});
   const [displayedMonth, setDisplayedMonth] = useState<Date>(new Date());
   const [isDemoModalOpen, setDemoModalOpen] = useState(false);
   const [ownerContact, setOwnerContact] = useState({ phone: '' });
@@ -198,6 +200,8 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
         setInitialEndTime(data.endTime);
         setInitialSelectedFacilities(data.selectedFacilities);
         setInitialStep(data.step);
+        setInitialUsePerDateTimes(data.usePerDateTimes || false);
+        setInitialDateTimes(data.dateTimes || {});
         openBookingModal();
       }
       localStorage.removeItem('pendingBooking');
@@ -718,6 +722,8 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
             initialStartTime={initialStartTime}
             initialEndTime={initialEndTime}
             initialSelectedFacilities={initialSelectedFacilities}
+            initialUsePerDateTimes={initialUsePerDateTimes}
+            initialDateTimes={initialDateTimes}
           />
           <DemoModal
             isOpen={isDemoModalOpen}
