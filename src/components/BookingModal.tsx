@@ -211,26 +211,36 @@ const BookingModal: FC<BookingModalProps> = ({
       const dailyRate = venue.pricing.dailyRate || 0;
       const hourlyRate = venue.pricing.hourlyRate || 0;
       const numberOfDays = selectedDates.length;
+      const openTime = `${(venue.openingHour || 0).toString().padStart(2, '0')}:00`;
+      const closeTime = `${(venue.closingHour || 24).toString().padStart(2, '0')}:00`;
 
       let calculatedHallCost = 0;
-      if (hourlyRate > 0) {
-        let totalDuration = 0;
-        if (usePerDateTimes) {
-          selectedDates.forEach(date => {
-            const times = dateTimes[date.toDateString()] || { startTime, endTime };
-            if (times.startTime && times.endTime) {
+      if (usePerDateTimes) {
+        selectedDates.forEach(date => {
+          const times = dateTimes[date.toDateString()] || { startTime, endTime };
+          if (times.startTime && times.endTime) {
+            const isFullDay = times.startTime === openTime && times.endTime === closeTime;
+            if (isFullDay && dailyRate > 0) {
+              calculatedHallCost += dailyRate;
+            } else if (hourlyRate > 0) {
               const [startH, startM] = times.startTime.split(':').map(Number);
               const [endH, endM] = times.endTime.split(':').map(Number);
               const diff = (endH + endM / 60) - (startH + startM / 60);
-              if (diff > 0) totalDuration += diff;
+              if (diff > 0) calculatedHallCost += (hourlyRate * diff);
+            } else if (dailyRate > 0) {
+              calculatedHallCost += dailyRate;
             }
-          });
-        } else {
-          totalDuration = durationInHours * numberOfDays;
+          }
+        });
+      } else {
+        const isFullDay = startTime === openTime && endTime === closeTime;
+        if (isFullDay && dailyRate > 0) {
+          calculatedHallCost = dailyRate * numberOfDays;
+        } else if (hourlyRate > 0) {
+          calculatedHallCost = hourlyRate * durationInHours * numberOfDays;
+        } else if (dailyRate > 0) {
+          calculatedHallCost = dailyRate * numberOfDays;
         }
-        calculatedHallCost = hourlyRate * totalDuration;
-      } else if (dailyRate > 0) {
-        calculatedHallCost = dailyRate * numberOfDays;
       }
       setHallCost(calculatedHallCost);
 
@@ -920,22 +930,40 @@ const BookingModal: FC<BookingModalProps> = ({
                     </div>
 
                     {selectedFacilities.length > 0 && (
-                      <div>
-                        <h3 className="text-lg font-bold text-gray-900 mb-4 uppercase tracking-wider text-xs flex items-center">
-                          <span className="w-1.5 h-1.5 bg-primary rounded-full mr-2"></span>
-                          Added Facilities
-                        </h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+                           <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Added Facilities</h3>
+                           <span className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full">{selectedFacilities.length} Item{selectedFacilities.length > 1 ? 's' : ''}</span>
+                        </div>
+                        <div className="bg-gray-50/50 rounded-2xl border border-gray-100 overflow-hidden divide-y divide-gray-100">
                           {selectedFacilities.map(f => (
-                            <div key={f._id} className="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center">
-                            <span className="text-sm font-medium text-gray-700">
-                              {f.facility?.name || f.name}
-                              {f.variantName && (
-                                <span className="text-gray-500 text-xs ml-1">({f.variantName})</span>
-                              )}
-                              <span className="text-gray-400 ml-1">x{f.quantity}</span>
-                            </span>
-                              <span className="text-sm font-bold text-gray-900">₦{calculateFacilityCost(f).toLocaleString()}</span>
+                            <div key={f._id} className="p-4 flex items-center justify-between hover:bg-white transition-colors group">
+                               <div className="flex items-center gap-4">
+                                  <div className="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-all duration-300">
+                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                     </svg>
+                                  </div>
+                                  <div>
+                                     <p className="text-sm font-bold text-gray-900 leading-tight">
+                                        {f.facility?.name || f.name}
+                                        {f.variantName && (
+                                          <span className="text-[11px] text-primary font-bold ml-1">({f.variantName})</span>
+                                        )}
+                                     </p>
+                                     <div className="flex items-center gap-2 mt-1">
+                                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider italic">Qty: {f.quantity}</span>
+                                        <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+                                        <span className="text-[10px] text-gray-500 font-semibold italic">
+                                          ₦{f.cost.toLocaleString()}{f.chargeMethod === 'per_day' ? '/day' : (f.chargeMethod === 'per_hour' ? '/hour' : '')}
+                                        </span>
+                                     </div>
+                                  </div>
+                               </div>
+                               <div className="text-right">
+                                  <span className="text-sm font-black text-gray-900 tracking-tight">₦{calculateFacilityCost(f).toLocaleString()}</span>
+                                  <p className="text-[9px] text-gray-400 font-bold uppercase mt-0.5 tracking-tighter">Subtotal</p>
+                               </div>
                             </div>
                           ))}
                         </div>
