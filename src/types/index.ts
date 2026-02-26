@@ -184,6 +184,8 @@ export interface User {
   hallOwnerApplication?: {
     status: string;
   };
+  assignedHalls?: (string | { _id: string })[];
+  hallIds?: string[];
 }
 
 export interface Venue {

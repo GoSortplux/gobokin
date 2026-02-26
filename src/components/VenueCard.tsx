@@ -28,9 +28,8 @@ const VenueCard = ({ venue }: VenueCardProps) => {
     }
 
     if (user.activeRole === 'staff') {
-      // @ts-expect-error - staff might have assignedHalls or hallIds
-      const assignedHalls = user.assignedHalls || user.hallIds || [];
-      return assignedHalls.some((h: string | { _id: string }) => {
+      const assignedHalls = (user.assignedHalls || user.hallIds || []) as (string | { _id: string })[];
+      return assignedHalls.some((h) => {
         const hId = typeof h === 'object' ? h._id : h;
         return hId === venue._id || hId === venue.id;
       });
