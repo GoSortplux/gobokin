@@ -192,32 +192,68 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
     const pendingBooking = localStorage.getItem('pendingBooking');
     if (pendingBooking) {
       const data = JSON.parse(pendingBooking);
-      if (data.hallId === slugOrId) {
-        setBookingMode(data.bookingMode);
-        setInitialSelectedDates(data.selectedDates?.map((d: string) => new Date(d)));
-        setInitialEventDetails(data.eventDetails);
-        setInitialStartTime(data.startTime);
-        setInitialEndTime(data.endTime);
-        setInitialSelectedFacilities(data.selectedFacilities);
-        setInitialStep(data.step);
+      const venueId = venue?.id || venue?._id;
+
+      // Match against slugOrId (from URL) or loaded venue details
+      const isMatch =
+        data.hallId === slugOrId ||
+        data.hallSlug === slugOrId ||
+        (venueId && data.hallId === venueId) ||
+        (venue?.slug && data.hallSlug === venue.slug);
+
+      if (isMatch) {
+        setBookingMode(data.bookingMode || 'book');
+        if (data.selectedDates) {
+          setInitialSelectedDates(data.selectedDates.map((d: string) => new Date(d)));
+        }
+        setInitialEventDetails(data.eventDetails || '');
+        setInitialStartTime(data.startTime || '08:00');
+        setInitialEndTime(data.endTime || '22:00');
+        setInitialSelectedFacilities(data.selectedFacilities || []);
+        setInitialStep(data.step || 1);
         setInitialUsePerDateTimes(data.usePerDateTimes || false);
         setInitialDateTimes(data.dateTimes || {});
-        openBookingModal();
-      }
-      localStorage.removeItem('pendingBooking');
-    }
 
+        // Small delay to ensure state updates are processed before opening the modal
+        // We also check if loading is finished to avoid the skeleton overlapping or interference
+        if (!loading || venue) {
+          const timer = setTimeout(() => {
+            openBookingModal();
+          }, 500); // Increased delay for stability
+
+          localStorage.removeItem('pendingBooking');
+          return () => clearTimeout(timer);
+        }
+      }
+    }
+  }, [slugOrId, venue, openBookingModal, loading]);
+
+  useEffect(() => {
     const pendingAction = localStorage.getItem('pendingAction');
     if (pendingAction) {
       const data = JSON.parse(pendingAction);
-      if (data.hallId === slugOrId && data.action === 'contactOwner') {
-        handleContactOwner();
-      }
-      localStorage.removeItem('pendingAction');
-    }
+      const venueId = venue?.id || venue?._id;
 
+      // Match against slugOrId (from URL) or loaded venue details
+      const isMatch =
+        data.hallId === slugOrId ||
+        data.hallSlug === slugOrId ||
+        (venueId && data.hallId === venueId) ||
+        (venue?.slug && data.hallSlug === venue.slug);
+
+      if (isMatch && data.action === 'contactOwner') {
+        handleContactOwner();
+        localStorage.removeItem('pendingAction');
+      } else if (isMatch) {
+        // If it's a match but not the right action, we might still want to clear it
+        // if we are sure it's stale, but for now let's be conservative.
+      }
+    }
+  }, [slugOrId, venue, handleContactOwner]);
+
+  useEffect(() => {
     fetchVenueAndRecommendations(!!initialVenue);
-  }, [slugOrId, handleContactOwner, openBookingModal, fetchVenueAndRecommendations, initialVenue, venue]);
+  }, [fetchVenueAndRecommendations, initialVenue]);
 
   if (loading) {
     return <VenueDetailSkeleton />;
@@ -713,6 +749,7 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
           <BookingModal
             key={isBookingModalOpen ? 'open' : 'closed'}
             hallId={venue.id || venue._id}
+            hallSlug={venue.slug}
             isOpen={isBookingModalOpen}
             onClose={closeBookingModal}
             bookingMode={bookingMode as 'book' | 'reserve'}

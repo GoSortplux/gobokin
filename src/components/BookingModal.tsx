@@ -15,6 +15,7 @@ import PolicyModal from './PolicyModal';
 
 interface BookingModalProps {
   hallId: string;
+  hallSlug?: string;
   isOpen: boolean;
   onClose: () => void;
   bookingMode?: 'book' | 'reserve';
@@ -297,10 +298,6 @@ const BookingModal: FC<BookingModalProps> = ({
         }
       };
       fetchHallDetails();
-
-      if (initialStep === 3) {
-        fetchQuote();
-      }
     }
     // Only re-run when modal is opened/closed or hallId changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -341,6 +338,7 @@ const BookingModal: FC<BookingModalProps> = ({
       // Save state to localStorage before redirecting
       const bookingState = {
         hallId,
+        hallSlug,
         bookingMode,
         selectedDates,
         eventDetails,
@@ -442,7 +440,7 @@ const BookingModal: FC<BookingModalProps> = ({
   const handleBookNow = () => handlePayment('book');
   const handleReserveNow = () => handlePayment('reserve');
 
-  const fetchQuote = async () => {
+  const fetchQuote = useCallback(async () => {
     if (!selectedDates || selectedDates.length === 0) return;
 
     setIsCalculatingQuote(true);
@@ -484,7 +482,13 @@ const BookingModal: FC<BookingModalProps> = ({
     } finally {
       setIsCalculatingQuote(false);
     }
-  };
+  }, [selectedDates, usePerDateTimes, dateTimes, startTime, endTime, selectedFacilities, hallId]);
+
+  useEffect(() => {
+    if (isOpen && step === 3 && !quoteData && !isCalculatingQuote) {
+      fetchQuote();
+    }
+  }, [isOpen, step, quoteData, isCalculatingQuote, fetchQuote]);
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
