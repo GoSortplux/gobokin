@@ -285,10 +285,15 @@ const EnhancedAnalytics = ({ initialData }: { initialData?: AnalyticsData | null
   }, [dateRange, selectedVenue]);
 
   useEffect(() => {
+    if (initialData) {
+      const initialVenues = initialData.breakdownByHall.map(h => ({ _id: h.hallId, name: h.hallName }));
+      setVenues(initialVenues);
+      return;
+    }
     api.get('/halls/by-owner')
       .then(res => res.data?.success && setVenues(res.data.data))
       .catch(err => console.error("Failed to fetch venues", err));
-  }, []);
+  }, [initialData]);
 
   const handleClearFilters = () => {
     setSelectedVenue(null);
