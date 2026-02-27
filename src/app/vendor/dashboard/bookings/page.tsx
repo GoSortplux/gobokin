@@ -752,17 +752,17 @@ const BookingsPage = () => {
                           </div>
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap">
-                          {booking.payout ? (
+                          {booking.bookingType?.toLowerCase() === 'walk-in' ? (
+                            <span className="px-2 py-0.5 w-fit text-[9px] font-black rounded-full uppercase tracking-tight bg-purple-50 text-purple-700 border border-purple-100">
+                              Offline Booking
+                            </span>
+                          ) : booking.payout ? (
                             <span className={`px-2 py-0.5 w-fit text-[9px] font-black rounded-full uppercase tracking-tight ${
                               booking.payout.status === 'completed' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
                               booking.payout.status === 'pending' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
                               'bg-gray-50 text-gray-500 border border-gray-100'
                             }`}>
                               Payout: {booking.payout.status}
-                            </span>
-                          ) : booking.bookingType?.toLowerCase() === 'walk-in' ? (
-                            <span className="px-2 py-0.5 w-fit text-[9px] font-black rounded-full uppercase tracking-tight bg-purple-50 text-purple-700 border border-purple-100">
-                              Offline Booking
                             </span>
                           ) : (
                             <span className="text-[10px] text-gray-400 font-bold uppercase">N/A</span>
@@ -933,7 +933,12 @@ const BookingsPage = () => {
                                   <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
                                   Payout Information
                                 </h4>
-                                {booking.payout ? (
+                                {booking.bookingType?.toLowerCase() === 'walk-in' ? (
+                                  <div className="flex flex-col items-center justify-center h-32 bg-purple-50 rounded-xl border-2 border-dashed border-purple-100 text-purple-700">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest">Offline Booking</p>
+                                    <p className="text-[9px] text-purple-500 font-medium mt-1">Payment Handled Locally</p>
+                                  </div>
+                                ) : booking.payout ? (
                                   <div className="space-y-4 bg-blue-50/30 p-4 rounded-xl border border-blue-100/50">
                                     <div className="grid grid-cols-2 gap-4">
                                       <div className="flex flex-col">
@@ -968,11 +973,6 @@ const BookingsPage = () => {
                                         </span>
                                       </div>
                                     </div>
-                                  </div>
-                                ) : booking.bookingType?.toLowerCase() === 'walk-in' ? (
-                                  <div className="flex flex-col items-center justify-center h-32 bg-purple-50 rounded-xl border-2 border-dashed border-purple-100 text-purple-700">
-                                    <p className="text-[10px] font-bold uppercase tracking-widest">Offline Booking</p>
-                                    <p className="text-[9px] text-purple-500 font-medium mt-1">Payment Handled Locally</p>
                                   </div>
                                 ) : (
                                   <div className="flex flex-col items-center justify-center h-32 bg-gray-50 rounded-xl border-2 border-dashed border-gray-100 text-gray-400">
@@ -1181,7 +1181,9 @@ const BookingsPage = () => {
 
                       <div>
                         <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-3">Payout Status</p>
-                        {booking.payout ? (
+                        {booking.bookingType?.toLowerCase() === 'walk-in' ? (
+                          <div className="py-4 text-center bg-purple-50 rounded-lg border border-dashed border-purple-100 text-[10px] text-purple-700 font-bold uppercase">Offline Booking</div>
+                        ) : booking.payout ? (
                           <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100 space-y-2 text-xs">
                             <div className="flex justify-between">
                               <span className="text-gray-500">Amount:</span>
@@ -1206,8 +1208,6 @@ const BookingsPage = () => {
                               </div>
                             )}
                           </div>
-                        ) : booking.bookingType?.toLowerCase() === 'walk-in' ? (
-                          <div className="py-4 text-center bg-purple-50 rounded-lg border border-dashed border-purple-100 text-[10px] text-purple-700 font-bold uppercase">Offline Booking</div>
                         ) : (
                           <div className="py-4 text-center bg-white rounded-lg border border-dashed border-gray-200 text-[10px] text-gray-400 font-bold uppercase">No Payout Info</div>
                         )}

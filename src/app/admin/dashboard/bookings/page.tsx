@@ -550,15 +550,15 @@ const BookingsPage = () => {
                                   {booking.paymentStatus}
                                 </span>
                               )}
-                              {booking.payout ? (
+                              {booking.bookingType?.toLowerCase() === 'walk-in' ? (
+                                <span className="px-2 py-0.5 w-fit text-[9px] font-black rounded-full uppercase tracking-tight bg-purple-50 text-purple-700 border border-purple-100">
+                                  Offline Booking
+                                </span>
+                              ) : booking.payout ? (
                                 <span className={`px-2 py-0.5 w-fit text-[9px] font-black rounded-full uppercase tracking-tight ${
                                   booking.payout.status === 'completed' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-amber-50 text-amber-700 border border-amber-100'
                                 }`}>
                                   Payout: {booking.payout.status}
-                                </span>
-                              ) : booking.bookingType?.toLowerCase() === 'walk-in' ? (
-                                <span className="px-2 py-0.5 w-fit text-[9px] font-black rounded-full uppercase tracking-tight bg-purple-50 text-purple-700 border border-purple-100">
-                                  Offline Booking
                                 </span>
                               ) : (
                                 <span className="text-[10px] text-gray-400 font-bold uppercase">N/A</span>
@@ -649,7 +649,17 @@ const BookingsPage = () => {
                                     </div>
                                   </div>
 
-                                  {booking.payout ? (
+                                  {booking.bookingType?.toLowerCase() === 'walk-in' ? (
+                                    <div>
+                                      <h4 className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">
+                                        <RefreshCcw size={14} className="text-purple-500" /> Payout Information
+                                      </h4>
+                                      <div className="bg-purple-50/50 p-4 rounded-xl border border-purple-100 shadow-sm text-center">
+                                        <p className="text-[10px] font-black text-purple-700 uppercase tracking-widest">Offline Booking</p>
+                                        <p className="text-[9px] text-purple-500 font-medium mt-1">Payment Handled Locally</p>
+                                      </div>
+                                    </div>
+                                  ) : booking.payout ? (
                                     <div>
                                       <h4 className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">
                                         <RefreshCcw size={14} className="text-emerald-500" /> Payout Information
@@ -680,16 +690,6 @@ const BookingsPage = () => {
                                             <span className="font-mono text-emerald-800">{booking.payout.subAccountCode}</span>
                                           </div>
                                         </div>
-                                      </div>
-                                    </div>
-                                  ) : booking.bookingType?.toLowerCase() === 'walk-in' ? (
-                                    <div>
-                                      <h4 className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">
-                                        <RefreshCcw size={14} className="text-purple-500" /> Payout Information
-                                      </h4>
-                                      <div className="bg-purple-50/50 p-4 rounded-xl border border-purple-100 shadow-sm text-center">
-                                        <p className="text-[10px] font-black text-purple-700 uppercase tracking-widest">Offline Booking</p>
-                                        <p className="text-[9px] text-purple-500 font-medium mt-1">Payment Handled Locally</p>
                                       </div>
                                     </div>
                               ) : (
@@ -887,15 +887,15 @@ const BookingsPage = () => {
                                   {booking.paymentStatus}
                                 </span>
                               )}
-                              {booking.payout ? (
+                              {booking.bookingType?.toLowerCase() === 'walk-in' ? (
+                                <span className="px-2 py-1 text-[8px] font-black rounded-full uppercase tracking-tighter bg-purple-100 text-purple-700 border border-purple-200">
+                                  Offline Booking
+                                </span>
+                              ) : booking.payout ? (
                                 <span className={`px-2 py-1 text-[8px] font-black rounded-full uppercase tracking-tighter ${
                                   booking.payout.status === 'completed' ? 'bg-emerald-600 text-white' : 'bg-amber-100 text-amber-700 border border-amber-200'
                                 }`}>
                                   Payout: {booking.payout.status}
-                                </span>
-                              ) : booking.bookingType?.toLowerCase() === 'walk-in' ? (
-                                <span className="px-2 py-1 text-[8px] font-black rounded-full uppercase tracking-tighter bg-purple-100 text-purple-700 border border-purple-200">
-                                  Offline Booking
                                 </span>
                               ) : null}
                             </div>
@@ -978,7 +978,17 @@ const BookingsPage = () => {
                             </div>
 
                             {/* Mobile Payout */}
-                            {booking.payout ? (
+                            {booking.bookingType?.toLowerCase() === 'walk-in' ? (
+                              <div className="bg-purple-50/50 p-4 rounded-xl border border-purple-100 shadow-sm space-y-2">
+                                <h4 className="flex items-center gap-2 text-[10px] font-black text-purple-700 uppercase tracking-widest">
+                                  <RefreshCcw size={14} /> Payout Information
+                                </h4>
+                                <div className="text-center">
+                                  <p className="text-[10px] font-black text-purple-700 uppercase tracking-widest">Offline Booking</p>
+                                  <p className="text-[9px] text-purple-500 font-medium mt-1">Payment Handled Locally</p>
+                                </div>
+                              </div>
+                            ) : booking.payout ? (
                               <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 shadow-sm space-y-3">
                                 <h4 className="flex items-center gap-2 text-[10px] font-black text-emerald-700 uppercase tracking-widest">
                                   <RefreshCcw size={14} /> Payout Information
@@ -1002,16 +1012,6 @@ const BookingsPage = () => {
                                     <p className="font-bold">{booking.payout.bankName} - {booking.payout.accountNumber}</p>
                                     <p className="italic opacity-80">{booking.payout.accountName}</p>
                                   </div>
-                                </div>
-                              </div>
-                            ) : booking.bookingType?.toLowerCase() === 'walk-in' ? (
-                              <div className="bg-purple-50/50 p-4 rounded-xl border border-purple-100 shadow-sm space-y-2">
-                                <h4 className="flex items-center gap-2 text-[10px] font-black text-purple-700 uppercase tracking-widest">
-                                  <RefreshCcw size={14} /> Payout Information
-                                </h4>
-                                <div className="text-center">
-                                  <p className="text-[10px] font-black text-purple-700 uppercase tracking-widest">Offline Booking</p>
-                                  <p className="text-[9px] text-purple-500 font-medium mt-1">Payment Handled Locally</p>
                                 </div>
                               </div>
                             ) : (
