@@ -31,6 +31,17 @@ const nextConfig = {
   async redirects() {
     return [
       {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'www.gobokin.com',
+          },
+        ],
+        destination: 'https://gobokin.com/:path*',
+        permanent: true,
+      },
+      {
         source: '/halls/:path*',
         destination: '/venues/:path*',
         permanent: true,
