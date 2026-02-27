@@ -760,6 +760,10 @@ const BookingsPage = () => {
                             }`}>
                               Payout: {booking.payout.status}
                             </span>
+                          ) : booking.bookingType?.toLowerCase() === 'walk-in' ? (
+                            <span className="px-2 py-0.5 w-fit text-[9px] font-black rounded-full uppercase tracking-tight bg-purple-50 text-purple-700 border border-purple-100">
+                              Offline Booking
+                            </span>
                           ) : (
                             <span className="text-[10px] text-gray-400 font-bold uppercase">N/A</span>
                           )}
@@ -964,6 +968,11 @@ const BookingsPage = () => {
                                         </span>
                                       </div>
                                     </div>
+                                  </div>
+                                ) : booking.bookingType?.toLowerCase() === 'walk-in' ? (
+                                  <div className="flex flex-col items-center justify-center h-32 bg-purple-50 rounded-xl border-2 border-dashed border-purple-100 text-purple-700">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest">Offline Booking</p>
+                                    <p className="text-[9px] text-purple-500 font-medium mt-1">Payment Handled Locally</p>
                                   </div>
                                 ) : (
                                   <div className="flex flex-col items-center justify-center h-32 bg-gray-50 rounded-xl border-2 border-dashed border-gray-100 text-gray-400">
@@ -1197,6 +1206,8 @@ const BookingsPage = () => {
                               </div>
                             )}
                           </div>
+                        ) : booking.bookingType?.toLowerCase() === 'walk-in' ? (
+                          <div className="py-4 text-center bg-purple-50 rounded-lg border border-dashed border-purple-100 text-[10px] text-purple-700 font-bold uppercase">Offline Booking</div>
                         ) : (
                           <div className="py-4 text-center bg-white rounded-lg border border-dashed border-gray-200 text-[10px] text-gray-400 font-bold uppercase">No Payout Info</div>
                         )}

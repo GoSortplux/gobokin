@@ -511,7 +511,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
     }, 500); // Debounce quote calculation
 
     return () => clearTimeout(timer);
-  }, [formData.hall, formData.dates, formData.startTime, formData.endTime, formData.selectedFacilities, formData.paymentMethod, activeTab, usePerDateTimes, dateTimes, formData.manualDiscount]);
+  }, [formData.hall, formData.dates, formData.startTime, formData.endTime, formData.selectedFacilities, formData.paymentMethod, activeTab, usePerDateTimes, dateTimes, formData.manualDiscount, selectedVenueObj?.allowRecurringBookings, selectedVenueObj?.recurringBookingDiscount]);
 
   const generateRecurringDates = useCallback((startDate: Date, endDate: Date, pattern: string) => {
     if (!startDate || !endDate || endDate < startDate || pattern === 'none') return [startDate];
@@ -641,8 +641,45 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
     return bookingDates;
   };
 
+  const showConfirmation = async (type: 'recurring' | 'walk-in' | 'reservation') => {
+    const selectedVenue = venues.find(v => v._id === formData.hall);
+    const displayDates = formData.dates.length > 5
+      ? `${formData.dates.slice(0, 5).join(', ')} ... (+${formData.dates.length - 5} more)`
+      : formData.dates.join(', ');
+
+    const total = (quoteData?.feeBreakdown.totalAmount || totalPrice).toLocaleString();
+    const reservationFee = quoteData?.reservationFeeDetails
+      ? `<p><strong>Reservation Fee:</strong> ₦${quoteData.reservationFeeDetails.totalAmount.toLocaleString()}</p>`
+      : '';
+
+    const title = type === 'reservation' ? 'Confirm Reservation' : 'Confirm Booking';
+    const actionText = type === 'reservation' ? 'Reserve it!' : 'Create it!';
+
+    const result = await Swal.fire({
+      title,
+      html: `
+        <div class="text-left space-y-2 text-sm">
+          <p><strong>Venue:</strong> ${selectedVenue?.name || 'N/A'}</p>
+          <p><strong>Customer:</strong> ${formData.fullName || 'N/A'}</p>
+          <p><strong>Dates:</strong> ${displayDates}</p>
+          <p><strong>Total Price:</strong> ₦${total}</p>
+          ${reservationFee}
+          <p class="mt-4 text-xs text-gray-500">Are you sure you want to create this ${type}?</p>
+        </div>
+      `,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: `Yes, ${actionText}`,
+      cancelButtonText: 'No, Cancel',
+      confirmButtonColor: '#295FA7',
+    });
+
+    return result.isConfirmed;
+  };
+
   const handleRecurringSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     const {
       hall: venue,
       startTime,
@@ -678,6 +715,8 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
       setError('Please select start and end times.');
       return;
     }
+
+    if (!(await showConfirmation('recurring'))) return;
 
     const walkInUserDetails = { fullName, email, phone };
     let bookingDates;
@@ -760,6 +799,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
 
   const handleWalkInSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     const { hall: venue, startTime, endTime, dates, eventDetails, fullName, email, phone, paymentMethod, paymentStatus, selectedFacilities } = formData;
 
     if (dates.length === 0) {
@@ -779,6 +819,8 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
       setError('Please select start and end times.');
       return;
     }
+
+    if (!(await showConfirmation('walk-in'))) return;
     setError('');
 
     const walkInUserDetails = { fullName, email, phone };
@@ -807,6 +849,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
 
   const handleReservationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     const { hall: venue, startTime, endTime, dates, eventDetails, fullName, email, phone, paymentMethod, selectedFacilities } = formData;
 
     if (dates.length === 0) {
@@ -826,6 +869,8 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
       setError('Please select start and end times.');
       return;
     }
+
+    if (!(await showConfirmation('reservation'))) return;
     setError('');
 
     const walkInUserDetails = { fullName, email, phone };
