@@ -648,7 +648,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
       : formData.dates.join(', ');
 
     const total = (quoteData?.feeBreakdown.totalAmount || totalPrice).toLocaleString();
-    const reservationFee = quoteData?.reservationFeeDetails
+    const reservationFee = (type === 'reservation' && quoteData?.reservationFeeDetails)
       ? `<p><strong>Reservation Fee:</strong> ₦${quoteData.reservationFeeDetails.totalAmount.toLocaleString()}</p>`
       : '';
 
