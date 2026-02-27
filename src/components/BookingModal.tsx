@@ -54,6 +54,7 @@ interface QuoteData {
 
 const BookingModal: FC<BookingModalProps> = ({
   hallId,
+  hallSlug,
   isOpen,
   onClose,
   bookingMode = 'book',
