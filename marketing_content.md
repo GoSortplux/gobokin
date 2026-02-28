@@ -72,3 +72,33 @@ First impressions matter. Offer your clients a seamless, secure online booking a
 
 Elevate your brand with Gobokin’s secure payment suite.
 #Fintech #VenueBusiness #Professionalism #GobokinPayments
+
+# Customer-Facing Features: Curated List
+
+| Feature Category | Description | Key Highlight |
+| :--- | :--- | :--- |
+| **Smart Venue Discovery** | Intelligent search with advanced filters for capacity, price, location, and specific amenities. | Find your perfect match in seconds. |
+| **Seamless Booking Experience** | A modernized, 3-step wizard flow that simplifies complex event scheduling. | Book with confidence, not confusion. |
+| **Recurring & Multi-Date Bookings** | Effortlessly schedule recurring events or multiple dates in a single transaction. | Perfect for classes, rehearsals, and weekly meets. |
+| **Transparent Pricing** | Instant price breakdowns including facility add-ons and automated discounts. | No hidden fees. No surprises. |
+| **Verified Reviews** | Real feedback from real customers to help you choose the best space. | Trust-based community decisions. |
+| **Unified Event Dashboard** | Manage all your upcoming and past bookings, receipts, and cancellations in one place. | Total control of your social calendar. |
+| **Flexible Facility Selection** | Customize your venue with optional add-ons like sound systems, generators, and catering support. | Tailor every detail to your event's needs. |
+
+---
+
+# Generated Captions for Customer Marketing (Social Media & Graphics)
+
+### 📸 Instagram / Facebook (Lifestyle & Ease)
+*   **Caption 1**: Planning the perfect event shouldn't feel like a second job. 🎂 From birthdays to board meetings, find and book the ideal space on Gobokin in just a few taps. #EventPlanning #VenueBooking #GobokinEase
+*   **Caption 2**: Your dream venue is just a search away. 🔍 Filter by capacity, amenities, and price to find the space that fits your vibe perfectly. #SpaceToCelebrate #DiscoverVenues #SeamlessBooking
+*   **Caption 3**: Why book once when you can book for the whole month? 📅 Our new recurring booking feature makes scheduling your weekly classes or rehearsals easier than ever. #Organized #EventManager #RecurringBookings
+
+### 🐦 Twitter / X (Quick & Punchy)
+*   **Post 1**: Search. Select. Celebrate. 🎉 Finding a venue has never been this simple. Check out our new discovery filters! #Gobokin #VenueSearch
+*   **Post 2**: Transparent pricing = Zero stress. 💸 Get an instant breakdown of your booking and facility costs before you pay. #NoHiddenFees #EventTech
+*   **Post 3**: 3 steps to the perfect event. 1️⃣ Search, 2️⃣ Customize, 3️⃣ Book. Done. #Gobokin #SmartBooking
+
+### 💼 LinkedIn (Professional & Reliable)
+*   **Headline**: Elevate your corporate events with precision venue sourcing.
+*   **Body**: Gobokin provides professional event planners and individuals with a streamlined interface to discover, customize, and secure venues. With real-time availability and unified dashboards, managing your event portfolio has never been more efficient. #PropTech #EventManagement #CorporateEvents #VenueSourcing

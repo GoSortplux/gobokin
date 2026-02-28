@@ -87,6 +87,7 @@ const mockAnalyticsData = {
       },
       {
         _id: "b2",
+        user: null,
         walkInUserDetails: { fullName: "Sarah Smith", email: "sarah@example.com", phone: "08012345678" },
         venue: { _id: "2", name: "Sunset Garden" },
         eventDetails: "Birthday Party",
