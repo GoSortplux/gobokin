@@ -80,6 +80,7 @@ const BookingsPage = () => {
   const [bookingsTotalPages, setBookingsTotalPages] = useState(1);
   const [reservationsPage, setReservationsPage] = useState(1);
   const [reservationsTotalPages, setReservationsTotalPages] = useState(1);
+  const [pendingCancellationsCount, setPendingCancellationsCount] = useState(0);
   const [status, setStatus] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -205,6 +206,21 @@ const BookingsPage = () => {
 
   useEffect(() => {
     if (selectedVenue) {
+      const fetchCounts = async () => {
+        try {
+          const [bRes, rRes] = await Promise.all([
+            api.get(`/halls/${selectedVenue}/bookings?cancellationRequestStatus=pending&limit=1`),
+            api.get(`/reservations/halls/${selectedVenue}?cancellationRequestStatus=pending&limit=1`)
+          ]);
+          const bCount = bRes.data.data.pagination?.totalResults || bRes.data.data.totalResults || 0;
+          const rCount = rRes.data.data.pagination?.totalResults || rRes.data.data.totalResults || 0;
+          setPendingCancellationsCount(bCount + rCount);
+        } catch (err) {
+          console.error("Error fetching cancellation counts:", err);
+        }
+      };
+      fetchCounts();
+
       if (activeTab === 'reservations') {
         fetchReservations(selectedVenue, reservationsPage);
       } else if (activeTab === 'cancellations') {
@@ -629,31 +645,40 @@ const BookingsPage = () => {
         </div>
       )}
 
-      <div className="flex border-b border-gray-200 mb-6 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
-        <button
-          className={`px-6 py-3 text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'bookings' ? 'border-b-2 border-primary text-primary' : 'text-gray-500 hover:text-gray-700'}`}
-          onClick={() => handleTabChange('bookings')}
-        >
-          Bookings
-        </button>
-        <button
-          className={`px-6 py-3 text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'reservations' ? 'border-b-2 border-primary text-primary' : 'text-gray-500 hover:text-gray-700'}`}
-          onClick={() => handleTabChange('reservations')}
-        >
-          Reservations
-        </button>
-        <button
-          className={`px-6 py-3 text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'pending' ? 'border-b-2 border-primary text-primary' : 'text-gray-500 hover:text-gray-700'}`}
-          onClick={() => handleTabChange('pending')}
-        >
-          Pending
-        </button>
-        <button
-          className={`px-6 py-3 text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'cancellations' ? 'border-b-2 border-primary text-primary' : 'text-gray-500 hover:text-gray-700'}`}
-          onClick={() => handleTabChange('cancellations')}
-        >
-          Cancellation Requests
-        </button>
+      <div className="relative group">
+        <div className="flex border-b border-gray-200 mb-6 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
+          <button
+            className={`px-6 py-3 text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'bookings' ? 'border-b-2 border-primary text-primary' : 'text-gray-500 hover:text-gray-700'}`}
+            onClick={() => handleTabChange('bookings')}
+          >
+            Bookings
+          </button>
+          <button
+            className={`px-6 py-3 text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'reservations' ? 'border-b-2 border-primary text-primary' : 'text-gray-500 hover:text-gray-700'}`}
+            onClick={() => handleTabChange('reservations')}
+          >
+            Reservations
+          </button>
+          <button
+            className={`px-6 py-3 text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'pending' ? 'border-b-2 border-primary text-primary' : 'text-gray-500 hover:text-gray-700'}`}
+            onClick={() => handleTabChange('pending')}
+          >
+            Pending
+          </button>
+          <button
+            className={`px-6 py-3 text-sm font-semibold transition-all whitespace-nowrap flex items-center gap-2 ${activeTab === 'cancellations' ? 'border-b-2 border-primary text-primary' : 'text-gray-500 hover:text-gray-700'}`}
+            onClick={() => handleTabChange('cancellations')}
+          >
+            Cancellation Requests
+            {pendingCancellationsCount > 0 && (
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white animate-pulse">
+                {pendingCancellationsCount}
+              </span>
+            )}
+          </button>
+        </div>
+        {/* Mobile Scroll Indicator Fade */}
+        <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white to-transparent pointer-events-none sm:hidden" />
       </div>
 
 
