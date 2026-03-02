@@ -90,7 +90,10 @@ const BookingsPage = () => {
   const LIMIT = 20;
 
   const isOwnerBlocked = (booking: Booking | Reservation) => {
-    return booking.eventDetails === 'Owner Reservation (Blocked)';
+    return (
+      booking.eventDetails === 'Owner Reservation (Blocked)' ||
+      (booking as Booking).bookingType === 'admin-block'
+    );
   };
 
   const isRefundComplete = (item: Booking | Reservation) => {
