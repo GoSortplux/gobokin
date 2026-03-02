@@ -89,6 +89,10 @@ const BookingsPage = () => {
   const [bookingTypeFilter, setBookingTypeFilter] = useState('all');
   const LIMIT = 20;
 
+  const isOwnerBlocked = (booking: Booking | Reservation) => {
+    return booking.eventDetails === 'Owner Reservation (Blocked)';
+  };
+
   const isRefundComplete = (item: Booking | Reservation) => {
     if (!item.refundDetails) return false;
     const refundable = item.refundDetails.totalRefundableAmount || item.totalPrice || 0;
@@ -777,7 +781,11 @@ const BookingsPage = () => {
                           </div>
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap">
-                          {booking.bookingType?.toLowerCase() === 'walk-in' ? (
+                          {isOwnerBlocked(booking) ? (
+                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest bg-gray-50 px-2 py-0.5 rounded-full border border-gray-100">
+                              Blocked
+                            </span>
+                          ) : booking.bookingType?.toLowerCase() === 'walk-in' ? (
                             <span className="px-2 py-0.5 w-fit text-[9px] font-black rounded-full uppercase tracking-tight bg-purple-50 text-purple-700 border border-purple-100">
                               Offline Booking
                             </span>
@@ -953,58 +961,60 @@ const BookingsPage = () => {
                               </div>
 
                               {/* Third Column: Payout Information */}
-                              <div>
-                                <h4 className="text-[10px] font-bold text-primary uppercase tracking-widest mb-4 flex items-center gap-2">
-                                  <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
-                                  Payout Information
-                                </h4>
-                                {booking.bookingType?.toLowerCase() === 'walk-in' ? (
-                                  <div className="flex flex-col items-center justify-center h-32 bg-purple-50 rounded-xl border-2 border-dashed border-purple-100 text-purple-700">
-                                    <p className="text-[10px] font-bold uppercase tracking-widest">Offline Booking</p>
-                                    <p className="text-[9px] text-purple-500 font-medium mt-1">Payment Handled Locally</p>
-                                  </div>
-                                ) : booking.payout ? (
-                                  <div className="space-y-4 bg-blue-50/30 p-4 rounded-xl border border-blue-100/50">
-                                    <div className="grid grid-cols-2 gap-4">
-                                      <div className="flex flex-col">
-                                        <span className="text-[10px] text-gray-400 font-bold uppercase">Payout Amount</span>
-                                        <span className="text-lg font-black text-blue-900">₦{booking.payout.amount?.toLocaleString()}</span>
-                                      </div>
-                                      <div className="flex flex-col items-end">
-                                        <span className="text-[10px] text-gray-400 font-bold uppercase">Status</span>
-                                        <span className={`mt-1 px-2.5 py-0.5 text-[9px] font-bold rounded-full uppercase ${
-                                          booking.payout.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
-                                        }`}>
-                                          {booking.payout.status}
-                                        </span>
-                                      </div>
+                              {!isOwnerBlocked(booking) && (
+                                <div>
+                                  <h4 className="text-[10px] font-bold text-primary uppercase tracking-widest mb-4 flex items-center gap-2">
+                                    <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+                                    Payout Information
+                                  </h4>
+                                  {booking.bookingType?.toLowerCase() === 'walk-in' ? (
+                                    <div className="flex flex-col items-center justify-center h-32 bg-purple-50 rounded-xl border-2 border-dashed border-purple-100 text-purple-700">
+                                      <p className="text-[10px] font-bold uppercase tracking-widest">Offline Booking</p>
+                                      <p className="text-[9px] text-purple-500 font-medium mt-1">Payment Handled Locally</p>
                                     </div>
+                                  ) : booking.payout ? (
+                                    <div className="space-y-4 bg-blue-50/30 p-4 rounded-xl border border-blue-100/50">
+                                      <div className="grid grid-cols-2 gap-4">
+                                        <div className="flex flex-col">
+                                          <span className="text-[10px] text-gray-400 font-bold uppercase">Payout Amount</span>
+                                          <span className="text-lg font-black text-blue-900">₦{booking.payout.amount?.toLocaleString()}</span>
+                                        </div>
+                                        <div className="flex flex-col items-end">
+                                          <span className="text-[10px] text-gray-400 font-bold uppercase">Status</span>
+                                          <span className={`mt-1 px-2.5 py-0.5 text-[9px] font-bold rounded-full uppercase ${
+                                            booking.payout.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+                                          }`}>
+                                            {booking.payout.status}
+                                          </span>
+                                        </div>
+                                      </div>
 
-                                    <div className="space-y-2.5 pt-2">
-                                      <div className="flex justify-between text-xs border-b border-blue-100/50 pb-2">
-                                        <span className="text-gray-500 font-medium">Bank Name:</span>
-                                        <span className="font-bold text-gray-800">{booking.payout.bankName || 'N/A'}</span>
-                                      </div>
-                                      <div className="flex justify-between text-xs border-b border-blue-100/50 pb-2">
-                                        <span className="text-gray-500 font-medium">Account No:</span>
-                                        <span className="font-bold text-gray-800 tracking-wider">{booking.payout.accountNumber || 'N/A'}</span>
-                                      </div>
-                                      <div className="flex justify-between text-xs">
-                                        <span className="text-gray-500 font-medium font-mono text-[10px]">Payout Date:</span>
-                                        <span className="font-bold text-gray-800">
-                                          {booking.payout.payoutDate ? new Date(booking.payout.payoutDate).toLocaleDateString(undefined, {
-                                            year: 'numeric', month: 'short', day: 'numeric'
-                                          }) : 'Pending'}
-                                        </span>
+                                      <div className="space-y-2.5 pt-2">
+                                        <div className="flex justify-between text-xs border-b border-blue-100/50 pb-2">
+                                          <span className="text-gray-500 font-medium">Bank Name:</span>
+                                          <span className="font-bold text-gray-800">{booking.payout.bankName || 'N/A'}</span>
+                                        </div>
+                                        <div className="flex justify-between text-xs border-b border-blue-100/50 pb-2">
+                                          <span className="text-gray-500 font-medium">Account No:</span>
+                                          <span className="font-bold text-gray-800 tracking-wider">{booking.payout.accountNumber || 'N/A'}</span>
+                                        </div>
+                                        <div className="flex justify-between text-xs">
+                                          <span className="text-gray-500 font-medium font-mono text-[10px]">Payout Date:</span>
+                                          <span className="font-bold text-gray-800">
+                                            {booking.payout.payoutDate ? new Date(booking.payout.payoutDate).toLocaleDateString(undefined, {
+                                              year: 'numeric', month: 'short', day: 'numeric'
+                                            }) : 'Pending'}
+                                          </span>
+                                        </div>
                                       </div>
                                     </div>
-                                  </div>
-                                ) : (
-                                  <div className="flex flex-col items-center justify-center h-32 bg-gray-50 rounded-xl border-2 border-dashed border-gray-100 text-gray-400">
-                                    <p className="text-[10px] font-bold uppercase tracking-widest">No Payout Data</p>
-                                  </div>
-                                )}
-                              </div>
+                                  ) : (
+                                    <div className="flex flex-col items-center justify-center h-32 bg-gray-50 rounded-xl border-2 border-dashed border-gray-100 text-gray-400">
+                                      <p className="text-[10px] font-bold uppercase tracking-widest">No Payout Data</p>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
 
                               {/* Right Column: Schedule / Group Info */}
                               <div>
@@ -1204,39 +1214,41 @@ const BookingsPage = () => {
                         </div>
                       </div>
 
-                      <div>
-                        <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-3">Payout Status</p>
-                        {booking.bookingType?.toLowerCase() === 'walk-in' ? (
-                          <div className="py-4 text-center bg-purple-50 rounded-lg border border-dashed border-purple-100 text-[10px] text-purple-700 font-bold uppercase">Offline Booking</div>
-                        ) : booking.payout ? (
-                          <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100 space-y-2 text-xs">
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">Amount:</span>
-                              <span className="font-bold text-blue-900">₦{booking.payout.amount?.toLocaleString()}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">Status:</span>
-                              <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full uppercase ${
-                                booking.payout.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
-                              }`}>
-                                {booking.payout.status}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">Bank:</span>
-                              <span className="font-medium text-gray-900">{booking.payout.bankName || 'N/A'}</span>
-                            </div>
-                            {booking.payout.payoutDate && (
+                      {!isOwnerBlocked(booking) && (
+                        <div>
+                          <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-3">Payout Status</p>
+                          {booking.bookingType?.toLowerCase() === 'walk-in' ? (
+                            <div className="py-4 text-center bg-purple-50 rounded-lg border border-dashed border-purple-100 text-[10px] text-purple-700 font-bold uppercase">Offline Booking</div>
+                          ) : booking.payout ? (
+                            <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100 space-y-2 text-xs">
                               <div className="flex justify-between">
-                                <span className="text-gray-500 font-mono text-[10px]">Date:</span>
-                                <span className="font-medium text-gray-900">{new Date(booking.payout.payoutDate).toLocaleDateString()}</span>
+                                <span className="text-gray-500">Amount:</span>
+                                <span className="font-bold text-blue-900">₦{booking.payout.amount?.toLocaleString()}</span>
                               </div>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="py-4 text-center bg-white rounded-lg border border-dashed border-gray-200 text-[10px] text-gray-400 font-bold uppercase">No Payout Info</div>
-                        )}
-                      </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-500">Status:</span>
+                                <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full uppercase ${
+                                  booking.payout.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+                                }`}>
+                                  {booking.payout.status}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-500">Bank:</span>
+                                <span className="font-medium text-gray-900">{booking.payout.bankName || 'N/A'}</span>
+                              </div>
+                              {booking.payout.payoutDate && (
+                                <div className="flex justify-between">
+                                  <span className="text-gray-500 font-mono text-[10px]">Date:</span>
+                                  <span className="font-medium text-gray-900">{new Date(booking.payout.payoutDate).toLocaleDateString()}</span>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="py-4 text-center bg-white rounded-lg border border-dashed border-gray-200 text-[10px] text-gray-400 font-bold uppercase">No Payout Info</div>
+                          )}
+                        </div>
+                      )}
 
                       <div>
                         <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-3">Event Details</p>
