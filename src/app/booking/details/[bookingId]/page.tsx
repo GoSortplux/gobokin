@@ -48,9 +48,9 @@ const BookingDetailsPage = () => {
   const [loadingReviewStatus, setLoadingReviewStatus] = useState(false);
   const [reviewChecked, setReviewChecked] = useState(false);
 
-  const isBooking = (item: Booking | Reservation): item is Booking => {
+  const isBooking = useCallback((item: Booking | Reservation): item is Booking => {
     return 'bookingId' in item;
-  };
+  }, []);
 
   const getBookingCompletionStatus = useCallback((booking: Booking | Reservation) => {
     const latestEndTime = booking.bookingDates?.length > 0
@@ -58,13 +58,24 @@ const BookingDetailsPage = () => {
       : null;
     const isPast = latestEndTime ? latestEndTime < new Date() : false;
     const status = isBooking(booking) ? (booking.status || booking.bookingStatus) : booking.status;
-    const isCompleted = isPast && (status === 'confirmed' || booking.paymentStatus === 'paid');
-    return { isPast, isCompleted, status };
-  }, []);
 
-  const fetchReview = useCallback(async (booking: Booking) => {
-    if (booking.review) {
-      setExistingReview(booking.review);
+    const s = status?.toLowerCase();
+    const ps = booking.paymentStatus?.toLowerCase();
+
+    // For review eligibility: booking must be completed (past), and either status is confirmed/completed/active OR it's fully paid
+    const isCompleted = isPast && (
+      s === 'confirmed' ||
+      s === 'completed' ||
+      s === 'active' ||
+      ps === 'paid'
+    );
+    return { isPast, isCompleted, status };
+  }, [isBooking]);
+
+  const fetchReview = useCallback(async (booking: Booking | Reservation) => {
+    const b = booking as Booking;
+    if (b.review) {
+      setExistingReview(b.review);
       setReviewChecked(true);
       return;
     }
@@ -106,22 +117,35 @@ const BookingDetailsPage = () => {
 
   useEffect(() => {
     if (bookingId) {
+      // Clear previous states when bookingId changes to ensure fresh load
+      setData(null);
+      setExistingReview(null);
+      setReviewChecked(false);
+      setIsReviewModalOpen(false);
       fetchBookingDetails();
     }
   }, [bookingId, fetchBookingDetails]);
 
   useEffect(() => {
     const checkAndPromptReview = async () => {
-      if (!data || !isBooking(data) || !user || reviewChecked || loadingReviewStatus) return;
+      if (!data || !user || reviewChecked || loadingReviewStatus) return;
 
-      // Only prompt for the customer who made the booking
-      const bookingUserId = typeof data.user === 'object' ? data.user._id : data.user;
-      if (user.id !== bookingUserId) return;
+      // Identification check
+      const bookingUserId = typeof data.user === 'object' ? (data.user as { _id?: string; id?: string })?._id || (data.user as { _id?: string; id?: string })?.id : data.user;
+      const currentUserId = user.id || user._id;
+      const isOwnerOfBooking = currentUserId === bookingUserId;
+
+      if (!isOwnerOfBooking) {
+        setReviewChecked(true);
+        return;
+      }
 
       const { isCompleted } = getBookingCompletionStatus(data);
 
       if (isCompleted) {
         await fetchReview(data);
+      } else {
+        setReviewChecked(true);
       }
     };
 
@@ -130,9 +154,12 @@ const BookingDetailsPage = () => {
 
   // Separate effect to trigger modal after review state is confirmed null
   useEffect(() => {
-    if (data && isBooking(data) && user && reviewChecked && !existingReview && !loadingReviewStatus) {
-        const bookingUserId = typeof data.user === 'object' ? data.user._id : data.user;
-        if (user.id !== bookingUserId) return;
+    if (data && user && reviewChecked && !existingReview && !loadingReviewStatus) {
+        const bookingUserId = typeof data.user === 'object' ? (data.user as { _id?: string; id?: string })?._id || (data.user as { _id?: string; id?: string })?.id : data.user;
+        const currentUserId = user.id || user._id;
+        const isOwnerOfBooking = currentUserId === bookingUserId;
+
+        if (!isOwnerOfBooking) return;
 
         const { isCompleted } = getBookingCompletionStatus(data);
 
@@ -174,6 +201,9 @@ const BookingDetailsPage = () => {
   const isPending = paymentStatus === "pending";
 
   const { isCompleted, status } = getBookingCompletionStatus(data);
+  const bookingUserId = data ? (typeof data.user === 'object' ? (data.user as { _id?: string; id?: string })?._id || (data.user as { _id?: string; id?: string })?.id : data.user) : null;
+  const currentUserId = user?.id || user?._id;
+  const isOwnerOfBooking = currentUserId === bookingUserId;
 
   const formattedDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-GB', {
@@ -372,7 +402,7 @@ const BookingDetailsPage = () => {
             </div>
 
             {/* Review Section */}
-            {isBooking(data) && (existingReview || (isCompleted && user && (user.id === (typeof data.user === 'object' ? data.user._id : data.user)))) && (
+            {(existingReview || (isCompleted && isOwnerOfBooking)) && (
               <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
@@ -504,9 +534,9 @@ const BookingDetailsPage = () => {
       </div>
 
       {/* Review Modal */}
-      {isReviewModalOpen && isBooking(data) && (
+      {isReviewModalOpen && (
         <ReviewModal
-          booking={data}
+          booking={data as Booking}
           existingReview={existingReview}
           onClose={() => setIsReviewModalOpen(false)}
           onReviewSubmitted={(newReview: Review) => {
