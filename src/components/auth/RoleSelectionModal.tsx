@@ -51,7 +51,7 @@ const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ isOpen, roles, 
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
         <div className="p-6 border-b border-gray-100">
           <h2 className="text-xl font-bold text-gray-900">Choose your account</h2>
-          <p className="text-sm text-gray-500 mt-1">Select the role you want to use for this session</p>
+          <p className="text-sm text-gray-500 mt-1">Select the account you want to use for this session</p>
         </div>
 
         <div className="p-6 space-y-3">
