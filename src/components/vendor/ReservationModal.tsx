@@ -6,6 +6,7 @@ import { X } from 'lucide-react';
 import Calendar from '../Calendar';
 import { format } from 'date-fns';
 import api from '@/services/api';
+import Swal from '@/utils/sweetalert';
 import { useBookingAvailability } from '@/hooks/useBookingAvailability';
 import { Venue } from '@/types';
 
@@ -61,12 +62,29 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ isOpen, onClose, on
     }
   }, [isOpen, hallId]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedDates.length === 0) {
-      alert('Please select at least one date.');
+      Swal.fire({
+        title: 'No dates selected',
+        text: 'Please select at least one date to block.',
+        icon: 'warning',
+      });
       return;
     }
+
+    const formattedDates = selectedDates.map(d => format(d, 'MMM d, yyyy')).join(', ');
+
+    const result = await Swal.fire({
+      title: 'Confirm Block',
+      text: `Are you sure you want to block the following dates: ${formattedDates}? They will be unavailable for online bookings.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, block them!',
+      cancelButtonText: 'Cancel',
+    });
+
+    if (!result.isConfirmed) return;
 
     const openingHour = venue?.openingHour || 0;
     const closingHour = venue?.closingHour || 24;
