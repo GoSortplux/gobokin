@@ -406,7 +406,7 @@ const BookingDetailsPage = () => {
               <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                    <Star className="text-primary" size={20} />
+                    <Star className="text-gray-400" size={20} />
                     {existingReview ? "Your Review" : "Rate Your Experience"}
                   </h3>
                   {!existingReview && (
@@ -427,7 +427,7 @@ const BookingDetailsPage = () => {
                           <Star
                             key={i}
                             size={18}
-                            className={i < existingReview.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}
+                            className={i < existingReview.rating ? "fill-gray-400 text-gray-400" : "text-gray-300"}
                           />
                         ))}
                       </div>
