@@ -310,10 +310,10 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
   }, [formData.hall, venues]);
 
   useEffect(() => {
-    if (userRole === 'vendor' && formData.paymentMethod === 'ONLINE') {
+    if (formData.paymentMethod?.toUpperCase() === 'ONLINE') {
       setFormData(prev => ({ ...prev, paymentStatus: 'pending' }));
     }
-  }, [formData.paymentMethod, userRole]);
+  }, [formData.paymentMethod]);
 
   useEffect(() => {
     let type = 'specific-dates';
@@ -856,7 +856,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
   const handleReservationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const { hall: venue, startTime, endTime, dates, eventDetails, fullName, email, phone, paymentMethod, selectedFacilities } = formData;
+    const { hall: venue, startTime, endTime, dates, eventDetails, fullName, email, phone, paymentMethod, paymentStatus, selectedFacilities } = formData;
 
     if (dates.length === 0) {
       setError('Please select at least one date.');
@@ -896,6 +896,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
       eventDetails,
       walkInUserDetails,
       paymentMethod,
+      paymentStatus,
       selectedFacilities,
       manualDiscount: formData.manualDiscount,
       discountPercentage: formData.manualDiscount,
@@ -1175,16 +1176,39 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                   </div>
                 </div>
               </div>
-               <div>
-                <label className="block text-sm font-medium text-gray-800">Payment Method</label>
-                <select name="paymentMethod" value={formData.paymentMethod} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900">
-                  {paymentOptions.paymentMethods.map((method: string) => (
-                    <option key={method} value={method}>
-                      {formatLabel(method)}
-                    </option>
-                  ))}
-                </select>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-800">Payment Method</label>
+                  <select name="paymentMethod" value={formData.paymentMethod} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900">
+                    {paymentOptions.paymentMethods.map((method: string) => (
+                      <option key={method} value={method}>
+                        {formatLabel(method)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-800">Payment Status</label>
+                  <select
+                    name="paymentStatus"
+                    value={formData.paymentStatus}
+                    onChange={handleChange}
+                    disabled={formData.paymentMethod.toUpperCase() === 'ONLINE'}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  >
+                    {paymentOptions.paymentStatuses.map((status: string) => (
+                      <option key={status} value={status}>
+                        {formatLabel(status)}
+                      </option>
+                    ))}
+                  </select>
+                  {formData.paymentMethod.toUpperCase() === 'ONLINE' && (
+                    <p className="text-[10px] text-amber-600 mt-1 font-medium italic">Online payments must start as &apos;pending&apos;.</p>
+                  )}
+                </div>
               </div>
+
+
               <div className="mt-8 pt-6 border-t border-gray-100">
                 {isCalculatingQuote ? (
                   <div className="flex items-center gap-2 text-primary">
@@ -1509,39 +1533,38 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-800">Payment Method</label>
-                <select name="paymentMethod" value={formData.paymentMethod} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900">
-                  {paymentOptions.paymentMethods.map((method: string) => (
-                    <option key={method} value={method}>
-                      {formatLabel(method)}
-                    </option>
-                  ))}
-                </select>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-800">Payment Method</label>
+                  <select name="paymentMethod" value={formData.paymentMethod} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900">
+                    {paymentOptions.paymentMethods.map((method: string) => (
+                      <option key={method} value={method}>
+                        {formatLabel(method)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-800">Payment Status</label>
+                  <select
+                    name="paymentStatus"
+                    value={formData.paymentStatus}
+                    onChange={handleChange}
+                    disabled={formData.paymentMethod.toUpperCase() === 'ONLINE'}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  >
+                    {paymentOptions.paymentStatuses.map((status: string) => (
+                      <option key={status} value={status}>
+                        {formatLabel(status)}
+                      </option>
+                    ))}
+                  </select>
+                  {formData.paymentMethod.toUpperCase() === 'ONLINE' && (
+                    <p className="text-[10px] text-amber-600 mt-1 font-medium italic">Online payments must start as &apos;pending&apos;.</p>
+                  )}
+                </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-800">Payment Status</label>
-                <select
-                  name="paymentStatus"
-                  value={formData.paymentStatus}
-                  onChange={handleChange}
-                  disabled={userRole === 'vendor' && formData.paymentMethod === 'ONLINE'}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 disabled:bg-gray-100 disabled:cursor-not-allowed"
-                >
-                  {userRole === 'vendor' && formData.paymentMethod === 'ONLINE' ? (
-                    <option value="pending">Pending</option>
-                  ) : (
-                    [...new Set([...paymentOptions.paymentStatuses, formData.paymentStatus])]
-                      .filter(Boolean)
-                      .map((status: string) => (
-                        <option key={status} value={status}>
-                          {formatLabel(status)}
-                        </option>
-                      ))
-                  )}
-                </select>
-              </div>
 
               <div className="mt-8 pt-6 border-t border-gray-100">
                 {isCalculatingQuote ? (
@@ -1828,37 +1851,36 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                   </div>
                 </div>
               </div>
-               <div>
-                <label className="block text-sm font-medium text-gray-800">Payment Method</label>
-                <select name="paymentMethod" value={formData.paymentMethod} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900">
-                  {paymentOptions.paymentMethods.map((method: string) => (
-                    <option key={method} value={method}>
-                      {formatLabel(method)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-800">Payment Status</label>
-                <select
-                  name="paymentStatus"
-                  value={formData.paymentStatus}
-                  onChange={handleChange}
-                  disabled={userRole === 'vendor' && formData.paymentMethod === 'ONLINE'}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 disabled:bg-gray-100 disabled:cursor-not-allowed"
-                >
-                  {userRole === 'vendor' && formData.paymentMethod === 'ONLINE' ? (
-                    <option value="pending">Pending</option>
-                  ) : (
-                    [...new Set([...paymentOptions.paymentStatuses, formData.paymentStatus])]
-                      .filter(Boolean)
-                      .map((status: string) => (
-                        <option key={status} value={status}>
-                          {formatLabel(status)}
-                        </option>
-                      ))
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-800">Payment Method</label>
+                  <select name="paymentMethod" value={formData.paymentMethod} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900">
+                    {paymentOptions.paymentMethods.map((method: string) => (
+                      <option key={method} value={method}>
+                        {formatLabel(method)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-800">Payment Status</label>
+                  <select
+                    name="paymentStatus"
+                    value={formData.paymentStatus}
+                    onChange={handleChange}
+                    disabled={formData.paymentMethod.toUpperCase() === 'ONLINE'}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  >
+                    {paymentOptions.paymentStatuses.map((status: string) => (
+                      <option key={status} value={status}>
+                        {formatLabel(status)}
+                      </option>
+                    ))}
+                  </select>
+                  {formData.paymentMethod.toUpperCase() === 'ONLINE' && (
+                    <p className="text-[10px] text-amber-600 mt-1 font-medium italic">Online payments must start as &apos;pending&apos;.</p>
                   )}
-                </select>
+                </div>
               </div>
               <div className="mt-8 pt-6 border-t border-gray-100">
                 {isCalculatingQuote ? (

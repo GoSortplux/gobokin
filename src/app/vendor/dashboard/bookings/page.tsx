@@ -13,7 +13,7 @@ import PaymentLinkModal from "@/components/shared/PaymentLinkModal";
 import CustomLoader from "@/components/CustomLoader";
 import ErrorState from "@/components/ErrorState";
 import Swal from "@/utils/sweetalert";
-import { ChevronDown, XCircle, Share2 } from "lucide-react";
+import { ChevronDown, XCircle, Share2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Booking, Reservation, Venue } from "@/types";
 
 const Pagination = ({
@@ -27,25 +27,54 @@ const Pagination = ({
 }) => {
   if (totalPages <= 1) return null;
 
+  const maxPagesToShow = 5;
+  let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+  let endPage = startPage + maxPagesToShow - 1;
+
+  if (endPage > totalPages) {
+    endPage = totalPages;
+    startPage = Math.max(1, endPage - maxPagesToShow + 1);
+  }
+
   return (
-    <div className="mt-6 flex justify-between items-center bg-gray-50 p-4 rounded-lg border border-gray-200">
-      <button
-        onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-        disabled={currentPage === 1}
-        className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md shadow-sm disabled:opacity-50 disabled:bg-gray-100 transition-colors hover:bg-gray-50"
-      >
-        Previous
-      </button>
-      <span className="text-sm font-medium text-gray-700">
-        Page {currentPage} of {totalPages}
-      </span>
-      <button
-        onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-        disabled={currentPage === totalPages}
-        className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md shadow-sm disabled:opacity-50 disabled:bg-gray-100 transition-colors hover:bg-gray-50"
-      >
-        Next
-      </button>
+    <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-50/50 p-6 rounded-2xl border border-gray-100 shadow-sm">
+      <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+        Showing page {currentPage} of {totalPages}
+      </p>
+      <div className="flex items-center space-x-2">
+        <button
+          disabled={currentPage === 1}
+          onClick={() => onPageChange(currentPage - 1)}
+          className="p-2 rounded-xl bg-white hover:bg-gray-50 hover:shadow-sm border border-gray-200 disabled:opacity-40 disabled:hover:bg-white disabled:cursor-not-allowed transition-all"
+        >
+          <ChevronLeft className="w-5 h-5 text-gray-600" />
+        </button>
+        <div className="flex items-center space-x-1">
+          {Array.from({ length: endPage - startPage + 1 }, (_, i) => {
+            const pageNum = startPage + i;
+            return (
+              <button
+                key={pageNum}
+                onClick={() => onPageChange(pageNum)}
+                className={`w-10 h-10 rounded-xl text-xs font-black transition-all ${
+                  currentPage === pageNum
+                    ? "bg-primary text-white shadow-lg shadow-primary/20 scale-110"
+                    : "bg-white text-gray-500 hover:bg-gray-50 border border-gray-100"
+                }`}
+              >
+                {pageNum}
+              </button>
+            );
+          })}
+        </div>
+        <button
+          disabled={currentPage === totalPages}
+          onClick={() => onPageChange(currentPage + 1)}
+          className="p-2 rounded-xl bg-white hover:bg-gray-50 hover:shadow-sm border border-gray-200 disabled:opacity-40 disabled:hover:bg-white disabled:cursor-not-allowed transition-all"
+        >
+          <ChevronRight className="w-5 h-5 text-gray-600" />
+        </button>
+      </div>
     </div>
   );
 };
@@ -91,7 +120,7 @@ const BookingsPage = () => {
 
   const isOwnerBlocked = (booking: Booking | Reservation) => {
     return (
-      booking.eventDetails === 'Owner Reservation (Blocked)' ||
+      (booking as Booking).eventDetails === 'Owner Reservation (Blocked)' ||
       (booking as Booking).bookingType === 'admin-block'
     );
   };
@@ -767,19 +796,27 @@ const BookingsPage = () => {
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap">
                           <div className="flex flex-col gap-1.5">
-                            <span className={`px-2.5 py-1 w-fit text-[10px] font-bold rounded-full uppercase tracking-wider ${
-                                booking.status === "confirmed" ? "bg-emerald-50 text-emerald-700 border border-emerald-100" :
-                                booking.status === "pending" ? "bg-amber-50 text-amber-700 border border-amber-100" :
-                                "bg-rose-50 text-rose-700 border border-rose-100"
-                            }`}>
-                              {booking.status}
-                            </span>
-                            {booking.paymentStatus && (
-                              <span className={`px-2.5 py-1 w-fit text-[10px] font-bold rounded-full uppercase tracking-wider ${
-                                booking.paymentStatus.toLowerCase() === 'paid' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
-                              }`}>
-                                {booking.paymentStatus}
-                              </span>
+                            {isOwnerBlocked(booking) ? (
+                               <span className="px-2.5 py-1 w-fit text-[10px] font-bold rounded-full uppercase tracking-wider bg-gray-100 text-gray-500 border border-gray-200">
+                                 Blocked
+                               </span>
+                            ) : (
+                              <>
+                                <span className={`px-2.5 py-1 w-fit text-[10px] font-bold rounded-full uppercase tracking-wider ${
+                                    booking.status === "confirmed" ? "bg-emerald-50 text-emerald-700 border border-emerald-100" :
+                                    booking.status === "pending" ? "bg-amber-50 text-amber-700 border border-amber-100" :
+                                    "bg-rose-50 text-rose-700 border border-rose-100"
+                                }`}>
+                                  {booking.status}
+                                </span>
+                                {booking.paymentStatus && (
+                                  <span className={`px-2.5 py-1 w-fit text-[10px] font-bold rounded-full uppercase tracking-wider ${
+                                    booking.paymentStatus.toLowerCase() === 'paid' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+                                  }`}>
+                                    {booking.paymentStatus}
+                                  </span>
+                                )}
+                              </>
                             )}
                           </div>
                         </td>
@@ -1108,17 +1145,25 @@ const BookingsPage = () => {
                         <h3 className="text-base font-bold text-gray-900">{(typeof booking.user === 'object' && booking.user?.fullName) || booking.walkInUserDetails?.fullName}</h3>
                       </div>
                       <div className="flex flex-col items-end gap-1">
-                        <span className={`px-2 py-0.5 text-[9px] font-bold rounded-full uppercase ${
-                          booking.status === "confirmed" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
-                        }`}>
-                          {booking.status}
-                        </span>
-                        {booking.paymentStatus && (
-                          <span className={`px-2 py-0.5 text-[8px] font-bold rounded-full uppercase ${
-                            booking.paymentStatus.toLowerCase() === 'paid' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
-                          }`}>
-                            {booking.paymentStatus}
+                          {isOwnerBlocked(booking) ? (
+                            <span className="px-2 py-0.5 text-[9px] font-bold rounded-full uppercase bg-gray-100 text-gray-600">
+                              Blocked
                           </span>
+                          ) : (
+                            <>
+                              <span className={`px-2 py-0.5 text-[9px] font-bold rounded-full uppercase ${
+                                booking.status === "confirmed" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
+                              }`}>
+                                {booking.status}
+                              </span>
+                              {booking.paymentStatus && (
+                                <span className={`px-2 py-0.5 text-[8px] font-bold rounded-full uppercase ${
+                                  booking.paymentStatus.toLowerCase() === 'paid' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {booking.paymentStatus}
+                                </span>
+                              )}
+                            </>
                         )}
                       </div>
                     </div>
