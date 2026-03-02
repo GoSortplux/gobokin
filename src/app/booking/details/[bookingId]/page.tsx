@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import ReviewModal from "@/app/dashboard/ReviewModal";
 import {
   ChevronLeft,
   Calendar,
@@ -16,10 +18,11 @@ import {
   Home,
   CheckCircle2,
   AlertCircle,
-  X
+  X,
+  Star
 } from "lucide-react";
 import api from "@/services/api";
-import { Booking, Reservation, Venue } from "@/types";
+import { Booking, Reservation, Venue, Review } from "@/types";
 import { createVenueSlug } from "@/utils/slugify";
 import CustomLoader from "@/components/CustomLoader";
 import UnifiedReceipt from "@/components/shared/UnifiedReceipt";
@@ -35,10 +38,57 @@ const BookingDetailsPage = () => {
   const router = useRouter();
   const bookingId = params.bookingId as string;
 
+  const { user } = useAuth();
   const [data, setData] = useState<Booking | Reservation | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showReceipt, setShowReceipt] = useState(false);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [existingReview, setExistingReview] = useState<Review | null>(null);
+  const [loadingReviewStatus, setLoadingReviewStatus] = useState(false);
+  const [reviewChecked, setReviewChecked] = useState(false);
+
+  const isBooking = (item: Booking | Reservation): item is Booking => {
+    return 'bookingId' in item;
+  };
+
+  const getBookingCompletionStatus = useCallback((booking: Booking | Reservation) => {
+    const latestEndTime = booking.bookingDates?.length > 0
+      ? new Date(Math.max(...booking.bookingDates.map((d) => new Date(d.endTime).getTime())))
+      : null;
+    const isPast = latestEndTime ? latestEndTime < new Date() : false;
+    const status = isBooking(booking) ? (booking.status || booking.bookingStatus) : booking.status;
+    const isCompleted = isPast && (status === 'confirmed' || booking.paymentStatus === 'paid');
+    return { isPast, isCompleted, status };
+  }, []);
+
+  const fetchReview = useCallback(async (booking: Booking) => {
+    if (booking.review) {
+      setExistingReview(booking.review);
+      setReviewChecked(true);
+      return;
+    }
+
+    try {
+      setLoadingReviewStatus(true);
+      const hallId = typeof booking.hall === 'object' ? (booking.hall as Venue)._id : booking.hall;
+      const response = await api.get(`/reviews/hall/${hallId}`);
+      const reviews = (response.data.data || []) as Review[];
+
+      const foundReview = reviews.find((r: Review) => {
+        const reviewBookingId = typeof r.booking === 'object' ? (r.booking as { _id: string })?._id : r.booking;
+        const currentBookingId = booking._id;
+        return reviewBookingId === currentBookingId;
+      });
+
+      setExistingReview(foundReview || null);
+    } catch (error) {
+      console.error("Error checking for existing review:", error);
+    } finally {
+      setReviewChecked(true);
+      setLoadingReviewStatus(false);
+    }
+  }, []);
 
   const fetchBookingDetails = useCallback(async () => {
     setLoading(true);
@@ -59,6 +109,38 @@ const BookingDetailsPage = () => {
       fetchBookingDetails();
     }
   }, [bookingId, fetchBookingDetails]);
+
+  useEffect(() => {
+    const checkAndPromptReview = async () => {
+      if (!data || !isBooking(data) || !user || reviewChecked || loadingReviewStatus) return;
+
+      // Only prompt for the customer who made the booking
+      const bookingUserId = typeof data.user === 'object' ? data.user._id : data.user;
+      if (user.id !== bookingUserId) return;
+
+      const { isCompleted } = getBookingCompletionStatus(data);
+
+      if (isCompleted) {
+        await fetchReview(data);
+      }
+    };
+
+    checkAndPromptReview();
+  }, [data, user, fetchReview, reviewChecked, loadingReviewStatus, getBookingCompletionStatus]);
+
+  // Separate effect to trigger modal after review state is confirmed null
+  useEffect(() => {
+    if (data && isBooking(data) && user && reviewChecked && !existingReview && !loadingReviewStatus) {
+        const bookingUserId = typeof data.user === 'object' ? data.user._id : data.user;
+        if (user.id !== bookingUserId) return;
+
+        const { isCompleted } = getBookingCompletionStatus(data);
+
+        if (isCompleted) {
+            setIsReviewModalOpen(true);
+        }
+    }
+  }, [data, user, reviewChecked, existingReview, loadingReviewStatus, getBookingCompletionStatus]);
 
   if (loading) {
     return (
@@ -85,17 +167,13 @@ const BookingDetailsPage = () => {
     );
   }
 
-  const isBooking = (item: Booking | Reservation): item is Booking => {
-    return 'bookingId' in item;
-  };
-
   const id = isBooking(data) ? data.bookingId : data.reservationId;
   const venue = typeof data.hall === 'object' ? (data.hall as Venue) : null;
   const bookingUser = typeof data.user === 'object' ? (data.user as { fullName: string; email: string }) : null;
-  const status = isBooking(data) ? (data.status || data.bookingStatus) : data.status;
   const paymentStatus = data.paymentStatus;
-
   const isPending = paymentStatus === "pending";
+
+  const { isCompleted, status } = getBookingCompletionStatus(data);
 
   const formattedDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-GB', {
@@ -292,6 +370,57 @@ const BookingDetailsPage = () => {
                 ))}
               </div>
             </div>
+
+            {/* Review Section */}
+            {isBooking(data) && (existingReview || (isCompleted && user && (user.id === (typeof data.user === 'object' ? data.user._id : data.user)))) && (
+              <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <Star className="text-primary" size={20} />
+                    {existingReview ? "Your Review" : "Rate Your Experience"}
+                  </h3>
+                  {!existingReview && (
+                    <button
+                      onClick={() => setIsReviewModalOpen(true)}
+                      className="px-4 py-2 bg-primary/10 text-primary rounded-xl font-bold hover:bg-primary/20 transition-all text-sm"
+                    >
+                      Write a Review
+                    </button>
+                  )}
+                </div>
+
+                {existingReview ? (
+                  <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="flex items-center gap-1">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            size={18}
+                            className={i < existingReview.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-gray-900 font-bold ml-1">{existingReview.rating.toFixed(1)}</span>
+                    </div>
+                    <p className="text-gray-600 italic leading-relaxed">&quot;{existingReview.comment}&quot;</p>
+                    <div className="mt-4 text-xs text-gray-400 font-medium">
+                      Submitted on {existingReview.createdAt ? formattedDate(existingReview.createdAt) : 'N/A'}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-primary/5 rounded-2xl p-6 border border-primary/10 text-center">
+                    <p className="text-gray-600 mb-4">How was your time at {venue?.name}? Your feedback helps others!</p>
+                    <button
+                      onClick={() => setIsReviewModalOpen(true)}
+                      className="px-8 py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95"
+                    >
+                      Rate & Review Now
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Sidebar */}
@@ -373,6 +502,18 @@ const BookingDetailsPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Review Modal */}
+      {isReviewModalOpen && isBooking(data) && (
+        <ReviewModal
+          booking={data}
+          existingReview={existingReview}
+          onClose={() => setIsReviewModalOpen(false)}
+          onReviewSubmitted={(newReview: Review) => {
+            setExistingReview(newReview);
+          }}
+        />
+      )}
 
       {/* Receipt Modal */}
       <AnimatePresence>
