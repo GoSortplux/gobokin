@@ -310,6 +310,12 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
   }, [formData.hall, venues]);
 
   useEffect(() => {
+    if (userRole === 'vendor' && formData.paymentMethod === 'ONLINE') {
+      setFormData(prev => ({ ...prev, paymentStatus: 'pending' }));
+    }
+  }, [formData.paymentMethod, userRole]);
+
+  useEffect(() => {
     let type = 'specific-dates';
     if (recurrencePattern === 'weekly') type = 'weekly';
     else if (recurrencePattern === 'monthly-fixed' || recurrencePattern === 'monthly-relative') type = 'monthly';
@@ -1516,14 +1522,24 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
 
               <div>
                 <label className="block text-sm font-medium text-gray-800">Payment Status</label>
-                <select name="paymentStatus" value={formData.paymentStatus} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900">
-                  {[...new Set([...paymentOptions.paymentStatuses, formData.paymentStatus])]
-                    .filter(Boolean)
-                    .map((status: string) => (
-                      <option key={status} value={status}>
-                        {formatLabel(status)}
-                      </option>
-                    ))}
+                <select
+                  name="paymentStatus"
+                  value={formData.paymentStatus}
+                  onChange={handleChange}
+                  disabled={userRole === 'vendor' && formData.paymentMethod === 'ONLINE'}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                >
+                  {userRole === 'vendor' && formData.paymentMethod === 'ONLINE' ? (
+                    <option value="pending">Pending</option>
+                  ) : (
+                    [...new Set([...paymentOptions.paymentStatuses, formData.paymentStatus])]
+                      .filter(Boolean)
+                      .map((status: string) => (
+                        <option key={status} value={status}>
+                          {formatLabel(status)}
+                        </option>
+                      ))
+                  )}
                 </select>
               </div>
 
@@ -1824,14 +1840,24 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-800">Payment Status</label>
-                <select name="paymentStatus" value={formData.paymentStatus} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900">
-                  {[...new Set([...paymentOptions.paymentStatuses, formData.paymentStatus])]
-                    .filter(Boolean)
-                    .map((status: string) => (
-                      <option key={status} value={status}>
-                        {formatLabel(status)}
-                      </option>
-                    ))}
+                <select
+                  name="paymentStatus"
+                  value={formData.paymentStatus}
+                  onChange={handleChange}
+                  disabled={userRole === 'vendor' && formData.paymentMethod === 'ONLINE'}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                >
+                  {userRole === 'vendor' && formData.paymentMethod === 'ONLINE' ? (
+                    <option value="pending">Pending</option>
+                  ) : (
+                    [...new Set([...paymentOptions.paymentStatuses, formData.paymentStatus])]
+                      .filter(Boolean)
+                      .map((status: string) => (
+                        <option key={status} value={status}>
+                          {formatLabel(status)}
+                        </option>
+                      ))
+                  )}
                 </select>
               </div>
               <div className="mt-8 pt-6 border-t border-gray-100">
