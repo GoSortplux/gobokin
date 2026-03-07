@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { X, Trash2 } from 'lucide-react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { X, Trash2, ChevronDown } from 'lucide-react';
 import api from '@/services/api';
 import { translateError } from '@/utils/errors';
 import Swal from "@/utils/sweetalert";
@@ -132,6 +132,8 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
   const [totalPrice, setTotalPrice] = useState(0);
   const [discountAmount, setDiscountAmount] = useState(0);
   const [quoteData, setQuoteData] = useState<QuoteData | null>(null);
+  const [showScrollIndicator, setShowScrollIndicator] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isCalculatingQuote, setIsCalculatingQuote] = useState(false);
   const [usePerDateTimes, setUsePerDateTimes] = useState(false);
   const [dateTimes, setDateTimes] = useState<Record<string, { startTime: string; endTime: string }>>({});
@@ -229,6 +231,31 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
     }
     return options;
   };
+
+  useEffect(() => {
+    const checkScroll = () => {
+      if (formData.dates.length > 0 && scrollContainerRef.current) {
+        const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+        const isScrollable = scrollHeight > clientHeight + 10;
+        const hasNotScrolledMuch = scrollTop < 50;
+        setShowScrollIndicator(isScrollable && hasNotScrolledMuch);
+      } else {
+        setShowScrollIndicator(false);
+      }
+    };
+
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', checkScroll);
+      window.addEventListener('resize', checkScroll);
+      const timeoutId = setTimeout(checkScroll, 500);
+      return () => {
+        container.removeEventListener('scroll', checkScroll);
+        window.removeEventListener('resize', checkScroll);
+        clearTimeout(timeoutId);
+      };
+    }
+  }, [formData.dates, isOpen]);
 
   useEffect(() => {
     if (isOpen) {
@@ -914,6 +941,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
       <div
         role="dialog"
         aria-modal="true"
+        ref={scrollContainerRef}
         className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative z-10 animate-in fade-in zoom-in-95"
         onClick={(e) => e.stopPropagation()}
       >
@@ -928,6 +956,16 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
           <h2 className="text-3xl font-black text-gray-900 tracking-tighter uppercase italic">Create <span className="text-primary not-italic">Booking</span></h2>
           <p className="text-sm text-gray-500 font-medium">Schedule a new event on the platform.</p>
         </div>
+        {showScrollIndicator && (
+          <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[110] pointer-events-none animate-bounce flex flex-col items-center">
+            <span className="bg-primary/90 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-lg mb-2 uppercase tracking-widest backdrop-blur-sm">
+              Scroll for Submit
+            </span>
+            <div className="bg-primary p-2 rounded-full shadow-xl">
+              <ChevronDown className="h-6 w-6 text-white" />
+            </div>
+          </div>
+        )}
         <div className="flex bg-gray-50 p-1.5 rounded-2xl mb-8 border border-gray-100">
           <button
             className={`flex-1 px-2 sm:px-4 py-2.5 text-[10px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest transition-all rounded-xl ${activeTab === 'recurring' ? 'bg-white text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}

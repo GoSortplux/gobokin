@@ -1,8 +1,8 @@
 'use client';
 
-import { FC, useState, useEffect, useCallback, useMemo } from 'react';
+import { FC, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { X } from 'lucide-react';
+import { X, ChevronDown } from 'lucide-react';
 import api from '@/services/api';
 import CustomLoader from './CustomLoader';
 import Calendar from './Calendar';
@@ -76,6 +76,8 @@ const BookingModal: FC<BookingModalProps> = ({
   const [totalPrice, setTotalPrice] = useState(0);
   const [hallCost, setHallCost] = useState(0);
   const [quoteData, setQuoteData] = useState<QuoteData | null>(null);
+  const [showScrollIndicator, setShowScrollIndicator] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isCalculatingQuote, setIsCalculatingQuote] = useState(false);
   const [startTime, setStartTime] = useState(initialStartTime);
   const [endTime, setEndTime] = useState(initialEndTime);
@@ -288,6 +290,7 @@ const BookingModal: FC<BookingModalProps> = ({
       setError('');
       setLoading(false);
       setHasAcceptedRefundPolicy(false);
+      setShowScrollIndicator(false);
 
       const fetchHallDetails = async () => {
         try {
@@ -491,6 +494,33 @@ const BookingModal: FC<BookingModalProps> = ({
     }
   }, [isOpen, step, quoteData, isCalculatingQuote, fetchQuote]);
 
+  useEffect(() => {
+    const checkScroll = () => {
+      if (step === 1 && selectedDates && selectedDates.length > 0 && scrollContainerRef.current) {
+        const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+        const isScrollable = scrollHeight > clientHeight + 10;
+        const hasNotScrolledMuch = scrollTop < 50;
+        setShowScrollIndicator(isScrollable && hasNotScrolledMuch);
+      } else {
+        setShowScrollIndicator(false);
+      }
+    };
+
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', checkScroll);
+      // Also check on window resize as it might change scrollability
+      window.addEventListener('resize', checkScroll);
+      // Initial check with a slight delay to allow content to render
+      const timeoutId = setTimeout(checkScroll, 500);
+      return () => {
+        container.removeEventListener('scroll', checkScroll);
+        window.removeEventListener('resize', checkScroll);
+        clearTimeout(timeoutId);
+      };
+    }
+  }, [step, selectedDates, isOpen]);
+
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (step === 2) {
@@ -530,6 +560,7 @@ const BookingModal: FC<BookingModalProps> = ({
       <div
         role="dialog"
         aria-modal="true"
+        ref={scrollContainerRef}
         className={`relative z-10 bg-white rounded-t-2xl lg:rounded-xl shadow-2xl p-4 lg:p-8 w-full max-w-4xl transform transition-all duration-300 max-h-[95vh] overflow-y-auto border border-gray-200`}
         onClick={(e) => e.stopPropagation()}
       >
@@ -578,6 +609,17 @@ const BookingModal: FC<BookingModalProps> = ({
           {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
 
           {step === 1 && (
+            <>
+              {showScrollIndicator && (
+                <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[110] pointer-events-none animate-bounce flex flex-col items-center">
+                  <span className="bg-primary/90 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-lg mb-2 uppercase tracking-widest backdrop-blur-sm">
+                    Scroll for Next Step
+                  </span>
+                  <div className="bg-primary p-2 rounded-full shadow-xl">
+                    <ChevronDown className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+              )}
             <div className="flex flex-col lg:flex-row gap-12 items-start">
               <div className="flex-1 w-full bg-white rounded-2xl border border-gray-100 p-2 shadow-sm">
                 <Calendar
@@ -628,6 +670,7 @@ const BookingModal: FC<BookingModalProps> = ({
                 )}
               </div>
             </div>
+            </>
           )}
 
           {step === 2 && (
