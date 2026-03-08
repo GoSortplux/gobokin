@@ -1056,7 +1056,7 @@ const BookingModal: FC<BookingModalProps> = ({
                             <span className="text-white/60 text-sm font-medium">Total Price</span>
                             <div className="sm:text-right">
                               <div className="text-3xl md:text-4xl font-black text-white leading-tight">
-                                ₦{(quoteData.totalPrice).toLocaleString()}
+                                ₦{(quoteData.feeBreakdown?.serviceTotal || quoteData.totalPrice).toLocaleString()}
                               </div>
                               <p className="text-[10px] text-white/40 mt-1 font-medium">Excludes transaction fees</p>
                             </div>

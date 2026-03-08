@@ -1280,7 +1280,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                     <div className="flex flex-col justify-end space-y-3">
                       <div className="text-right">
                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Total Amount Due</span>
-                        <span className="text-3xl font-black text-primary italic leading-none">₦{quoteData.totalPrice.toLocaleString()}</span>
+                        <span className="text-3xl font-black text-primary italic leading-none">₦{(quoteData.feeBreakdown?.serviceTotal || quoteData.totalPrice).toLocaleString()}</span>
                         <p className="text-[10px] text-gray-400 font-medium mt-1">Excludes transaction fees</p>
                       </div>
                       {quoteData.reservationFeeDetails && (
@@ -1637,7 +1637,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                     <div className="flex flex-col justify-end space-y-3">
                       <div className="text-right">
                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Total Amount Due</span>
-                        <span className="text-3xl font-black text-primary italic leading-none">₦{quoteData.totalPrice.toLocaleString()}</span>
+                        <span className="text-3xl font-black text-primary italic leading-none">₦{(quoteData.feeBreakdown?.serviceTotal || quoteData.totalPrice).toLocaleString()}</span>
                         <p className="text-[10px] text-gray-400 font-medium mt-1">Excludes transaction fees</p>
                       </div>
                     </div>
@@ -1952,7 +1952,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                     <div className="flex flex-col justify-end space-y-3">
                       <div className="text-right">
                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Total Amount Due</span>
-                        <span className="text-3xl font-black text-primary italic leading-none">₦{quoteData.totalPrice.toLocaleString()}</span>
+                        <span className="text-3xl font-black text-primary italic leading-none">₦{(quoteData.feeBreakdown?.serviceTotal || quoteData.totalPrice).toLocaleString()}</span>
                         <p className="text-[10px] text-gray-400 font-medium mt-1">Excludes transaction fees</p>
                       </div>
                     </div>
