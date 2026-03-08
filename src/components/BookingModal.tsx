@@ -1062,17 +1062,15 @@ const BookingModal: FC<BookingModalProps> = ({
                             </div>
                           </div>
 
-                          {quoteData.feeBreakdown?.transactionFee > 0 && (
-                            <div className="bg-white/5 rounded-xl p-3 mt-4 space-y-1">
-                              <div className="flex justify-between text-[10px]">
-                                <span className="text-white/40 italic">Transaction Fee (VAT/STAMP DUTY)</span>
-                                <span className="text-white/60 font-bold">₦{quoteData.feeBreakdown.transactionFee.toLocaleString()}</span>
-                              </div>
-                              <p className="text-[10px] text-white/30 italic leading-tight">
-                                Bear in mind that transaction fee has been captured in this charge
-                              </p>
+                          <div className="bg-white/5 rounded-xl p-3 mt-4 space-y-1">
+                            <div className="flex justify-between text-[10px]">
+                              <span className="text-white/40 italic">Transaction Fee (VAT/STAMP DUTY)</span>
+                              <span className="text-white/60 font-bold">Transaction fees may apply</span>
                             </div>
-                          )}
+                            <p className="text-[10px] text-white/30 italic leading-tight">
+                              Please note that transaction fees are included in the final amount.
+                            </p>
+                          </div>
 
                           {bookingMode === 'reserve' && quoteData.reservationFeeDetails && (
                             <div className="mt-8 pt-6 border-t border-white/10">

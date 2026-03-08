@@ -1272,12 +1272,10 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                           <span className="font-bold">-₦{quoteData.discountAmount.toLocaleString()}</span>
                         </div>
                       )}
-                      {quoteData.feeBreakdown.transactionFee > 0 && (
-                        <div className="flex justify-between text-xs text-amber-600">
-                          <span>Transaction Fee:</span>
-                          <span className="font-bold">₦{quoteData.feeBreakdown.transactionFee.toLocaleString()}</span>
-                        </div>
-                      )}
+                      <div className="flex justify-between text-[10px] text-amber-600">
+                        <span>Transaction Fee:</span>
+                        <span className="font-bold">Transaction fees may apply</span>
+                      </div>
                     </div>
                     <div className="flex flex-col justify-end space-y-3">
                       <div className="text-right">
@@ -1629,12 +1627,10 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                           <span className="font-bold">-₦{quoteData.discountAmount.toLocaleString()}</span>
                         </div>
                       )}
-                      {quoteData.feeBreakdown.transactionFee > 0 && (
-                        <div className="flex justify-between text-xs text-amber-600">
-                          <span>Transaction Fee:</span>
-                          <span className="font-bold">₦{quoteData.feeBreakdown.transactionFee.toLocaleString()}</span>
-                        </div>
-                      )}
+                      <div className="flex justify-between text-[10px] text-amber-600">
+                        <span>Transaction Fee:</span>
+                        <span className="font-bold">Transaction fees may apply</span>
+                      </div>
                     </div>
                     <div className="flex flex-col justify-end space-y-3">
                       <div className="text-right">
@@ -1945,12 +1941,10 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                           <span className="font-bold">-₦{quoteData.discountAmount.toLocaleString()}</span>
                         </div>
                       )}
-                      {quoteData.feeBreakdown.transactionFee > 0 && (
-                        <div className="flex justify-between text-xs text-amber-600">
-                          <span>Transaction Fee:</span>
-                          <span className="font-bold">₦{quoteData.feeBreakdown.transactionFee.toLocaleString()}</span>
-                        </div>
-                      )}
+                      <div className="flex justify-between text-[10px] text-amber-600">
+                        <span>Transaction Fee:</span>
+                        <span className="font-bold">Transaction fees may apply</span>
+                      </div>
                     </div>
                     <div className="flex flex-col justify-end space-y-3">
                       <div className="text-right">
