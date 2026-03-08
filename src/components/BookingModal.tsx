@@ -925,7 +925,7 @@ const BookingModal: FC<BookingModalProps> = ({
                     <div className="text-2xl font-black text-gray-900">
                       ₦{totalPrice.toLocaleString()}
                     </div>
-                    <p className="text-[10px] text-gray-500 font-medium">Includes taxes and charges</p>
+                    <p className="text-[10px] text-gray-500 font-medium">Excludes transaction fees</p>
                   </div>
                 </div>
               </div>
@@ -1056,9 +1056,9 @@ const BookingModal: FC<BookingModalProps> = ({
                             <span className="text-white/60 text-sm font-medium">Total Price</span>
                             <div className="sm:text-right">
                               <div className="text-3xl md:text-4xl font-black text-white leading-tight">
-                                ₦{(quoteData.feeBreakdown?.totalAmount || quoteData.totalPrice).toLocaleString()}
+                                ₦{(quoteData.totalPrice).toLocaleString()}
                               </div>
-                              <p className="text-[10px] text-white/40 mt-1 font-medium">Includes taxes and charges</p>
+                              <p className="text-[10px] text-white/40 mt-1 font-medium">Excludes transaction fees</p>
                             </div>
                           </div>
 
@@ -1082,9 +1082,9 @@ const BookingModal: FC<BookingModalProps> = ({
                                 <span className="text-white/60 text-sm">To Pay Now</span>
                                 <div className="text-right">
                                   <div className="text-2xl font-black text-white">
-                                    ₦{quoteData.reservationFeeDetails.totalAmount.toLocaleString()}
+                                    ₦{quoteData.reservationFeeDetails.serviceTotal.toLocaleString()}
                                   </div>
-                                  <p className="text-[10px] text-white/40">Includes taxes and charges</p>
+                                  <p className="text-[10px] text-white/40">Excludes transaction fees</p>
                                 </div>
                               </div>
                             </div>

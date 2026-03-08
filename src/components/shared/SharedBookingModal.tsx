@@ -1280,12 +1280,14 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                     <div className="flex flex-col justify-end space-y-3">
                       <div className="text-right">
                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Total Amount Due</span>
-                        <span className="text-3xl font-black text-primary italic leading-none">₦{quoteData.feeBreakdown.totalAmount.toLocaleString()}</span>
+                        <span className="text-3xl font-black text-primary italic leading-none">₦{quoteData.totalPrice.toLocaleString()}</span>
+                        <p className="text-[10px] text-gray-400 font-medium mt-1">Excludes transaction fees</p>
                       </div>
                       {quoteData.reservationFeeDetails && (
                         <div className="text-right bg-primary/5 p-3 rounded-2xl border border-primary/10">
                           <span className="text-[10px] font-black text-primary uppercase tracking-widest block mb-1">Part Payment ({quoteData.reservationFeeDetails.percentage}%)</span>
-                          <span className="text-xl font-black text-primary">₦{quoteData.reservationFeeDetails.totalAmount.toLocaleString()}</span>
+                          <span className="text-xl font-black text-primary">₦{quoteData.reservationFeeDetails.serviceTotal.toLocaleString()}</span>
+                          <p className="text-[10px] text-primary/60 font-medium">Excludes transaction fees</p>
                         </div>
                       )}
                     </div>
@@ -1635,7 +1637,8 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                     <div className="flex flex-col justify-end space-y-3">
                       <div className="text-right">
                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Total Amount Due</span>
-                        <span className="text-3xl font-black text-primary italic leading-none">₦{quoteData.feeBreakdown.totalAmount.toLocaleString()}</span>
+                        <span className="text-3xl font-black text-primary italic leading-none">₦{quoteData.totalPrice.toLocaleString()}</span>
+                        <p className="text-[10px] text-gray-400 font-medium mt-1">Excludes transaction fees</p>
                       </div>
                     </div>
                   </div>
@@ -1949,7 +1952,8 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                     <div className="flex flex-col justify-end space-y-3">
                       <div className="text-right">
                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Total Amount Due</span>
-                        <span className="text-3xl font-black text-primary italic leading-none">₦{quoteData.feeBreakdown.totalAmount.toLocaleString()}</span>
+                        <span className="text-3xl font-black text-primary italic leading-none">₦{quoteData.totalPrice.toLocaleString()}</span>
+                        <p className="text-[10px] text-gray-400 font-medium mt-1">Excludes transaction fees</p>
                       </div>
                     </div>
                   </div>
