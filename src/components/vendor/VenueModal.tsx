@@ -574,7 +574,6 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
       if (Number(formData.hourlyRate) <= 0) newErrors.hourlyRate = 'Hourly rate must be greater than 0';
       if (Number(formData.dailyRate) <= 0) newErrors.dailyRate = 'Daily rate must be greater than 0';
       if (Number(formData.carParkCapacity) <= 0) newErrors.carParkCapacity = 'Car park capacity must be greater than 0';
-      if (!formData.hallSize.trim()) newErrors.hallSize = 'Venue size is required';
       if (formData.suitableFor.length === 0) newErrors.suitableFor = 'Select at least one suitability category';
 
       formData.facilities.forEach((fac, index) => {
