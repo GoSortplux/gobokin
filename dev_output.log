@@ -7,30 +7,11 @@
    - Network:      http://192.168.0.2:3000
 
  ✓ Starting...
-Attention: Next.js now collects completely anonymous telemetry regarding usage.
-This information is used to shape Next.js' roadmap and prioritize features.
-You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
-https://nextjs.org/telemetry
-
- ✓ Ready in 2s
- ○ Compiling / ...
- ✓ Compiled / in 14.6s (3750 modules)
- GET / 200 in 18092ms
- ○ Compiling /venues/[slug] ...
- ✓ Compiled /venues/[slug] in 2.4s (3837 modules)
- GET /venues/verification-hall 200 in 4980ms
-Failed to fetch venue with slug: verification-hall, status: 404
-Failed to fetch venue with slug: verification-hall, status: 404
-Failed to fetch venue with slug: verification-hall, status: 404
-Failed to fetch venue with slug: verification-hall, status: 404
- GET /venues/verification-hall 200 in 696ms
-Failed to fetch venue with slug: verification-hall, status: 404
-Failed to fetch venue with slug: verification-hall, status: 404
- GET /venues/verification-hall 200 in 908ms
-Failed to fetch venue with slug: verification-hall, status: 404
-Failed to fetch venue with slug: verification-hall, status: 404
- GET /venues/verification-hall 200 in 624ms
-Failed to fetch venue with slug: verification-hall, status: 404
-Failed to fetch venue with slug: verification-hall, status: 404
- GET /venues/verification-hall 200 in 531ms
-[?25h
+ ✓ Ready in 3.1s
+ ○ Compiling /test-venue-modal ...
+ ✓ Compiled /test-venue-modal in 6.7s (1771 modules)
+ GET /test-venue-modal 200 in 7981ms
+ GET /test-venue-modal 200 in 368ms
+ GET /test-venue-modal 200 in 151ms
+ GET /test-venue-modal 200 in 143ms
+ ✓ Compiled in 815ms (749 modules)

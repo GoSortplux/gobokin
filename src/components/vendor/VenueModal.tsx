@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
-import { X, Plus, Trash2, Info } from 'lucide-react';
+import { X, Plus, Trash2, Info, ChevronDown, ChevronUp, Settings2 } from 'lucide-react';
 import MediaUpload from './MediaUpload';
 import { isVideo } from '@/utils/media';
 import api from '@/services/api';
@@ -145,10 +145,10 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
           percentage: 0 as number | string,
         },
       },
-      maxStaffManualDiscount: 0 as number | string,
-      bookingBufferInHours: 0 as number | string,
-      shortBookingBufferInHours: 0 as number | string,
-      reservationCutoffHours: 0 as number | string,
+      maxStaffManualDiscount: '' as number | string,
+      bookingBufferInHours: '' as number | string,
+      shortBookingBufferInHours: '' as number | string,
+      reservationCutoffHours: '' as number | string,
     });
     setCurrentStep(1);
     setVenueId(null);
@@ -168,6 +168,7 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
   const [hallId, setVenueId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
   const [hasUploadedImages, setHasUploadedImages] = useState(false);
   const [availableFacilities, setAvailableFacilities] = useState<APIFacility[]>([]);
   const [availableSuitabilities, setAvailableSuitabilities] = useState<APISuitability[]>([]);
@@ -209,10 +210,10 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
         percentage: 0 as number | string,
       },
     },
-    maxStaffManualDiscount: 0 as number | string,
-    bookingBufferInHours: 0 as number | string,
-    shortBookingBufferInHours: 0 as number | string,
-    reservationCutoffHours: 0 as number | string,
+    maxStaffManualDiscount: '' as number | string,
+    bookingBufferInHours: '' as number | string,
+    shortBookingBufferInHours: '' as number | string,
+    reservationCutoffHours: '' as number | string,
   });
 
   useEffect(() => {
@@ -348,10 +349,10 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
             percentage: venue.discountSettings?.daily?.percentage || 0,
           },
         },
-        maxStaffManualDiscount: venue.maxStaffManualDiscount || 0,
-        bookingBufferInHours: venue.bookingBufferInHours || 0,
-        shortBookingBufferInHours: venue.shortBookingBufferInHours || 0,
-        reservationCutoffHours: venue.reservationCutoffHours || 0,
+        maxStaffManualDiscount: venue.maxStaffManualDiscount !== undefined ? venue.maxStaffManualDiscount : '',
+        bookingBufferInHours: venue.bookingBufferInHours !== undefined ? venue.bookingBufferInHours : '',
+        shortBookingBufferInHours: venue.shortBookingBufferInHours !== undefined ? venue.shortBookingBufferInHours : '',
+        reservationCutoffHours: venue.reservationCutoffHours !== undefined ? venue.reservationCutoffHours : '',
       });
       setVenueId(venue._id || venue.id || null);
     } else {
@@ -393,10 +394,10 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
                 percentage: 0,
               },
             },
-            maxStaffManualDiscount: 0,
-            bookingBufferInHours: 0,
-            shortBookingBufferInHours: 0,
-            reservationCutoffHours: 0,
+            maxStaffManualDiscount: '',
+            bookingBufferInHours: '',
+            shortBookingBufferInHours: '',
+            reservationCutoffHours: '',
             ...parsedData
           });
           setCurrentStep(1);
@@ -441,10 +442,10 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
             percentage: 0,
           },
         },
-        maxStaffManualDiscount: 0,
-          bookingBufferInHours: 0,
-          shortBookingBufferInHours: 0,
-          reservationCutoffHours: 0,
+        maxStaffManualDiscount: '',
+          bookingBufferInHours: '',
+          shortBookingBufferInHours: '',
+          reservationCutoffHours: '',
       });
       setCurrentStep(1);
       setVenueId(null);
@@ -606,7 +607,7 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
           newErrors['discountSettings.daily.percentage'] = 'Discount percentage cannot exceed 60%';
         }
       }
-      if (Number(formData.maxStaffManualDiscount) > 60) {
+      if (formData.maxStaffManualDiscount !== '' && Number(formData.maxStaffManualDiscount) > 60) {
         newErrors.maxStaffManualDiscount = 'Max staff discount cannot exceed 60%';
       }
     }
@@ -681,10 +682,10 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
         rules: rulesArray,
         capacity: Number(formData.capacity),
         carParkCapacity: Number(formData.carParkCapacity),
-        maxStaffManualDiscount: Number(formData.maxStaffManualDiscount),
-        bookingBufferInHours: Number(formData.bookingBufferInHours),
-        shortBookingBufferInHours: Number(formData.shortBookingBufferInHours),
-        reservationCutoffHours: Number(formData.reservationCutoffHours),
+        maxStaffManualDiscount: formData.maxStaffManualDiscount !== '' ? Number(formData.maxStaffManualDiscount) : undefined,
+        bookingBufferInHours: formData.bookingBufferInHours !== '' ? Number(formData.bookingBufferInHours) : undefined,
+        shortBookingBufferInHours: formData.shortBookingBufferInHours !== '' ? Number(formData.shortBookingBufferInHours) : undefined,
+        reservationCutoffHours: formData.reservationCutoffHours !== '' ? Number(formData.reservationCutoffHours) : undefined,
         openingHour: parseHour(openingHour),
         closingHour: parseHour(closingHour),
         country,
@@ -770,10 +771,10 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
         rules: rulesArray,
         suitableFor: formData.suitableFor,
         allowRecurringBookings: formData.allowRecurringBookings,
-        maxStaffManualDiscount: Number(formData.maxStaffManualDiscount),
-        bookingBufferInHours: Number(formData.bookingBufferInHours),
-        shortBookingBufferInHours: Number(formData.shortBookingBufferInHours),
-        reservationCutoffHours: Number(formData.reservationCutoffHours),
+        maxStaffManualDiscount: formData.maxStaffManualDiscount !== '' ? Number(formData.maxStaffManualDiscount) : undefined,
+        bookingBufferInHours: formData.bookingBufferInHours !== '' ? Number(formData.bookingBufferInHours) : undefined,
+        shortBookingBufferInHours: formData.shortBookingBufferInHours !== '' ? Number(formData.shortBookingBufferInHours) : undefined,
+        reservationCutoffHours: formData.reservationCutoffHours !== '' ? Number(formData.reservationCutoffHours) : undefined,
         discountSettings: {
           enabled: formData.discountSettings.enabled,
           hourly: {
@@ -1104,57 +1105,87 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-800">Max Staff Manual Discount (%)</label>
-                  <input
-                    type="number"
-                    name="maxStaffManualDiscount"
-                    placeholder="e.g., 15"
-                    value={formData.maxStaffManualDiscount}
-                    onChange={handleChange}
-                    className={`w-full px-4 py-2 border ${errors.maxStaffManualDiscount ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-900 placeholder-gray-500`}
-                  />
-                  {errors.maxStaffManualDiscount && <p className="text-red-500 text-xs mt-1">{errors.maxStaffManualDiscount}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-800">Reservation Cutoff (Hours)</label>
-                  <input
-                    type="number"
-                    name="reservationCutoffHours"
-                    placeholder="e.g., 72"
-                    value={formData.reservationCutoffHours}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500"
-                  />
-                  <p className="text-[10px] text-gray-500 mt-1">Hours before a reservation expires if not paid</p>
-                </div>
-              </div>
+              {/* Advanced Settings Toggle */}
+              <div className="pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowAdvancedSettings(!showAdvancedSettings)}
+                  className="flex items-center justify-between w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:bg-gray-100 transition-all group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-white rounded-xl shadow-sm text-primary group-hover:scale-110 transition-transform">
+                      <Settings2 size={18} />
+                    </div>
+                    <div className="text-left">
+                      <h4 className="text-sm font-bold text-gray-900">Advanced Policy Settings</h4>
+                      <p className="text-[10px] text-gray-500">Manual discounts, booking buffers, and reservation cutoffs</p>
+                    </div>
+                  </div>
+                  {showAdvancedSettings ? <ChevronUp className="text-gray-400" /> : <ChevronDown className="text-gray-400" />}
+                </button>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-800">Long Booking Buffer (Hours)</label>
-                  <input
-                    type="number"
-                    name="bookingBufferInHours"
-                    placeholder="e.g., 5"
-                    value={formData.bookingBufferInHours}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-800">Short Booking Buffer (Hours)</label>
-                  <input
-                    type="number"
-                    name="shortBookingBufferInHours"
-                    placeholder="e.g., 2"
-                    value={formData.shortBookingBufferInHours}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500"
-                  />
-                </div>
-                <p className="col-span-2 text-[10px] text-gray-500 -mt-2 italic">Minimum time required between bookings on the same date</p>
+                {showAdvancedSettings && (
+                  <div className="mt-4 p-6 border border-gray-200 rounded-3xl space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Max Staff Manual Discount (%)</label>
+                        <input
+                          type="number"
+                          name="maxStaffManualDiscount"
+                          placeholder="e.g., 15 (Optional)"
+                          value={formData.maxStaffManualDiscount}
+                          onChange={handleChange}
+                          className={`w-full px-4 py-2.5 bg-gray-50/50 border ${errors.maxStaffManualDiscount ? 'border-red-500' : 'border-gray-200'} rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary/20 transition-all`}
+                        />
+                        {errors.maxStaffManualDiscount && <p className="text-red-500 text-[10px] mt-1 font-bold ml-1">{errors.maxStaffManualDiscount}</p>}
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Reservation Cutoff (Hours)</label>
+                        <input
+                          type="number"
+                          name="reservationCutoffHours"
+                          placeholder="e.g., 72 (Optional)"
+                          value={formData.reservationCutoffHours}
+                          onChange={handleChange}
+                          className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary/20 transition-all"
+                        />
+                        <p className="text-[9px] text-gray-500 mt-1.5 italic ml-1">Hours before an unpaid reservation expires</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 mb-2">
+                         <Info size={14} className="text-primary" />
+                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Booking Buffers</span>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Long Booking Buffer (Hours)</label>
+                          <input
+                            type="number"
+                            name="bookingBufferInHours"
+                            placeholder="e.g., 5 (Optional)"
+                            value={formData.bookingBufferInHours}
+                            onChange={handleChange}
+                            className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary/20 transition-all"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Short Booking Buffer (Hours)</label>
+                          <input
+                            type="number"
+                            name="shortBookingBufferInHours"
+                            placeholder="e.g., 2 (Optional)"
+                            value={formData.shortBookingBufferInHours}
+                            onChange={handleChange}
+                            className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary/20 transition-all"
+                          />
+                        </div>
+                      </div>
+                      <p className="text-[9px] text-gray-500 italic ml-1 leading-relaxed">Minimum buffer required between consecutive bookings on the same date.</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -1598,57 +1629,87 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
                     </div>
                   )}
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-800">Max Staff Manual Discount (%)</label>
-                      <input
-                        type="number"
-                        name="maxStaffManualDiscount"
-                        placeholder="e.g., 15"
-                        value={formData.maxStaffManualDiscount}
-                        onChange={handleChange}
-                        className={`w-full px-4 py-2 border ${errors.maxStaffManualDiscount ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-900 placeholder-gray-500`}
-                      />
-                      {errors.maxStaffManualDiscount && <p className="text-red-500 text-xs mt-1">{errors.maxStaffManualDiscount}</p>}
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-800">Reservation Cutoff (Hours)</label>
-                      <input
-                        type="number"
-                        name="reservationCutoffHours"
-                        placeholder="e.g., 72"
-                        value={formData.reservationCutoffHours}
-                        onChange={handleChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500"
-                      />
-                      <p className="text-[10px] text-gray-500 mt-1">Hours before a reservation expires if not paid</p>
-                    </div>
-                  </div>
+                  {/* Advanced Settings Toggle */}
+                  <div className="pt-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowAdvancedSettings(!showAdvancedSettings)}
+                      className="flex items-center justify-between w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:bg-gray-100 transition-all group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-white rounded-xl shadow-sm text-primary group-hover:scale-110 transition-transform">
+                          <Settings2 size={18} />
+                        </div>
+                        <div className="text-left">
+                          <h4 className="text-sm font-bold text-gray-900">Advanced Policy Settings</h4>
+                          <p className="text-[10px] text-gray-500">Manual discounts, booking buffers, and reservation cutoffs</p>
+                        </div>
+                      </div>
+                      {showAdvancedSettings ? <ChevronUp className="text-gray-400" /> : <ChevronDown className="text-gray-400" />}
+                    </button>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-800">Long Booking Buffer (Hours)</label>
-                      <input
-                        type="number"
-                        name="bookingBufferInHours"
-                        placeholder="e.g., 5"
-                        value={formData.bookingBufferInHours}
-                        onChange={handleChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-800">Short Booking Buffer (Hours)</label>
-                      <input
-                        type="number"
-                        name="shortBookingBufferInHours"
-                        placeholder="e.g., 2"
-                        value={formData.shortBookingBufferInHours}
-                        onChange={handleChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500"
-                      />
-                    </div>
-                    <p className="col-span-2 text-[10px] text-gray-500 -mt-2 italic">Minimum time required between bookings on the same date</p>
+                    {showAdvancedSettings && (
+                      <div className="mt-4 p-6 border border-gray-200 rounded-3xl space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Max Staff Manual Discount (%)</label>
+                            <input
+                              type="number"
+                              name="maxStaffManualDiscount"
+                              placeholder="e.g., 15 (Optional)"
+                              value={formData.maxStaffManualDiscount}
+                              onChange={handleChange}
+                              className={`w-full px-4 py-2.5 bg-gray-50/50 border ${errors.maxStaffManualDiscount ? 'border-red-500' : 'border-gray-200'} rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary/20 transition-all`}
+                            />
+                            {errors.maxStaffManualDiscount && <p className="text-red-500 text-[10px] mt-1 font-bold ml-1">{errors.maxStaffManualDiscount}</p>}
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Reservation Cutoff (Hours)</label>
+                            <input
+                              type="number"
+                              name="reservationCutoffHours"
+                              placeholder="e.g., 72 (Optional)"
+                              value={formData.reservationCutoffHours}
+                              onChange={handleChange}
+                              className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary/20 transition-all"
+                            />
+                            <p className="text-[9px] text-gray-500 mt-1.5 italic ml-1">Hours before an unpaid reservation expires</p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-2 mb-2">
+                             <Info size={14} className="text-primary" />
+                             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Booking Buffers</span>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Long Booking Buffer (Hours)</label>
+                              <input
+                                type="number"
+                                name="bookingBufferInHours"
+                                placeholder="e.g., 5 (Optional)"
+                                value={formData.bookingBufferInHours}
+                                onChange={handleChange}
+                                className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary/20 transition-all"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Short Booking Buffer (Hours)</label>
+                              <input
+                                type="number"
+                                name="shortBookingBufferInHours"
+                                placeholder="e.g., 2 (Optional)"
+                                value={formData.shortBookingBufferInHours}
+                                onChange={handleChange}
+                                className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary/20 transition-all"
+                              />
+                            </div>
+                          </div>
+                          <p className="text-[9px] text-gray-500 italic ml-1 leading-relaxed">Minimum buffer required between consecutive bookings on the same date.</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div>
