@@ -326,7 +326,7 @@ const VenuesContent = () => {
                                 </div>
                                 <div className="text-center">
                                     <p className="text-xs font-bold text-gray-900">{venue.demoBookings || 0}</p>
-                                    <p className="text-[8px] font-bold text-gray-400 uppercase">Demos</p>
+                                    <p className="text-[8px] font-bold text-gray-400 uppercase">Contact Attempts</p>
                                 </div>
                             </div>
                         </td>
@@ -447,7 +447,7 @@ const VenuesContent = () => {
                         <p className="text-xs font-bold text-gray-900">{venue.views || 0}</p>
                       </div>
                       <div className="bg-gray-50 p-2 rounded-lg text-center">
-                        <p className="text-[9px] font-bold text-gray-400 uppercase">Demos</p>
+                        <p className="text-[9px] font-bold text-gray-400 uppercase">Contact Attempts</p>
                         <p className="text-xs font-bold text-gray-900">{venue.demoBookings || 0}</p>
                       </div>
                     </div>

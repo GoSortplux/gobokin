@@ -270,7 +270,7 @@ const AdminEnhancedAnalytics = () => {
               <AdminStatCard title="Total Refunded" value={formatCurrency(data.overallStats.totalRefunded)} icon={TrendingDown} />
               <AdminStatCard title="Platform Net" value={formatCurrency(data.overallStats.totalPlatformNet)} icon={TrendingUp} />
               <AdminStatCard title="Total Views" value={data.overallStats.totalViews.toLocaleString()} icon={TrendingUp} />
-              <AdminStatCard title="Demo Bookings" value={data.overallStats.totalDemoBookings} icon={Briefcase} />
+              <AdminStatCard title="Contact Attempts" value={data.overallStats.totalDemoBookings} icon={Briefcase} />
             </div>
           </div>
 

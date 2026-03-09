@@ -431,7 +431,7 @@ const EnhancedAnalytics = ({ initialData }: { initialData?: AnalyticsData | null
                     <StatCard title="Repeat Booking Rate" value={kpis.repeatBookingRate} icon={TrendingUp} />
                     <StatCard title="Occupancy Rate" value={kpis.occupancyRate} icon={Briefcase} />
                     <StatCard title="Avg. Lead Time" value={kpis.averageBookingLeadTime} icon={Clock} />
-                    <StatCard title="Demo Bookings" value={overallStats.totalDemoBookings} icon={CalendarCheck} />
+                    <StatCard title="Contact Attempts" value={overallStats.totalDemoBookings} icon={CalendarCheck} />
                 </div>
             </div>
 
