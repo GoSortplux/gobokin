@@ -34,6 +34,7 @@ interface CurrentSubscription {
   tier: Tier;
   status: string;
   purchaseDate: string;
+  expiryDate?: string;
   price: number;
 }
 
@@ -560,18 +561,18 @@ const SettingsPage = () => {
                           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Purchased On</p>
                           <p className="text-sm font-bold text-gray-700">{new Date(currentSubscription.purchaseDate).toLocaleDateString()}</p>
                         </div>
-                        {(() => {
-                          const currentTierDetails = licenseTiers.find(t => t._id === currentSubscription.tier._id);
-                          if (currentTierDetails) {
-                            return (
-                              <div className="space-y-1">
-                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Expires On</p>
-                                <p className="text-sm font-bold text-gray-700">{getExpiryDate(currentSubscription.purchaseDate, currentTierDetails.durationInDays)}</p>
-                              </div>
-                            );
-                          }
-                          return null;
-                        })()}
+                        <div className="space-y-1">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Expires On</p>
+                          <p className="text-sm font-bold text-gray-700">
+                            {currentSubscription.expiryDate
+                              ? new Date(currentSubscription.expiryDate).toLocaleDateString()
+                              : (() => {
+                                  const currentTierDetails = licenseTiers.find(t => t._id === currentSubscription.tier._id);
+                                  return currentTierDetails ? getExpiryDate(currentSubscription.purchaseDate, currentTierDetails.durationInDays) : 'N/A';
+                                })()
+                            }
+                          </p>
+                        </div>
                       </div>
                     </div>
                     <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 text-center md:text-right">

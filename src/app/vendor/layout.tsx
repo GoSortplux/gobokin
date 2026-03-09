@@ -6,12 +6,14 @@ import withAuth from "@/components/auth/withAuth";
 import { UIProvider } from "@/context/UIContext";
 import { VendorProvider } from "@/context/VendorContext";
 import TourGuide from "@/components/TourGuide";
+import SubscriptionReminder from "@/components/vendor/SubscriptionReminder";
 
 const VendorLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <UIProvider>
       <VendorProvider>
       <TourGuide />
+      <SubscriptionReminder />
       <div className="flex h-screen bg-gray-100">
         <Sidebar />
         <div className="flex-1 flex flex-col overflow-hidden">

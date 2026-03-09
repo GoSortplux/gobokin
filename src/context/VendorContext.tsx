@@ -10,6 +10,8 @@ interface Subscription {
     name: string;
   };
   status: string;
+  expiryDate?: string;
+  purchaseDate?: string;
 }
 
 interface VendorContextType {
