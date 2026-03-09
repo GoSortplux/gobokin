@@ -492,11 +492,18 @@ const BookingModal: FC<BookingModalProps> = ({
 
   useEffect(() => {
     const checkScroll = () => {
-      if (step === 1 && selectedDates && selectedDates.length > 0 && scrollContainerRef.current) {
+      if (scrollContainerRef.current) {
         const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
         const isScrollable = scrollHeight > clientHeight + 10;
         const hasNotScrolledMuch = scrollTop < 50;
-        setShowScrollIndicator(isScrollable && hasNotScrolledMuch);
+
+        // Show indicator if scrollable and at top
+        // For step 1, also require dates to be selected
+        if (step === 1) {
+          setShowScrollIndicator(isScrollable && hasNotScrolledMuch && !!selectedDates && selectedDates.length > 0);
+        } else {
+          setShowScrollIndicator(isScrollable && hasNotScrolledMuch);
+        }
       } else {
         setShowScrollIndicator(false);
       }
@@ -604,18 +611,18 @@ const BookingModal: FC<BookingModalProps> = ({
         <form onSubmit={handleSubmit}>
           {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
 
+          {showScrollIndicator && (
+            <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[110] pointer-events-none animate-bounce flex flex-col items-center">
+              <span className="bg-primary/90 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-lg mb-2 uppercase tracking-widest backdrop-blur-sm">
+                {step === 3 ? 'Scroll to Confirm' : 'Scroll for Next Step'}
+              </span>
+              <div className="bg-primary p-2 rounded-full shadow-xl">
+                <ChevronDown className="h-6 w-6 text-white" />
+              </div>
+            </div>
+          )}
+
           {step === 1 && (
-            <>
-              {showScrollIndicator && (
-                <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[110] pointer-events-none animate-bounce flex flex-col items-center">
-                  <span className="bg-primary/90 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-lg mb-2 uppercase tracking-widest backdrop-blur-sm">
-                    Scroll for Next Step
-                  </span>
-                  <div className="bg-primary p-2 rounded-full shadow-xl">
-                    <ChevronDown className="h-6 w-6 text-white" />
-                  </div>
-                </div>
-              )}
             <div className="flex flex-col lg:flex-row gap-12 items-start">
               <div className="flex-1 w-full bg-white rounded-2xl border border-gray-100 p-2 shadow-sm">
                 <Calendar
@@ -666,7 +673,6 @@ const BookingModal: FC<BookingModalProps> = ({
                 )}
               </div>
             </div>
-            </>
           )}
 
           {step === 2 && (
