@@ -572,7 +572,7 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
     }
 
     if (step === 2 || isUpdate) {
-      if (Number(formData.hourlyRate) <= 0) newErrors.hourlyRate = 'Hourly rate must be greater than 0';
+      if (Number(formData.hourlyRate) < 0) newErrors.hourlyRate = 'Hourly rate cannot be negative';
       if (Number(formData.dailyRate) <= 0) newErrors.dailyRate = 'Daily rate must be greater than 0';
       if (Number(formData.carParkCapacity) <= 0) newErrors.carParkCapacity = 'Car park capacity must be greater than 0';
       if (formData.suitableFor.length === 0) newErrors.suitableFor = 'Select at least one suitability category';
@@ -946,7 +946,11 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
                     <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₦</span>
                     <input type="number" name="hourlyRate" placeholder="Enter Price Per Hour" value={formData.hourlyRate} onChange={handleChange} className={`w-full pl-7 pr-4 py-2 border ${errors.hourlyRate ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-900 placeholder-gray-500`} />
                   </div>
-                  {errors.hourlyRate && <p className="text-red-500 text-xs mt-1">{errors.hourlyRate}</p>}
+                  {errors.hourlyRate ? (
+                    <p className="text-red-500 text-xs mt-1">{errors.hourlyRate}</p>
+                  ) : (
+                    <p className="text-[10px] text-gray-500 mt-1 italic leading-tight">Enter 0 if hourly rate doesn&apos;t apply.</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-800">Price Per Day</label>
@@ -1470,7 +1474,11 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
                         <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₦</span>
                         <input type="number" name="hourlyRate" placeholder="Enter Price Per Hour" value={formData.hourlyRate} onChange={handleChange} className={`w-full pl-7 pr-4 py-2 border ${errors.hourlyRate ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-900 placeholder-gray-500`} />
                       </div>
-                      {errors.hourlyRate && <p className="text-red-500 text-xs mt-1">{errors.hourlyRate}</p>}
+                      {errors.hourlyRate ? (
+                        <p className="text-red-500 text-xs mt-1">{errors.hourlyRate}</p>
+                      ) : (
+                        <p className="text-[10px] text-gray-500 mt-1 italic leading-tight">Enter 0 if hourly rate doesn&apos;t apply.</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-800">Price Per Day</label>

@@ -404,13 +404,11 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
             const closeHours = parseTimeToHours(closeTime);
 
             const isFullDay = startHours === openHours && endHours === closeHours;
-            if (isFullDay && dailyRate > 0) {
+            if ((isFullDay || hourlyRate <= 0) && dailyRate > 0) {
               calculatedHallPrice += dailyRate;
             } else if (hourlyRate > 0) {
               const diff = endHours - startHours;
               if (diff > 0) calculatedHallPrice += (hourlyRate * diff);
-            } else if (dailyRate > 0) {
-              calculatedHallPrice += dailyRate;
             }
           }
         });
@@ -424,12 +422,10 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
         const hours = endHours - startHours;
         const days = Math.ceil(hours / 24) || 1;
 
-        if (isFullDay && dailyRate > 0) {
+        if ((isFullDay || hourlyRate <= 0) && dailyRate > 0) {
           calculatedHallPrice = dailyRate * days;
         } else if (hourlyRate > 0) {
           calculatedHallPrice = hourlyRate * (hours > 0 ? hours : 0);
-        } else if (dailyRate > 0) {
-          calculatedHallPrice = dailyRate * days;
         }
       }
       setHallPrice(calculatedHallPrice);

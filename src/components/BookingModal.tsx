@@ -229,26 +229,22 @@ const BookingModal: FC<BookingModalProps> = ({
           const times = dateTimes[date.toDateString()] || { startTime, endTime };
           if (times.startTime && times.endTime) {
             const isFullDay = times.startTime === openTime && times.endTime === closeTime;
-            if (isFullDay && dailyRate > 0) {
+            if ((isFullDay || hourlyRate <= 0) && dailyRate > 0) {
               calculatedHallCost += dailyRate;
             } else if (hourlyRate > 0) {
               const [startH, startM] = times.startTime.split(':').map(Number);
               const [endH, endM] = times.endTime.split(':').map(Number);
               const diff = (endH + endM / 60) - (startH + startM / 60);
               if (diff > 0) calculatedHallCost += (hourlyRate * diff);
-            } else if (dailyRate > 0) {
-              calculatedHallCost += dailyRate;
             }
           }
         });
       } else {
         const isFullDay = startTime === openTime && endTime === closeTime;
-        if (isFullDay && dailyRate > 0) {
+        if ((isFullDay || hourlyRate <= 0) && dailyRate > 0) {
           calculatedHallCost = dailyRate * numberOfDays;
         } else if (hourlyRate > 0) {
           calculatedHallCost = hourlyRate * durationInHours * numberOfDays;
-        } else if (dailyRate > 0) {
-          calculatedHallCost = dailyRate * numberOfDays;
         }
       }
       setHallCost(calculatedHallCost);

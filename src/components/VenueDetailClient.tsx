@@ -663,7 +663,7 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
           <div className="lg:col-span-1 order-1 lg:order-2 mb-8 lg:mb-0">
             <div className="sticky top-28 border rounded-xl shadow-lg p-6">
               <div className="mb-4">
-                {venue.pricing?.dailyRate && venue.pricing?.hourlyRate ? (
+                {venue.pricing?.dailyRate && (venue.pricing?.hourlyRate && venue.pricing.hourlyRate > 0) ? (
                   <div className="flex items-center justify-around">
                     <div className="text-center">
                       <p className="text-xl font-bold text-gray-900">
@@ -686,7 +686,7 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
                     </p>
                     <span className="ml-1 text-gray-600">/ day</span>
                   </div>
-                ) : venue.pricing?.hourlyRate ? (
+                ) : (venue.pricing?.hourlyRate && venue.pricing.hourlyRate > 0) ? (
                   <div className="flex items-baseline">
                     <p className="text-2xl font-bold text-gray-900">
                       ₦{venue.pricing.hourlyRate.toLocaleString()}

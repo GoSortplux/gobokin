@@ -91,7 +91,7 @@ const VenueCard = ({ venue }: VenueCardProps) => {
           <p className="mt-0.5 text-xs text-gray-500 truncate">{venue.location}</p>
           <div className="mt-2 flex justify-between items-end">
             <div className="text-xs font-semibold text-gray-800 min-h-[2.5em] flex items-center">
-              {dailyRate && hourlyRate ? (
+              {dailyRate && (hourlyRate && hourlyRate > 0) ? (
                 <div>
                   <p>
                     <span className="font-bold text-sm">₦{dailyRate.toLocaleString()}</span>/day
@@ -104,7 +104,7 @@ const VenueCard = ({ venue }: VenueCardProps) => {
                 <p>
                   <span className="font-bold text-sm">₦{dailyRate.toLocaleString()}</span> / day
                 </p>
-              ) : hourlyRate ? (
+              ) : (hourlyRate && hourlyRate > 0) ? (
                 <p>
                   <span className="font-bold text-sm">₦{hourlyRate.toLocaleString()}</span> / hour
                 </p>
