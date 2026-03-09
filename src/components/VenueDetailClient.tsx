@@ -300,17 +300,56 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
   const media = [...(venue.videos || []), ...(venue.images || [])];
 
   const getMapEmbedUrl = () => {
+    // 1. Coordinates from geoLocation
     if (venue.geoLocation?.coordinates && venue.geoLocation.coordinates.length === 2) {
       const [lng, lat] = venue.geoLocation.coordinates;
-      return `https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed`;
-    }
-
-    if (venue.directionUrl) {
-      const coordsMatch = venue.directionUrl.match(/destination=([0-9.-]+),([0-9.-]+)/);
-      if (coordsMatch) {
-        const [, lat, lng] = coordsMatch;
+      if (lat && lng) {
         return `https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed`;
       }
+    }
+
+    // 2. directionUrl analysis
+    if (venue.directionUrl) {
+      try {
+        const url = new URL(venue.directionUrl);
+        const params = new URLSearchParams(url.search);
+
+        // Try destination (often used in directions)
+        const destination = params.get('destination');
+        if (destination) {
+          return `https://maps.google.com/maps?q=${encodeURIComponent(destination)}&z=15&output=embed`;
+        }
+
+        // Try query (common in search/api URLs)
+        const query = params.get('query');
+        if (query) {
+          return `https://maps.google.com/maps?q=${encodeURIComponent(query)}&z=15&output=embed`;
+        }
+
+        // Fallback for specific format if URL parsing succeeds but params missing
+        const coordsMatch = venue.directionUrl.match(/destination=([0-9.-]+),([0-9.-]+)/);
+        if (coordsMatch) {
+          const [, lat, lng] = coordsMatch;
+          return `https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed`;
+        }
+      } catch (e) {
+        // If URL parsing fails, try simple regex for coords
+        const coordsMatch = venue.directionUrl.match(/destination=([0-9.-]+),([0-9.-]+)/);
+        if (coordsMatch) {
+          const [, lat, lng] = coordsMatch;
+          return `https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed`;
+        }
+      }
+    }
+
+    // 3. geoLocation.address
+    if (venue.geoLocation?.address) {
+      return `https://maps.google.com/maps?q=${encodeURIComponent(venue.geoLocation.address)}&z=15&output=embed`;
+    }
+
+    // 4. location (as a final fallback)
+    if (venue.location) {
+      return `https://maps.google.com/maps?q=${encodeURIComponent(venue.location)}&z=15&output=embed`;
     }
 
     return null;
