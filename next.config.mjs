@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
@@ -14,10 +13,14 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'pub-bebfb8756c034cec903236ae2544a084.r2.dev',
+        port: '',
+        pathname: '/images/**',
       },
       {
         protocol: 'http',
         hostname: 'pub-bebfb8756c034cec903236ae2544a084.r2.dev',
+        port: '',
+        pathname: '/images/**',
       },
       {
         protocol: 'https',
