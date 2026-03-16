@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { DateRange } from 'react-day-picker';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -13,31 +13,42 @@ import { Venue } from '@/types/venue';
 import { translateError } from '@/utils/errors';
 import ErrorState from '@/components/ErrorState';
 
+interface DiscoveryData {
+  [key: string]: Venue[];
+}
+
 const HomePage = () => {
   const router = useRouter();
-  const [allVenues, setAllVenues] = useState<Venue[]>([]);
+  const [discoveryData, setDiscoveryData] = useState<DiscoveryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const scrolled = useScroll(100);
 
   const shouldHideSearch = scrolled && !isSearchActive;
 
-  const fetchVenues = useCallback(async () => {
+  const fetchVenues = useCallback(async (coords?: { latitude: number; longitude: number }) => {
     try {
       setLoading(true);
       setError('');
-      const response = await api.get('/halls');
-      const venuesData = response.data.data;
 
-      if (Array.isArray(venuesData)) {
-        setAllVenues(venuesData);
+      const params = new URLSearchParams();
+      if (coords) {
+        params.append('latitude', coords.latitude.toString());
+        params.append('longitude', coords.longitude.toString());
+      }
+
+      const response = await api.get(`/halls/discovery?${params.toString()}`);
+      const data = response.data.data;
+
+      if (data && typeof data === 'object') {
+        setDiscoveryData(data);
       } else {
         throw new Error('Invalid data format');
       }
     } catch (err) {
-      console.error('Failed to fetch venues:', err);
+      console.error('Failed to fetch discovery venues:', err);
       setError(translateError(err));
     } finally {
       setLoading(false);
@@ -45,15 +56,19 @@ const HomePage = () => {
   }, []);
 
   useEffect(() => {
+    // Initial fetch
     fetchVenues();
 
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setUserLocation({
+          const coords = {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
-          });
+          };
+          setUserLocation(coords);
+          // Refetch with location data for 'Closest' category
+          fetchVenues(coords);
         },
         (error) => {
           console.error('Error getting geolocation:', error);
@@ -85,57 +100,24 @@ const HomePage = () => {
     router.push(`/search?${params.toString()}`);
   };
 
-  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371; // Radius of the earth in km
-    const dLat = (lat2 - lat1) * (Math.PI / 180);
-    const dLon = (lon2 - lon1) * (Math.PI / 180);
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c; // Distance in km
+  const formatCategoryName = (key: string) => {
+    const overrides: Record<string, string> = {
+      featuredVenues: 'Featured Venues',
+      popularVenues: 'Popular Venues',
+      closestVenues: 'Closest to You',
+      highlyRatedVenues: 'Highly Rated',
+      newlyAddedVenues: 'Newly Added',
+      largeCapacityVenues: 'Large Capacity Venues',
+      budgetFriendlyVenues: 'Budget Friendly',
+    };
+
+    if (overrides[key]) return overrides[key];
+
+    return key
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/^./, (str) => str.toUpperCase())
+      .trim();
   };
-
-  const popularVenues = useMemo(() => {
-    return [...allVenues].sort((a, b) => (b.views || 0) - (a.views || 0));
-  }, [allVenues]);
-
-  const closestVenues = useMemo(() => {
-    if (!userLocation) return [];
-    return allVenues
-      .filter((venue) => venue.geoLocation?.coordinates && venue.geoLocation.coordinates.length === 2)
-      .map((venue) => ({
-        ...venue,
-        distance: calculateDistance(
-          userLocation.latitude,
-          userLocation.longitude,
-          venue.geoLocation!.coordinates[1],
-          venue.geoLocation!.coordinates[0]
-        ),
-      }))
-      .sort((a, b) => (a.distance || 0) - (b.distance || 0));
-  }, [allVenues, userLocation]);
-
-  const largeCapacityVenues = useMemo(() => {
-    return allVenues.filter((venue) => venue.capacity >= 500);
-  }, [allVenues]);
-
-  const budgetFriendlyVenues = useMemo(() => {
-    return allVenues.filter(
-      (venue) => (venue.pricing?.dailyRate || 0) <= 200000 && (venue.pricing?.dailyRate || 0) > 0
-    );
-  }, [allVenues]);
-
-  const newlyAddedVenues = useMemo(() => {
-    return [...allVenues].sort((a, b) => {
-      return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
-    });
-  }, [allVenues]);
-
-  const highlyRatedVenues = useMemo(() => {
-    return allVenues.filter((venue) => venue.averageRating >= 4);
-  }, [allVenues]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -186,54 +168,18 @@ const HomePage = () => {
             />
         )}
 
-        {!loading && !error && (
+        {!loading && !error && discoveryData && (
           <div className="space-y-16 md:space-y-20">
-            <section>
-              <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Featured Venue</h2>
-              <Carousel venues={allVenues.slice(0, 7)} />
-            </section>
-
-            {popularVenues.length > 0 && (
-              <section>
-                <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Popular Venue</h2>
-                <Carousel venues={popularVenues} />
-              </section>
-            )}
-
-            {closestVenues.length > 0 && (
-              <section>
-                <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Closest to You</h2>
-                <Carousel venues={closestVenues} />
-              </section>
-            )}
-
-            {highlyRatedVenues.length > 0 && (
-              <section>
-                <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Highly Rated</h2>
-                <Carousel venues={highlyRatedVenues} />
-              </section>
-            )}
-
-            {newlyAddedVenues.length > 0 && (
-              <section>
-                <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Newly Added</h2>
-                <Carousel venues={newlyAddedVenues} />
-              </section>
-            )}
-
-            {largeCapacityVenues.length > 0 && (
-              <section>
-                <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Large Capacity Venue</h2>
-                <Carousel venues={largeCapacityVenues} />
-              </section>
-            )}
-
-            {budgetFriendlyVenues.length > 0 && (
-              <section>
-                <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Budget Friendly</h2>
-                <Carousel venues={budgetFriendlyVenues} />
-              </section>
-            )}
+            {Object.entries(discoveryData).map(([key, venues]) => (
+              venues.length > 0 && (
+                <section key={key}>
+                  <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">
+                    {formatCategoryName(key)}
+                  </h2>
+                  <Carousel venues={venues} />
+                </section>
+              )
+            ))}
           </div>
         )}
       </main>
