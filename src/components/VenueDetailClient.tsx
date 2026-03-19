@@ -13,6 +13,7 @@ import Calendar from '@/components/Calendar';
 import VenueDetailSkeleton from '@/components/VenueDetailSkeleton';
 import Carousel from '@/components/Carousel';
 import MediaViewerModal from '@/components/MediaViewerModal';
+import MediaThumbnail from '@/components/MediaThumbnail';
 import { isVideo, getMediaThumbnail } from '@/utils/media';
 import { useBookingAvailability } from '@/hooks/useBookingAvailability';
 import { translateError } from '@/utils/errors';
@@ -356,25 +357,17 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
   };
 
   const renderMediaItem = (url: string | undefined, index: number, isLarge: boolean = false) => {
-    const isVid = isVideo(url);
-    const thumb = isVid ? getMediaThumbnail(url) : (url || '/venue_default.jpg');
-
     return (
-      <div className="relative w-full h-full">
-        <Image
-          src={thumb}
-          alt={index === 0 ? venue.name : ""}
-          fill
-          className="object-cover"
-          sizes={isLarge ? "(max-width: 768px) 100vw, 50vw" : "(max-width: 768px) 50vw, 25vw"}
-          priority={index === 0}
-        />
-        {isVid && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/10">
-            <Play className={`text-white opacity-90 ${isLarge ? 'w-16 h-16' : 'w-8 h-8'}`} fill="currentColor" />
-          </div>
-        )}
-      </div>
+      <MediaThumbnail
+        url={url}
+        alt={index === 0 ? venue.name : ""}
+        fill
+        className="object-cover"
+        sizes={isLarge ? "(max-width: 768px) 100vw, 50vw" : "(max-width: 768px) 50vw, 25vw"}
+        priority={index === 0}
+        showPlayIcon={true}
+        playIconSize={isLarge ? 'lg' : 'md'}
+      />
     );
   };
 

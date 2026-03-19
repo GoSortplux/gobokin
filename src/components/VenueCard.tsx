@@ -8,6 +8,7 @@ import Slider from "react-slick";
 import { Venue } from "@/types/venue";
 import { useAuth } from "@/context/AuthContext";
 import { createVenueSlug } from "@/utils/slugify";
+import MediaThumbnail from "@/components/MediaThumbnail";
 
 interface VenueCardProps {
   venue: Venue;
@@ -54,6 +55,10 @@ const VenueCard = ({ venue, variant = 'default' }: VenueCardProps) => {
 
   const isFeatured = variant === 'featured';
 
+  const media = useMemo(() => {
+    return [...(venue.videos || []), ...(venue.images || [])];
+  }, [venue.videos, venue.images]);
+
   return (
     <div className="h-full">
       <div
@@ -63,18 +68,20 @@ const VenueCard = ({ venue, variant = 'default' }: VenueCardProps) => {
         }`}
       >
         <div className="relative venue-card-slider">
-          {venue.images && venue.images.length > 1 ? (
+          {media && media.length > 1 ? (
             <Slider {...settings} className="hall-card-slick">
-              {venue.images.map((image, index) => (
+              {media.map((item, index) => (
                 <Link href={`/venues/${createVenueSlug(venue.name, venue._id, venue.slug)}`} key={index}>
                   <div className={`relative w-full ${isFeatured ? 'h-64 md:h-80' : 'h-48'}`}>
-                    <Image
+                    <MediaThumbnail
+                      url={item}
+                      alt={`${venue.name} media ${index + 1}`}
                       fill
                       className="object-cover"
-                      src={image}
-                      alt={`${venue.name} image ${index + 1}`}
                       sizes={isFeatured ? "(max-width: 768px) 100vw, 50vw" : "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"}
-                      priority={isFeatured}
+                      priority={isFeatured && index === 0}
+                      showPlayIcon={true}
+                      playIconSize="md"
                     />
                   </div>
                 </Link>
@@ -83,13 +90,15 @@ const VenueCard = ({ venue, variant = 'default' }: VenueCardProps) => {
           ) : (
             <Link href={`/venues/${createVenueSlug(venue.name, venue._id, venue.slug)}`}>
               <div className={`relative w-full ${isFeatured ? 'h-64 md:h-80' : 'h-48'}`}>
-                <Image
+                <MediaThumbnail
+                  url={media && media.length > 0 ? media[0] : undefined}
+                  alt={venue.name}
                   fill
                   className="object-cover"
-                  src={venue.images && venue.images.length > 0 ? venue.images[0] : "/venue_default.jpg"}
-                  alt={venue.name}
                   sizes={isFeatured ? "(max-width: 768px) 100vw, 50vw" : "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"}
                   priority={isFeatured}
+                  showPlayIcon={true}
+                  playIconSize={isFeatured ? 'lg' : 'md'}
                 />
               </div>
             </Link>

@@ -8,6 +8,7 @@ import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { isVideo, getMediaThumbnail } from '@/utils/media';
+import MediaThumbnail from '@/components/MediaThumbnail';
 
 interface MediaViewerModalProps {
   isOpen: boolean;
@@ -228,28 +229,14 @@ const MediaViewerModal = ({ isOpen, onClose, media, startIndex }: MediaViewerMod
                     : 'border-white/10 opacity-40 hover:opacity-100 hover:scale-105 hover:border-white/30'
                 }`}
               >
-                 {isVideo(url) ? (
-                    <div className="relative w-full h-full">
-                        <Image
-                            src={getMediaThumbnail(url)}
-                            alt={`Thumbnail ${index + 1}`}
-                            fill
-                            className="object-cover"
-                        />
-                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                            <div className="w-8 h-8 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full flex items-center justify-center">
-                                <div className="w-0 h-0 border-t-[5px] border-t-transparent border-l-[8px] border-l-white border-b-[5px] border-b-transparent ml-1" />
-                            </div>
-                        </div>
-                    </div>
-                 ) : (
-                    <Image
-                        src={url}
-                        alt={`Thumbnail ${index + 1}`}
-                        fill
-                        className="object-cover"
-                    />
-                 )}
+                <MediaThumbnail
+                  url={url}
+                  alt={`Thumbnail ${index + 1}`}
+                  fill
+                  className="object-cover"
+                  showPlayIcon={true}
+                  playIconSize="sm"
+                />
               </button>
             ))}
           </motion.div>
