@@ -5,7 +5,7 @@ import withAuth from "@/components/auth/withAuth";
 import api from "@/services/api";
 import Swal from "@/utils/sweetalert";
 import LoadingSpinner from "@/components/admin/LoadingSpinner";
-import { Search, Trash, Edit, Power, PowerOff, Eye, PlusCircle, Calendar as CalendarIcon, Ban, CheckCircle } from "lucide-react";
+import { Search, Trash, Edit, Power, PowerOff, Eye, PlusCircle, Calendar as CalendarIcon, Ban, CheckCircle, Star } from "lucide-react";
 import Link from "next/link";
 import { createVenueSlug } from "@/utils/slugify";
 import VenueModal from "@/components/vendor/VenueModal";
@@ -23,6 +23,8 @@ interface Venue {
   };
   isOnlineBookingEnabled: boolean;
   isListed: boolean;
+  isFeatured?: boolean;
+  featuredUntil?: string;
 }
 
 // Facility Interface
@@ -93,6 +95,7 @@ const VenueManagementContent = () => {
         if (statusFilter === "disabled") return !venue.isOnlineBookingEnabled;
         if (statusFilter === "listed") return venue.isListed;
         if (statusFilter === "unlisted") return !venue.isListed;
+        if (statusFilter === "featured") return !!venue.isFeatured;
         return true;
       })
       .filter(venue =>
@@ -101,6 +104,63 @@ const VenueManagementContent = () => {
         (venue.owner?.fullName || "").toLowerCase().includes(searchTerm.toLowerCase())
       );
   }, [venues, searchTerm, statusFilter]);
+
+  const handleToggleFeatured = async (venue: Venue) => {
+    const isCurrentlyFeatured = !!venue.isFeatured;
+
+    if (isCurrentlyFeatured) {
+        const result = await Swal.fire({
+            title: 'Remove Featured Status',
+            text: "Are you sure you want to remove this venue from featured halls?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, remove it!'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                await api.patch(`/admin/halls/${venue._id}/featured`, { isFeatured: false });
+                Swal.fire('Success!', 'Venue removed from featured halls.', 'success');
+                fetchVenues();
+            } catch (error) {
+                console.error("Error removing featured status:", error);
+                Swal.fire('Error', 'Could not remove featured status.', 'error');
+            }
+        }
+    } else {
+        const { value: formValues } = await Swal.fire({
+            title: 'Set as Featured Venue',
+            html:
+                '<div class="text-left">' +
+                '<label class="block text-sm font-medium text-gray-700">Featured Until</label>' +
+                '<input id="featuredUntil" type="datetime-local" class="swal2-input mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">' +
+                '</div>',
+            focusConfirm: false,
+            showCancelButton: true,
+            preConfirm: () => {
+                const featuredUntil = (document.getElementById('featuredUntil') as HTMLInputElement).value;
+                if (!featuredUntil) {
+                    Swal.showValidationMessage('Please select a date and time');
+                }
+                return { featuredUntil: new Date(featuredUntil).toISOString() };
+            }
+        });
+
+        if (formValues) {
+            try {
+                await api.patch(`/admin/halls/${venue._id}/featured`, {
+                    isFeatured: true,
+                    featuredUntil: formValues.featuredUntil
+                });
+                Swal.fire('Success!', 'Venue is now featured.', 'success');
+                fetchVenues();
+            } catch (error) {
+                console.error("Error setting featured status:", error);
+                Swal.fire('Error', 'Could not set featured status.', 'error');
+            }
+        }
+    }
+  };
 
   const handleToggleBooking = async (hallId: string, currentState: boolean) => {
     const action = currentState ? "disable" : "enable";
@@ -544,6 +604,7 @@ const VenueManagementContent = () => {
                             <option value="disabled">Booking Disabled</option>
                             <option value="listed">Listed</option>
                             <option value="unlisted">Unlisted</option>
+                            <option value="featured">Featured</option>
                         </select>
                     </div>
                 </div>
@@ -575,12 +636,24 @@ const VenueManagementContent = () => {
                             }`}>
                                 {venue.isListed ? 'Listed' : 'Unlisted'}
                             </span>
+                            {venue.isFeatured && (
+                                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                    Featured
+                                </span>
+                            )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <Link href={`/venues/${createVenueSlug(venue.name, venue._id, venue.slug)}`} passHref>
                                 <button title="View Venue" className="text-blue-600 hover:text-blue-900 mr-3"><Eye size={18} /></button>
                             </Link>
                             <button onClick={() => openEditModal(venue)} title="Edit Venue" className="text-indigo-600 hover:text-indigo-900 mr-3"><Edit size={18} /></button>
+                            <button
+                                onClick={() => handleToggleFeatured(venue)}
+                                title={venue.isFeatured ? "Remove Featured" : "Set as Featured"}
+                                className={`${venue.isFeatured ? 'text-yellow-600' : 'text-gray-400'} hover:text-yellow-600 mr-3`}
+                            >
+                                <Star size={18} fill={venue.isFeatured ? "currentColor" : "none"} />
+                            </button>
                             <button
                                 onClick={() => handleToggleBooking(venue._id, venue.isOnlineBookingEnabled)}
                                 title={venue.isOnlineBookingEnabled ? "Disable Booking" : "Enable Booking"}
