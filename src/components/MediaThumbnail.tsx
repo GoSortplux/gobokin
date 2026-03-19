@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { isVideo, getMediaThumbnail } from '@/utils/media';
 
@@ -23,6 +23,7 @@ const MediaThumbnail: React.FC<MediaThumbnailProps> = ({
   showPlayIcon = false,
   playIconSize = 'md'
 }) => {
+  const [error, setError] = useState(false);
   const isVid = isVideo(url);
   const thumb = getMediaThumbnail(url);
 
@@ -68,13 +69,14 @@ const MediaThumbnail: React.FC<MediaThumbnailProps> = ({
   return (
     <div className="relative w-full h-full overflow-hidden">
       <Image
-        src={thumb || '/venue_default.jpg'}
+        src={error || !thumb ? '/venue_default.jpg' : thumb}
         alt={alt}
         fill={fill}
         className={className}
         sizes={sizes}
         priority={priority}
         unoptimized={isVid} // Don't try to optimize if it's somehow still a video URL
+        onError={() => setError(true)}
       />
       {renderPlayIcon()}
     </div>

@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Venue } from '@/types/venue';
 import VenueCard from './VenueCard';
+import useIntersectionObserver from '@/hooks/useIntersectionObserver';
 
 interface FeaturedShowcaseProps {
   venues: Venue[];
@@ -12,16 +13,18 @@ interface FeaturedShowcaseProps {
 
 const FeaturedShowcase = ({ venues, interval = 5000 }: FeaturedShowcaseProps) => {
   const [index, setIndex] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isVisible = useIntersectionObserver(containerRef, { threshold: 0.1 });
 
   useEffect(() => {
-    if (venues.length <= 2) return;
+    if (venues.length <= 2 || !isVisible) return;
 
     const timer = setInterval(() => {
       setIndex((prev) => (prev + 2) % venues.length);
     }, interval);
 
     return () => clearInterval(timer);
-  }, [venues.length, interval, index]); // Adding index to reset timer on manual change
+  }, [venues.length, interval, isVisible, index]);
 
   if (venues.length === 0) return null;
 
@@ -31,7 +34,7 @@ const FeaturedShowcase = ({ venues, interval = 5000 }: FeaturedShowcaseProps) =>
     : [venues[index], venues[(index + 1) % venues.length]];
 
   return (
-    <div className="relative overflow-hidden py-4">
+    <div ref={containerRef} className="relative overflow-hidden py-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
         <AnimatePresence mode="wait">
           {displayVenues.map((venue, i) => (
@@ -67,4 +70,4 @@ const FeaturedShowcase = ({ venues, interval = 5000 }: FeaturedShowcaseProps) =>
   );
 };
 
-export default FeaturedShowcase;
+export default React.memo(FeaturedShowcase);

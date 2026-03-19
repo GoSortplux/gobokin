@@ -1,5 +1,5 @@
 'use client';
-import { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import Slider from 'react-slick';
 import VenueCard from './VenueCard';
 import NextArrow from './NextArrow';
@@ -46,6 +46,7 @@ const Carousel = ({
     swipeToSlide: true,
     slidesToShow: Math.min(venues.length, currentSlidesToShow || propSlidesToShow),
     infinite: venues.length > (currentSlidesToShow || propSlidesToShow),
+    lazyLoad: 'ondemand' as const,
   };
 
   const goToNext = () => {
@@ -110,4 +111,4 @@ const Carousel = ({
   );
 };
 
-export default Carousel;
+export default React.memo(Carousel);

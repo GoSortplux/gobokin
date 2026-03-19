@@ -1,7 +1,6 @@
 'use client';
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { Star, Eye } from "lucide-react";
 import Slider from "react-slick";
 
@@ -17,6 +16,7 @@ interface VenueCardProps {
 
 const VenueCard = ({ venue, variant = 'default' }: VenueCardProps) => {
   const { user } = useAuth();
+  const [isHovered, setIsHovered] = useState(false);
 
   const canSeeViews = useMemo(() => {
     if (!user) return false;
@@ -49,8 +49,10 @@ const VenueCard = ({ venue, variant = 'default' }: VenueCardProps) => {
     slidesToShow: 1,
     slidesToScroll: 1,
     arrows: false,
-    autoplay: true,
-    autoplaySpeed: 3000,
+    autoplay: isHovered,
+    autoplaySpeed: 2000,
+    pauseOnHover: false,
+    lazyLoad: 'ondemand' as const,
   };
 
   const isFeatured = variant === 'featured';
@@ -63,12 +65,14 @@ const VenueCard = ({ venue, variant = 'default' }: VenueCardProps) => {
     <div className="h-full">
       <div
         data-testid="venue-card"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         className={`h-full block bg-white rounded-xl shadow-lg overflow-hidden transform hover:scale-[1.02] transition-all duration-300 ${
           isFeatured ? 'border-2 border-primary/10' : ''
         }`}
       >
         <div className="relative venue-card-slider">
-          {media && media.length > 1 ? (
+          {media && media.length > 1 && isHovered ? (
             <Slider {...settings} className="hall-card-slick">
               {media.map((item, index) => (
                 <Link href={`/venues/${createVenueSlug(venue.name, venue._id, venue.slug)}`} key={index}>
@@ -168,4 +172,4 @@ const VenueCard = ({ venue, variant = 'default' }: VenueCardProps) => {
   );
 };
 
-export default VenueCard;
+export default React.memo(VenueCard);
