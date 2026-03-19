@@ -11,9 +11,10 @@ import { createVenueSlug } from "@/utils/slugify";
 
 interface VenueCardProps {
   venue: Venue;
+  variant?: 'default' | 'featured';
 }
 
-const VenueCard = ({ venue }: VenueCardProps) => {
+const VenueCard = ({ venue, variant = 'default' }: VenueCardProps) => {
   const { user } = useAuth();
 
   const canSeeViews = useMemo(() => {
@@ -51,21 +52,29 @@ const VenueCard = ({ venue }: VenueCardProps) => {
     autoplaySpeed: 3000,
   };
 
+  const isFeatured = variant === 'featured';
+
   return (
     <div className="h-full">
-      <div data-testid="venue-card" className="h-full block bg-white rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
+      <div
+        data-testid="venue-card"
+        className={`h-full block bg-white rounded-xl shadow-lg overflow-hidden transform hover:scale-[1.02] transition-all duration-300 ${
+          isFeatured ? 'border-2 border-primary/10' : ''
+        }`}
+      >
         <div className="relative venue-card-slider">
           {venue.images && venue.images.length > 1 ? (
             <Slider {...settings} className="hall-card-slick">
               {venue.images.map((image, index) => (
                 <Link href={`/venues/${createVenueSlug(venue.name, venue._id, venue.slug)}`} key={index}>
-                  <div className="relative h-48 w-full">
+                  <div className={`relative w-full ${isFeatured ? 'h-64 md:h-80' : 'h-48'}`}>
                     <Image
                       fill
                       className="object-cover"
                       src={image}
                       alt={`${venue.name} image ${index + 1}`}
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      sizes={isFeatured ? "(max-width: 768px) 100vw, 50vw" : "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"}
+                      priority={isFeatured}
                     />
                   </div>
                 </Link>
@@ -73,65 +82,77 @@ const VenueCard = ({ venue }: VenueCardProps) => {
             </Slider>
           ) : (
             <Link href={`/venues/${createVenueSlug(venue.name, venue._id, venue.slug)}`}>
-              <div className="relative h-48 w-full">
+              <div className={`relative w-full ${isFeatured ? 'h-64 md:h-80' : 'h-48'}`}>
                 <Image
                   fill
                   className="object-cover"
                   src={venue.images && venue.images.length > 0 ? venue.images[0] : "/venue_default.jpg"}
                   alt={venue.name}
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  sizes={isFeatured ? "(max-width: 768px) 100vw, 50vw" : "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"}
+                  priority={isFeatured}
                 />
               </div>
             </Link>
           )}
+          {isFeatured && (
+            <div className="absolute top-4 left-4 z-10">
+              <span className="bg-primary text-white px-3 py-1 rounded-full text-xs font-bold shadow-md uppercase tracking-wider">
+                Featured
+              </span>
+            </div>
+          )}
         </div>
         <Link href={`/venues/${createVenueSlug(venue.name, venue._id, venue.slug)}`} className="h-full">
-          <div className="p-3">
-            <h3 className="text-sm font-bold text-gray-800 truncate">{venue.name}</h3>
-          <p className="mt-0.5 text-xs text-gray-500 truncate">{venue.location}</p>
-          <div className="mt-2 flex justify-between items-end">
-            <div className="text-xs font-semibold text-gray-800 min-h-[2.5em] flex items-center">
-              {dailyRate && (hourlyRate && hourlyRate > 0) ? (
-                <div>
+          <div className={isFeatured ? 'p-5' : 'p-3'}>
+            <h3 className={`${isFeatured ? 'text-lg md:text-xl' : 'text-sm'} font-bold text-gray-800 truncate`}>
+              {venue.name}
+            </h3>
+            <p className={`mt-1 ${isFeatured ? 'text-sm' : 'text-xs'} text-gray-500 truncate`}>
+              {venue.location}
+            </p>
+            <div className="mt-4 flex justify-between items-end">
+              <div className={`${isFeatured ? 'text-sm md:text-base' : 'text-xs'} font-semibold text-gray-800 min-h-[2.5em] flex items-center`}>
+                {dailyRate && (hourlyRate && hourlyRate > 0) ? (
+                  <div>
+                    <p>
+                      <span className={`font-bold ${isFeatured ? 'text-lg md:text-xl' : 'text-sm'}`}>₦{dailyRate.toLocaleString()}</span>/day
+                    </p>
+                    <p>
+                      <span className="font-bold">₦{hourlyRate.toLocaleString()}</span>/hr
+                    </p>
+                  </div>
+                ) : dailyRate ? (
                   <p>
-                    <span className="font-bold text-sm">₦{dailyRate.toLocaleString()}</span>/day
+                    <span className={`font-bold ${isFeatured ? 'text-lg md:text-xl' : 'text-sm'}`}>₦{dailyRate.toLocaleString()}</span> / day
                   </p>
+                ) : (hourlyRate && hourlyRate > 0) ? (
                   <p>
-                    <span className="font-bold">₦{hourlyRate.toLocaleString()}</span>/hr
+                    <span className={`font-bold ${isFeatured ? 'text-lg md:text-xl' : 'text-sm'}`}>₦{hourlyRate.toLocaleString()}</span> / hour
                   </p>
-                </div>
-              ) : dailyRate ? (
-                <p>
-                  <span className="font-bold text-sm">₦{dailyRate.toLocaleString()}</span> / day
-                </p>
-              ) : (hourlyRate && hourlyRate > 0) ? (
-                <p>
-                  <span className="font-bold text-sm">₦{hourlyRate.toLocaleString()}</span> / hour
-                </p>
-              ) : (
-                <span className="text-gray-500">Price not available</span>
-              )}
-            </div>
-            <div className="flex flex-col items-end text-[11px] space-y-1 pb-0.5">
-              <div className="flex items-center">
-                <Star className="h-3.5 w-3.5 text-gray-400 fill-gray-400" />
-                {venue.averageRating > 0 ? (
-                  <span className="ml-1 text-gray-400 font-semibold">
-                    {venue.averageRating.toFixed(1)}
-                  </span>
                 ) : (
-                  <span className="ml-1 text-gray-400">New</span>
+                  <span className="text-gray-500">Price not available</span>
                 )}
               </div>
-              {canSeeViews && (
-                <div className="flex items-center text-gray-500">
-                  <Eye className="h-3 w-3 mr-1" />
-                  <span>{venue.views || 0}</span>
+              <div className={`flex flex-col items-end ${isFeatured ? 'text-xs md:text-sm' : 'text-[11px]'} space-y-1 pb-0.5`}>
+                <div className="flex items-center">
+                  <Star className={`${isFeatured ? 'h-4 w-4 md:h-5 md:w-5' : 'h-3.5 w-3.5'} text-yellow-400 fill-yellow-400`} />
+                  {venue.averageRating > 0 ? (
+                    <span className="ml-1 text-gray-600 font-bold">
+                      {venue.averageRating.toFixed(1)}
+                    </span>
+                  ) : (
+                    <span className="ml-1 text-gray-400">New</span>
+                  )}
                 </div>
-              )}
+                {canSeeViews && (
+                  <div className="flex items-center text-gray-500">
+                    <Eye className={`${isFeatured ? 'h-4 w-4' : 'h-3 w-3'} mr-1`} />
+                    <span>{venue.views || 0}</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
         </Link>
       </div>
     </div>

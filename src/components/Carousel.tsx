@@ -9,11 +9,13 @@ import { Venue } from '@/types/venue';
 interface CarouselProps {
   venues: Venue[];
   slidesToShow?: number;
+  variant?: 'default' | 'featured';
 }
 
 const Carousel = ({
   venues,
   slidesToShow: propSlidesToShow = 7,
+  variant = 'default',
 }: CarouselProps) => {
   const sliderRef = useRef<Slider>(null);
   const [currentSlidesToShow, setCurrentSlidesToShow] = useState<number | null>(null);
@@ -22,18 +24,18 @@ const Carousel = ({
     const handleResize = () => {
       const width = window.innerWidth;
       if (width < 768) {
-        setCurrentSlidesToShow(2);
+        setCurrentSlidesToShow(Math.min(venues.length, 2));
       } else if (width < 1024) {
-        setCurrentSlidesToShow(4);
+        setCurrentSlidesToShow(Math.min(venues.length, Math.min(propSlidesToShow, 4)));
       } else {
-        setCurrentSlidesToShow(propSlidesToShow);
+        setCurrentSlidesToShow(Math.min(venues.length, propSlidesToShow));
       }
     };
 
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [propSlidesToShow]);
+  }, [propSlidesToShow, venues.length]);
 
   const settings = {
     dots: false,
@@ -81,21 +83,21 @@ const Carousel = ({
         {!currentSlidesToShow ? (
           /* SSR & Initial Client Fallback: Flex container that expands items to fill available space */
           <div className="flex flex-wrap gap-4 px-2">
-            {venues.slice(0, 7).map((venue) => (
+            {venues.slice(0, propSlidesToShow).map((venue) => (
               <div
                 key={venue._id}
-                className="flex-1 basis-[calc(50%-8px)] md:basis-[calc(25%-12px)] lg:basis-[calc((100%-96px)/7)]"
+                className={`flex-1 basis-[calc(50%-8px)] md:basis-[calc(25%-12px)] lg:basis-[calc((100%-(${propSlidesToShow - 1}*16px))/${propSlidesToShow})]`}
               >
-                <VenueCard venue={venue} />
+                <VenueCard venue={venue} variant={variant} />
               </div>
             ))}
           </div>
         ) : (
           /* Client-side: React Slick Slider - key depends on slidesToShow to force recalculation */
-          <Slider key={`${venues.length}-${currentSlidesToShow}`} ref={sliderRef} {...settings}>
+          <Slider key={`${venues.length}-${currentSlidesToShow}-${variant}`} ref={sliderRef} {...settings}>
             {venues.map((venue) => (
               <div key={venue._id} className="px-2 pb-4">
-                <VenueCard venue={venue} />
+                <VenueCard venue={venue} variant={variant} />
               </div>
             ))}
           </Slider>

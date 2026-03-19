@@ -170,8 +170,33 @@ const HomePage = () => {
 
         {!loading && !error && discoveryData && (
           <div className="space-y-16 md:space-y-20">
+            {/* 1. Popular Venues (If any) */}
+            {discoveryData.popularVenues && discoveryData.popularVenues.length > 0 && (
+              <section>
+                <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">
+                  {formatCategoryName('popularVenues')}
+                </h2>
+                <Carousel venues={discoveryData.popularVenues} />
+              </section>
+            )}
+
+            {/* 2. Featured Venues (Large 2-box variant) */}
+            {discoveryData.featuredVenues && discoveryData.featuredVenues.length > 0 && (
+              <section>
+                <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">
+                  {formatCategoryName('featuredVenues')}
+                </h2>
+                <Carousel
+                  venues={discoveryData.featuredVenues}
+                  slidesToShow={2}
+                  variant="featured"
+                />
+              </section>
+            )}
+
+            {/* 3. All Other Categories */}
             {Object.entries(discoveryData).map(([key, venues]) => (
-              venues.length > 0 && (
+              venues.length > 0 && key !== 'popularVenues' && key !== 'featuredVenues' && (
                 <section key={key}>
                   <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">
                     {formatCategoryName(key)}

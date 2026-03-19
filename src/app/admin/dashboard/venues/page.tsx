@@ -141,8 +141,14 @@ const VenueManagementContent = () => {
                 const featuredUntil = (document.getElementById('featuredUntil') as HTMLInputElement).value;
                 if (!featuredUntil) {
                     Swal.showValidationMessage('Please select a date and time');
+                    return false;
                 }
-                return { featuredUntil: new Date(featuredUntil).toISOString() };
+                try {
+                  return { featuredUntil: new Date(featuredUntil).toISOString() };
+                } catch (e) {
+                  Swal.showValidationMessage('Invalid date/time format');
+                  return false;
+                }
             }
         });
 
