@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { DateRange } from 'react-day-picker';
 import { AnimatePresence, motion } from 'framer-motion';
 import Carousel from '@/components/Carousel';
+import FeaturedShowcase from '@/components/FeaturedShowcase';
 import SkeletonCard from '@/components/SkeletonCard';
 import SearchBar from '@/components/SearchBar';
 import api from '@/services/api';
@@ -22,7 +23,6 @@ const HomePage = () => {
   const [discoveryData, setDiscoveryData] = useState<DiscoveryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const scrolled = useScroll(100);
 
@@ -39,11 +39,40 @@ const HomePage = () => {
         params.append('longitude', coords.longitude.toString());
       }
 
-      const response = await api.get(`/halls/discovery?${params.toString()}`);
-      const data = response.data.data;
+      // Fetch both categorized discovery data and all halls for fallback
+      const [discoveryRes, hallsRes] = await Promise.all([
+        api.get(`/halls/discovery?${params.toString()}`),
+        api.get('/halls')
+      ]);
 
-      if (data && typeof data === 'object') {
-        setDiscoveryData(data);
+      const discData = discoveryRes.data.data;
+      const allHalls = hallsRes.data.data || [];
+
+      if (discData && typeof discData === 'object') {
+        // Implement manual fallbacks if discovery API doesn't return them
+        const result: DiscoveryData = { ...discData };
+
+        if (!result.largeCapacityVenues) {
+          result.largeCapacityVenues = [...allHalls]
+            .filter(v => (v.capacity || 0) >= 500)
+            .sort((a, b) => (b.capacity || 0) - (a.capacity || 0))
+            .slice(0, 10);
+        }
+
+        if (!result.budgetFriendlyVenues) {
+          result.budgetFriendlyVenues = [...allHalls]
+            .filter(v => (v.pricing?.dailyRate || 0) > 0 && (v.pricing?.dailyRate || 0) <= 150000)
+            .sort((a, b) => (a.pricing?.dailyRate || 0) - (b.pricing?.dailyRate || 0))
+            .slice(0, 10);
+        }
+
+        if (!result.newlyAddedVenues) {
+          result.newlyAddedVenues = [...allHalls]
+            .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime())
+            .slice(0, 10);
+        }
+
+        setDiscoveryData(result);
       } else {
         throw new Error('Invalid data format');
       }
@@ -66,7 +95,6 @@ const HomePage = () => {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
           };
-          setUserLocation(coords);
           // Refetch with location data for 'Closest' category
           fetchVenues(coords);
         },
@@ -180,17 +208,25 @@ const HomePage = () => {
               </section>
             )}
 
-            {/* 2. Featured Venues (Large 2-box variant) */}
+            {/* 2. Featured Venues (Large 2-box dynamic showcase) */}
             {discoveryData.featuredVenues && discoveryData.featuredVenues.length > 0 && (
-              <section>
-                <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">
-                  {formatCategoryName('featuredVenues')}
-                </h2>
-                <Carousel
-                  venues={discoveryData.featuredVenues}
-                  slidesToShow={2}
-                  variant="featured"
-                />
+              <section className="bg-primary/5 -mx-4 px-4 py-12 md:py-16 rounded-3xl md:rounded-[48px] border border-primary/10 shadow-sm relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl group-hover:bg-primary/20 transition-all duration-500" />
+                <div className="absolute bottom-0 left-0 w-48 h-48 bg-primary/10 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl group-hover:bg-primary/20 transition-all duration-500" />
+
+                <div className="relative z-10">
+                  <div className="flex justify-between items-center mb-6 md:mb-10">
+                    <div className="space-y-1">
+                      <h2 className="text-2xl md:text-4xl font-extrabold text-gray-900 tracking-tight">
+                        {formatCategoryName('featuredVenues')}
+                      </h2>
+                      <p className="text-sm md:text-base text-gray-600 max-w-lg">
+                        Our handpicked selection of premium venues, carefully curated for excellence.
+                      </p>
+                    </div>
+                  </div>
+                  <FeaturedShowcase venues={discoveryData.featuredVenues} />
+                </div>
               </section>
             )}
 

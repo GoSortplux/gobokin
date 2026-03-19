@@ -86,7 +86,10 @@ const Carousel = ({
             {venues.slice(0, propSlidesToShow).map((venue) => (
               <div
                 key={venue._id}
-                className={`flex-1 basis-[calc(50%-8px)] md:basis-[calc(25%-12px)] lg:basis-[calc((100%-(${propSlidesToShow - 1}*16px))/${propSlidesToShow})]`}
+                className="flex-1 min-w-[150px]"
+                style={{
+                  flexBasis: `calc((100% - ${(propSlidesToShow - 1) * 16}px) / ${propSlidesToShow})`
+                }}
               >
                 <VenueCard venue={venue} variant={variant} />
               </div>
