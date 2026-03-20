@@ -148,7 +148,7 @@ const VenueCard = ({ venue, variant = 'default' }: VenueCardProps) => {
               </div>
               <div className={`flex flex-col items-end ${isFeatured ? 'text-xs md:text-sm' : 'text-[11px]'} space-y-1 pb-0.5`}>
                 <div className="flex items-center">
-                  <Star className={`${isFeatured ? 'h-4 w-4 md:h-5 md:w-5' : 'h-3.5 w-3.5'} text-yellow-400 fill-yellow-400`} />
+                  <Star className={`${isFeatured ? 'h-4 w-4 md:h-5 md:w-5' : 'h-3.5 w-3.5'} text-gray-400 fill-gray-400`} />
                   {venue.averageRating > 0 ? (
                     <span className="ml-1 text-gray-600 font-bold">
                       {venue.averageRating.toFixed(1)}
