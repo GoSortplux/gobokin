@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Users, Star, MapPin, ArrowRight, Zap } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Users, Star, MapPin, ArrowRight, Zap, Wifi, Car, Wind, Utensils } from 'lucide-react';
 import { Venue } from '@/types/venue';
 import Link from 'next/link';
 import { createVenueSlug } from '@/utils/slugify';
@@ -14,36 +14,68 @@ interface FeaturedShowcaseProps {
   interval?: number; // In milliseconds
 }
 
-const FeaturedShowcase = ({ venues, interval = 8000 }: FeaturedShowcaseProps) => {
+const FeaturedShowcase = ({ venues, interval = 12000 }: FeaturedShowcaseProps) => {
   const [index, setIndex] = useState(0);
+  const [mediaIndex, setMediaIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const isVisible = useIntersectionObserver(containerRef, { threshold: 0.1 });
 
+  const currentVenue = venues[index];
+  const media = [...(currentVenue?.videos || []), ...(currentVenue?.images || [])];
+
+  // Venue cycling effect
   useEffect(() => {
     if (venues.length <= 1 || !isVisible || isPaused) return;
 
     const timer = setInterval(() => {
       setIndex((prev) => (prev + 1) % venues.length);
+      setMediaIndex(0); // Reset media index when venue changes
     }, interval);
 
     return () => clearInterval(timer);
   }, [venues.length, interval, isVisible, isPaused]);
 
+  // Media cycling effect (within current venue)
+  useEffect(() => {
+    if (media.length <= 1 || !isVisible || isPaused) return;
+
+    const mediaInterval = interval / 3; // Cycle media 3 times per venue slide
+    const mediaTimer = setInterval(() => {
+      setMediaIndex((prev) => (prev + 1) % Math.min(media.length, 3)); // Cycle first 3 media items
+    }, mediaInterval);
+
+    return () => clearInterval(mediaTimer);
+  }, [media.length, interval, isVisible, isPaused, index]);
+
   const handleNext = () => {
     setIndex((prev) => (prev + 1) % venues.length);
+    setMediaIndex(0);
   };
 
   const handlePrev = () => {
     setIndex((prev) => (prev - 1 + venues.length) % venues.length);
+    setMediaIndex(0);
   };
 
   if (venues.length === 0) return null;
 
-  const currentVenue = venues[index];
   const slug = createVenueSlug(currentVenue.name, currentVenue._id, currentVenue.slug);
 
-  const media = [...(currentVenue.videos || []), ...(currentVenue.images || [])];
+  // Facility Icon Mapper
+  const getFacilityIcon = (name: string) => {
+    const n = name.toLowerCase();
+    if (n.includes('wifi')) return <Wifi className="w-3 h-3 md:w-3.5 h-3.5 mr-1" />;
+    if (n.includes('park')) return <Car className="w-3 h-3 md:w-3.5 h-3.5 mr-1" />;
+    if (n.includes('ac') || n.includes('air')) return <Wind className="w-3 h-3 md:w-3.5 h-3.5 mr-1" />;
+    if (n.includes('food') || n.includes('catering')) return <Utensils className="w-3 h-3 md:w-3.5 h-3.5 mr-1" />;
+    return null;
+  };
+
+  // Get top 4 facilities as "Strong Triggers"
+  const topFacilities = currentVenue.facilities
+    ?.filter(f => f.available)
+    ?.slice(0, 4) || [];
 
   return (
     <div
@@ -61,21 +93,32 @@ const FeaturedShowcase = ({ venues, interval = 8000 }: FeaturedShowcaseProps) =>
           transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
           className="relative aspect-[4/5] sm:aspect-[16/10] md:aspect-[21/9] w-full"
         >
-          {/* Background Image/Video */}
-          <div className="absolute inset-0">
-            <MediaThumbnail
-              url={media[0]}
-              alt={currentVenue.name}
-              fill
-              className="object-cover transition-transform duration-700 group-hover/hero:scale-105"
-              priority
-            />
-            {/* Gradient Overlays */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent md:bg-gradient-to-r md:from-black/80 md:via-black/40 md:to-transparent" />
+          {/* Background Image/Video - with inner cycling */}
+          <div className="absolute inset-0 overflow-hidden">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`${currentVenue._id}-${mediaIndex}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1 }}
+                className="absolute inset-0"
+              >
+                <MediaThumbnail
+                  url={media[mediaIndex]}
+                  alt={currentVenue.name}
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              </motion.div>
+            </AnimatePresence>
+            {/* Gradient Overlays - Optimized for visibility */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20 md:bg-gradient-to-r md:from-black/90 md:via-black/20 md:to-transparent" />
           </div>
 
           {/* Content Panel */}
-          <div className="absolute inset-0 flex flex-col justify-end md:justify-center p-6 pb-24 pr-16 md:p-12 lg:p-16 text-white max-w-4xl">
+          <div className="absolute inset-0 flex flex-col justify-end md:justify-center p-6 pb-20 pr-16 md:p-12 lg:p-16 text-white max-w-4xl">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -96,7 +139,7 @@ const FeaturedShowcase = ({ venues, interval = 8000 }: FeaturedShowcaseProps) =>
               </div>
 
               <div className="space-y-1 md:space-y-2">
-                <h3 className="text-xl md:text-4xl lg:text-6xl font-black tracking-tight leading-tight line-clamp-2 md:line-clamp-none overflow-hidden text-ellipsis">
+                <h3 className="text-lg md:text-4xl lg:text-5xl font-black tracking-tight leading-tight line-clamp-2 overflow-hidden text-ellipsis drop-shadow-lg">
                   {currentVenue.name}
                 </h3>
                 <div className="flex items-center text-gray-200 text-[10px] md:text-lg font-medium">
@@ -105,9 +148,24 @@ const FeaturedShowcase = ({ venues, interval = 8000 }: FeaturedShowcaseProps) =>
                 </div>
               </div>
 
-              <p className="text-gray-300 text-[11px] md:text-lg line-clamp-2 md:line-clamp-3 max-w-xl leading-relaxed font-medium">
+              <p className="text-gray-300 text-[10px] md:text-lg line-clamp-2 md:line-clamp-2 max-w-xl leading-relaxed font-medium">
                 {currentVenue.description || "Experience the perfect blend of elegance and functionality at this premier venue. Ideal for corporate events, weddings, and private celebrations."}
               </p>
+
+              {/* Strong Triggers - Facilities */}
+              {topFacilities.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 md:gap-2 pt-1">
+                  {topFacilities.map((f, i) => {
+                    const name = f.name || f.facility?.name || '';
+                    return (
+                      <span key={i} className="bg-white/15 backdrop-blur-md px-2 md:px-3 py-1 rounded-full text-[9px] md:text-xs font-bold flex items-center border border-white/10 shadow-sm transition-transform hover:scale-105">
+                        {getFacilityIcon(name)}
+                        {name}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
 
               <div className="flex flex-wrap items-center gap-3 md:gap-8 pt-0.5 md:pt-2">
                 <div className="flex flex-col">
