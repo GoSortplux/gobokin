@@ -113,8 +113,8 @@ const FeaturedShowcase = ({ venues, interval = 12000 }: FeaturedShowcaseProps) =
                 />
               </motion.div>
             </AnimatePresence>
-            {/* Gradient Overlays - Optimized for visibility */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20 md:bg-gradient-to-r md:from-black/90 md:via-black/20 md:to-transparent" />
+            {/* Gradient Overlays - Optimized for visibility & contrast */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent md:bg-gradient-to-r md:from-black/90 md:via-black/20 md:to-transparent" />
           </div>
 
           {/* Content Panel */}
@@ -123,7 +123,7 @@ const FeaturedShowcase = ({ venues, interval = 12000 }: FeaturedShowcaseProps) =
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="space-y-3 md:space-y-6"
+              className="space-y-3 md:space-y-6 drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]"
             >
               <div className="flex items-center space-x-3">
                 <span className="bg-primary px-3 py-1 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-widest flex items-center shadow-lg">
