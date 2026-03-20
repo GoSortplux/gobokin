@@ -208,23 +208,25 @@ const HomePage = () => {
               </section>
             )}
 
-            {/* 2. Featured Venues (Large 2-box dynamic showcase) */}
+            {/* 2. Featured Venues (Hero Showcase) */}
             {discoveryData.featuredVenues && discoveryData.featuredVenues.length > 0 && (
-              <section className="bg-primary/5 -mx-4 px-4 py-12 md:py-16 rounded-3xl md:rounded-[48px] border border-primary/10 shadow-sm relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl group-hover:bg-primary/20 transition-all duration-500" />
-                <div className="absolute bottom-0 left-0 w-48 h-48 bg-primary/10 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl group-hover:bg-primary/20 transition-all duration-500" />
-
-                <div className="relative z-10">
-                  <div className="flex justify-between items-center mb-6 md:mb-10">
-                    <div className="space-y-1">
-                      <h2 className="text-2xl md:text-4xl font-extrabold text-gray-900 tracking-tight">
-                        {formatCategoryName('featuredVenues')}
-                      </h2>
-                      <p className="text-sm md:text-base text-gray-600 max-w-lg">
-                        Our handpicked selection of premium venues, carefully curated for excellence.
-                      </p>
-                    </div>
+              <section className="relative">
+                <div className="flex justify-between items-end mb-8 md:mb-12">
+                  <div className="space-y-2">
+                    <h2 className="text-3xl md:text-5xl font-black text-gray-900 tracking-tight">
+                      {formatCategoryName('featuredVenues')}
+                    </h2>
+                    <p className="text-sm md:text-lg text-gray-600 max-w-2xl font-medium">
+                      Our handpicked selection of premium venues, curated for excellence and unforgettable experiences.
+                    </p>
                   </div>
+                </div>
+
+                <div className="relative">
+                  {/* Decorative background elements */}
+                  <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/5 rounded-full blur-3xl -z-10" />
+                  <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-secondary/5 rounded-full blur-3xl -z-10" />
+
                   <FeaturedShowcase venues={discoveryData.featuredVenues} />
                 </div>
               </section>
