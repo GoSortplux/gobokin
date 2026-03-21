@@ -5,7 +5,7 @@ import withAuth from "@/components/auth/withAuth";
 import api from "@/services/api";
 import Swal from "@/utils/sweetalert";
 import LoadingSpinner from "@/components/admin/LoadingSpinner";
-import { Search, Trash, Edit, Power, PowerOff, Eye, PlusCircle, Calendar as CalendarIcon, Ban, CheckCircle, Star } from "lucide-react";
+import { Search, Trash, Edit, Power, PowerOff, Eye, PlusCircle, Calendar as CalendarIcon, Ban, CheckCircle, Star, Crown } from "lucide-react";
 import Link from "next/link";
 import { createVenueSlug } from "@/utils/slugify";
 import VenueModal from "@/components/vendor/VenueModal";
@@ -25,6 +25,7 @@ interface Venue {
   isListed: boolean;
   isFeatured?: boolean;
   featuredUntil?: string;
+  isPremium?: boolean;
 }
 
 // Facility Interface
@@ -96,6 +97,7 @@ const VenueManagementContent = () => {
         if (statusFilter === "listed") return venue.isListed;
         if (statusFilter === "unlisted") return !venue.isListed;
         if (statusFilter === "featured") return !!venue.isFeatured;
+        if (statusFilter === "premium") return !!venue.isPremium;
         return true;
       })
       .filter(venue =>
@@ -119,7 +121,7 @@ const VenueManagementContent = () => {
 
         if (result.isConfirmed) {
             try {
-                await api.patch(`/admin/halls/${venue._id}/featured`, { isFeatured: false });
+                await api.patch(`/admin/halls/${venue._id}/discovery-status`, { isFeatured: false });
                 Swal.fire('Success!', 'Venue removed from featured halls.', 'success');
                 fetchVenues();
             } catch (error) {
@@ -154,7 +156,7 @@ const VenueManagementContent = () => {
 
         if (formValues) {
             try {
-                await api.patch(`/admin/halls/${venue._id}/featured`, {
+                await api.patch(`/admin/halls/${venue._id}/discovery-status`, {
                     isFeatured: true,
                     featuredUntil: formValues.featuredUntil
                 });
@@ -164,6 +166,30 @@ const VenueManagementContent = () => {
                 console.error("Error setting featured status:", error);
                 Swal.fire('Error', 'Could not set featured status.', 'error');
             }
+        }
+    }
+  };
+
+  const handleTogglePremium = async (venue: Venue) => {
+    const isCurrentlyPremium = !!venue.isPremium;
+    const action = isCurrentlyPremium ? "remove from" : "add to";
+
+    const result = await Swal.fire({
+        title: `${isCurrentlyPremium ? 'Remove' : 'Add'} Premium Status`,
+        text: `Are you sure you want to ${action} premium halls?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: `Yes, ${isCurrentlyPremium ? 'remove' : 'add'} it!`
+    });
+
+    if (result.isConfirmed) {
+        try {
+            await api.patch(`/admin/halls/${venue._id}/discovery-status`, { isPremium: !isCurrentlyPremium });
+            Swal.fire('Success!', `Venue ${isCurrentlyPremium ? 'removed from' : 'added to'} premium halls.`, 'success');
+            fetchVenues();
+        } catch (error) {
+            console.error("Error toggling premium status:", error);
+            Swal.fire('Error', 'Could not update premium status.', 'error');
         }
     }
   };
@@ -611,6 +637,7 @@ const VenueManagementContent = () => {
                             <option value="listed">Listed</option>
                             <option value="unlisted">Unlisted</option>
                             <option value="featured">Featured</option>
+                            <option value="premium">Premium</option>
                         </select>
                     </div>
                 </div>
@@ -647,6 +674,11 @@ const VenueManagementContent = () => {
                                     Featured
                                 </span>
                             )}
+                            {venue.isPremium && (
+                                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                                    Premium
+                                </span>
+                            )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <Link href={`/venues/${createVenueSlug(venue.name, venue._id, venue.slug)}`} passHref>
@@ -659,6 +691,13 @@ const VenueManagementContent = () => {
                                 className={`${venue.isFeatured ? 'text-yellow-600' : 'text-gray-400'} hover:text-yellow-600 mr-3`}
                             >
                                 <Star size={18} fill={venue.isFeatured ? "currentColor" : "none"} />
+                            </button>
+                            <button
+                                onClick={() => handleTogglePremium(venue)}
+                                title={venue.isPremium ? "Remove Premium" : "Set as Premium"}
+                                className={`${venue.isPremium ? 'text-purple-600' : 'text-gray-400'} hover:text-purple-600 mr-3`}
+                            >
+                                <Crown size={18} fill={venue.isPremium ? "currentColor" : "none"} />
                             </button>
                             <button
                                 onClick={() => handleToggleBooking(venue._id, venue.isOnlineBookingEnabled)}
