@@ -34,9 +34,9 @@ const HomePage = () => {
       setError('');
 
       const params = new URLSearchParams();
-      if (coords) {
-        params.append('latitude', coords.latitude.toString());
-        params.append('longitude', coords.longitude.toString());
+      if (coords && coords.latitude != null && coords.longitude != null) {
+        params.append('latitude', String(coords.latitude));
+        params.append('longitude', String(coords.longitude));
       }
 
       // Fetch both categorized discovery data and all halls for fallback
@@ -115,8 +115,8 @@ const HomePage = () => {
       const match = capacity.match(/(\d+)/);
       if (match) params.set('minCapacity', match[0]);
     }
-    params.set('minPrice', minPrice.toString());
-    params.set('maxPrice', maxPrice.toString());
+    params.set('minPrice', (minPrice ?? 0).toString());
+    params.set('maxPrice', (maxPrice ?? 10000000).toString());
 
     if (dateRange?.from) {
       params.set('startDate', dateRange.from.toISOString().split('T')[0]);

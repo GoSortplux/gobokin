@@ -88,7 +88,15 @@ const translateErrorMessage = (message: string): string => {
     return message;
   }
 
-  if (lowerMessage.includes('failed to fetch') || lowerMessage.includes('error') || lowerMessage.includes('exception')) {
+  if (
+    lowerMessage.includes('failed to fetch') ||
+    lowerMessage.includes('error') ||
+    lowerMessage.includes('exception') ||
+    lowerMessage.includes('cannot read properties') ||
+    lowerMessage.includes('undefined') ||
+    lowerMessage.includes('null') ||
+    lowerMessage.includes('is not a function')
+  ) {
      return "We're having trouble loading the information right now. Please try again in a moment.";
   }
 
