@@ -12,9 +12,10 @@ import useIntersectionObserver from '@/hooks/useIntersectionObserver';
 interface FeaturedShowcaseProps {
   venues: Venue[];
   interval?: number; // In milliseconds
+  badge?: string;
 }
 
-const FeaturedShowcase = ({ venues, interval = 12000 }: FeaturedShowcaseProps) => {
+const FeaturedShowcase = ({ venues, interval = 12000, badge = 'Featured Venue' }: FeaturedShowcaseProps) => {
   const [index, setIndex] = useState(0);
   const [mediaIndex, setMediaIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -128,7 +129,7 @@ const FeaturedShowcase = ({ venues, interval = 12000 }: FeaturedShowcaseProps) =
               <div className="flex items-center space-x-3">
                 <span className="bg-primary px-3 py-1 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-widest flex items-center shadow-lg">
                   <Zap className="w-3 h-3 mr-1 fill-current" />
-                  Featured Venue
+                  {badge}
                 </span>
                 {currentVenue.averageRating > 0 && (
                   <div className="flex items-center bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
