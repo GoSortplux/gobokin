@@ -276,10 +276,10 @@ const HomePage = () => {
                 }
               }
 
-              // Finally, render Premium Venues at the absolute bottom for maximum distance
+              // Finally, render Premium Venues at the bottom
               if (discoveryData.premiumVenues && discoveryData.premiumVenues.length > 0) {
                 sections.push(
-                  <section key="premiumVenues" className="relative pt-16 md:pt-24">
+                  <section key="premiumVenues" className="relative">
                     <div className="flex justify-between items-end mb-8 md:mb-12">
                       <div className="space-y-2">
                         <h2 className="text-3xl md:text-5xl font-black text-gray-900 tracking-tight">
