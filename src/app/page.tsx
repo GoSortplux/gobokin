@@ -239,8 +239,8 @@ const HomePage = () => {
               const CATEGORY_ORDER = [
                 'closestVenues',
                 'highlyRatedVenues',
-                'newlyAddedVenues',
                 'premiumVenues',
+                'newlyAddedVenues',
                 'largeCapacityVenues',
                 'budgetFriendlyVenues'
               ];
