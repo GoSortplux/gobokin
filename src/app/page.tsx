@@ -39,42 +39,43 @@ const HomePage = () => {
         params.append('longitude', String(coords.longitude));
       }
 
-      // Fetch both categorized discovery data and all halls for fallback
-      const [discoveryRes, hallsRes] = await Promise.all([
+      // Fetch both categorized discovery data and all halls for fallback in parallel
+      const [discoveryResult, hallsResult] = await Promise.allSettled([
         api.get(`/halls/discovery?${params.toString()}`),
         api.get('/halls')
       ]);
 
-      const discData = discoveryRes.data.data;
-      const allHalls = hallsRes.data.data || [];
+      const discData = discoveryResult.status === 'fulfilled' ? (discoveryResult.value.data.data as DiscoveryData) : null;
+      const allHalls: Venue[] = hallsResult.status === 'fulfilled' ? (hallsResult.value.data.data || []) : [];
 
-      if (discData && typeof discData === 'object') {
-        // Implement manual fallbacks if discovery API doesn't return them
-        const result: DiscoveryData = { ...discData };
+      // Check if discovery API returned any actual venues in any category
+      const hasDiscoveryVenues = discData && typeof discData === 'object' &&
+        Object.values(discData).some((venues: Venue[]) => Array.isArray(venues) && venues.length > 0);
 
-        if (!result.largeCapacityVenues) {
-          result.largeCapacityVenues = [...allHalls]
+      if (hasDiscoveryVenues && discData) {
+        // Use ONLY discovery data if it has venues
+        setDiscoveryData(discData);
+      } else if (allHalls.length > 0) {
+        // Fallback to manual categories using all halls data if discovery API failed or is empty
+        const fallback: DiscoveryData = {
+          largeCapacityVenues: [...allHalls]
             .filter(v => (v.capacity || 0) >= 500)
             .sort((a, b) => (b.capacity || 0) - (a.capacity || 0))
-            .slice(0, 10);
-        }
-
-        if (!result.budgetFriendlyVenues) {
-          result.budgetFriendlyVenues = [...allHalls]
+            .slice(0, 10),
+          budgetFriendlyVenues: [...allHalls]
             .filter(v => (v.pricing?.dailyRate || 0) > 0 && (v.pricing?.dailyRate || 0) <= 150000)
             .sort((a, b) => (a.pricing?.dailyRate || 0) - (b.pricing?.dailyRate || 0))
-            .slice(0, 10);
-        }
-
-        if (!result.newlyAddedVenues) {
-          result.newlyAddedVenues = [...allHalls]
+            .slice(0, 10),
+          newlyAddedVenues: [...allHalls]
             .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime())
-            .slice(0, 10);
-        }
-
-        setDiscoveryData(result);
+            .slice(0, 10),
+        };
+        setDiscoveryData(fallback);
       } else {
-        throw new Error('Invalid data format');
+        // If we get here, either both failed or both returned empty
+        if (discoveryResult.status === 'rejected') throw discoveryResult.status === 'rejected' ? discoveryResult.reason : new Error('Failed to fetch discovery');
+        if (hallsResult.status === 'rejected') throw hallsResult.status === 'rejected' ? hallsResult.reason : new Error('Failed to fetch halls');
+        throw new Error('No venues available at the moment');
       }
     } catch (err) {
       console.error('Failed to fetch discovery venues:', err);
