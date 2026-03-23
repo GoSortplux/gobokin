@@ -73,8 +73,8 @@ const HomePage = () => {
         setDiscoveryData(fallback);
       } else {
         // If we get here, either both failed or both returned empty
-        if (discoveryResult.status === 'rejected') throw discoveryResult.status === 'rejected' ? discoveryResult.reason : new Error('Failed to fetch discovery');
-        if (hallsResult.status === 'rejected') throw hallsResult.status === 'rejected' ? hallsResult.reason : new Error('Failed to fetch halls');
+        if (discoveryResult.status === 'rejected') throw discoveryResult.reason;
+        if (hallsResult.status === 'rejected') throw hallsResult.reason;
         throw new Error('No venues available at the moment');
       }
     } catch (err) {
@@ -136,6 +136,7 @@ const HomePage = () => {
       closestVenues: 'Closest to You',
       highlyRatedVenues: 'Highly Rated',
       newlyAddedVenues: 'Newly Added',
+      premiumVenues: 'Premium Venues',
       largeCapacityVenues: 'Large Capacity Venues',
       budgetFriendlyVenues: 'Budget Friendly',
     };
@@ -233,17 +234,51 @@ const HomePage = () => {
               </section>
             )}
 
-            {/* 3. All Other Categories */}
-            {Object.entries(discoveryData).map(([key, venues]) => (
-              venues.length > 0 && key !== 'popularVenues' && key !== 'featuredVenues' && (
-                <section key={key}>
-                  <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">
-                    {formatCategoryName(key)}
-                  </h2>
-                  <Carousel venues={venues} />
-                </section>
-              )
-            ))}
+            {/* 3. Ordered & Remaining Categories */}
+            {(() => {
+              const CATEGORY_ORDER = [
+                'closestVenues',
+                'highlyRatedVenues',
+                'newlyAddedVenues',
+                'premiumVenues',
+                'largeCapacityVenues',
+                'budgetFriendlyVenues'
+              ];
+
+              const renderedKeys = new Set(['popularVenues', 'featuredVenues']);
+              const sections = [];
+
+              // First, render categories in specific order
+              for (const key of CATEGORY_ORDER) {
+                if (discoveryData[key] && discoveryData[key].length > 0) {
+                  sections.push(
+                    <section key={key}>
+                      <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">
+                        {formatCategoryName(key)}
+                      </h2>
+                      <Carousel venues={discoveryData[key]} />
+                    </section>
+                  );
+                  renderedKeys.add(key);
+                }
+              }
+
+              // Then, render any remaining categories from the API
+              for (const [key, venues] of Object.entries(discoveryData)) {
+                if (venues.length > 0 && !renderedKeys.has(key)) {
+                  sections.push(
+                    <section key={key}>
+                      <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">
+                        {formatCategoryName(key)}
+                      </h2>
+                      <Carousel venues={venues} />
+                    </section>
+                  );
+                }
+              }
+
+              return sections;
+            })()}
           </div>
         )}
       </main>
