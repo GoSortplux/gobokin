@@ -239,10 +239,10 @@ const HomePage = () => {
               const CATEGORY_ORDER = [
                 'closestVenues',
                 'highlyRatedVenues',
-                'premiumVenues',
                 'newlyAddedVenues',
                 'largeCapacityVenues',
-                'budgetFriendlyVenues'
+                'budgetFriendlyVenues',
+                'premiumVenues'
               ];
 
               const renderedKeys = new Set(['popularVenues', 'featuredVenues']);
