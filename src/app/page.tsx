@@ -242,48 +242,22 @@ const HomePage = () => {
                 'newlyAddedVenues',
                 'largeCapacityVenues',
                 'budgetFriendlyVenues',
-                'premiumVenues'
               ];
 
-              const renderedKeys = new Set(['popularVenues', 'featuredVenues']);
+              const renderedKeys = new Set(['popularVenues', 'featuredVenues', 'premiumVenues']);
               const sections = [];
 
               // First, render categories in specific order
               for (const key of CATEGORY_ORDER) {
                 if (discoveryData[key] && discoveryData[key].length > 0) {
-                  if (key === 'premiumVenues') {
-                    sections.push(
-                      <section key={key} className="relative">
-                        <div className="flex justify-between items-end mb-8 md:mb-12">
-                          <div className="space-y-2">
-                            <h2 className="text-3xl md:text-5xl font-black text-gray-900 tracking-tight">
-                              {formatCategoryName(key)}
-                            </h2>
-                            <p className="text-sm md:text-lg text-gray-600 max-w-2xl font-medium">
-                              Experience luxury and elegance at our most exclusive event spaces.
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="relative">
-                          {/* Decorative background elements */}
-                          <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/5 rounded-full blur-3xl -z-10" />
-                          <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-secondary/5 rounded-full blur-3xl -z-10" />
-
-                          <FeaturedShowcase venues={discoveryData[key]} badge="Premium Venue" />
-                        </div>
-                      </section>
-                    );
-                  } else {
-                    sections.push(
-                      <section key={key}>
-                        <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">
-                          {formatCategoryName(key)}
-                        </h2>
-                        <Carousel venues={discoveryData[key]} />
-                      </section>
-                    );
-                  }
+                  sections.push(
+                    <section key={key}>
+                      <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">
+                        {formatCategoryName(key)}
+                      </h2>
+                      <Carousel venues={discoveryData[key]} />
+                    </section>
+                  );
                   renderedKeys.add(key);
                 }
               }
@@ -300,6 +274,30 @@ const HomePage = () => {
                     </section>
                   );
                 }
+              }
+
+              // Finally, render Premium Venues at the absolute bottom for maximum distance
+              if (discoveryData.premiumVenues && discoveryData.premiumVenues.length > 0) {
+                sections.push(
+                  <section key="premiumVenues" className="relative pt-16 md:pt-24">
+                    <div className="flex justify-between items-end mb-8 md:mb-12">
+                      <div className="space-y-2">
+                        <h2 className="text-3xl md:text-5xl font-black text-gray-900 tracking-tight">
+                          {formatCategoryName('premiumVenues')}
+                        </h2>
+                        <p className="text-sm md:text-lg text-gray-600 max-w-2xl font-medium">
+                          Experience luxury and elegance at our most exclusive event spaces.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="relative">
+                      <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/5 rounded-full blur-3xl -z-10" />
+                      <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-secondary/5 rounded-full blur-3xl -z-10" />
+                      <FeaturedShowcase venues={discoveryData.premiumVenues} badge="Premium Venue" />
+                    </div>
+                  </section>
+                );
               }
 
               return sections;
