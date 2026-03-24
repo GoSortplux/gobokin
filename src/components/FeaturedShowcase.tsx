@@ -92,7 +92,7 @@ const FeaturedShowcase = ({ venues, interval = 12000, badge = 'Featured Venue' }
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
           transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
-          className="relative aspect-[4/5] sm:aspect-[16/10] lg:aspect-[21/9] w-full"
+          className="relative aspect-[4/5] sm:aspect-[16/11] lg:aspect-[21/9] w-full"
         >
           {/* Background Image/Video - with inner cycling */}
           <div className="absolute inset-0 overflow-hidden">
@@ -119,12 +119,12 @@ const FeaturedShowcase = ({ venues, interval = 12000, badge = 'Featured Venue' }
           </div>
 
           {/* Content Panel */}
-          <div className="absolute inset-0 flex flex-col justify-end lg:justify-center p-6 pb-20 pr-16 md:p-12 lg:p-16 text-white max-w-4xl">
+          <div className="absolute inset-0 flex flex-col justify-end md:justify-center p-6 pb-20 pr-16 md:p-8 lg:p-16 text-white max-w-4xl">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="space-y-3 md:space-y-6 drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]"
+              className="space-y-3 md:space-y-4 lg:space-y-6 drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]"
             >
               <div className="flex items-center space-x-3">
                 <span className="bg-primary px-3 py-1 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-widest flex items-center shadow-lg">
