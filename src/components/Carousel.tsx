@@ -60,7 +60,7 @@ const Carousel = ({
   if (venues.length === 0) return null;
 
   return (
-    <div className="relative group mt-12 md:mt-0" data-testid="carousel-container">
+    <div className="relative group mt-12 md:mt-0 overflow-x-hidden" data-testid="carousel-container">
       {/* Arrows: Controlled by CSS visibility and length-based logic */}
       <div className="absolute -top-14 md:-top-12 right-0 space-x-3 z-10 flex">
         {/* Desktop Arrows: show only if length > propSlidesToShow on large screens */}
