@@ -92,7 +92,7 @@ const FeaturedShowcase = ({ venues, interval = 12000, badge = 'Featured Venue' }
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
           transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
-          className="relative aspect-[4/5] sm:aspect-[16/10] md:aspect-[21/9] w-full"
+          className="relative aspect-[4/5] sm:aspect-[16/10] lg:aspect-[21/9] w-full"
         >
           {/* Background Image/Video - with inner cycling */}
           <div className="absolute inset-0 overflow-hidden">
@@ -119,7 +119,7 @@ const FeaturedShowcase = ({ venues, interval = 12000, badge = 'Featured Venue' }
           </div>
 
           {/* Content Panel */}
-          <div className="absolute inset-0 flex flex-col justify-end md:justify-center p-6 pb-20 pr-16 md:p-12 lg:p-16 text-white max-w-4xl">
+          <div className="absolute inset-0 flex flex-col justify-end lg:justify-center p-6 pb-20 pr-16 md:p-12 lg:p-16 text-white max-w-4xl">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -140,16 +140,16 @@ const FeaturedShowcase = ({ venues, interval = 12000, badge = 'Featured Venue' }
               </div>
 
               <div className="space-y-1 md:space-y-2">
-                <h3 className="text-lg md:text-4xl lg:text-5xl font-black tracking-tight leading-tight line-clamp-2 overflow-hidden text-ellipsis drop-shadow-lg">
+                <h3 className="text-lg sm:text-2xl md:text-3xl lg:text-5xl font-black tracking-tight leading-tight line-clamp-2 overflow-hidden text-ellipsis drop-shadow-lg">
                   {currentVenue.name}
                 </h3>
-                <div className="flex items-center text-gray-200 text-[10px] md:text-lg font-medium">
+                <div className="flex items-center text-gray-200 text-[10px] sm:text-base md:text-lg font-medium">
                   <MapPin className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-1.5 text-primary" />
                   {currentVenue.location}
                 </div>
               </div>
 
-              <p className="text-gray-300 text-[10px] md:text-lg line-clamp-2 md:line-clamp-2 max-w-xl leading-relaxed font-medium">
+              <p className="text-gray-300 text-[10px] sm:text-sm md:text-lg line-clamp-2 md:line-clamp-2 max-w-xl leading-relaxed font-medium">
                 {currentVenue.description || "Experience the perfect blend of elegance and functionality at this premier venue. Ideal for corporate events, weddings, and private celebrations."}
               </p>
 
@@ -168,12 +168,12 @@ const FeaturedShowcase = ({ venues, interval = 12000, badge = 'Featured Venue' }
                 </div>
               )}
 
-              <div className="flex flex-wrap items-center gap-3 md:gap-8 pt-0.5 md:pt-2">
+              <div className="flex flex-wrap items-center gap-3 sm:gap-6 md:gap-8 pt-0.5 md:pt-2">
                 <div className="flex flex-col">
                   <span className="text-[8px] md:text-xs uppercase text-gray-400 font-bold tracking-wider">Capacity</span>
                   <div className="flex items-center space-x-1 md:space-x-2">
                     <Users className="w-3 h-3 md:w-4 md:h-4 text-primary" />
-                    <span className="text-sm md:text-xl font-bold">{currentVenue.capacity?.toLocaleString() || 'N/A'}</span>
+                    <span className="text-sm sm:text-lg md:text-xl font-bold">{currentVenue.capacity?.toLocaleString() || 'N/A'}</span>
                   </div>
                 </div>
 
@@ -182,7 +182,7 @@ const FeaturedShowcase = ({ venues, interval = 12000, badge = 'Featured Venue' }
                 <div className="flex flex-col">
                   <span className="text-[8px] md:text-xs uppercase text-gray-400 font-bold tracking-wider">Starting From</span>
                   <div className="flex items-baseline space-x-0.5 md:space-x-1">
-                    <span className="text-base md:text-3xl font-black text-white">
+                    <span className="text-base sm:text-2xl md:text-3xl font-black text-white">
                       ₦{(currentVenue.pricing?.hourlyRate && currentVenue.pricing.hourlyRate > 0
                         ? currentVenue.pricing.hourlyRate
                         : currentVenue.pricing?.dailyRate || 0).toLocaleString()}

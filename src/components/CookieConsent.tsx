@@ -26,7 +26,7 @@ const CookieConsent = () => {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-[100] max-w-[340px] w-full animate-in slide-in-from-right duration-700">
+    <div className="fixed bottom-6 left-6 right-6 md:left-auto md:right-6 md:w-[340px] z-[100] animate-in slide-in-from-right duration-700">
       <div className="bg-white/95 backdrop-blur-md border border-gray-100 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] overflow-hidden">
         <div className="p-6">
           <div className="flex items-start justify-between mb-4">

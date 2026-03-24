@@ -58,6 +58,7 @@ const HomePage = () => {
       } else if (allHalls.length > 0) {
         // Fallback to manual categories using all halls data if discovery API failed or is empty
         const fallback: DiscoveryData = {
+          featuredVenues: [...allHalls].slice(0, 5),
           largeCapacityVenues: [...allHalls]
             .filter(v => (v.capacity || 0) >= 500)
             .sort((a, b) => (b.capacity || 0) - (a.capacity || 0))
