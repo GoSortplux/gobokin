@@ -123,18 +123,18 @@ const FinanceDashboard = () => {
                <div>
                   <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">Total Wallet Balance</p>
                   <h2 className="text-5xl font-black tracking-tight flex items-baseline gap-2">
-                    ₦{summary?.wallet.availableBalance.toLocaleString() || 0}
+                    ₦{(summary?.wallet?.availableBalance || 0).toLocaleString()}
                     <span className="text-xl text-gray-500 font-bold uppercase tracking-widest">NGN</span>
                   </h2>
                </div>
                <div className="grid grid-cols-2 gap-8 pt-8 border-t border-white/10">
                   <div>
                     <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Pending Funds</p>
-                    <p className="text-xl font-bold">₦{summary?.wallet.pendingBalance.toLocaleString() || 0}</p>
+                    <p className="text-xl font-bold">₦{(summary?.wallet?.pendingBalance || 0).toLocaleString()}</p>
                   </div>
                   <div>
                     <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Total Withdrawn</p>
-                    <p className="text-xl font-bold">₦{summary?.wallet.withdrawnBalance.toLocaleString() || 0}</p>
+                    <p className="text-xl font-bold">₦{(summary?.wallet?.withdrawnBalance || 0).toLocaleString()}</p>
                   </div>
                </div>
             </div>
@@ -149,7 +149,7 @@ const FinanceDashboard = () => {
             </div>
             <div>
                <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Gross Revenue</p>
-               <h3 className="text-3xl font-black text-gray-900 leading-tight">₦{summary?.totals.amount.toLocaleString() || 0}</h3>
+               <h3 className="text-3xl font-black text-gray-900 leading-tight">₦{(summary?.totals?.amount || 0).toLocaleString()}</h3>
                <p className="text-xs text-emerald-500 font-bold flex items-center gap-1 mt-2">
                   <ArrowUpRight size={14} />
                   +15% from last month
@@ -163,7 +163,7 @@ const FinanceDashboard = () => {
             </div>
             <div>
                <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Platform Fees</p>
-               <h3 className="text-3xl font-black text-gray-900 leading-tight">₦{summary?.totals.commission.toLocaleString() || 0}</h3>
+               <h3 className="text-3xl font-black text-gray-900 leading-tight">₦{(summary?.totals?.commission || 0).toLocaleString()}</h3>
                <p className="text-xs text-gray-400 font-bold flex items-center gap-1 mt-2">
                   Commission: 5% (Verified)
                </p>
@@ -206,7 +206,7 @@ const FinanceDashboard = () => {
                          <div className="flex items-center gap-8">
                             <div className="text-right">
                                <p className={`font-black text-lg ${tx.type === 'WITHDRAWAL' ? 'text-red-500' : 'text-emerald-600'}`}>
-                                  {tx.type === 'WITHDRAWAL' ? '-' : '+'}₦{tx.amount.toLocaleString()}
+                                  {tx.type === 'WITHDRAWAL' ? '-' : '+'}₦{(tx.amount || 0).toLocaleString()}
                                </p>
                                <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
                                   {tx.status}

@@ -23,6 +23,7 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
     pathname.startsWith("/auth/verify-email");
   const isDashboardPage =
     pathname.startsWith("/vendor") ||
+    pathname.startsWith("/organizer") ||
     pathname.startsWith("/admin");
   const isPaymentPage = pathname.startsWith("/payment/verify");
 

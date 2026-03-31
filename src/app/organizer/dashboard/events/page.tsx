@@ -183,12 +183,12 @@ const MyEvents = () => {
                       <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Registrations</p>
                       <p className="text-lg font-black text-gray-900 flex items-center gap-2">
                         <Users size={16} className="text-primary" />
-                        0 / {event.capacity}
+                        {(event as any).registrationCount || 0} / {event.capacity}
                       </p>
                     </div>
                     <div className="space-y-1">
                       <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Revenue</p>
-                      <p className="text-lg font-black text-emerald-600">₦0</p>
+                      <p className="text-lg font-black text-emerald-600">₦{((event as any).totalRevenue || 0).toLocaleString()}</p>
                     </div>
                   </div>
 
@@ -248,13 +248,13 @@ const MyEvents = () => {
                       </td>
                       <td className="px-6 py-5">
                          <div className="space-y-1">
-                            <p className="text-sm font-black text-gray-900">0 / {event.capacity}</p>
+                            <p className="text-sm font-black text-gray-900">{(event as any).registrationCount || 0} / {event.capacity}</p>
                             <div className="w-24 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                               <div className="w-0 h-full bg-primary rounded-full"></div>
+                               <div className="w-full h-full bg-primary rounded-full" style={{ width: `${Math.min(100, (((event as any).registrationCount || 0) / event.capacity) * 100)}%` }}></div>
                             </div>
                          </div>
                       </td>
-                      <td className="px-6 py-5 font-black text-emerald-600 text-sm">₦0</td>
+                      <td className="px-6 py-5 font-black text-emerald-600 text-sm">₦{((event as any).totalRevenue || 0).toLocaleString()}</td>
                       <td className="px-6 py-5 text-right">
                         <Link
                           href={`/organizer/dashboard/events/${event.id}`}
