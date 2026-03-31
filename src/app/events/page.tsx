@@ -136,15 +136,24 @@ const EventDiscovery = () => {
             <h1 className="text-4xl lg:text-6xl font-black mb-6 leading-tight">Discover Unforgettable Experiences</h1>
             <p className="text-blue-100 text-lg mb-8 font-medium">Join thousands of people discovering local workshops, conferences, and festivals near you.</p>
 
-            <div className="relative max-w-md">
-              <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={24} />
-              <input
-                type="text"
-                placeholder="Search events, workshops, or festivals..."
-                className="w-full pl-14 pr-4 py-5 bg-white border-none rounded-3xl text-gray-900 shadow-lg focus:ring-4 focus:ring-white/20 transition-all font-medium"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <div className="relative flex-1 max-w-md w-full">
+                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={24} />
+                <input
+                  type="text"
+                  placeholder="Search events, workshops, or festivals..."
+                  className="w-full pl-14 pr-4 py-5 bg-white border-none rounded-3xl text-gray-900 shadow-lg focus:ring-4 focus:ring-white/20 transition-all font-medium"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <Link
+                href="/apply-organizer"
+                className="px-8 py-5 bg-white text-primary font-black rounded-3xl shadow-lg hover:bg-blue-50 transition-all flex items-center gap-2 whitespace-nowrap"
+              >
+                <PlusCircle size={20} />
+                List Your Event
+              </Link>
             </div>
           </div>
 
