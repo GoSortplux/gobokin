@@ -45,8 +45,15 @@ const EventDiscovery = () => {
     try {
       setLoading(true);
       const response = await api.get("/events/discovery");
+      const data = response.data.data;
       // The API returns { featured: [], upcoming: [], byCategory: {} } in data
-      setDiscoveryData(response.data.data);
+      if (data) {
+        setDiscoveryData({
+          featured: data.featured || [],
+          upcoming: data.upcoming || [],
+          byCategory: data.byCategory || {}
+        });
+      }
     } catch (error) {
       console.error("Failed to fetch discovery events:", error);
       Swal.fire("Error", translateError(error), "error");
@@ -55,7 +62,7 @@ const EventDiscovery = () => {
     }
   };
 
-  const categories = ["All", ...Object.keys(discoveryData.byCategory)];
+  const categories = ["All", ...Object.keys(discoveryData?.byCategory || {})];
 
   if (loading) return <div className="min-h-screen pt-32 flex items-center justify-center"><CustomLoader /></div>;
 
@@ -160,7 +167,7 @@ const EventDiscovery = () => {
       </section>
 
       {/* Featured Section */}
-      {discoveryData.featured.length > 0 && (
+      {discoveryData?.featured?.length > 0 && (
         <section className="container mx-auto px-4 mb-20">
           <div className="flex items-center justify-between mb-8">
              <h2 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">
@@ -211,7 +218,7 @@ const EventDiscovery = () => {
         {activeCategory === "All" ? (
           <div className="space-y-20">
             {/* Upcoming Section */}
-            {discoveryData.upcoming.length > 0 && (
+            {discoveryData?.upcoming?.length > 0 && (
               <div>
                 <h2 className="text-3xl font-black text-gray-900 tracking-tight mb-8">Upcoming Experiences</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -221,14 +228,14 @@ const EventDiscovery = () => {
             )}
 
             {/* Categorized Sections Preview */}
-            {Object.entries(discoveryData.byCategory).map(([category, events]) => (
+            {Object.entries(discoveryData?.byCategory || {}).map(([category, events]) => (
                <div key={category}>
                   <div className="flex items-center justify-between mb-8">
                      <h2 className="text-3xl font-black text-gray-900 tracking-tight">{category}</h2>
                      <button onClick={() => setActiveCategory(category)} className="text-primary font-bold hover:underline">See more</button>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                    {events.slice(0, 4).map(event => renderEventCard(event))}
+                    {events && Array.isArray(events) && events.slice(0, 4).map(event => renderEventCard(event))}
                   </div>
                </div>
             ))}
@@ -237,7 +244,7 @@ const EventDiscovery = () => {
           <div>
             <h2 className="text-3xl font-black text-gray-900 tracking-tight mb-8">{activeCategory} Events</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {discoveryData.byCategory[activeCategory]?.map(event => renderEventCard(event)) || (
+              {discoveryData?.byCategory?.[activeCategory]?.map(event => renderEventCard(event)) || (
                 <div className="col-span-full py-20 text-center bg-white rounded-[3rem] border border-gray-100">
                    <p className="text-gray-500 font-medium">No events found in this category.</p>
                 </div>
