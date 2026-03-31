@@ -535,7 +535,7 @@ const SettingsPage = () => {
                   <SubscriptionCard
                     key={tier._id}
                     tier={tier}
-                    isCurrent={currentSubscription?.tier._id === tier._id}
+                    isCurrent={currentSubscription?.tier?._id === tier._id}
                     isRecommended={tier._id === recommendedTier}
                     hasAnyActiveSubscription={!!currentSubscription}
                     onSelect={() => handleSelectPlan(tier._id, tier.name)}
@@ -551,7 +551,7 @@ const SettingsPage = () => {
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div>
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-2xl font-black text-primary uppercase italic">{currentSubscription.tier.name}</h3>
+                        <h3 className="text-2xl font-black text-primary uppercase italic">{currentSubscription.tier?.name || "Unknown Plan"}</h3>
                         <span className="px-3 py-1 bg-green-50 text-green-600 text-[10px] font-black uppercase tracking-widest rounded-full border border-green-100">
                           {currentSubscription.status}
                         </span>
@@ -567,7 +567,8 @@ const SettingsPage = () => {
                             {currentSubscription.expiryDate
                               ? new Date(currentSubscription.expiryDate).toLocaleDateString()
                               : (() => {
-                                  const currentTierDetails = licenseTiers.find(t => t._id === currentSubscription.tier._id);
+                                  const currentTierId = currentSubscription.tier?._id;
+                                  const currentTierDetails = currentTierId ? licenseTiers.find(t => t._id === currentTierId) : null;
                                   return currentTierDetails ? getExpiryDate(currentSubscription.purchaseDate, currentTierDetails.durationInDays) : 'N/A';
                                 })()
                             }
@@ -578,7 +579,8 @@ const SettingsPage = () => {
                     <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 text-center md:text-right">
                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Subscription Fee</p>
                        {(() => {
-                         const tierDetails = licenseTiers.find(t => t._id === currentSubscription.tier._id);
+                         const currentTierId = currentSubscription.tier?._id;
+                         const tierDetails = currentTierId ? licenseTiers.find(t => t._id === currentTierId) : null;
                          const hasDiscount = tierDetails?.discount && (tierDetails.discount.value || 0) > 0;
                          const isExpired = tierDetails?.discount?.expiryDate && new Date(tierDetails.discount.expiryDate) < new Date();
 
@@ -634,7 +636,7 @@ const SettingsPage = () => {
                         <tr key={item._id} className="hover:bg-gray-50/50 transition-colors">
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-700">{new Date(item.purchaseDate).toLocaleDateString()}</td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="text-sm font-black text-primary uppercase italic">{item.tier.name}</span>
+                            <span className="text-sm font-black text-primary uppercase italic">{item.tier?.name || "Unknown Plan"}</span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">₦{item.price.toLocaleString()}</td>
                           <td className="px-6 py-4 whitespace-nowrap">
