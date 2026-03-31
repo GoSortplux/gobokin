@@ -13,7 +13,8 @@ import {
   XCircle,
   Undo2,
   Hash,
-  Eye
+  Eye,
+  Ticket
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Booking, Venue } from "@/types";
@@ -125,6 +126,37 @@ const BookingCard: React.FC<BookingCardProps> = ({ booking, onViewReceipt, onRev
       Swal.fire("Error", translateError(error), "error");
     } finally {
       setCompletingPayment(false);
+    }
+  };
+
+  const handleBridgeToEvent = async () => {
+    setIsMenuOpen(false);
+    const result = await Swal.fire({
+      title: 'Create Event from Booking?',
+      text: 'This will bridge your booking to an event and allow you to manage ticketing and guests as an organizer.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, bridge it!',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#295FA7',
+    });
+
+    if (result.isConfirmed) {
+      try {
+        Swal.showLoading();
+        const response = await api.post(`/events/bridge-from-booking/${booking._id}`);
+        await Swal.fire({
+          title: 'Success!',
+          text: 'Booking bridged successfully. You are now an organizer for this event.',
+          icon: 'success',
+          confirmButtonText: 'Go to Organizer Dashboard',
+          confirmButtonColor: '#295FA7',
+        });
+        router.push('/organizer/dashboard');
+      } catch (error) {
+        console.error('Failed to bridge booking:', error);
+        Swal.fire('Error', translateError(error), 'error');
+      }
     }
   };
 
@@ -271,6 +303,16 @@ const BookingCard: React.FC<BookingCardProps> = ({ booking, onViewReceipt, onRev
                       >
                         <Receipt className="w-4 h-4 text-gray-400" />
                         View Receipt
+                      </button>
+                    )}
+
+                    {booking.paymentStatus === 'paid' && booking.status !== 'cancelled' && (
+                      <button
+                        onClick={handleBridgeToEvent}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
+                      >
+                        <Ticket className="w-4 h-4 text-primary" />
+                        Bridge to Event
                       </button>
                     )}
 

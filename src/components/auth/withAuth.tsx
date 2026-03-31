@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import type { ComponentType } from 'react';
 
-type Role = 'user' | 'hall-owner' | 'super-admin' | 'staff';
+type Role = 'user' | 'hall-owner' | 'super-admin' | 'staff' | 'organizer';
 
 const withAuth = <P extends object>(
   WrappedComponent: ComponentType<P>,
@@ -25,6 +25,8 @@ const withAuth = <P extends object>(
             router.replace('/admin/dashboard');
           } else if (user.role && (user.role.includes('hall-owner') || user.role.includes('staff'))) {
             router.replace('/vendor/dashboard');
+          } else if (user.role && user.role.includes('organizer')) {
+            router.replace('/organizer/dashboard');
           } else {
             router.replace('/');
           }

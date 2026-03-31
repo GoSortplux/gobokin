@@ -8,7 +8,7 @@ import { translateError } from "@/utils/errors";
 import VenueModal from "@/components/vendor/VenueModal";
 import ReservationModal from "@/components/vendor/ReservationModal";
 import { useUI } from "@/context/UIContext";
-import { ChevronDown, Edit, Power, PowerOff } from "lucide-react";
+import { ChevronDown, Edit, Power, PowerOff, Calendar } from "lucide-react";
 import CustomLoader from "@/components/CustomLoader";
 import ErrorState from "@/components/ErrorState";
 import Swal from "@/utils/sweetalert";
@@ -52,6 +52,9 @@ const VenuesContent = () => {
 
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
   const [selectedVenueId, setSelectedVenueId] = useState<string | null>(null);
+
+  const [venueEvents, setVenueEvents] = useState<Record<string, any[]>>({});
+  const [loadingEvents, setLoadingEvents] = useState<string | null>(null);
 
   const pathname = usePathname();
 
@@ -245,8 +248,27 @@ const VenuesContent = () => {
     }
   };
 
-  const handleToggle = (hallId: string) => {
-    setExpandedVenueId(expandedVenueId === hallId ? null : hallId);
+  const handleToggle = async (hallId: string) => {
+    if (expandedVenueId === hallId) {
+      setExpandedVenueId(null);
+      return;
+    }
+
+    setExpandedVenueId(hallId);
+
+    // Fetch events for this venue if not already fetched
+    if (!venueEvents[hallId]) {
+      try {
+        setLoadingEvents(hallId);
+        const response = await api.get(`/events/venue/${hallId}`);
+        setVenueEvents(prev => ({ ...prev, [hallId]: response.data.data || [] }));
+      } catch (error) {
+        console.error("Failed to fetch venue events:", error);
+        setVenueEvents(prev => ({ ...prev, [hallId]: [] }));
+      } finally {
+        setLoadingEvents(null);
+      }
+    }
   };
 
   const filteredVenues = useMemo(() => {
@@ -391,6 +413,36 @@ const VenuesContent = () => {
                               <div className="lg:col-span-2">
                                 <p className="text-xs font-bold text-gray-400 uppercase mb-3">Verified Address</p>
                                 <p className="text-sm font-medium text-gray-600 leading-relaxed max-w-md">{venue.geoLocation?.address || 'No specific address provided'}</p>
+                              </div>
+                              <div className="lg:col-span-4 border-t border-gray-200 pt-6 mt-4">
+                                <p className="text-xs font-bold text-gray-400 uppercase mb-4 flex items-center gap-2">
+                                   <Calendar size={14} className="text-primary" />
+                                   Events Scheduled at this Venue
+                                </p>
+                                {loadingEvents === (venue._id || venue.id) ? (
+                                   <div className="flex items-center gap-2 text-sm text-gray-500 font-bold">
+                                      <CustomLoader size={16} />
+                                      Loading events...
+                                   </div>
+                                ) : venueEvents[venue._id || venue.id]?.length > 0 ? (
+                                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                      {venueEvents[venue._id || venue.id].map((event: any) => (
+                                        <div key={event.id} className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-3">
+                                           <div className="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center font-black text-xs">
+                                              {event.title[0]}
+                                           </div>
+                                           <div>
+                                              <p className="text-sm font-bold text-gray-900 truncate max-w-[150px]">{event.title}</p>
+                                              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                                                {new Date(event.startDate).toLocaleDateString()}
+                                              </p>
+                                           </div>
+                                        </div>
+                                      ))}
+                                   </div>
+                                ) : (
+                                   <p className="text-sm text-gray-400 font-medium italic">No public events currently scheduled at this venue.</p>
+                                )}
                               </div>
                             </div>
                           </td>

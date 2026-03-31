@@ -5,6 +5,8 @@ export const getDashboardPath = (role: string): string => {
     case 'hall-owner':
     case 'staff':
       return '/vendor/dashboard';
+    case 'organizer':
+      return '/organizer/dashboard';
     case 'user':
       return '/dashboard';
     default:

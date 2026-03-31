@@ -16,6 +16,7 @@ import {
   Shield,
   DollarSign,
   X,
+  Ticket,
 } from "lucide-react";
 
 const AdminSidebar = () => {
@@ -63,6 +64,11 @@ const AdminSidebar = () => {
       href: "/admin/dashboard/payment-management",
       label: "Payment Management",
       icon: <DollarSign size={24} />,
+    },
+    {
+      href: "/admin/dashboard/organizer-applications",
+      label: "Organizer Applications",
+      icon: <Ticket size={24} />,
     },
     {
       href: "/admin/dashboard/settings",
