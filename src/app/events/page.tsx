@@ -10,6 +10,7 @@ import {
   ArrowRight,
   PlusCircle,
   Layers,
+  CheckCircle2,
   Clock,
   LayoutGrid,
   List,
