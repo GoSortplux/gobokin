@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import {
   Wallet,
   TrendingUp,
@@ -13,7 +14,8 @@ import {
   Banknote,
   MoreVertical,
   CheckCircle2,
-  Filter
+  Filter,
+  Ticket
 } from "lucide-react";
 import api from "@/services/api";
 import { FinanceSummary } from "@/types";
