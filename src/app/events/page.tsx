@@ -10,13 +10,13 @@ import {
   ArrowRight,
   PlusCircle,
   Layers,
-  CheckCircle2,
   Clock,
   LayoutGrid,
   List,
   ChevronRight,
   TrendingUp,
-  Star
+  Star,
+  CheckCircle2
 } from "lucide-react";
 import Image from "next/image";
 import api from "@/services/api";
@@ -25,8 +25,14 @@ import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 
+interface DiscoveryData {
+  featured: Event[];
+  upcoming: Event[];
+  byCategory: Record<string, Event[]>;
+}
+
 const EventDiscovery = () => {
-  const [events, setEvents] = useState<Event[]>([]);
+  const [discoveryData, setDiscoveryData] = useState<DiscoveryData>({ featured: [], upcoming: [], byCategory: {} });
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
@@ -39,30 +45,76 @@ const EventDiscovery = () => {
     try {
       setLoading(true);
       const response = await api.get("/events/discovery");
-      setEvents(response.data.data || []);
+      // The API returns { featured: [], upcoming: [], byCategory: {} } in data
+      setDiscoveryData(response.data.data);
     } catch (error) {
       console.error("Failed to fetch discovery events:", error);
-      // Fallback if discovery endpoint fails
-      try {
-        const fallbackRes = await api.get("/events?status=UPCOMING");
-        setEvents(fallbackRes.data.data || []);
-      } catch (err) {
-        Swal.fire("Error", translateError(err), "error");
-      }
+      Swal.fire("Error", translateError(error), "error");
     } finally {
       setLoading(false);
     }
   };
 
-  const categories = ["All", ...Array.from(new Set(events.map(e => e.category)))];
-
-  const filteredEvents = events.filter(event => {
-    const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = activeCategory === "All" || event.category === activeCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const categories = ["All", ...Object.keys(discoveryData.byCategory)];
 
   if (loading) return <div className="min-h-screen pt-32 flex items-center justify-center"><CustomLoader /></div>;
+
+  const renderEventCard = (event: Event, variant: 'featured' | 'standard' = 'standard') => (
+    <Link
+      key={event.id}
+      href={`/events/${event.id}`}
+      className={`bg-white border border-gray-100 shadow-sm overflow-hidden hover:shadow-2xl hover:shadow-blue-900/10 transition-all duration-500 group ${
+        variant === 'featured' ? 'rounded-[3rem]' : 'rounded-[2.5rem]'
+      }`}
+    >
+      <div className={`relative w-full overflow-hidden ${variant === 'featured' ? 'h-72' : 'h-64'}`}>
+        {event.bannerUrl ? (
+          <Image src={event.bannerUrl} alt={event.title} fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
+             <Calendar size={48} className="text-primary/20" />
+          </div>
+        )}
+        <div className="absolute top-5 left-5">
+          <span className="px-4 py-2 rounded-2xl bg-white/90 backdrop-blur-md shadow-sm text-[10px] font-black uppercase tracking-widest text-primary">
+            {event.category}
+          </span>
+        </div>
+        {event.isFeatured && (
+          <div className="absolute top-5 right-5">
+            <div className="w-10 h-10 bg-amber-400 text-white rounded-2xl flex items-center justify-center shadow-lg">
+              <Star size={18} />
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="p-6">
+        <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
+          <Clock size={14} className="text-primary" />
+          {new Date(event.startDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })} • {new Date(event.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        </div>
+        <h3 className={`font-black text-gray-900 mb-4 line-clamp-1 group-hover:text-primary transition-colors ${variant === 'featured' ? 'text-2xl' : 'text-xl'}`}>{event.title}</h3>
+
+        <div className="flex items-center gap-2 text-sm text-gray-500 font-medium mb-6">
+          <MapPin size={16} className="text-gray-400" />
+          <span className="line-clamp-1">{event.location || "Virtual Event"}</span>
+        </div>
+
+        <div className="flex items-center justify-between pt-6 border-t border-gray-50">
+          <div className="space-y-0.5">
+            <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Starts from</p>
+            <p className="text-lg font-black text-gray-900">
+              {event.tickets?.[0]?.price > 0 ? `₦${event.tickets[0].price.toLocaleString()}` : "Free"}
+            </p>
+          </div>
+          <div className="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/20 group-hover:translate-x-1 transition-transform">
+            <ArrowRight size={20} />
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 pt-24 pb-20">
@@ -89,7 +141,6 @@ const EventDiscovery = () => {
             </div>
           </div>
 
-          {/* Decorative elements */}
           <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-white/10 to-transparent pointer-events-none"></div>
           <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl"></div>
           <div className="absolute top-12 right-24 hidden lg:block animate-bounce duration-[3000ms]">
@@ -108,9 +159,28 @@ const EventDiscovery = () => {
         </div>
       </section>
 
-      {/* Categories & Filter */}
-      <section className="container mx-auto px-4 mb-12">
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-8 bg-white p-3 rounded-[2rem] shadow-sm border border-gray-100">
+      {/* Featured Section */}
+      {discoveryData.featured.length > 0 && (
+        <section className="container mx-auto px-4 mb-20">
+          <div className="flex items-center justify-between mb-8">
+             <h2 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">
+               <Star className="text-amber-400 fill-amber-400" size={28} />
+               Featured Events
+             </h2>
+             <Link href="/events?filter=featured" className="text-primary font-bold hover:underline flex items-center gap-1">
+                View all featured
+                <ChevronRight size={18} />
+             </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {discoveryData.featured.map(event => renderEventCard(event, 'featured'))}
+          </div>
+        </section>
+      )}
+
+      {/* Category Filter */}
+      <section className="container mx-auto px-4 mb-12 sticky top-24 z-20">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-8 bg-white/80 backdrop-blur-md p-3 rounded-[2rem] shadow-sm border border-gray-100">
            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar w-full lg:w-auto px-2">
               {categories.map((cat) => (
                 <button
@@ -136,72 +206,43 @@ const EventDiscovery = () => {
         </div>
       </section>
 
-      {/* Event Grid */}
+      {/* Main Grid: Shows Upcoming or Categorized */}
       <section className="container mx-auto px-4">
-        {filteredEvents.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {filteredEvents.map((event) => (
-              <Link
-                key={event.id}
-                href={`/events/${event.id}`}
-                className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden hover:shadow-2xl hover:shadow-blue-900/10 transition-all duration-500 group"
-              >
-                <div className="relative h-64 w-full overflow-hidden">
-                  {event.bannerUrl ? (
-                    <Image src={event.bannerUrl} alt={event.title} fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
-                       <Calendar size={48} className="text-primary/20" />
-                    </div>
-                  )}
-                  <div className="absolute top-5 left-5">
-                    <span className="px-4 py-2 rounded-2xl bg-white/90 backdrop-blur-md shadow-sm text-[10px] font-black uppercase tracking-widest text-primary">
-                      {event.category}
-                    </span>
-                  </div>
-                  {event.isFeatured && (
-                    <div className="absolute top-5 right-5">
-                      <div className="w-10 h-10 bg-amber-400 text-white rounded-2xl flex items-center justify-center shadow-lg">
-                        <Star size={18} />
-                      </div>
-                    </div>
-                  )}
+        {activeCategory === "All" ? (
+          <div className="space-y-20">
+            {/* Upcoming Section */}
+            {discoveryData.upcoming.length > 0 && (
+              <div>
+                <h2 className="text-3xl font-black text-gray-900 tracking-tight mb-8">Upcoming Experiences</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                  {discoveryData.upcoming.map(event => renderEventCard(event))}
                 </div>
+              </div>
+            )}
 
-                <div className="p-6">
-                  <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
-                    <Clock size={14} className="text-primary" />
-                    {new Date(event.startDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })} • {new Date(event.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            {/* Categorized Sections Preview */}
+            {Object.entries(discoveryData.byCategory).map(([category, events]) => (
+               <div key={category}>
+                  <div className="flex items-center justify-between mb-8">
+                     <h2 className="text-3xl font-black text-gray-900 tracking-tight">{category}</h2>
+                     <button onClick={() => setActiveCategory(category)} className="text-primary font-bold hover:underline">See more</button>
                   </div>
-                  <h3 className="text-xl font-black text-gray-900 mb-4 line-clamp-1 group-hover:text-primary transition-colors">{event.title}</h3>
-
-                  <div className="flex items-center gap-2 text-sm text-gray-500 font-medium mb-6">
-                    <MapPin size={16} className="text-gray-400" />
-                    <span className="line-clamp-1">{event.location || "Virtual Event"}</span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                    {events.slice(0, 4).map(event => renderEventCard(event))}
                   </div>
-
-                  <div className="flex items-center justify-between pt-6 border-t border-gray-50">
-                    <div className="space-y-0.5">
-                      <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Starts from</p>
-                      <p className="text-lg font-black text-gray-900">
-                        {event.tickets?.[0]?.price > 0 ? `₦${event.tickets[0].price.toLocaleString()}` : "Free"}
-                      </p>
-                    </div>
-                    <div className="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/20 group-hover:translate-x-1 transition-transform">
-                      <ArrowRight size={20} />
-                    </div>
-                  </div>
-                </div>
-              </Link>
+               </div>
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-[3rem] p-20 text-center border border-gray-100 shadow-sm">
-             <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300">
-                <Calendar size={48} />
-             </div>
-             <h3 className="text-2xl font-black text-gray-900 mb-2">No events found</h3>
-             <p className="text-gray-500 max-w-sm mx-auto">We couldn't find any events matching your search or filters. Try adjusting them or explore other categories.</p>
+          <div>
+            <h2 className="text-3xl font-black text-gray-900 tracking-tight mb-8">{activeCategory} Events</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+              {discoveryData.byCategory[activeCategory]?.map(event => renderEventCard(event)) || (
+                <div className="col-span-full py-20 text-center bg-white rounded-[3rem] border border-gray-100">
+                   <p className="text-gray-500 font-medium">No events found in this category.</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </section>
