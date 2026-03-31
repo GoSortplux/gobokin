@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useContext, useMemo } from 'react';
 import Image from 'next/image';
 import api from '@/services/api';
 import axios from 'axios';
 import { isVideo } from '@/utils/media';
 import { UploadCloud, X, CheckCircle, Video, Trash2 } from 'lucide-react';
 import Swal from "@/utils/sweetalert";
+import { VendorContext } from '@/context/VendorContext';
 
 interface MediaUploadProps {
   hallId: string;
@@ -15,10 +16,32 @@ interface MediaUploadProps {
   onUploadSuccess: (mediaUrls: string[]) => void;
 }
 
-const MAX_IMAGES = 5;
-const MAX_VIDEOS = 1;
+const FALLBACK_MAX_IMAGES = 5;
+const FALLBACK_MAX_VIDEOS = 1;
 
 const MediaUpload: React.FC<MediaUploadProps> = ({ hallId, initialImages = [], initialVideos = [], onUploadSuccess }) => {
+  const vendorContext = useContext(VendorContext);
+  const subscription = vendorContext?.subscription;
+
+  const { maxImages, maxVideos } = useMemo(() => {
+    let images = FALLBACK_MAX_IMAGES;
+    let videos = FALLBACK_MAX_VIDEOS;
+
+    if (subscription?.rules) {
+      const imageRule = subscription.rules.find(r => r.rule.key === 'max_images');
+      const videoRule = subscription.rules.find(r => r.rule.key === 'max_videos');
+
+      if (imageRule && typeof imageRule.value === 'number') {
+        images = imageRule.value;
+      }
+      if (videoRule && typeof videoRule.value === 'number') {
+        videos = videoRule.value;
+      }
+    }
+
+    return { maxImages: images, maxVideos: videos };
+  }, [subscription]);
+
   const [currentImages, setCurrentImages] = useState<string[]>(initialImages);
   const [currentVideos, setCurrentVideos] = useState<string[]>(initialVideos);
   const [files, setFiles] = useState<File[]>([]);
@@ -50,14 +73,14 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ hallId, initialImages = [], i
 
       selectedFilesArray.forEach(file => {
         if (isVideoFile(file)) {
-          if (tempCurrentVideosCount < MAX_VIDEOS) {
+          if (tempCurrentVideosCount < maxVideos) {
             newFiles.push(file);
             tempCurrentVideosCount++;
           } else {
             skippedVideos++;
           }
         } else {
-          if (tempCurrentImagesCount < MAX_IMAGES) {
+          if (tempCurrentImagesCount < maxImages) {
             newFiles.push(file);
             tempCurrentImagesCount++;
           } else {
@@ -70,7 +93,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ hallId, initialImages = [], i
         Swal.fire({
           icon: 'warning',
           title: 'Limit Reached',
-          text: `You can only have up to ${MAX_IMAGES} images and ${MAX_VIDEOS} video. ${skippedImages > 0 ? skippedImages + ' images' : ''} ${skippedVideos > 0 ? 'and ' + skippedVideos + ' videos' : ''} were skipped.`,
+          text: `You can only have up to ${maxImages} images and ${maxVideos} video. ${skippedImages > 0 ? skippedImages + ' images' : ''} ${skippedVideos > 0 ? 'and ' + skippedVideos + ' videos' : ''} were skipped.`,
         });
       }
 
@@ -262,8 +285,8 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ hallId, initialImages = [], i
           <div className="flex justify-between items-center mb-2">
             <h4 className="font-semibold text-gray-700">Current Media:</h4>
             <div className="flex gap-4 text-xs font-medium text-gray-500">
-               <span>Images: {currentImages.length}/{MAX_IMAGES}</span>
-               <span>Videos: {currentVideos.length}/{MAX_VIDEOS}</span>
+               <span>Images: {currentImages.length}/{maxImages}</span>
+               <span>Videos: {currentVideos.length}/{maxVideos}</span>
             </div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -330,14 +353,14 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ hallId, initialImages = [], i
           multiple
           onChange={(e) => handleFileChange(e.target.files)}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-          disabled={!hallId || (currentImages.length >= MAX_IMAGES && currentVideos.length >= MAX_VIDEOS)}
+          disabled={!hallId || (currentImages.length >= maxImages && currentVideos.length >= maxVideos)}
           accept="image/*,video/*"
         />
         <div className="flex flex-col items-center">
           <UploadCloud size={48} className="text-gray-400 mb-3" />
           <p className="font-semibold text-gray-700">Click to upload or drag and drop</p>
           <p className="text-xs text-gray-500">
-            {MAX_IMAGES - currentImages.length} images and {MAX_VIDEOS - currentVideos.length} video remaining
+            {maxImages - currentImages.length} images and {maxVideos - currentVideos.length} video remaining
           </p>
         </div>
       </div>

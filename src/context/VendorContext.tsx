@@ -9,6 +9,14 @@ interface Subscription {
     maxHalls: number;
     name: string;
   };
+  rules: {
+    rule: {
+      key: string;
+      [key: string]: unknown;
+    };
+    value: number | string | boolean;
+    displayText?: string;
+  }[];
   status: string;
   expiryDate?: string;
   purchaseDate?: string;
