@@ -178,7 +178,7 @@ const OrganizerSidebar = () => {
           >
             <div className="flex-shrink-0 group-hover:-translate-x-0.5 transition-transform">
               <LogOut size={20} />
-            </button>
+            </div>
             {(isExpanded || isSidebarOpen) && (
               <span className="ml-4 text-sm font-bold whitespace-nowrap">Sign Out</span>
             )}
