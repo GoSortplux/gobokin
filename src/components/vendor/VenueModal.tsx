@@ -87,6 +87,9 @@ interface VenueData {
     };
   };
   maxStaffManualDiscount?: number;
+  isTaxEnabled?: boolean;
+  serviceChargePercentage?: number;
+  vatPercentage?: number;
   images?: string[];
   videos?: string[];
 }
@@ -149,6 +152,9 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
       bookingBufferInHours: '' as number | string,
       shortBookingBufferInHours: '' as number | string,
       reservationCutoffHours: '' as number | string,
+      isTaxEnabled: false,
+      serviceChargePercentage: '' as number | string,
+      vatPercentage: '' as number | string,
     });
     setCurrentStep(1);
     setVenueId(null);
@@ -176,6 +182,8 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
   const [countries, setCountries] = useState<{ _id: string; name: string }[]>([]);
   const [states, setStates] = useState<{ _id: string; name: string }[]>([]);
   const [lgas, setLgas] = useState<{ _id: string; name: string }[]>([]);
+  const [userVenues, setUserVenues] = useState<{ id: string; _id: string; name: string; slug?: string }[]>([]);
+  const [isImporting, setIsImporting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     country: '',
@@ -214,6 +222,9 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
     bookingBufferInHours: '' as number | string,
     shortBookingBufferInHours: '' as number | string,
     reservationCutoffHours: '' as number | string,
+    isTaxEnabled: false,
+    serviceChargePercentage: '' as number | string,
+    vatPercentage: '' as number | string,
   });
 
   useEffect(() => {
@@ -232,6 +243,12 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
           // Fetch countries
           const countriesResponse = await api.get('/locations/countries');
           setCountries(countriesResponse.data.data);
+
+          // Fetch user's venues for import
+          if (!venue) {
+            const venuesResponse = await api.get('/halls/by-owner');
+            setUserVenues(venuesResponse.data.data);
+          }
         } catch (error: unknown) {
           console.error('Failed to fetch initial data:', error);
           Swal.toast.fire({
@@ -353,6 +370,9 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
         bookingBufferInHours: venue.bookingBufferInHours !== undefined ? venue.bookingBufferInHours : '',
         shortBookingBufferInHours: venue.shortBookingBufferInHours !== undefined ? venue.shortBookingBufferInHours : '',
         reservationCutoffHours: venue.reservationCutoffHours !== undefined ? venue.reservationCutoffHours : '',
+        isTaxEnabled: venue.isTaxEnabled || false,
+        serviceChargePercentage: venue.serviceChargePercentage !== undefined ? venue.serviceChargePercentage : '',
+        vatPercentage: venue.vatPercentage !== undefined ? venue.vatPercentage : '',
       });
       setVenueId(venue._id || venue.id || null);
     } else {
@@ -398,6 +418,9 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
             bookingBufferInHours: '',
             shortBookingBufferInHours: '',
             reservationCutoffHours: '',
+            isTaxEnabled: false,
+            serviceChargePercentage: '',
+            vatPercentage: '',
             ...parsedData
           });
           setCurrentStep(1);
@@ -446,6 +469,9 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
           bookingBufferInHours: '',
           shortBookingBufferInHours: '',
           reservationCutoffHours: '',
+          isTaxEnabled: false,
+          serviceChargePercentage: '',
+          vatPercentage: '',
       });
       setCurrentStep(1);
       setVenueId(null);
@@ -549,6 +575,107 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
     setFormData((prev) => ({ ...prev, facilities: newFacilities }));
   };
 
+  const handleImportConfig = async (sourceHallId: string) => {
+    if (!sourceHallId) return;
+
+    const result = await Swal.fire({
+      title: 'Import configuration?',
+      text: 'This will overwrite your current pricing, facilities, and policy settings. Identity fields (name, location, images) will be preserved.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Import',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#295FA7',
+    });
+
+    if (!result.isConfirmed) return;
+
+    setIsImporting(true);
+    try {
+      const response = await api.get(`/halls/${sourceHallId}/export-config`);
+      const config = response.data.data;
+
+      const formatTime = (time: string | number | undefined, defaultTime: string) => {
+        if (time === undefined || time === null) return defaultTime;
+        if (typeof time === 'number') return `${String(time).padStart(2, '0')}:00`;
+        return String(time).includes(':') ? time : `${String(time).padStart(2, '0')}:00`;
+      };
+
+      setFormData(prev => ({
+        ...prev,
+        description: config.description || prev.description,
+        capacity: config.capacity || prev.capacity,
+        openingHour: formatTime(config.openingHour, prev.openingHour as string),
+        closingHour: formatTime(config.closingHour, prev.closingHour as string),
+        hourlyRate: config.pricing?.hourlyRate || config.pricing?.perHour || 0,
+        dailyRate: config.pricing?.dailyRate || config.pricing?.perDay || 0,
+        facilities: (config.facilities || []).map((fac: {
+          facility?: string | { _id: string; name: string };
+          name?: string;
+          available: boolean;
+          chargeable: boolean;
+          chargeMethod?: 'free' | 'flat' | 'per_hour';
+          cost?: number;
+          quantity?: number;
+          chargePerUnit?: boolean;
+          variantName?: string;
+          description?: string;
+        }) => ({
+          facility: typeof fac.facility === 'object' ? fac.facility?._id : fac.facility || '',
+          name: typeof fac.facility === 'object' ? fac.facility?.name : (fac.name || ''),
+          available: fac.available,
+          chargeable: fac.chargeable,
+          chargeMethod: fac.chargeMethod,
+          cost: fac.cost,
+          quantity: fac.quantity || 1,
+          chargePerUnit: fac.chargePerUnit || false,
+          variantName: fac.variantName || '',
+          description: fac.description || '',
+        })),
+        suitableFor: config.suitableFor ? config.suitableFor.map((s: string | { _id?: string; id?: string }) => typeof s === 'string' ? s : s._id || s.id) : [],
+        carParkCapacity: config.carParkCapacity || 0,
+        hallSize: config.hallSize || '',
+        rules: Array.isArray(config.rules) ? config.rules.join('\n') : (config.rules || ''),
+        allowRecurringBookings: config.allowRecurringBookings || false,
+        recurringBookingDiscount: {
+          percentage: config.recurringBookingDiscount?.percentage || 0,
+          minBookings: config.recurringBookingDiscount?.minBookings || 0,
+        },
+        discountSettings: {
+          enabled: config.discountSettings?.enabled || false,
+          hourly: {
+            minHours: config.discountSettings?.hourly?.minHours || 0,
+            percentage: config.discountSettings?.hourly?.percentage || 0,
+          },
+          daily: {
+            minDays: config.discountSettings?.daily?.minDays || 0,
+            percentage: config.discountSettings?.daily?.percentage || 0,
+          },
+        },
+        maxStaffManualDiscount: config.maxStaffManualDiscount !== undefined ? config.maxStaffManualDiscount : '',
+        bookingBufferInHours: config.bookingBufferInHours !== undefined ? config.bookingBufferInHours : '',
+        shortBookingBufferInHours: config.shortBookingBufferInHours !== undefined ? config.shortBookingBufferInHours : '',
+        reservationCutoffHours: config.reservationCutoffHours !== undefined ? config.reservationCutoffHours : '',
+        isTaxEnabled: config.isTaxEnabled || false,
+        serviceChargePercentage: config.serviceChargePercentage !== undefined ? config.serviceChargePercentage : '',
+        vatPercentage: config.vatPercentage !== undefined ? config.vatPercentage : '',
+      }));
+
+      Swal.toast.fire({
+        icon: 'success',
+        title: 'Settings imported successfully!',
+      });
+    } catch (error: unknown) {
+      console.error('Failed to import config:', error);
+      Swal.toast.fire({
+        icon: 'error',
+        title: 'Failed to import settings. Please try again.',
+      });
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   const validateStep = (step: number, isUpdate: boolean = false) => {
     if (venue && !isUpdate) return true;
     const newErrors: Record<string, string> = {};
@@ -609,6 +736,15 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
       }
       if (formData.maxStaffManualDiscount !== '' && Number(formData.maxStaffManualDiscount) > 60) {
         newErrors.maxStaffManualDiscount = 'Max staff discount cannot exceed 60%';
+      }
+
+      if (formData.isTaxEnabled) {
+        if (formData.serviceChargePercentage !== '' && Number(formData.serviceChargePercentage) < 0) {
+          newErrors.serviceChargePercentage = 'Service charge cannot be negative';
+        }
+        if (formData.vatPercentage !== '' && Number(formData.vatPercentage) < 0) {
+          newErrors.vatPercentage = 'VAT cannot be negative';
+        }
       }
     }
 
@@ -686,6 +822,9 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
         bookingBufferInHours: formData.bookingBufferInHours !== '' ? Number(formData.bookingBufferInHours) : undefined,
         shortBookingBufferInHours: formData.shortBookingBufferInHours !== '' ? Number(formData.shortBookingBufferInHours) : undefined,
         reservationCutoffHours: formData.reservationCutoffHours !== '' ? Number(formData.reservationCutoffHours) : undefined,
+        isTaxEnabled: formData.isTaxEnabled,
+        serviceChargePercentage: formData.serviceChargePercentage !== '' ? Number(formData.serviceChargePercentage) : undefined,
+        vatPercentage: formData.vatPercentage !== '' ? Number(formData.vatPercentage) : undefined,
         openingHour: parseHour(openingHour),
         closingHour: parseHour(closingHour),
         country,
@@ -775,6 +914,9 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
         bookingBufferInHours: formData.bookingBufferInHours !== '' ? Number(formData.bookingBufferInHours) : undefined,
         shortBookingBufferInHours: formData.shortBookingBufferInHours !== '' ? Number(formData.shortBookingBufferInHours) : undefined,
         reservationCutoffHours: formData.reservationCutoffHours !== '' ? Number(formData.reservationCutoffHours) : undefined,
+        isTaxEnabled: formData.isTaxEnabled,
+        serviceChargePercentage: formData.serviceChargePercentage !== '' ? Number(formData.serviceChargePercentage) : undefined,
+        vatPercentage: formData.vatPercentage !== '' ? Number(formData.vatPercentage) : undefined,
         discountSettings: {
           enabled: formData.discountSettings.enabled,
           hourly: {
@@ -880,6 +1022,27 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
           )}
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {!venue && currentStep === 1 && userVenues.length > 0 && (
+            <div className="bg-primary/5 p-4 rounded-2xl border border-primary/10 mb-6">
+              <div className="flex items-center gap-2 mb-2 text-primary">
+                <Settings2 size={16} />
+                <span className="text-xs font-bold uppercase tracking-wider">Quick Setup</span>
+              </div>
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Copy settings from existing venue</label>
+              <select
+                onChange={(e) => handleImportConfig(e.target.value)}
+                disabled={isImporting}
+                className="w-full bg-white px-4 py-2 border border-gray-200 rounded-xl text-sm font-semibold text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all disabled:opacity-50"
+                defaultValue=""
+              >
+                <option value="" disabled>{isImporting ? 'Importing...' : 'Select a venue to import config'}</option>
+                {userVenues.map((v) => (
+                  <option key={v._id || v.id} value={v.slug || v._id || v.id}>{v.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {venue ? (
             <>
               {/* Render all fields for editing */}
@@ -1157,7 +1320,49 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
                       </div>
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="space-y-6">
+                      <div className="flex items-center gap-4 bg-gray-50/50 p-3 rounded-xl border border-gray-100">
+                        <label className="flex items-center gap-2 cursor-pointer group">
+                          <input
+                            type="checkbox"
+                            name="isTaxEnabled"
+                            checked={formData.isTaxEnabled}
+                            onChange={handleChange}
+                            className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                          />
+                          <span className="text-xs font-bold text-gray-700 group-hover:text-gray-900">Enable Tax & Service Charge</span>
+                        </label>
+                      </div>
+
+                      {formData.isTaxEnabled && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                          <div>
+                            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Service Charge (%)</label>
+                            <input
+                              type="number"
+                              name="serviceChargePercentage"
+                              placeholder="e.g., 10"
+                              value={formData.serviceChargePercentage}
+                              onChange={handleChange}
+                              className={`w-full px-4 py-2.5 bg-gray-50/50 border ${errors.serviceChargePercentage ? 'border-red-500' : 'border-gray-200'} rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary/20 transition-all`}
+                            />
+                            {errors.serviceChargePercentage && <p className="text-red-500 text-[10px] mt-1 font-bold ml-1">{errors.serviceChargePercentage}</p>}
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">VAT (%)</label>
+                            <input
+                              type="number"
+                              name="vatPercentage"
+                              placeholder="e.g., 7.5"
+                              value={formData.vatPercentage}
+                              onChange={handleChange}
+                              className={`w-full px-4 py-2.5 bg-gray-50/50 border ${errors.vatPercentage ? 'border-red-500' : 'border-gray-200'} rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary/20 transition-all`}
+                            />
+                            {errors.vatPercentage && <p className="text-red-500 text-[10px] mt-1 font-bold ml-1">{errors.vatPercentage}</p>}
+                          </div>
+                        </div>
+                      )}
+
                       <div className="flex items-center gap-2 mb-2">
                          <Info size={14} className="text-primary" />
                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Booking Buffers</span>
@@ -1685,7 +1890,49 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
                           </div>
                         </div>
 
-                        <div className="space-y-4">
+                        <div className="space-y-6">
+                          <div className="flex items-center gap-4 bg-gray-50/50 p-3 rounded-xl border border-gray-100">
+                            <label className="flex items-center gap-2 cursor-pointer group">
+                              <input
+                                type="checkbox"
+                                name="isTaxEnabled"
+                                checked={formData.isTaxEnabled}
+                                onChange={handleChange}
+                                className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                              />
+                              <span className="text-xs font-bold text-gray-700 group-hover:text-gray-900">Enable Tax & Service Charge</span>
+                            </label>
+                          </div>
+
+                          {formData.isTaxEnabled && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                              <div>
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Service Charge (%)</label>
+                                <input
+                                  type="number"
+                                  name="serviceChargePercentage"
+                                  placeholder="e.g., 10"
+                                  value={formData.serviceChargePercentage}
+                                  onChange={handleChange}
+                                  className={`w-full px-4 py-2.5 bg-gray-50/50 border ${errors.serviceChargePercentage ? 'border-red-500' : 'border-gray-200'} rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary/20 transition-all`}
+                                />
+                                {errors.serviceChargePercentage && <p className="text-red-500 text-[10px] mt-1 font-bold ml-1">{errors.serviceChargePercentage}</p>}
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">VAT (%)</label>
+                                <input
+                                  type="number"
+                                  name="vatPercentage"
+                                  placeholder="e.g., 7.5"
+                                  value={formData.vatPercentage}
+                                  onChange={handleChange}
+                                  className={`w-full px-4 py-2.5 bg-gray-50/50 border ${errors.vatPercentage ? 'border-red-500' : 'border-gray-200'} rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary/20 transition-all`}
+                                />
+                                {errors.vatPercentage && <p className="text-red-500 text-[10px] mt-1 font-bold ml-1">{errors.vatPercentage}</p>}
+                              </div>
+                            </div>
+                          )}
+
                           <div className="flex items-center gap-2 mb-2">
                              <Info size={14} className="text-primary" />
                              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Booking Buffers</span>
