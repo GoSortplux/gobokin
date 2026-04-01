@@ -28,10 +28,8 @@ import {
   Eye,
   EyeOff,
   Zap,
-  ChevronRight,
   Sparkles,
   UploadCloud,
-  X,
   Upload,
   Coins,
   History,
@@ -52,14 +50,42 @@ const steps = [
   { id: 6, title: "Review", icon: CheckCircle2 },
 ];
 
-const LivePreview = ({ basicInfo, mediaInfo, sessions, tickets }: any) => {
+interface LivePreviewProps {
+  basicInfo: {
+    title: string;
+    description: string;
+    type: string;
+    startDate: string;
+    endDate: string;
+    location: string;
+    virtualLink: string;
+    capacity: number;
+    category: string;
+  };
+  mediaInfo: {
+    bannerUrl: string;
+    seoTitle: string;
+    seoDescription: string;
+  };
+  sessions: {
+    title: string;
+    startTime: string;
+  }[];
+  tickets: {
+    name: string;
+    price: number;
+    type: string;
+  }[];
+}
+
+const LivePreview = ({ basicInfo, mediaInfo, sessions, tickets }: LivePreviewProps) => {
   const [activeTab, setActiveTab] = useState("overview");
 
   return (
     <div className="sticky top-8 bg-white rounded-[2.5rem] border border-gray-100 shadow-2xl shadow-gray-200/50 overflow-hidden h-[calc(100vh-4rem)] overflow-y-auto no-scrollbar transition-all duration-500 hover:shadow-gray-300/50">
       <div className="bg-white/80 backdrop-blur-md border-b border-gray-50 px-8 py-5 flex items-center justify-between sticky top-0 z-20">
         <div className="flex items-center gap-2.5">
-          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+          <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Live Preview</span>
         </div>
         <div className="flex items-center gap-2">
@@ -104,10 +130,10 @@ const LivePreview = ({ basicInfo, mediaInfo, sessions, tickets }: any) => {
         {/* Info */}
         <div className="space-y-5">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="px-3.5 py-1.5 rounded-full bg-blue-50 text-primary text-[9px] font-black uppercase tracking-widest border border-blue-100/50">
+            <span className="px-3.5 py-1.5 rounded-full bg-primary/5 text-primary text-[9px] font-black uppercase tracking-widest border border-primary/10">
               {basicInfo.category || "Category"}
             </span>
-            <span className="px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-600 text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 border border-emerald-100/50">
+            <span className="px-3.5 py-1.5 rounded-full bg-secondary/5 text-secondary text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 border border-secondary/10">
               <Zap size={10} />
               {basicInfo.type}
             </span>
@@ -171,7 +197,7 @@ const LivePreview = ({ basicInfo, mediaInfo, sessions, tickets }: any) => {
 
               {activeTab === "schedule" && (
                 <div className="space-y-6 animate-in fade-in duration-500">
-                  {sessions.map((session: any, i: number) => (
+                  {sessions.map((session, i) => (
                     <div key={i} className="flex gap-4 group">
                       <div className="flex flex-col items-center">
                         <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center font-black text-xs flex-shrink-0 shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
@@ -195,11 +221,11 @@ const LivePreview = ({ basicInfo, mediaInfo, sessions, tickets }: any) => {
 
               {activeTab === "tickets" && (
                 <div className="space-y-4 animate-in fade-in duration-500">
-                   {tickets.map((ticket: any, i: number) => (
+                   {tickets.map((ticket, i) => (
                      <div key={i} className="p-5 rounded-[1.5rem] border border-gray-100 bg-gray-50/50 space-y-4 transition-all hover:bg-white hover:shadow-xl hover:shadow-gray-200/20 group">
                         <div className="flex justify-between items-center">
                           <p className="text-[11px] font-black text-gray-900 group-hover:text-primary transition-colors">{ticket.name || "Untitled Tier"}</p>
-                          <span className="text-[8px] font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg uppercase tracking-widest border border-emerald-100/50">{ticket.type}</span>
+                          <span className="text-[8px] font-black text-secondary bg-secondary/5 px-2 py-1 rounded-lg uppercase tracking-widest border border-secondary/10">{ticket.type}</span>
                         </div>
                         <div className="flex items-end gap-1">
                             <p className="text-xl font-black text-gray-900 tracking-tight">₦{ticket.price.toLocaleString()}</p>
@@ -269,7 +295,7 @@ const CreateEvent = () => {
     fields: [
       { name: "full-name", label: "Full Name", type: "text", required: true, isPerAttendee: true },
       { name: "email", label: "Email Address", type: "text", required: true, isPerAttendee: true },
-    ] as any[],
+    ] as { name: string; label: string; type: string; required: boolean; isPerAttendee: boolean }[],
   });
 
   // Media Upload State
@@ -329,24 +355,24 @@ const CreateEvent = () => {
     setSessions([...sessions, { id: Math.random().toString(), title: "", description: "", startTime: "", endTime: "", location: "" }]);
   };
 
-  const removeSession = (id: string) => {
-    if (sessions.length > 1) setSessions(sessions.filter(s => s.id !== id));
+  const removeSession = (sessionId: string) => {
+    if (sessions.length > 1) setSessions(sessions.filter(s => s.id !== sessionId));
   };
 
-  const updateSession = (id: string, field: string, value: string) => {
-    setSessions(sessions.map(s => s.id === id ? { ...s, [field]: value } : s));
+  const updateSession = (sessionId: string, field: string, value: string) => {
+    setSessions(sessions.map(s => s.id === sessionId ? { ...s, [field]: value } : s));
   };
 
   const addTicket = () => {
     setTickets([...tickets, { id: Math.random().toString(), name: "", price: 0, type: "PAID", totalQuantity: 0, groupSize: 1, description: "" }]);
   };
 
-  const removeTicket = (id: string) => {
-    if (tickets.length > 1) setTickets(tickets.filter(t => t.id !== id));
+  const removeTicket = (ticketId: string) => {
+    if (tickets.length > 1) setTickets(tickets.filter(t => t.id !== ticketId));
   };
 
-  const updateTicket = (id: string, field: string, value: any) => {
-    setTickets(tickets.map(t => t.id === id ? { ...t, [field]: value } : t));
+  const updateTicket = (ticketId: string, field: string, value: string | number) => {
+    setTickets(tickets.map(t => t.id === ticketId ? { ...t, [field]: value } : t));
   };
 
   const addField = () => {
@@ -364,7 +390,7 @@ const CreateEvent = () => {
     }
   };
 
-  const updateField = (index: number, field: string, value: any) => {
+  const updateField = (index: number, field: string, value: string | boolean) => {
     const newFields = [...registration.fields];
     newFields[index] = { ...newFields[index], [field]: value };
     setRegistration({ ...registration, fields: newFields });
@@ -420,7 +446,7 @@ const CreateEvent = () => {
         <div className="flex items-center gap-4">
           <button
             onClick={() => setShowPreview(!showPreview)}
-            className="hidden lg:flex items-center gap-2.5 bg-white text-gray-500 font-black px-6 py-4 rounded-2xl border border-gray-100 shadow-sm hover:bg-gray-50 hover:text-primary transition-all text-[10px] uppercase tracking-[0.2em]"
+            className="flex items-center gap-2.5 bg-white text-gray-500 font-black px-6 py-4 rounded-2xl border border-gray-100 shadow-sm hover:bg-gray-50 hover:text-primary transition-all text-[10px] uppercase tracking-[0.2em]"
           >
             {showPreview ? <EyeOff size={16} /> : <Eye size={16} />}
             {showPreview ? "Hide Preview" : "Show Preview"}
@@ -434,12 +460,12 @@ const CreateEvent = () => {
                 className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-500 relative group cursor-help ${
                   currentStep === step.id
                   ? "bg-primary text-white shadow-xl shadow-primary/30 scale-110"
-                  : currentStep > step.id ? "text-emerald-500 bg-white" : "text-gray-300 hover:text-gray-400"
+                  : currentStep > step.id ? "text-secondary bg-white border border-secondary/20" : "text-gray-300 hover:text-gray-400"
                 }`}
               >
                 <step.icon size={16} strokeWidth={currentStep === step.id ? 3 : 2} />
                 {currentStep > step.id && (
-                    <div className="absolute -top-1 -right-1 bg-emerald-500 text-white rounded-full p-0.5 border-2 border-white">
+                    <div className="absolute -top-1 -right-1 bg-secondary text-white rounded-full p-0.5 border-2 border-white">
                         <CheckCircle2 size={10} strokeWidth={4} />
                     </div>
                 )}
@@ -455,7 +481,7 @@ const CreateEvent = () => {
 
       <div className="flex flex-col lg:flex-row gap-10 items-start px-2">
         {/* Main Form Container */}
-        <div className={`flex-1 w-full bg-white rounded-[3rem] border border-gray-100 shadow-2xl shadow-gray-200/40 overflow-hidden transition-all duration-700 ease-in-out ${showPreview ? 'lg:max-w-[calc(100%-420px)] xl:max-w-[calc(100%-520px)]' : 'max-w-full'}`}>
+        <div className={`flex-1 w-full bg-white rounded-[3rem] border border-gray-100 shadow-2xl shadow-gray-200/40 overflow-hidden transition-all duration-700 ease-in-out`}>
           {/* Mobile Progress Bar */}
           <div className="lg:hidden bg-white px-6 py-6 border-b border-gray-50 flex items-center justify-between">
               <div className="flex items-center gap-5">
@@ -469,7 +495,7 @@ const CreateEvent = () => {
               </div>
               <div className="flex gap-1.5">
                  {steps.map(s => (
-                    <div key={s.id} className={`w-2 h-2 rounded-full transition-all duration-500 ${s.id === currentStep ? 'w-6 bg-primary' : s.id < currentStep ? 'bg-emerald-400' : 'bg-gray-200'}`}></div>
+                    <div key={s.id} className={`w-2 h-2 rounded-full transition-all duration-500 ${s.id === currentStep ? 'w-6 bg-primary' : s.id < currentStep ? 'bg-secondary' : 'bg-gray-200'}`}></div>
                  ))}
               </div>
           </div>
@@ -536,7 +562,7 @@ const CreateEvent = () => {
                  {/* Section 2: Date & Time */}
                  <div className="space-y-10 group/section">
                     <div className="flex items-center gap-5">
-                       <div className="w-14 h-14 rounded-2xl bg-gray-50 text-purple-600 flex items-center justify-center transition-all group-hover/section:bg-purple-600 group-hover/section:text-white group-hover/section:-rotate-3 shadow-sm border border-gray-100">
+                       <div className="w-14 h-14 rounded-2xl bg-gray-50 text-primary flex items-center justify-center transition-all group-hover/section:bg-primary group-hover/section:text-white group-hover/section:-rotate-3 shadow-sm border border-gray-100">
                           <Calendar size={24} />
                        </div>
                        <div>
@@ -577,7 +603,7 @@ const CreateEvent = () => {
                  {/* Section 3: Location & Format */}
                  <div className="space-y-10 group/section">
                     <div className="flex items-center gap-5">
-                       <div className="w-14 h-14 rounded-2xl bg-gray-50 text-emerald-600 flex items-center justify-center transition-all group-hover/section:bg-emerald-600 group-hover/section:text-white group-hover/section:scale-110 shadow-sm border border-gray-100">
+                       <div className="w-14 h-14 rounded-2xl bg-gray-50 text-primary flex items-center justify-center transition-all group-hover/section:bg-primary group-hover/section:text-white group-hover/section:scale-110 shadow-sm border border-gray-100">
                           <MapPin size={24} />
                        </div>
                        <div>
@@ -593,7 +619,7 @@ const CreateEvent = () => {
                                 <button
                                    key={type}
                                    type="button"
-                                   onClick={() => setBasicInfo({...basicInfo, type: type as any})}
+                                   onClick={() => setBasicInfo({...basicInfo, type: type as EventType})}
                                    className={`py-5 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.2em] border-2 transition-all ${
                                       basicInfo.type === type
                                       ? "bg-primary text-white border-primary shadow-xl shadow-primary/20"
@@ -656,7 +682,7 @@ const CreateEvent = () => {
                  {/* Section 4: Bio */}
                  <div className="space-y-10 group/section">
                     <div className="flex items-center gap-5">
-                       <div className="w-14 h-14 rounded-2xl bg-gray-50 text-rose-600 flex items-center justify-center transition-all group-hover/section:bg-rose-600 group-hover/section:text-white shadow-sm border border-gray-100">
+                       <div className="w-14 h-14 rounded-2xl bg-gray-50 text-secondary flex items-center justify-center transition-all group-hover/section:bg-secondary group-hover/section:text-white shadow-sm border border-gray-100">
                           <FileText size={24} />
                        </div>
                        <div>
@@ -780,7 +806,7 @@ const CreateEvent = () => {
 
                     <div className="space-y-10">
                         <div className="flex items-center gap-5">
-                            <div className="w-14 h-14 rounded-2xl bg-gray-50 text-emerald-600 flex items-center justify-center shadow-sm border border-gray-100">
+                            <div className="w-14 h-14 rounded-2xl bg-gray-50 text-secondary flex items-center justify-center shadow-sm border border-gray-100">
                                 <Search size={24} />
                             </div>
                             <div>
@@ -868,7 +894,7 @@ const CreateEvent = () => {
                                 {sessions.length > 1 && (
                                    <button
                                      onClick={() => removeSession(session.id)}
-                                     className="w-14 h-14 flex items-center justify-center text-gray-300 hover:text-rose-500 bg-white rounded-2xl shadow-sm hover:shadow-2xl hover:scale-110 transition-all border border-gray-100 group/trash"
+                                     className="w-14 h-14 flex items-center justify-center text-gray-300 hover:text-secondary bg-white rounded-2xl shadow-sm hover:shadow-2xl hover:scale-110 transition-all border border-gray-100 group/trash"
                                    >
                                       <Trash2 size={20} className="group-hover/trash:rotate-12 transition-transform" />
                                    </button>
@@ -931,7 +957,7 @@ const CreateEvent = () => {
                     </div>
                     <button
                       onClick={addTicket}
-                      className="flex items-center gap-3 bg-emerald-600 text-white font-black px-8 py-5 rounded-[2rem] hover:bg-emerald-700 transition-all shadow-3xl shadow-emerald-600/30 text-[10px] uppercase tracking-[0.25em] active:scale-95 group"
+                      className="flex items-center gap-3 bg-secondary text-white font-black px-8 py-5 rounded-[2rem] hover:bg-opacity-90 transition-all shadow-3xl shadow-secondary/30 text-[10px] uppercase tracking-[0.25em] active:scale-95 group"
                     >
                       <Plus size={18} className="group-hover:rotate-90 transition-transform duration-500" />
                       Create Tier
@@ -940,10 +966,10 @@ const CreateEvent = () => {
 
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
                   {tickets.map((ticket, index) => (
-                      <div key={ticket.id} className="p-8 md:p-10 bg-gray-50/50 rounded-[3.5rem] border border-gray-100 space-y-10 relative group/ticket hover:bg-white hover:shadow-4xl hover:shadow-emerald-900/10 transition-all duration-700 animate-in zoom-in-95 duration-500">
+                      <div key={ticket.id} className="p-8 md:p-10 bg-gray-50/50 rounded-[3.5rem] border border-gray-100 space-y-10 relative group/ticket hover:bg-white hover:shadow-4xl hover:shadow-secondary/10 transition-all duration-700 animate-in zoom-in-95 duration-500">
                           <div className="flex items-center justify-between">
                              <div className="flex items-center gap-5">
-                                <div className="w-14 h-14 rounded-2xl bg-white text-emerald-600 flex items-center justify-center shadow-xl shadow-gray-200/50 border border-gray-100 group-hover/ticket:bg-emerald-600 group-hover/ticket:text-white transition-all duration-500">
+                                <div className="w-14 h-14 rounded-2xl bg-white text-secondary flex items-center justify-center shadow-xl shadow-gray-200/50 border border-gray-100 group-hover/ticket:bg-secondary group-hover/ticket:text-white transition-all duration-500">
                                    <Ticket size={24} strokeWidth={2} />
                                 </div>
                                 <div>
@@ -954,7 +980,7 @@ const CreateEvent = () => {
                              {tickets.length > 1 && (
                                 <button
                                   onClick={() => removeTicket(ticket.id)}
-                                  className="w-14 h-14 flex items-center justify-center text-gray-300 hover:text-rose-500 bg-white rounded-2xl shadow-sm hover:shadow-2xl transition-all border border-gray-100 group/trash"
+                                  className="w-14 h-14 flex items-center justify-center text-gray-300 hover:text-secondary bg-white rounded-2xl shadow-sm hover:shadow-2xl transition-all border border-gray-100 group/trash"
                                 >
                                    <Trash2 size={20} className="group-hover/trash:rotate-12 transition-transform" />
                                 </button>
@@ -964,13 +990,13 @@ const CreateEvent = () => {
                           <div className="space-y-8">
                              <div className="space-y-3">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
-                                    <Type size={12} className="text-emerald-500" />
+                                    <Type size={12} className="text-secondary" />
                                     Public Name
                                 </label>
                                 <input
                                    type="text"
                                    placeholder="e.g., VIP Early Bird"
-                                   className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 outline-none transition-all shadow-sm"
+                                   className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none transition-all shadow-sm"
                                    value={ticket.name}
                                    onChange={(e) => updateTicket(ticket.id, "name", e.target.value)}
                                 />
@@ -979,14 +1005,14 @@ const CreateEvent = () => {
                              <div className="grid grid-cols-2 gap-8">
                                 <div className="space-y-3">
                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
-                                       <MousePointer2 size={12} className="text-emerald-500" />
+                                       <MousePointer2 size={12} className="text-secondary" />
                                        Pricing Model
                                    </label>
                                    <div className="relative">
                                        <select
-                                          className="w-full pl-5 pr-10 py-5 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 outline-none appearance-none shadow-sm"
+                                          className="w-full pl-5 pr-10 py-5 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none appearance-none shadow-sm"
                                           value={ticket.type}
-                                          onChange={(e) => updateTicket(ticket.id, "type", e.target.value as any)}
+                                          onChange={(e) => updateTicket(ticket.id, "type", e.target.value as TicketType)}
                                        >
                                           <option value="FREE">Complimentary</option>
                                           <option value="PAID">Premium Access</option>
@@ -996,15 +1022,15 @@ const CreateEvent = () => {
                                 </div>
                                 <div className="space-y-3">
                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
-                                       <Coins size={12} className="text-emerald-500" />
+                                       <Coins size={12} className="text-secondary" />
                                        Unit Price
                                    </label>
                                    <div className="relative">
-                                       <span className="absolute left-5 top-1/2 -translate-y-1/2 text-emerald-600 font-black text-xs">₦</span>
+                                       <span className="absolute left-5 top-1/2 -translate-y-1/2 text-secondary font-black text-xs">₦</span>
                                        <input
                                           type="number"
                                           disabled={ticket.type === "FREE"}
-                                          className="w-full pl-10 pr-5 py-5 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 disabled:bg-gray-100 disabled:opacity-50 outline-none shadow-sm"
+                                          className="w-full pl-10 pr-5 py-5 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 disabled:bg-gray-100 disabled:opacity-50 outline-none shadow-sm"
                                           value={ticket.price}
                                           onChange={(e) => updateTicket(ticket.id, "price", parseFloat(e.target.value))}
                                        />
@@ -1012,24 +1038,24 @@ const CreateEvent = () => {
                                 </div>
                                 <div className="space-y-3">
                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
-                                       <Layers size={12} className="text-emerald-500" />
+                                       <Layers size={12} className="text-secondary" />
                                        Total Inventory
                                    </label>
                                    <input
                                       type="number"
-                                      className="w-full px-5 py-5 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 outline-none shadow-sm"
+                                      className="w-full px-5 py-5 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none shadow-sm"
                                       value={ticket.totalQuantity}
                                       onChange={(e) => updateTicket(ticket.id, "totalQuantity", parseInt(e.target.value))}
                                    />
                                 </div>
                                 <div className="space-y-3">
                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
-                                       <Users size={12} className="text-emerald-500" />
+                                       <Users size={12} className="text-secondary" />
                                        Min Purchase
                                    </label>
                                    <input
                                       type="number"
-                                      className="w-full px-5 py-5 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 outline-none shadow-sm"
+                                      className="w-full px-5 py-5 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none shadow-sm"
                                       value={ticket.groupSize}
                                       onChange={(e) => updateTicket(ticket.id, "groupSize", parseInt(e.target.value))}
                                    />
@@ -1104,7 +1130,7 @@ const CreateEvent = () => {
                     {/* Right Column: Grouping Logic */}
                     <div className="space-y-10 group/section">
                         <div className="flex items-center gap-5">
-                            <div className="w-14 h-14 rounded-2xl bg-gray-50 text-amber-600 flex items-center justify-center shadow-sm border border-gray-100">
+                            <div className="w-14 h-14 rounded-2xl bg-gray-50 text-secondary flex items-center justify-center shadow-sm border border-gray-100">
                                 <Users size={24} />
                             </div>
                             <div>
@@ -1114,7 +1140,7 @@ const CreateEvent = () => {
                         </div>
 
                        <div className="space-y-6">
-                          <label className="flex items-center gap-6 p-8 bg-gray-50 rounded-[2.5rem] cursor-pointer hover:bg-white hover:shadow-2xl hover:shadow-gray-200/50 transition-all duration-500 border border-transparent hover:border-amber-100">
+                          <label className="flex items-center gap-6 p-8 bg-gray-50 rounded-[2.5rem] cursor-pointer hover:bg-white hover:shadow-2xl hover:shadow-gray-200/50 transition-all duration-500 border border-transparent hover:border-secondary/10">
                              <div className="relative">
                                 <input
                                     type="checkbox"
@@ -1122,7 +1148,7 @@ const CreateEvent = () => {
                                     checked={registration.isGroupingEnabled}
                                     onChange={(e) => setRegistration({...registration, isGroupingEnabled: e.target.checked})}
                                 />
-                                <div className="w-14 h-8 bg-gray-200 rounded-full peer-checked:bg-amber-500 transition-colors"></div>
+                                <div className="w-14 h-8 bg-gray-200 rounded-full peer-checked:bg-secondary transition-colors"></div>
                                 <div className="absolute top-1 left-1 w-6 h-6 bg-white rounded-full peer-checked:translate-x-6 transition-transform shadow-sm"></div>
                              </div>
                              <div>
@@ -1132,24 +1158,24 @@ const CreateEvent = () => {
                           </label>
 
                           {registration.isGroupingEnabled && (
-                             <div className="p-8 bg-amber-50/50 rounded-[2.5rem] border border-amber-100/50 animate-in slide-in-from-top-4 duration-500">
+                             <div className="p-8 bg-secondary/5 rounded-[2.5rem] border border-secondary/10 animate-in slide-in-from-top-4 duration-500">
                                 <label className="flex items-center gap-5 cursor-pointer">
                                    <input
                                       type="checkbox"
-                                      className="w-6 h-6 rounded-lg border-gray-200 text-amber-500 focus:ring-amber-500 cursor-pointer shadow-sm transition-all"
+                                      className="w-6 h-6 rounded-lg border-gray-200 text-secondary focus:ring-secondary cursor-pointer shadow-sm transition-all"
                                       checked={registration.enforceUniqueGroupNames}
                                       onChange={(e) => setRegistration({...registration, enforceUniqueGroupNames: e.target.checked})}
                                    />
                                    <div>
                                       <p className="font-black text-gray-900 uppercase tracking-widest text-[10px]">Strict Identity Check</p>
-                                      <p className="text-[9px] text-amber-700/60 font-black uppercase tracking-widest mt-1">Unique team names only</p>
+                                      <p className="text-[9px] text-secondary font-black uppercase tracking-widest mt-1">Unique team names only</p>
                                    </div>
                                 </label>
                              </div>
                           )}
 
                           <div className="bg-gray-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl"></div>
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/10 rounded-full blur-2xl"></div>
                                 <h4 className="text-sm font-black uppercase tracking-widest mb-3">Community Feature</h4>
                                 <p className="text-xs text-gray-400 leading-relaxed font-medium">Team mode increases viral reach as attendees invite their friends to join their squad.</p>
                           </div>
@@ -1174,7 +1200,7 @@ const CreateEvent = () => {
                     </div>
 
                     <div className="grid grid-cols-1 gap-6">
-                       {registration.fields.map((field: any, idx: number) => (
+                       {registration.fields.map((field, idx) => (
                           <div key={idx} className="flex flex-col lg:flex-row items-center gap-6 lg:gap-10 p-8 bg-gray-50 rounded-[3rem] group relative border border-transparent hover:border-primary/10 hover:bg-white transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50">
                              <div className="flex-1 w-full space-y-3">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Label Name</label>
@@ -1193,7 +1219,7 @@ const CreateEvent = () => {
                                    <select
                                       className="w-full p-5 bg-white border border-gray-300 rounded-2xl text-sm font-bold appearance-none outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all shadow-sm"
                                       value={field.type}
-                                      onChange={(e) => updateField(idx, "type", e.target.value as any)}
+                                      onChange={(e) => updateField(idx, "type", e.target.value)}
                                       disabled={idx < 2}
                                    >
                                       <option value="text">Standard Text</option>
@@ -1229,7 +1255,7 @@ const CreateEvent = () => {
                              {idx >= 2 && (
                                 <button
                                    onClick={() => removeField(idx)}
-                                   className="w-14 h-14 bg-white text-gray-300 hover:text-rose-500 rounded-2xl flex items-center justify-center shadow-sm hover:shadow-xl hover:scale-110 transition-all border border-gray-100"
+                                   className="w-14 h-14 bg-white text-gray-300 hover:text-secondary rounded-2xl flex items-center justify-center shadow-sm hover:shadow-xl hover:scale-110 transition-all border border-gray-100"
                                 >
                                    <Trash2 size={20} />
                                 </button>
@@ -1248,7 +1274,7 @@ const CreateEvent = () => {
                     <div className="space-y-10">
                        <div className="bg-gray-900 rounded-[3.5rem] p-10 md:p-16 text-white relative overflow-hidden shadow-3xl shadow-gray-900/40 group">
                           <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-[2000ms]"></div>
-                          <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2"></div>
+                          <div className="absolute bottom-0 left-0 w-64 h-64 bg-secondary/5 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2"></div>
 
                           <div className="relative z-10 space-y-14">
                              <div className="flex flex-col md:flex-row md:items-center justify-between gap-10 border-b border-white/5 pb-12">
@@ -1304,13 +1330,13 @@ const CreateEvent = () => {
                           </div>
                        </div>
 
-                       <div className="bg-emerald-50 p-10 rounded-[3rem] border border-emerald-100 flex flex-col md:flex-row items-center gap-8 shadow-xl shadow-emerald-900/5">
-                          <div className="w-20 h-20 bg-emerald-500 text-white rounded-[2rem] flex items-center justify-center flex-shrink-0 shadow-2xl shadow-emerald-500/40 rotate-3">
+                       <div className="bg-secondary/5 p-10 rounded-[3rem] border border-secondary/10 flex flex-col md:flex-row items-center gap-8 shadow-xl shadow-secondary/5">
+                          <div className="w-20 h-20 bg-secondary text-white rounded-[2rem] flex items-center justify-center flex-shrink-0 shadow-2xl shadow-secondary/40 rotate-3">
                              <CheckCircle2 size={40} strokeWidth={2} />
                           </div>
                           <div className="text-center md:text-left">
-                             <h4 className="font-black text-emerald-900 text-2xl uppercase tracking-tighter">Validation Engine: Ready</h4>
-                             <p className="text-emerald-700/60 text-sm font-medium leading-relaxed mt-2 max-w-xl">
+                             <h4 className="font-black text-secondary text-2xl uppercase tracking-tighter">Validation Engine: Ready</h4>
+                             <p className="text-secondary/60 text-sm font-medium leading-relaxed mt-2 max-w-xl">
                                 We&apos;ve scanned your event configuration and everything looks perfect. Your event is now eligible for premium placement in the Discovery Engine.
                              </p>
                           </div>
@@ -1322,7 +1348,7 @@ const CreateEvent = () => {
                                       </div>
                                   ))}
                               </div>
-                              <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mt-2 text-center">Live Audience Ready</p>
+                              <p className="text-[10px] font-black text-secondary uppercase tracking-widest mt-2 text-center">Live Audience Ready</p>
                           </div>
                        </div>
                     </div>
@@ -1363,7 +1389,7 @@ const CreateEvent = () => {
                     <button
                       onClick={handleSubmit}
                       disabled={loading}
-                      className="flex items-center gap-4 bg-emerald-600 text-white font-black px-14 py-6 rounded-[2.5rem] hover:bg-emerald-700 transition-all shadow-3xl shadow-emerald-600/30 uppercase tracking-[0.3em] text-[11px] disabled:opacity-50 active:scale-95 group"
+                      className="flex items-center gap-4 bg-secondary text-white font-black px-14 py-6 rounded-[2.5rem] hover:bg-opacity-90 transition-all shadow-3xl shadow-secondary/30 uppercase tracking-[0.3em] text-[11px] disabled:opacity-50 active:scale-95 group"
                     >
                       {loading ? "Igniting..." : "Broadcast Event"}
                       <ShieldCheck size={20} className="group-hover:rotate-12 transition-transform" />
@@ -1373,9 +1399,9 @@ const CreateEvent = () => {
           </div>
         </div>
 
-        {/* Live Preview Pane (Desktop Only) */}
+        {/* Live Preview Pane */}
         {showPreview && (
-          <div className="hidden lg:block w-[400px] xl:w-[480px] shrink-0 animate-in fade-in slide-in-from-right-12 duration-1000 ease-out">
+          <div className="w-full lg:w-[400px] xl:w-[480px] shrink-0 animate-in fade-in slide-in-from-bottom-12 lg:slide-in-from-right-12 duration-1000 ease-out">
             <LivePreview
               basicInfo={basicInfo}
               mediaInfo={mediaInfo}
