@@ -88,12 +88,12 @@ const FinanceDashboard = () => {
   if (loading) return <div className="h-full flex items-center justify-center"><CustomLoader /></div>;
 
   return (
-    <div className="space-y-8 pb-12">
+    <div className="space-y-8 pb-12 px-2">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black text-gray-900 tracking-tight">Financial Overview</h1>
-          <p className="text-gray-500 font-medium">Monitor your earnings, transactions, and payouts.</p>
+          <h1 className="text-4xl font-black text-gray-900 tracking-tight">Financial Overview</h1>
+          <p className="text-gray-500 font-medium mt-1">Monitor your earnings, transactions, and payouts.</p>
         </div>
         <div className="flex items-center gap-3">
           <button className="flex items-center justify-center gap-2 bg-white text-gray-900 font-bold px-6 py-4 rounded-2xl hover:bg-gray-50 transition-all shadow-sm border border-gray-100">
@@ -145,12 +145,12 @@ const FinanceDashboard = () => {
             <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-primary/20 rounded-full blur-3xl"></div>
          </div>
 
-         <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col justify-between">
-            <div className="w-14 h-14 bg-blue-50 text-primary rounded-2xl flex items-center justify-center mb-6">
+         <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-blue-900/5 transition-all duration-300 group flex flex-col justify-between">
+            <div className="w-14 h-14 bg-blue-50 text-primary rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                <TrendingUp size={28} />
             </div>
             <div>
-               <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Gross Revenue</p>
+               <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1.5">Gross Revenue</p>
                <h3 className="text-3xl font-black text-gray-900 leading-tight">₦{(summary?.totals?.amount || 0).toLocaleString()}</h3>
                <p className="text-xs text-emerald-500 font-bold flex items-center gap-1 mt-2">
                   <ArrowUpRight size={14} />
@@ -159,12 +159,12 @@ const FinanceDashboard = () => {
             </div>
          </div>
 
-         <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col justify-between">
-            <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-6">
+         <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-blue-900/5 transition-all duration-300 group flex flex-col justify-between">
+            <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                <ShieldCheck size={28} />
             </div>
             <div>
-               <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Platform Fees</p>
+               <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1.5">Platform Fees</p>
                <h3 className="text-3xl font-black text-gray-900 leading-tight">₦{(summary?.totals?.commission || 0).toLocaleString()}</h3>
                <p className="text-xs text-gray-400 font-bold flex items-center gap-1 mt-2">
                   Commission: 5% (Verified)

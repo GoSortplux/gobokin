@@ -15,7 +15,8 @@ import {
   CheckCircle2,
   Clock,
   LayoutGrid,
-  List
+  List,
+  Eye
 } from "lucide-react";
 import Image from "next/image";
 import api from "@/services/api";
@@ -56,23 +57,23 @@ const MyEvents = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "UPCOMING": return "bg-blue-100 text-blue-700";
-      case "ONGOING": return "bg-emerald-100 text-emerald-700";
-      case "COMPLETED": return "bg-gray-100 text-gray-700";
-      case "CANCELLED": return "bg-red-100 text-red-700";
-      default: return "bg-gray-100 text-gray-700";
+      case "UPCOMING": return "bg-blue-50 text-blue-600 border border-blue-100";
+      case "ONGOING": return "bg-emerald-50 text-emerald-600 border border-emerald-100";
+      case "COMPLETED": return "bg-gray-50 text-gray-600 border border-gray-100";
+      case "CANCELLED": return "bg-rose-50 text-rose-600 border border-rose-100";
+      default: return "bg-gray-50 text-gray-600 border border-gray-100";
     }
   };
 
   if (loading) return <div className="h-full flex items-center justify-center"><CustomLoader /></div>;
 
   return (
-    <div className="space-y-8 pb-12">
+    <div className="space-y-8 pb-12 px-2">
       {/* Header & Search */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black text-gray-900 tracking-tight">My Events</h1>
-          <p className="text-gray-500 font-medium">Manage and monitor all your events in one place.</p>
+          <h1 className="text-4xl font-black text-gray-900 tracking-tight">My Events</h1>
+          <p className="text-gray-500 font-medium mt-1">Manage and monitor all your events in one place.</p>
         </div>
         <Link
           href="/organizer/dashboard/events/create"
@@ -84,13 +85,13 @@ const MyEvents = () => {
       </div>
 
       {/* Toolbar */}
-      <div className="bg-white p-3 rounded-3xl border border-gray-100 shadow-sm flex flex-col lg:flex-row items-center gap-4">
+      <div className="bg-white p-4 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col lg:flex-row items-center gap-4">
         <div className="relative flex-1 w-full">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+          <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
           <input
             type="text"
             placeholder="Search events by title..."
-            className="w-full pl-12 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 transition-all"
+            className="w-full pl-12 pr-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all placeholder:font-medium"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -135,8 +136,8 @@ const MyEvents = () => {
         viewMode === "grid" ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredEvents.map((event) => (
-              <div key={event.id} className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-xl hover:shadow-blue-900/5 transition-all duration-500 group relative">
-                <div className="relative h-48 w-full overflow-hidden">
+              <div key={event.id} className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden hover:shadow-2xl hover:shadow-blue-900/10 transition-all duration-500 group relative">
+                <div className="relative h-56 w-full overflow-hidden">
                   {event.bannerUrl ? (
                     <Image src={event.bannerUrl} alt={event.title} fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
                   ) : (
@@ -181,20 +182,20 @@ const MyEvents = () => {
                   <div className="grid grid-cols-2 gap-4 pt-6 border-t border-gray-50">
                     <div className="space-y-1">
                       <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Registrations</p>
-                      <p className="text-lg font-black text-gray-900 flex items-center gap-2">
+                      <p className="text-xl font-black text-gray-900 flex items-center gap-2">
                         <Users size={16} className="text-primary" />
-                        {(event as any).registrationCount || 0} / {event.capacity}
+                        {(event as any).registrationCount || 0}
                       </p>
                     </div>
                     <div className="space-y-1">
                       <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Revenue</p>
-                      <p className="text-lg font-black text-emerald-600">₦{((event as any).totalRevenue || 0).toLocaleString()}</p>
+                      <p className="text-xl font-black text-emerald-600">₦{((event as any).totalRevenue || 0).toLocaleString()}</p>
                     </div>
                   </div>
 
                   <Link
                     href={`/organizer/dashboard/events/${event.id}`}
-                    className="w-full mt-6 bg-gray-50 text-gray-900 font-bold py-4 rounded-2xl hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-2 group/btn shadow-sm"
+                    className="w-full mt-6 bg-gray-50 text-gray-900 font-black py-4 rounded-2xl hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-2 group/btn shadow-sm text-sm uppercase tracking-widest"
                   >
                     Manage Event
                     <ArrowRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
@@ -204,7 +205,7 @@ const MyEvents = () => {
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead className="bg-gray-50 border-b border-gray-100">
@@ -220,9 +221,9 @@ const MyEvents = () => {
                 <tbody className="divide-y divide-gray-50">
                   {filteredEvents.map((event) => (
                     <tr key={event.id} className="hover:bg-gray-50 transition-colors group">
-                      <td className="px-6 py-5">
+                      <td className="px-6 py-6">
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden relative border-2 border-transparent group-hover:border-primary transition-all">
+                          <div className="w-14 h-14 rounded-2xl bg-gray-100 overflow-hidden relative border-2 border-transparent group-hover:border-primary transition-all">
                             {event.bannerUrl ? (
                               <Image src={event.bannerUrl} alt={event.title} fill className="object-cover" />
                             ) : (
@@ -242,9 +243,9 @@ const MyEvents = () => {
                           {event.status}
                         </span>
                       </td>
-                      <td className="px-6 py-5">
-                        <p className="text-sm font-bold text-gray-700">{new Date(event.startDate).toLocaleDateString()}</p>
-                        <p className="text-xs text-gray-400 font-medium">Starts 9:00 AM</p>
+                      <td className="px-6 py-6">
+                        <p className="text-sm font-black text-gray-900">{new Date(event.startDate).toLocaleDateString()}</p>
+                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Starts 09:00 AM</p>
                       </td>
                       <td className="px-6 py-5">
                          <div className="space-y-1">

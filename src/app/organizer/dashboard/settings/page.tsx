@@ -12,7 +12,8 @@ import {
   AlertCircle,
   Save,
   ArrowRight,
-  MoreVertical
+  MoreVertical,
+  ChevronDown
 } from "lucide-react";
 import api from "@/services/api";
 import { OrganizerProfile } from "@/types";
@@ -73,10 +74,10 @@ const OrganizerSettings = () => {
   if (loading) return <div className="h-full flex items-center justify-center"><CustomLoader /></div>;
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 pb-12">
+    <div className="max-w-5xl mx-auto space-y-8 pb-12 px-2">
       <div>
-        <h1 className="text-3xl font-black text-gray-900 tracking-tight">Organizer Settings</h1>
-        <p className="text-gray-500 font-medium">Manage your profile, default policies, and verification status.</p>
+        <h1 className="text-4xl font-black text-gray-900 tracking-tight">Organizer Settings</h1>
+        <p className="text-gray-500 font-medium mt-1">Manage your profile, default policies, and verification status.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -94,11 +95,11 @@ const OrganizerSettings = () => {
                </div>
 
                <div className="grid grid-cols-2 gap-4 mt-8 pt-8 border-t border-gray-50">
-                  <div className="p-4 bg-gray-50 rounded-2xl">
+               <div className="p-5 bg-gray-50 rounded-2xl border border-gray-100">
                      <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Fee Rate</p>
                      <p className="text-xl font-black text-gray-900">{profile?.commissionRate}%</p>
                   </div>
-                  <div className="p-4 bg-gray-50 rounded-2xl">
+                  <div className="p-5 bg-gray-50 rounded-2xl border border-gray-100">
                      <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Max Staff</p>
                      <p className="text-xl font-black text-gray-900">{profile?.maxStaff}</p>
                   </div>
@@ -146,7 +147,7 @@ const OrganizerSettings = () => {
                            <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                            <input
                              type="url"
-                             className="w-full pl-12 pr-4 py-4 bg-gray-50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 transition-all"
+                             className="w-full pl-12 pr-6 py-5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all placeholder:font-medium"
                              value={formData.website}
                              onChange={(e) => setFormData({...formData, website: e.target.value})}
                            />
@@ -158,7 +159,7 @@ const OrganizerSettings = () => {
                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Public Biography</label>
                      <textarea
                         rows={4}
-                        className="w-full p-6 bg-gray-50 border-none rounded-[2rem] text-sm focus:ring-2 focus:ring-primary/20 transition-all leading-relaxed"
+                        className="w-full p-6 bg-gray-50 border-none rounded-[2rem] text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all leading-relaxed placeholder:font-medium"
                         value={formData.bio}
                         onChange={(e) => setFormData({...formData, bio: e.target.value})}
                      />
@@ -179,15 +180,18 @@ const OrganizerSettings = () => {
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="space-y-3">
                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Default Refund Type</label>
-                           <select
-                             className="w-full p-4 bg-gray-50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 transition-all"
-                             value={formData.defaultRefundType}
-                             onChange={(e) => setFormData({...formData, defaultRefundType: e.target.value})}
-                           >
-                              <option value="FULL">Full Refund</option>
-                              <option value="PARTIAL">Partial Refund</option>
-                              <option value="NONE">No Refunds</option>
-                           </select>
+                           <div className="relative">
+                              <select
+                                className="w-full p-5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all appearance-none"
+                                value={formData.defaultRefundType}
+                                onChange={(e) => setFormData({...formData, defaultRefundType: e.target.value})}
+                              >
+                                 <option value="FULL">Full Refund</option>
+                                 <option value="PARTIAL">Partial Refund</option>
+                                 <option value="NONE">No Refunds</option>
+                              </select>
+                              <ChevronDown size={18} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                           </div>
                         </div>
                         {formData.defaultRefundType === 'PARTIAL' && (
                           <div className="space-y-3">
@@ -204,7 +208,7 @@ const OrganizerSettings = () => {
                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Cancellation Cutoff (Days)</label>
                            <input
                              type="number"
-                             className="w-full p-4 bg-gray-50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 transition-all"
+                             className="w-full p-5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all"
                              value={formData.defaultRefundCutoffDays}
                              onChange={(e) => setFormData({...formData, defaultRefundCutoffDays: parseInt(e.target.value)})}
                            />

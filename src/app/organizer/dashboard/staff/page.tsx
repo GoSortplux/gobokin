@@ -90,11 +90,11 @@ const StaffPool = () => {
   if (loading) return <div className="h-full flex items-center justify-center"><CustomLoader /></div>;
 
   return (
-    <div className="space-y-8 pb-12">
+    <div className="space-y-8 pb-12 px-2">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black text-gray-900 tracking-tight">Staff Pool</h1>
-          <p className="text-gray-500 font-medium">Manage your global pool of event staff and managers.</p>
+          <h1 className="text-4xl font-black text-gray-900 tracking-tight">Staff Pool</h1>
+          <p className="text-gray-500 font-medium mt-1">Manage your global pool of event staff and managers.</p>
         </div>
         <button
           onClick={handleAddStaff}
@@ -106,13 +106,13 @@ const StaffPool = () => {
       </div>
 
       {/* Toolbar */}
-      <div className="bg-white p-3 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4">
+      <div className="bg-white p-4 rounded-[2rem] border border-gray-100 shadow-sm flex items-center gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+          <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
           <input
             type="text"
             placeholder="Search staff by name or email..."
-            className="w-full pl-12 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 transition-all"
+            className="w-full pl-12 pr-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all placeholder:font-medium"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -132,7 +132,7 @@ const StaffPool = () => {
                   <div>
                      <h3 className="text-xl font-black text-gray-900 leading-tight mb-1 group-hover:text-primary transition-colors">{member.fullName || member.email.split('@')[0]}</h3>
                      <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${
-                       member.role === 'MANAGER' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'
+                       member.role === 'MANAGER' ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-gray-50 text-gray-500 border border-gray-100'
                      }`}>
                         {member.role}
                      </span>
