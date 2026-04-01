@@ -497,7 +497,7 @@ const CreateEvent = () => {
                             name="title"
                             required
                             placeholder="e.g., Annual Tech Summit 2024"
-                            className="w-full p-6 bg-gray-50 border border-transparent rounded-3xl text-sm font-bold focus:bg-white focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-300"
+                            className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
                             value={basicInfo.title}
                             onChange={handleBasicChange}
                           />
@@ -510,7 +510,7 @@ const CreateEvent = () => {
                                 type="text"
                                 name="category"
                                 placeholder="Music, Sports, AI..."
-                                className="w-full pl-14 pr-6 py-6 bg-gray-50 border border-transparent rounded-3xl text-sm font-bold focus:bg-white focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-300"
+                                className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
                                 value={basicInfo.category}
                                 onChange={handleBasicChange}
                              />
@@ -524,7 +524,7 @@ const CreateEvent = () => {
                                 type="text"
                                 name="tags"
                                 placeholder="Comma separated tags"
-                                className="w-full pl-14 pr-6 py-6 bg-gray-50 border border-transparent rounded-3xl text-sm font-bold focus:bg-white focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-300"
+                                className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
                                 value={basicInfo.tags}
                                 onChange={handleBasicChange}
                              />
@@ -552,7 +552,7 @@ const CreateEvent = () => {
                              <input
                                 type="datetime-local"
                                 name="startDate"
-                                className="w-full pl-14 pr-6 py-6 bg-gray-50 border border-transparent rounded-3xl text-sm font-bold focus:bg-white focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+                                className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
                                 value={basicInfo.startDate}
                                 onChange={handleBasicChange}
                              />
@@ -565,7 +565,7 @@ const CreateEvent = () => {
                              <input
                                 type="datetime-local"
                                 name="endDate"
-                                className="w-full pl-14 pr-6 py-6 bg-gray-50 border border-transparent rounded-3xl text-sm font-bold focus:bg-white focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+                                className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
                                 value={basicInfo.endDate}
                                 onChange={handleBasicChange}
                              />
@@ -614,7 +614,7 @@ const CreateEvent = () => {
                                    type="text"
                                    name="location"
                                    placeholder="Street address, City, State"
-                                   className="w-full pl-14 pr-6 py-6 bg-gray-50 border border-transparent rounded-3xl text-sm font-bold focus:bg-white focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-300"
+                                   className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
                                    value={basicInfo.location}
                                    onChange={handleBasicChange}
                                 />
@@ -630,7 +630,7 @@ const CreateEvent = () => {
                                    type="url"
                                    name="virtualLink"
                                    placeholder="https://zoom.us/j/..."
-                                   className="w-full pl-14 pr-6 py-6 bg-gray-50 border border-transparent rounded-3xl text-sm font-bold focus:bg-white focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-300"
+                                   className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
                                    value={basicInfo.virtualLink}
                                    onChange={handleBasicChange}
                                 />
@@ -644,7 +644,7 @@ const CreateEvent = () => {
                              <input
                                 type="number"
                                 name="capacity"
-                                className="w-full pl-14 pr-6 py-6 bg-gray-50 border border-transparent rounded-3xl text-sm font-bold focus:bg-white focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+                                className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
                                 value={basicInfo.capacity}
                                 onChange={handleBasicChange}
                              />
@@ -668,7 +668,7 @@ const CreateEvent = () => {
                       name="description"
                       rows={8}
                       placeholder="Describe your event in detail. What should attendees expect?"
-                      className="w-full p-8 bg-gray-50 border border-transparent rounded-[2.5rem] text-sm font-bold focus:bg-white focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-300 min-h-[200px]"
+                      className="w-full p-8 bg-white border border-gray-300 rounded-[2.5rem] text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 min-h-[200px] shadow-sm"
                       value={basicInfo.description}
                       onChange={handleBasicChange}
                     />
@@ -760,7 +760,7 @@ const CreateEvent = () => {
                                       type="text"
                                       name="bannerUrl"
                                       placeholder="https://..."
-                                      className="w-full pl-14 pr-6 py-6 bg-gray-50 border border-transparent rounded-3xl text-sm font-bold focus:bg-white focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-300"
+                                      className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
                                       value={mediaInfo.bannerUrl}
                                       onChange={handleMediaChange}
                                     />
@@ -797,7 +797,7 @@ const CreateEvent = () => {
                                   type="text"
                                   name="seoTitle"
                                   placeholder="Catchy title for Google results"
-                                  className="w-full p-6 bg-gray-50 border border-transparent rounded-3xl text-sm font-bold focus:bg-white focus:border-primary/20 focus:ring-4 focus:ring-primary/5 outline-none transition-all placeholder:text-gray-300"
+                                  className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
                                   value={mediaInfo.seoTitle}
                                   onChange={handleMediaChange}
                                 />
@@ -808,7 +808,7 @@ const CreateEvent = () => {
                                   type="text"
                                   name="socialImage"
                                   placeholder="URL for FB/Twitter card previews"
-                                  className="w-full p-6 bg-gray-50 border border-transparent rounded-3xl text-sm font-bold focus:bg-white focus:border-primary/20 focus:ring-4 focus:ring-primary/5 outline-none transition-all placeholder:text-gray-300"
+                                  className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
                                   value={mediaInfo.socialImage}
                                   onChange={handleMediaChange}
                                 />
@@ -820,7 +820,7 @@ const CreateEvent = () => {
                                 name="seoDescription"
                                 rows={6}
                                 placeholder="Write a brief summary to entice searchers..."
-                                className="w-full p-8 bg-gray-50 border border-transparent rounded-[2.5rem] text-sm font-bold focus:bg-white focus:border-primary/20 focus:ring-4 focus:ring-primary/5 outline-none transition-all h-full min-h-[150px] placeholder:text-gray-300"
+                                className="w-full p-8 bg-white border border-gray-300 rounded-[2.5rem] text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none h-full min-h-[150px] placeholder:text-gray-400 shadow-sm"
                                 value={mediaInfo.seoDescription}
                                 onChange={handleMediaChange}
                             />
@@ -884,7 +884,7 @@ const CreateEvent = () => {
                                    <input
                                    type="text"
                                    placeholder="e.g., Welcome Keynote: Future of Gobokin"
-                                   className="w-full p-6 bg-white border border-gray-100 rounded-3xl text-sm font-bold focus:ring-4 focus:ring-primary/5 transition-all outline-none group-hover/card:border-primary/10"
+                                   className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
                                    value={session.title}
                                    onChange={(e) => updateSession(session.id, "title", e.target.value)}
                                    />
@@ -896,7 +896,7 @@ const CreateEvent = () => {
                                    </label>
                                    <input
                                    type="datetime-local"
-                                   className="w-full p-6 bg-white border border-gray-100 rounded-3xl text-sm font-bold focus:ring-4 focus:ring-primary/5 transition-all outline-none group-hover/card:border-primary/10"
+                                   className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
                                    value={session.startTime}
                                    onChange={(e) => updateSession(session.id, "startTime", e.target.value)}
                                    />
@@ -908,7 +908,7 @@ const CreateEvent = () => {
                                    </label>
                                    <input
                                    type="datetime-local"
-                                   className="w-full p-6 bg-white border border-gray-100 rounded-3xl text-sm font-bold focus:ring-4 focus:ring-primary/5 transition-all outline-none group-hover/card:border-primary/10"
+                                   className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
                                    value={session.endTime}
                                    onChange={(e) => updateSession(session.id, "endTime", e.target.value)}
                                    />
@@ -970,7 +970,7 @@ const CreateEvent = () => {
                                 <input
                                    type="text"
                                    placeholder="e.g., VIP Early Bird"
-                                   className="w-full p-6 bg-white border border-gray-100 rounded-3xl text-sm font-bold focus:ring-4 focus:ring-emerald-500/5 outline-none transition-all group-hover/ticket:border-emerald-500/10"
+                                   className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 outline-none transition-all shadow-sm"
                                    value={ticket.name}
                                    onChange={(e) => updateTicket(ticket.id, "name", e.target.value)}
                                 />
@@ -984,7 +984,7 @@ const CreateEvent = () => {
                                    </label>
                                    <div className="relative">
                                        <select
-                                          className="w-full pl-5 pr-10 py-5 bg-white border border-gray-100 rounded-3xl text-sm font-bold focus:ring-4 focus:ring-emerald-500/5 outline-none appearance-none group-hover/ticket:border-emerald-500/10"
+                                          className="w-full pl-5 pr-10 py-5 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 outline-none appearance-none shadow-sm"
                                           value={ticket.type}
                                           onChange={(e) => updateTicket(ticket.id, "type", e.target.value as any)}
                                        >
@@ -1004,7 +1004,7 @@ const CreateEvent = () => {
                                        <input
                                           type="number"
                                           disabled={ticket.type === "FREE"}
-                                          className="w-full pl-10 pr-5 py-5 bg-white border border-gray-100 rounded-3xl text-sm font-bold focus:ring-4 focus:ring-emerald-500/5 disabled:bg-gray-100 disabled:opacity-50 outline-none group-hover/ticket:border-emerald-500/10"
+                                          className="w-full pl-10 pr-5 py-5 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 disabled:bg-gray-100 disabled:opacity-50 outline-none shadow-sm"
                                           value={ticket.price}
                                           onChange={(e) => updateTicket(ticket.id, "price", parseFloat(e.target.value))}
                                        />
@@ -1017,7 +1017,7 @@ const CreateEvent = () => {
                                    </label>
                                    <input
                                       type="number"
-                                      className="w-full px-5 py-5 bg-white border border-gray-100 rounded-3xl text-sm font-bold focus:ring-4 focus:ring-emerald-500/5 outline-none group-hover/ticket:border-emerald-500/10"
+                                      className="w-full px-5 py-5 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 outline-none shadow-sm"
                                       value={ticket.totalQuantity}
                                       onChange={(e) => updateTicket(ticket.id, "totalQuantity", parseInt(e.target.value))}
                                    />
@@ -1029,7 +1029,7 @@ const CreateEvent = () => {
                                    </label>
                                    <input
                                       type="number"
-                                      className="w-full px-5 py-5 bg-white border border-gray-100 rounded-3xl text-sm font-bold focus:ring-4 focus:ring-emerald-500/5 outline-none group-hover/ticket:border-emerald-500/10"
+                                      className="w-full px-5 py-5 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 outline-none shadow-sm"
                                       value={ticket.groupSize}
                                       onChange={(e) => updateTicket(ticket.id, "groupSize", parseInt(e.target.value))}
                                    />
@@ -1181,7 +1181,7 @@ const CreateEvent = () => {
                                 <input
                                    type="text"
                                    placeholder="e.g., T-Shirt Size"
-                                   className="w-full p-5 bg-white border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/5 outline-none transition-all"
+                                   className="w-full p-5 bg-white border border-gray-300 rounded-2xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
                                    value={field.label}
                                    onChange={(e) => updateField(idx, "label", e.target.value)}
                                    disabled={idx < 2}
@@ -1191,7 +1191,7 @@ const CreateEvent = () => {
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Input Archetype</label>
                                 <div className="relative">
                                    <select
-                                      className="w-full p-5 bg-white border border-gray-100 rounded-2xl text-sm font-bold appearance-none outline-none focus:ring-4 focus:ring-primary/5 transition-all"
+                                      className="w-full p-5 bg-white border border-gray-300 rounded-2xl text-sm font-bold appearance-none outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all shadow-sm"
                                       value={field.type}
                                       onChange={(e) => updateField(idx, "type", e.target.value as any)}
                                       disabled={idx < 2}
