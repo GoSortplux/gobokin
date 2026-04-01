@@ -81,7 +81,7 @@ const EventDetails = () => {
   return (
     <div className="space-y-8 pb-12">
       {/* Top Navigation */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between px-2">
         <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-500 hover:text-primary transition-colors font-bold group">
           <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
           Back to My Events
@@ -119,7 +119,7 @@ const EventDetails = () => {
                <CheckCircle2 size={14} />
                {event.status}
              </div>
-             <h1 className="text-3xl lg:text-4xl font-black text-gray-900 tracking-tight">{event.title}</h1>
+             <h1 className="text-3xl lg:text-4xl font-black text-primary tracking-tight">{event.title}</h1>
              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-6 text-gray-500 font-medium">
                <div className="flex items-center gap-2">
                  <Calendar className="text-primary" size={18} />
@@ -146,8 +146,8 @@ const EventDetails = () => {
           { label: "Registrations", value: analytics?.registrations || 0, icon: Users, color: "text-purple-600", bg: "bg-purple-50" },
           { label: "Page Views", value: analytics?.views || 0, icon: Eye, color: "text-amber-600", bg: "bg-amber-50" },
         ].map((stat, i) => (
-          <div key={i} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
-            <div className={`w-12 h-12 rounded-2xl ${stat.bg} ${stat.color} flex items-center justify-center mb-4`}>
+          <div key={i} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 group">
+            <div className={`w-12 h-12 rounded-2xl ${stat.bg} ${stat.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
               <stat.icon size={24} />
             </div>
             <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">{stat.label}</p>

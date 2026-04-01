@@ -76,14 +76,14 @@ const OrganizerSettings = () => {
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-12 px-2">
       <div>
-        <h1 className="text-4xl font-black text-gray-900 tracking-tight">Organizer Settings</h1>
+        <h1 className="text-4xl font-black text-primary tracking-tight">Organizer Settings</h1>
         <p className="text-gray-500 font-medium mt-1">Manage your profile, default policies, and verification status.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
          {/* Profile Summary Card */}
          <div className="space-y-6">
-            <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm p-8 text-center relative overflow-hidden">
+            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 md:p-8 text-center relative overflow-hidden">
                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl"></div>
                <div className="w-24 h-24 bg-primary text-white rounded-[2rem] flex items-center justify-center mx-auto mb-6 text-4xl font-black shadow-xl shadow-primary/20">
                   {profile?.bio?.[0] || 'O'}
@@ -106,7 +106,7 @@ const OrganizerSettings = () => {
                </div>
             </div>
 
-            <div className="bg-gray-900 rounded-[2.5rem] p-8 text-white space-y-6 shadow-xl">
+            <div className="bg-gray-900 rounded-3xl p-8 text-white space-y-6 shadow-xl">
                <h4 className="text-lg font-black tracking-tight flex items-center gap-2">
                   <Zap size={20} className="text-amber-400" />
                   Upgrade Potential
@@ -121,7 +121,7 @@ const OrganizerSettings = () => {
 
          {/* Settings Form */}
          <div className="lg:col-span-2 space-y-8">
-            <form onSubmit={handleUpdate} className="bg-white rounded-[3rem] border border-gray-100 shadow-sm overflow-hidden">
+            <form onSubmit={handleUpdate} className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
                <div className="p-8 lg:p-10 border-b border-gray-50 flex items-center justify-between">
                   <div className="flex items-center gap-4">
                      <div className="w-12 h-12 bg-blue-50 text-primary rounded-2xl flex items-center justify-center">
@@ -139,7 +139,7 @@ const OrganizerSettings = () => {
                   </button>
                </div>
 
-               <div className="p-8 lg:p-10 space-y-8">
+               <div className="p-6 md:p-8 lg:p-10 space-y-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                      <div className="space-y-3">
                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Organizer Website</label>

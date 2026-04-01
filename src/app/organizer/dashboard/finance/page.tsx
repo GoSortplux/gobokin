@@ -92,7 +92,7 @@ const FinanceDashboard = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-4xl font-black text-gray-900 tracking-tight">Financial Overview</h1>
+          <h1 className="text-4xl font-black text-primary tracking-tight">Financial Overview</h1>
           <p className="text-gray-500 font-medium mt-1">Monitor your earnings, transactions, and payouts.</p>
         </div>
         <div className="flex items-center gap-3">
@@ -112,7 +112,7 @@ const FinanceDashboard = () => {
 
       {/* Main Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-         <div className="bg-gray-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden lg:col-span-2 shadow-2xl shadow-blue-900/20">
+         <div className="bg-gray-900 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden lg:col-span-2 shadow-2xl shadow-blue-900/20">
             <div className="relative z-10 space-y-8">
                <div className="flex items-center justify-between">
                   <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-primary backdrop-blur-md">
@@ -145,7 +145,7 @@ const FinanceDashboard = () => {
             <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-primary/20 rounded-full blur-3xl"></div>
          </div>
 
-         <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-blue-900/5 transition-all duration-300 group flex flex-col justify-between">
+         <div className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-blue-900/5 transition-all duration-300 group flex flex-col justify-between">
             <div className="w-14 h-14 bg-blue-50 text-primary rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                <TrendingUp size={28} />
             </div>
@@ -186,7 +186,7 @@ const FinanceDashboard = () => {
                </div>
             </div>
 
-            <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
                {summary?.recentTransactions && summary.recentTransactions.length > 0 ? (
                  <div className="divide-y divide-gray-50">
                     {summary.recentTransactions.map((tx, idx) => (
@@ -237,7 +237,7 @@ const FinanceDashboard = () => {
 
          {/* Sidebar Tools */}
          <div className="space-y-8">
-            <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm p-8 space-y-8">
+            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 md:p-8 space-y-8">
                <h3 className="text-xl font-black text-gray-900 tracking-tight">Payout Settings</h3>
                <div className="p-6 bg-gray-50 rounded-3xl space-y-6 relative overflow-hidden">
                   <div className="relative z-10">
@@ -281,7 +281,7 @@ const FinanceDashboard = () => {
             </div>
 
             {/* Need Help? */}
-            <div className="bg-gray-900 rounded-[2.5rem] p-8 text-white space-y-4 relative overflow-hidden">
+            <div className="bg-gray-900 rounded-3xl p-8 text-white space-y-4 relative overflow-hidden">
                <div className="relative z-10">
                   <h4 className="text-lg font-black tracking-tight">Need financial help?</h4>
                   <p className="text-blue-100/60 text-sm leading-relaxed mb-6">Our dedicated finance team is available 24/7 to resolve any payment or withdrawal issues.</p>

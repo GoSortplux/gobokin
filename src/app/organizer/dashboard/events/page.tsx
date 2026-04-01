@@ -72,7 +72,7 @@ const MyEvents = () => {
       {/* Header & Search */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-4xl font-black text-gray-900 tracking-tight">My Events</h1>
+          <h1 className="text-4xl font-black text-primary tracking-tight">My Events</h1>
           <p className="text-gray-500 font-medium mt-1">Manage and monitor all your events in one place.</p>
         </div>
         <Link
@@ -85,7 +85,7 @@ const MyEvents = () => {
       </div>
 
       {/* Toolbar */}
-      <div className="bg-white p-4 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col lg:flex-row items-center gap-4">
+      <div className="bg-white p-2 md:p-3 rounded-2xl md:rounded-[2rem] border border-gray-100 shadow-sm flex flex-col lg:flex-row items-center gap-4">
         <div className="relative flex-1 w-full">
           <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
           <input
@@ -134,9 +134,9 @@ const MyEvents = () => {
       {/* Content */}
       {filteredEvents.length > 0 ? (
         viewMode === "grid" ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {filteredEvents.map((event) => (
-              <div key={event.id} className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden hover:shadow-2xl hover:shadow-blue-900/10 transition-all duration-500 group relative">
+              <div key={event.id} className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-xl transition-all duration-500 group relative">
                 <div className="relative h-56 w-full overflow-hidden">
                   {event.bannerUrl ? (
                     <Image src={event.bannerUrl} alt={event.title} fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
@@ -205,7 +205,7 @@ const MyEvents = () => {
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead className="bg-gray-50 border-b border-gray-100">

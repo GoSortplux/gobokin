@@ -45,12 +45,12 @@ const OrdersView = () => {
   return (
     <div className="space-y-8 pb-12 px-2">
       <div>
-        <h1 className="text-4xl font-black text-gray-900 tracking-tight">Orders & Registrations</h1>
+        <h1 className="text-4xl font-black text-primary tracking-tight">Orders & Registrations</h1>
         <p className="text-gray-500 font-medium mt-1">Track ticket sales and attendee registration data across all your events.</p>
       </div>
 
       {/* Toolbar */}
-      <div className="bg-white p-4 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col lg:flex-row items-center gap-4">
+      <div className="bg-white p-2 md:p-3 rounded-2xl md:rounded-[2rem] border border-gray-100 shadow-sm flex flex-col lg:flex-row items-center gap-4">
         <div className="relative flex-1 w-full">
           <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
           <input
@@ -68,7 +68,7 @@ const OrdersView = () => {
       </div>
 
       {/* Orders Table */}
-      <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
          <div className="overflow-x-auto">
             <table className="w-full text-left">
                <thead className="bg-gray-50 border-b border-gray-100">

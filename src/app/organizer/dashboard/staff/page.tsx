@@ -93,7 +93,7 @@ const StaffPool = () => {
     <div className="space-y-8 pb-12 px-2">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-4xl font-black text-gray-900 tracking-tight">Staff Pool</h1>
+          <h1 className="text-4xl font-black text-primary tracking-tight">Staff Pool</h1>
           <p className="text-gray-500 font-medium mt-1">Manage your global pool of event staff and managers.</p>
         </div>
         <button
@@ -106,7 +106,7 @@ const StaffPool = () => {
       </div>
 
       {/* Toolbar */}
-      <div className="bg-white p-4 rounded-[2rem] border border-gray-100 shadow-sm flex items-center gap-4">
+      <div className="bg-white p-2 md:p-3 rounded-2xl md:rounded-[2rem] border border-gray-100 shadow-sm flex items-center gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
           <input
@@ -122,7 +122,7 @@ const StaffPool = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {staff.length > 0 ? (
           staff.map((member) => (
-            <div key={member.id} className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-blue-900/5 transition-all duration-500 group relative overflow-hidden">
+            <div key={member.id} className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-blue-900/5 transition-all duration-500 group relative overflow-hidden">
                <div className="absolute -top-12 -right-12 w-32 h-32 bg-gray-50 rounded-full group-hover:bg-primary/5 transition-colors duration-500"></div>
 
                <div className="flex items-center gap-5 relative z-10">
@@ -164,7 +164,7 @@ const StaffPool = () => {
             </div>
           ))
         ) : (
-          <div className="col-span-full bg-white p-20 text-center rounded-[3rem] border border-gray-100 shadow-sm">
+          <div className="col-span-full bg-white p-20 text-center rounded-3xl border border-gray-100 shadow-sm">
              <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300">
                 <Users size={48} />
              </div>

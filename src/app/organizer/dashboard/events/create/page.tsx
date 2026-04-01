@@ -191,7 +191,7 @@ const CreateEvent = () => {
             <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
             Exit Creator
           </button>
-          <h1 className="text-4xl font-black text-gray-900 tracking-tight">Create New Event</h1>
+          <h1 className="text-4xl font-black text-primary tracking-tight">Create New Event</h1>
           <p className="text-gray-500 font-medium mt-1">Set the stage for an unforgettable experience.</p>
         </div>
 
