@@ -10,7 +10,6 @@ import {
   Ticket,
   Eye,
   MoreVertical,
-  ChevronRight,
   Search,
   Filter,
   BarChart3,
@@ -231,7 +230,7 @@ const OrganizerDashboard = () => {
             </div>
             <Link href="/organizer/dashboard/events" className="flex items-center gap-1.5 text-primary text-sm font-black hover:gap-2 transition-all group">
                 View All Events
-                <ChevronRight size={16} className="mt-0.5" />
+                <ArrowRight size={16} className="mt-0.5" />
             </Link>
           </div>
 

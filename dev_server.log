@@ -82,3 +82,11 @@ Import trace for requested module:
  ✓ Compiled in 669ms (2282 modules)
  ✓ Compiled in 1874ms (2282 modules)
  ✓ Compiled in 637ms (2282 modules)
+ ✓ Compiled in 17.4s (3265 modules)
+ ✓ Compiled in 1416ms (2282 modules)
+ ○ Compiling /organizer/dashboard ...
+ ✓ Compiled /organizer/dashboard in 2.2s (1487 modules)
+ GET /organizer/dashboard 200 in 3741ms
+ GET /auth/login 200 in 159ms
+ GET /organizer/dashboard 200 in 229ms
+ GET /auth/login 200 in 110ms
