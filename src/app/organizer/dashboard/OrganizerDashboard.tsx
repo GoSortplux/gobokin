@@ -16,7 +16,8 @@ import {
   ShieldCheck,
   Star,
   Activity,
-  Bell
+  Bell,
+  ChevronRight
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
