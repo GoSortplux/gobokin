@@ -9,6 +9,7 @@ import CustomLoader from "@/components/CustomLoader";
 
 interface Settings {
     commissionRate: number;
+    vatRate: number;
     pendingBookingDeletionTime: number;
     onlineBookingReactivationTime: number;
     onlineBookingDeactivationTime: number;
@@ -25,8 +26,9 @@ const SettingsPage = () => {
     useEffect(() => {
         const fetchSettings = async () => {
             try {
-                const [commissionRes, pendingRes, reactivationRes, deactivationRes] = await Promise.allSettled([
+                const [commissionRes, vatRes, pendingRes, reactivationRes, deactivationRes] = await Promise.allSettled([
                     api.get('/settings/commission-rate'),
+                    api.get('/settings/vat-rate'),
                     api.get('/settings/pending-booking-deletion-time'),
                     api.get('/settings/online-booking-reactivation-time'),
                     api.get('/settings/online-booking-deactivation-time')
@@ -36,6 +38,9 @@ const SettingsPage = () => {
 
                 if (commissionRes.status === 'fulfilled') {
                     newSettings.commissionRate = commissionRes.value.data.data.value ?? commissionRes.value.data.data.rate;
+                }
+                if (vatRes.status === 'fulfilled') {
+                    newSettings.vatRate = vatRes.value.data.data.rate ?? vatRes.value.data.data.value;
                 }
                 if (pendingRes.status === 'fulfilled') {
                     newSettings.pendingBookingDeletionTime = pendingRes.value.data.data.time;
@@ -59,16 +64,16 @@ const SettingsPage = () => {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-        setSettings(prev => ({ ...prev, [name]: value === '' ? '' : parseInt(value, 10) }));
+        setSettings(prev => ({ ...prev, [name]: value === '' ? '' : parseFloat(value) }));
     };
 
     const validate = (name: keyof Settings, value: string | number | undefined): string | null => {
         if (value === undefined || value === '') return "Value is required";
-        const numValue = typeof value === 'string' ? parseInt(value, 10) : value;
+        const numValue = typeof value === 'string' ? parseFloat(value) : value;
         if (isNaN(numValue)) return "Please enter a valid number";
 
-        if (name === 'commissionRate') {
-            if (numValue < 0 || numValue > 100) return "Commission rate must be between 0 and 100";
+        if (name === 'commissionRate' || name === 'vatRate') {
+            if (numValue < 0 || numValue > 100) return "Rate must be between 0 and 100";
         } else {
             if (numValue < 1) return "Value must be at least 1 minute";
         }
@@ -234,6 +239,15 @@ const SettingsPage = () => {
                                 value={settings.commissionRate}
                                 onSave={() => handleSave('commissionRate', '/settings/commission-rate', { rate: settings.commissionRate }, 'Commission rate updated.')}
                                 placeholder="e.g., 10"
+                                unit="%"
+                            />
+                            <SettingCard
+                                id="vatRate"
+                                label="Platform VAT Rate"
+                                description="The VAT percentage applied to transaction fees across the platform. This is typically used for compliance with regional tax regulations."
+                                value={settings.vatRate}
+                                onSave={() => handleSave('vatRate', '/settings/vat-rate', { rate: settings.vatRate }, 'VAT rate updated.')}
+                                placeholder="e.g., 7.5"
                                 unit="%"
                             />
                         </div>
