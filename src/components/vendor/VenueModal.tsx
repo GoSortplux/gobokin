@@ -182,7 +182,7 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
   const [countries, setCountries] = useState<{ _id: string; name: string }[]>([]);
   const [states, setStates] = useState<{ _id: string; name: string }[]>([]);
   const [lgas, setLgas] = useState<{ _id: string; name: string }[]>([]);
-  const [userVenues, setUserVenues] = useState<{ id: string; _id: string; name: string }[]>([]);
+  const [userVenues, setUserVenues] = useState<{ id: string; _id: string; name: string; slug?: string }[]>([]);
   const [isImporting, setIsImporting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -1037,7 +1037,7 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
               >
                 <option value="" disabled>{isImporting ? 'Importing...' : 'Select a venue to import config'}</option>
                 {userVenues.map((v) => (
-                  <option key={v._id || v.id} value={v._id || v.id}>{v.name}</option>
+                  <option key={v._id || v.id} value={v.slug || v._id || v.id}>{v.name}</option>
                 ))}
               </select>
             </div>
@@ -1890,7 +1890,49 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
                           </div>
                         </div>
 
-                        <div className="space-y-4">
+                        <div className="space-y-6">
+                          <div className="flex items-center gap-4 bg-gray-50/50 p-3 rounded-xl border border-gray-100">
+                            <label className="flex items-center gap-2 cursor-pointer group">
+                              <input
+                                type="checkbox"
+                                name="isTaxEnabled"
+                                checked={formData.isTaxEnabled}
+                                onChange={handleChange}
+                                className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                              />
+                              <span className="text-xs font-bold text-gray-700 group-hover:text-gray-900">Enable Tax & Service Charge</span>
+                            </label>
+                          </div>
+
+                          {formData.isTaxEnabled && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                              <div>
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Service Charge (%)</label>
+                                <input
+                                  type="number"
+                                  name="serviceChargePercentage"
+                                  placeholder="e.g., 10"
+                                  value={formData.serviceChargePercentage}
+                                  onChange={handleChange}
+                                  className={`w-full px-4 py-2.5 bg-gray-50/50 border ${errors.serviceChargePercentage ? 'border-red-500' : 'border-gray-200'} rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary/20 transition-all`}
+                                />
+                                {errors.serviceChargePercentage && <p className="text-red-500 text-[10px] mt-1 font-bold ml-1">{errors.serviceChargePercentage}</p>}
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">VAT (%)</label>
+                                <input
+                                  type="number"
+                                  name="vatPercentage"
+                                  placeholder="e.g., 7.5"
+                                  value={formData.vatPercentage}
+                                  onChange={handleChange}
+                                  className={`w-full px-4 py-2.5 bg-gray-50/50 border ${errors.vatPercentage ? 'border-red-500' : 'border-gray-200'} rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary/20 transition-all`}
+                                />
+                                {errors.vatPercentage && <p className="text-red-500 text-[10px] mt-1 font-bold ml-1">{errors.vatPercentage}</p>}
+                              </div>
+                            </div>
+                          )}
+
                           <div className="flex items-center gap-2 mb-2">
                              <Info size={14} className="text-primary" />
                              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Booking Buffers</span>
