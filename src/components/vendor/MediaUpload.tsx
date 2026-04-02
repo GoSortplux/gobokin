@@ -31,9 +31,16 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ hallId, initialImages = [], i
     let images = isSuperAdmin ? Infinity : FALLBACK_MAX_IMAGES;
     let videos = isSuperAdmin ? Infinity : FALLBACK_MAX_VIDEOS;
 
-    if (subscription?.rules) {
-      const imageRule = subscription.rules.find(r => r.rule.key === 'max_images');
-      const videoRule = subscription.rules.find(r => r.rule.key === 'max_videos');
+    if (subscription?.allowances) {
+      if (typeof subscription.allowances.max_images === 'number') {
+        images = subscription.allowances.max_images;
+      }
+      if (typeof subscription.allowances.max_videos === 'number') {
+        videos = subscription.allowances.max_videos;
+      }
+    } else if (subscription?.tier?.rules) {
+      const imageRule = subscription.tier.rules.find(r => r.rule.key === 'max_images');
+      const videoRule = subscription.tier.rules.find(r => r.rule.key === 'max_videos');
 
       if (imageRule && typeof imageRule.value === 'number') {
         images = imageRule.value;
