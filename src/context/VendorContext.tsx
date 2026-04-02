@@ -8,15 +8,22 @@ interface Subscription {
   tier: {
     maxHalls: number;
     name: string;
+    rules: {
+      rule: {
+        key: string;
+        [key: string]: unknown;
+      };
+      value: number | string | boolean;
+      displayText?: string;
+    }[];
   };
-  rules: {
-    rule: {
-      key: string;
-      [key: string]: unknown;
-    };
-    value: number | string | boolean;
-    displayText?: string;
-  }[];
+  allowances?: {
+    max_hall?: number;
+    max_staff?: number;
+    max_videos?: number;
+    max_images?: number;
+    [key: string]: number | string | boolean | undefined;
+  };
   status: string;
   expiryDate?: string;
   purchaseDate?: string;
@@ -62,7 +69,7 @@ export const VendorProvider = ({ children }: { children: ReactNode }) => {
     fetchData();
   }, [fetchData]);
 
-  const maxHalls = subscription?.tier?.maxHalls || 0;
+  const maxHalls = subscription?.allowances?.max_hall || subscription?.tier?.maxHalls || 0;
   const isLimitReached = maxHalls > 0 && hallsCount >= maxHalls;
 
   return (
