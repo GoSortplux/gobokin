@@ -249,6 +249,9 @@ export interface Venue {
   directionUrl?: string;
   createdAt?: string;
   distance?: number;
+  isTaxEnabled?: boolean;
+  serviceChargePercentage?: number;
+  vatPercentage?: number;
 }
 
 export interface Notification {

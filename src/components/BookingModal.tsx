@@ -108,6 +108,23 @@ const BookingModal: FC<BookingModalProps> = ({
   const { user } = useAuth();
   const router = useRouter();
 
+  const taxDetails = useMemo(() => {
+    if (!venue?.isTaxEnabled) return { serviceCharge: 0, vat: 0, totalWithTax: 0 };
+
+    const baseSubtotal = (quoteData?.hallPrice || hallCost || 0) +
+                        (quoteData?.facilitiesPrice || (totalPrice - hallCost) || 0) -
+                        (quoteData?.discountAmount || 0);
+
+    const serviceCharge = baseSubtotal * (venue.serviceChargePercentage || 0) / 100;
+    const vat = (baseSubtotal + serviceCharge) * (venue.vatPercentage || 0) / 100;
+
+    return {
+      serviceCharge,
+      vat,
+      totalWithTax: baseSubtotal + serviceCharge + vat
+    };
+  }, [venue, quoteData, hallCost, totalPrice]);
+
   const { disabledHours, getDateAvailability, getDisabledHoursForDate } = useBookingAvailability(venue, selectedDates, displayedMonth);
 
   const isAllFullyAvailable = useMemo(() => {
@@ -1054,11 +1071,24 @@ const BookingModal: FC<BookingModalProps> = ({
                             </div>
                           )}
                           <div className="h-px bg-white/10 my-4" />
+                          {venue?.isTaxEnabled && (venue.serviceChargePercentage || 0) > 0 && (
+                            <div className="flex justify-between text-sm text-white/60">
+                              <span>Service Charge ({venue.serviceChargePercentage}%)</span>
+                              <span className="font-bold text-white">₦{taxDetails.serviceCharge.toLocaleString()}</span>
+                            </div>
+                          )}
+                          {venue?.isTaxEnabled && (venue.vatPercentage || 0) > 0 && (
+                            <div className="flex justify-between text-sm text-white/60">
+                              <span>VAT ({venue.vatPercentage}%)</span>
+                              <span className="font-bold text-white">₦{taxDetails.vat.toLocaleString()}</span>
+                            </div>
+                          )}
+                          <div className="h-px bg-white/10 my-4" />
                           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2">
                             <span className="text-white/60 text-sm font-medium">Total Price</span>
                             <div className="sm:text-right">
                               <div className="text-3xl md:text-4xl font-black text-white leading-tight">
-                                ₦{(quoteData.feeBreakdown?.serviceTotal || quoteData.totalPrice).toLocaleString()}
+                                ₦{(venue?.isTaxEnabled ? taxDetails.totalWithTax : (quoteData.feeBreakdown?.serviceTotal || quoteData.totalPrice)).toLocaleString()}
                               </div>
                               <p className="text-[10px] text-white/40 mt-1 font-medium">Excludes transaction fees</p>
                             </div>

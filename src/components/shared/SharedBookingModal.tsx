@@ -58,6 +58,9 @@ interface HallItem {
   reservationFeePercentage?: number;
   openingHour?: number;
   closingHour?: number;
+  isTaxEnabled?: boolean;
+  serviceChargePercentage?: number;
+  vatPercentage?: number;
 }
 
 interface QuoteData {
@@ -164,6 +167,23 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
   const selectedDatesArray = useMemo(() => formData.dates.map(date => parseLocalDate(date)), [formData.dates]);
   // @ts-expect-error - selectedVenueObj matches required properties of Venue
   const { getDateAvailability, disabledHours, getDisabledHoursForDate } = useBookingAvailability(selectedVenueObj, selectedDatesArray, displayedMonth);
+
+  const taxDetails = useMemo(() => {
+    if (!selectedVenueObj?.isTaxEnabled) return { serviceCharge: 0, vat: 0, totalWithTax: 0 };
+
+    const baseSubtotal = (quoteData?.hallPrice || hallPrice || 0) +
+                        (quoteData?.facilitiesPrice || facilitiesPrice || 0) -
+                        (quoteData?.discountAmount || discountAmount || 0);
+
+    const serviceCharge = baseSubtotal * (selectedVenueObj.serviceChargePercentage || 0) / 100;
+    const vat = (baseSubtotal + serviceCharge) * (selectedVenueObj.vatPercentage || 0) / 100;
+
+    return {
+      serviceCharge,
+      vat,
+      totalWithTax: baseSubtotal + serviceCharge + vat
+    };
+  }, [selectedVenueObj, quoteData, hallPrice, facilitiesPrice, discountAmount]);
 
   const handleBookFullDay = useCallback((checked: boolean) => {
     if (!selectedVenueObj) return;
@@ -1268,6 +1288,18 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                           <span className="font-bold">-₦{quoteData.discountAmount.toLocaleString()}</span>
                         </div>
                       )}
+                      {selectedVenueObj?.isTaxEnabled && (selectedVenueObj.serviceChargePercentage || 0) > 0 && (
+                        <div className="flex justify-between text-xs text-gray-500">
+                          <span>Service Charge ({selectedVenueObj.serviceChargePercentage}%):</span>
+                          <span className="font-bold text-gray-900">₦{taxDetails.serviceCharge.toLocaleString()}</span>
+                        </div>
+                      )}
+                      {selectedVenueObj?.isTaxEnabled && (selectedVenueObj.vatPercentage || 0) > 0 && (
+                        <div className="flex justify-between text-xs text-gray-500">
+                          <span>VAT ({selectedVenueObj.vatPercentage}%):</span>
+                          <span className="font-bold text-gray-900">₦{taxDetails.vat.toLocaleString()}</span>
+                        </div>
+                      )}
                       <div className="flex justify-between text-[10px] text-amber-600">
                         <span>Transaction Fee:</span>
                         <span className="font-bold">Transaction fees may apply</span>
@@ -1276,7 +1308,9 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                     <div className="flex flex-col justify-end space-y-3">
                       <div className="text-right">
                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Total Amount Due</span>
-                        <span className="text-3xl font-black text-primary italic leading-none">₦{(quoteData.feeBreakdown?.serviceTotal || quoteData.totalPrice).toLocaleString()}</span>
+                        <span className="text-3xl font-black text-primary italic leading-none">
+                          ₦{(selectedVenueObj?.isTaxEnabled ? taxDetails.totalWithTax : (quoteData.feeBreakdown?.serviceTotal || quoteData.totalPrice)).toLocaleString()}
+                        </span>
                         <p className="text-[10px] text-gray-400 font-medium mt-1">Excludes transaction fees</p>
                       </div>
                       {quoteData.reservationFeeDetails && (
@@ -1625,6 +1659,18 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                           <span className="font-bold">-₦{quoteData.discountAmount.toLocaleString()}</span>
                         </div>
                       )}
+                      {selectedVenueObj?.isTaxEnabled && (selectedVenueObj.serviceChargePercentage || 0) > 0 && (
+                        <div className="flex justify-between text-xs text-gray-500">
+                          <span>Service Charge ({selectedVenueObj.serviceChargePercentage}%):</span>
+                          <span className="font-bold text-gray-900">₦{taxDetails.serviceCharge.toLocaleString()}</span>
+                        </div>
+                      )}
+                      {selectedVenueObj?.isTaxEnabled && (selectedVenueObj.vatPercentage || 0) > 0 && (
+                        <div className="flex justify-between text-xs text-gray-500">
+                          <span>VAT ({selectedVenueObj.vatPercentage}%):</span>
+                          <span className="font-bold text-gray-900">₦{taxDetails.vat.toLocaleString()}</span>
+                        </div>
+                      )}
                       <div className="flex justify-between text-[10px] text-amber-600">
                         <span>Transaction Fee:</span>
                         <span className="font-bold">Transaction fees may apply</span>
@@ -1633,7 +1679,9 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                     <div className="flex flex-col justify-end space-y-3">
                       <div className="text-right">
                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Total Amount Due</span>
-                        <span className="text-3xl font-black text-primary italic leading-none">₦{(quoteData.feeBreakdown?.serviceTotal || quoteData.totalPrice).toLocaleString()}</span>
+                        <span className="text-3xl font-black text-primary italic leading-none">
+                          ₦{(selectedVenueObj?.isTaxEnabled ? taxDetails.totalWithTax : (quoteData.feeBreakdown?.serviceTotal || quoteData.totalPrice)).toLocaleString()}
+                        </span>
                         <p className="text-[10px] text-gray-400 font-medium mt-1">Excludes transaction fees</p>
                       </div>
                     </div>
@@ -1940,6 +1988,18 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                           <span className="font-bold">-₦{quoteData.discountAmount.toLocaleString()}</span>
                         </div>
                       )}
+                      {selectedVenueObj?.isTaxEnabled && (selectedVenueObj.serviceChargePercentage || 0) > 0 && (
+                        <div className="flex justify-between text-xs text-gray-500">
+                          <span>Service Charge ({selectedVenueObj.serviceChargePercentage}%):</span>
+                          <span className="font-bold text-gray-900">₦{taxDetails.serviceCharge.toLocaleString()}</span>
+                        </div>
+                      )}
+                      {selectedVenueObj?.isTaxEnabled && (selectedVenueObj.vatPercentage || 0) > 0 && (
+                        <div className="flex justify-between text-xs text-gray-500">
+                          <span>VAT ({selectedVenueObj.vatPercentage}%):</span>
+                          <span className="font-bold text-gray-900">₦{taxDetails.vat.toLocaleString()}</span>
+                        </div>
+                      )}
                       <div className="flex justify-between text-[10px] text-amber-600">
                         <span>Transaction Fee:</span>
                         <span className="font-bold">Transaction fees may apply</span>
@@ -1948,7 +2008,9 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                     <div className="flex flex-col justify-end space-y-3">
                       <div className="text-right">
                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Total Amount Due</span>
-                        <span className="text-3xl font-black text-primary italic leading-none">₦{(quoteData.feeBreakdown?.serviceTotal || quoteData.totalPrice).toLocaleString()}</span>
+                        <span className="text-3xl font-black text-primary italic leading-none">
+                          ₦{(selectedVenueObj?.isTaxEnabled ? taxDetails.totalWithTax : (quoteData.feeBreakdown?.serviceTotal || quoteData.totalPrice)).toLocaleString()}
+                        </span>
                         <p className="text-[10px] text-gray-400 font-medium mt-1">Excludes transaction fees</p>
                       </div>
                     </div>
