@@ -39,6 +39,8 @@ interface QuoteData {
   facilitiesPrice: number;
   discountAmount: number;
   discountType?: string;
+  serviceCharge?: number;
+  vat?: number;
   feeBreakdown: {
     serviceTotal: number;
     transactionFee: number;
@@ -111,12 +113,19 @@ const BookingModal: FC<BookingModalProps> = ({
   const taxDetails = useMemo(() => {
     if (!venue?.isTaxEnabled) return { serviceCharge: 0, vat: 0, totalWithTax: 0 };
 
-    const baseSubtotal = (quoteData?.hallPrice || hallCost || 0) +
-                        (quoteData?.facilitiesPrice || (totalPrice - hallCost) || 0) -
-                        (quoteData?.discountAmount || 0);
+    if (quoteData) {
+      return {
+        serviceCharge: quoteData.serviceCharge || 0,
+        vat: quoteData.vat || 0,
+        totalWithTax: quoteData.totalPrice || 0
+      };
+    }
+
+    const baseSubtotal = (hallCost || 0) + ((totalPrice - hallCost) || 0);
 
     const serviceCharge = baseSubtotal * (venue.serviceChargePercentage || 0) / 100;
-    const vat = (baseSubtotal + serviceCharge) * (venue.vatPercentage || 0) / 100;
+    // Align with backend: calculate VAT on subtotal, not on subtotal + service charge
+    const vat = baseSubtotal * (venue.vatPercentage || 0) / 100;
 
     return {
       serviceCharge,

@@ -69,6 +69,8 @@ interface QuoteData {
   facilitiesPrice: number;
   discountAmount: number;
   discountType?: string;
+  serviceCharge?: number;
+  vat?: number;
   feeBreakdown: {
     serviceTotal: number;
     transactionFee: number;
@@ -171,12 +173,18 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
   const taxDetails = useMemo(() => {
     if (!selectedVenueObj?.isTaxEnabled) return { serviceCharge: 0, vat: 0, totalWithTax: 0 };
 
-    const baseSubtotal = (quoteData?.hallPrice || hallPrice || 0) +
-                        (quoteData?.facilitiesPrice || facilitiesPrice || 0) -
-                        (quoteData?.discountAmount || discountAmount || 0);
+    if (quoteData) {
+      return {
+        serviceCharge: quoteData.serviceCharge || 0,
+        vat: quoteData.vat || 0,
+        totalWithTax: quoteData.totalPrice || 0
+      };
+    }
+
+    const baseSubtotal = (hallPrice || 0) + (facilitiesPrice || 0) - (discountAmount || 0);
 
     const serviceCharge = baseSubtotal * (selectedVenueObj.serviceChargePercentage || 0) / 100;
-    const vat = (baseSubtotal + serviceCharge) * (selectedVenueObj.vatPercentage || 0) / 100;
+    const vat = baseSubtotal * (selectedVenueObj.vatPercentage || 0) / 100;
 
     return {
       serviceCharge,
