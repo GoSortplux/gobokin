@@ -9,6 +9,7 @@ import Swal from "@/utils/sweetalert";
 import Calendar from '../Calendar';
 import CustomLoader from '../CustomLoader';
 import { useBookingAvailability } from '@/hooks/useBookingAvailability';
+import { ReferralSource } from '@/types';
 import {
   format,
   addDays,
@@ -143,6 +144,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
   const [usePerDateTimes, setUsePerDateTimes] = useState(false);
   const [dateTimes, setDateTimes] = useState<Record<string, { startTime: string; endTime: string }>>({});
   const [paymentOptions, setPaymentOptions] = useState<{ paymentMethods: string[]; paymentStatuses: string[] }>({ paymentMethods: [], paymentStatuses: [] });
+  const [referralSources, setReferralSources] = useState<ReferralSource[]>([]);
   const [displayedMonth, setDisplayedMonth] = useState(new Date());
   const [recurrencePattern, setRecurrencePattern] = useState<'none' | 'weekly' | 'monthly-fixed' | 'monthly-relative'>('none');
   const [formData, setFormData] = useState({
@@ -163,6 +165,9 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
     paymentStatus: 'pending',
     selectedFacilities: [] as { facilityId: string; quantity: number }[],
     manualDiscount: 0,
+    referralCode: '',
+    referralSource: '',
+    referralSourceOther: '',
   });
 
   const selectedVenueObj = useMemo(() => venues.find(h => h._id === formData.hall) || null, [venues, formData.hall]);
@@ -314,6 +319,9 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
         paymentStatus: 'pending',
         selectedFacilities: [],
         manualDiscount: 0,
+        referralCode: '',
+        referralSource: '',
+        referralSourceOther: '',
       });
       setError('');
 
@@ -340,18 +348,29 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
             };
           }
           setPaymentOptions(data);
-      } catch (err: unknown) {
-        console.error('Failed to fetch payment options:', err);
-        const fallbackStatuses = userRole === 'vendor'
-          ? ['pending', 'paid']
-          : ['pending', 'paid', 'failed', 'refunded'];
-        setPaymentOptions({
-          paymentMethods: ['CASH', 'BANK_TRANSFER', 'POS', 'ONLINE', 'CHEQUE'],
-          paymentStatuses: fallbackStatuses,
-        });
-      }
+        } catch (err: unknown) {
+          console.error('Failed to fetch payment options:', err);
+          const fallbackStatuses = userRole === 'vendor'
+            ? ['pending', 'paid']
+            : ['pending', 'paid', 'failed', 'refunded'];
+          setPaymentOptions({
+            paymentMethods: ['CASH', 'BANK_TRANSFER', 'POS', 'ONLINE', 'CHEQUE'],
+            paymentStatuses: fallbackStatuses,
+          });
+        }
       };
+
+      const fetchReferralSources = async () => {
+        try {
+          const response = await api.get('/settings/referral-sources');
+          setReferralSources(response.data.data || []);
+        } catch (err) {
+          console.error('Failed to fetch referral sources:', err);
+        }
+      };
+
       fetchPaymentOptions();
+      fetchReferralSources();
     }
   }, [isOpen, userRole]);
 
@@ -753,6 +772,9 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
       paymentMethod,
       paymentStatus,
       selectedFacilities,
+      referralCode,
+      referralSource,
+      referralSourceOther,
     } = formData;
 
     if (dates.length === 0) {
@@ -803,6 +825,9 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
       endTime: bookingDates[0].endTime,
       manualDiscount: applicableDiscount,
       discountPercentage: applicableDiscount,
+      referralCode,
+      referralSource,
+      referralSourceOther,
     };
 
     if (recurrenceType === 'weekly' || recurrenceType === 'monthly') {
@@ -857,7 +882,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
   const handleWalkInSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const { hall: venue, startTime, endTime, dates, eventDetails, fullName, email, phone, paymentMethod, paymentStatus, selectedFacilities } = formData;
+    const { hall: venue, startTime, endTime, dates, eventDetails, fullName, email, phone, paymentMethod, paymentStatus, selectedFacilities, referralCode, referralSource, referralSourceOther } = formData;
 
     if (dates.length === 0) {
       setError('Please select at least one date.');
@@ -901,13 +926,16 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
       selectedFacilities,
       manualDiscount: formData.manualDiscount,
       discountPercentage: formData.manualDiscount,
+      referralCode,
+      referralSource,
+      referralSourceOther,
     }, 'walk-in');
   };
 
   const handleReservationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const { hall: venue, startTime, endTime, dates, eventDetails, fullName, email, phone, paymentMethod, paymentStatus, selectedFacilities } = formData;
+    const { hall: venue, startTime, endTime, dates, eventDetails, fullName, email, phone, paymentMethod, paymentStatus, selectedFacilities, referralCode, referralSource, referralSourceOther } = formData;
 
     if (dates.length === 0) {
       setError('Please select at least one date.');
@@ -951,6 +979,9 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
       selectedFacilities,
       manualDiscount: formData.manualDiscount,
       discountPercentage: formData.manualDiscount,
+      referralCode,
+      referralSource,
+      referralSourceOther,
     }, 'reservation');
   };
 
@@ -1189,6 +1220,50 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                 <div>
                   <label className="block text-sm font-medium text-gray-800">Phone</label>
                   <input type="tel" name="phone" placeholder="Enter Phone Number" value={formData.phone} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900" />
+                </div>
+              </fieldset>
+              <fieldset className="border p-4 rounded-md">
+                <legend className="text-sm font-bold text-primary uppercase tracking-widest px-2">Referral Tracking</legend>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Referral Code</label>
+                    <input
+                      type="text"
+                      name="referralCode"
+                      placeholder="e.g. GBK-123"
+                      value={formData.referralCode}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 text-sm focus:ring-1 focus:ring-primary outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Referral Source</label>
+                    <select
+                      name="referralSource"
+                      value={formData.referralSource}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 text-sm focus:ring-1 focus:ring-primary outline-none"
+                    >
+                      <option value="">Select Source</option>
+                      {referralSources.map(source => (
+                        <option key={source._id} value={source._id}>{source.name}</option>
+                      ))}
+                      <option value="others">Others</option>
+                    </select>
+                  </div>
+                  {formData.referralSource === 'others' && (
+                    <div className="col-span-full">
+                      <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Specify Other Source</label>
+                      <input
+                        type="text"
+                        name="referralSourceOther"
+                        placeholder="Please specify..."
+                        value={formData.referralSourceOther}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 text-sm focus:ring-1 focus:ring-primary outline-none"
+                      />
+                    </div>
+                  )}
                 </div>
               </fieldset>
               <div>
@@ -1560,6 +1635,50 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                   <input type="tel" name="phone" placeholder="Enter Phone Number" value={formData.phone} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900" />
                 </div>
               </fieldset>
+              <fieldset className="border p-4 rounded-md">
+                <legend className="text-sm font-bold text-primary uppercase tracking-widest px-2">Referral Tracking</legend>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Referral Code</label>
+                    <input
+                      type="text"
+                      name="referralCode"
+                      placeholder="e.g. GBK-123"
+                      value={formData.referralCode}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 text-sm focus:ring-1 focus:ring-primary outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Referral Source</label>
+                    <select
+                      name="referralSource"
+                      value={formData.referralSource}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 text-sm focus:ring-1 focus:ring-primary outline-none"
+                    >
+                      <option value="">Select Source</option>
+                      {referralSources.map(source => (
+                        <option key={source._id} value={source._id}>{source.name}</option>
+                      ))}
+                      <option value="others">Others</option>
+                    </select>
+                  </div>
+                  {formData.referralSource === 'others' && (
+                    <div className="col-span-full">
+                      <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Specify Other Source</label>
+                      <input
+                        type="text"
+                        name="referralSourceOther"
+                        placeholder="Please specify..."
+                        value={formData.referralSourceOther}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 text-sm focus:ring-1 focus:ring-primary outline-none"
+                      />
+                    </div>
+                  )}
+                </div>
+              </fieldset>
 
               <div>
                 <label className="block text-sm font-medium text-gray-800">Facilities</label>
@@ -1891,6 +2010,50 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                 <div>
                   <label className="block text-sm font-medium text-gray-800">Phone</label>
                   <input type="tel" name="phone" placeholder="Enter Phone Number" value={formData.phone} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900" />
+                </div>
+              </fieldset>
+              <fieldset className="border p-4 rounded-md">
+                <legend className="text-sm font-bold text-primary uppercase tracking-widest px-2">Referral Tracking</legend>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Referral Code</label>
+                    <input
+                      type="text"
+                      name="referralCode"
+                      placeholder="e.g. GBK-123"
+                      value={formData.referralCode}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 text-sm focus:ring-1 focus:ring-primary outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Referral Source</label>
+                    <select
+                      name="referralSource"
+                      value={formData.referralSource}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 text-sm focus:ring-1 focus:ring-primary outline-none"
+                    >
+                      <option value="">Select Source</option>
+                      {referralSources.map(source => (
+                        <option key={source._id} value={source._id}>{source.name}</option>
+                      ))}
+                      <option value="others">Others</option>
+                    </select>
+                  </div>
+                  {formData.referralSource === 'others' && (
+                    <div className="col-span-full">
+                      <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Specify Other Source</label>
+                      <input
+                        type="text"
+                        name="referralSourceOther"
+                        placeholder="Please specify..."
+                        value={formData.referralSourceOther}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 text-sm focus:ring-1 focus:ring-primary outline-none"
+                      />
+                    </div>
+                  )}
                 </div>
               </fieldset>
               <div>

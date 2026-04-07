@@ -1,0 +1,19 @@
+
+> gobokin-app@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.5.9
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.2:3000
+
+ ✓ Starting...
+ ✓ Ready in 2.1s
+ ○ Compiling /venues/[slug] ...
+ ✓ Compiled /venues/[slug] in 18.3s (3866 modules)
+Failed to fetch venue with slug: test-venue, status: 404
+Failed to fetch venue with slug: test-venue, status: 404
+ GET /venues/test-venue 200 in 24306ms
+Failed to fetch venue with slug: test-venue, status: 404
+Failed to fetch venue with slug: test-venue, status: 404
+ GET /venues/test-venue 200 in 599ms
+ ✓ Compiled in 1265ms (1797 modules)

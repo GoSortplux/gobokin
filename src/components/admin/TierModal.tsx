@@ -21,6 +21,8 @@ const TierModal: React.FC<TierModalProps> = ({ isOpen, onClose, onSubmit, tier }
     features: [],
     rules: [],
     isPublic: false,
+    isPartnershipTier: false,
+    defaultCommissionRate: 0,
     discount: {
       type: 'percentage',
       value: 0,
@@ -58,6 +60,8 @@ const TierModal: React.FC<TierModalProps> = ({ isOpen, onClose, onSubmit, tier }
       setFormData({
         ...tier,
         isPublic: tier.isPublic ?? false,
+        isPartnershipTier: tier.isPartnershipTier ?? false,
+        defaultCommissionRate: tier.defaultCommissionRate ?? 0,
         rules: formattedRules,
         discount: tier.discount || {
           type: 'percentage',
@@ -77,6 +81,8 @@ const TierModal: React.FC<TierModalProps> = ({ isOpen, onClose, onSubmit, tier }
         features: [],
         rules: [],
         isPublic: false,
+        isPartnershipTier: false,
+        defaultCommissionRate: 0,
         discount: {
           type: 'percentage',
           value: 0,
@@ -213,6 +219,37 @@ const TierModal: React.FC<TierModalProps> = ({ isOpen, onClose, onSubmit, tier }
                 placeholder="Enter Price"
                 className="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Default Commission Rate (%)</label>
+              <input
+                type="number"
+                name="defaultCommissionRate"
+                required
+                value={formData.defaultCommissionRate}
+                onChange={handleChange}
+                placeholder="e.g. 10"
+                className="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              />
+            </div>
+            <div className="flex items-center justify-between p-4 bg-purple-50/50 rounded-2xl border border-purple-100">
+              <div className="flex flex-col">
+                <span className="text-sm font-bold text-purple-900 uppercase italic">Partnership Tier</span>
+                <span className="text-[10px] text-purple-700 font-medium">Is this a specialized partnership plan?</span>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="isPartnershipTier"
+                  checked={formData.isPartnershipTier}
+                  onChange={handleChange}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+              </label>
             </div>
           </div>
 

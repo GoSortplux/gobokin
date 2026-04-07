@@ -33,7 +33,8 @@ import {
   Users,
   Play,
   Share2,
-  MapPin
+  MapPin,
+  Ticket
 } from 'lucide-react';
 import Swal from "@/utils/sweetalert";
 
@@ -87,13 +88,94 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
   const [initialDateTimes, setInitialDateTimes] = useState<Record<string, { startTime: string; endTime: string }>>({});
   const [displayedMonth, setDisplayedMonth] = useState<Date>(new Date());
   const [isDemoModalOpen, setDemoModalOpen] = useState(false);
-  const [ownerContact, setOwnerContact] = useState({ phone: '' });
+  const [ownerContact, setOwnerContact] = useState({ phone: '', name: '', address: '', directionUrl: '' });
   const [isMediaViewerOpen, setMediaViewerOpen] = useState(false);
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
 
   const { getDateAvailability } = useBookingAvailability(venue, undefined, displayedMonth);
 
-  const isOnlineBookingEnabled = venue?.isOnlineBookingEnabled !== false;
+  const isOnlineBookingEnabled = (venue?.isOnlineBookingEnabled !== false) && (venue?.bookingMode === 'online' || !venue?.bookingMode);
+
+  const handleGenerateReferralCode = useCallback(async () => {
+    if (!user) {
+      localStorage.setItem('pendingAction', JSON.stringify({ hallId: slugOrId, action: 'generateReferral' }));
+      localStorage.setItem('returnUrl', window.location.pathname + window.location.search);
+      Swal.fire({
+        title: 'Want a discount?',
+        text: 'Please log in to generate your unique referral code.',
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonText: 'Log In',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#295FA7',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          router.push('/auth/login');
+        }
+      });
+      return;
+    }
+
+    const { value: formValues } = await Swal.fire({
+      title: 'Generate Discount Code',
+      html:
+        '<div class="text-left space-y-4">' +
+        '<p class="text-sm text-gray-500 mb-4">Enter your details to generate a unique discount code for this venue.</p>' +
+        '<div><label class="block text-xs font-bold text-gray-400 uppercase mb-1">Full Name</label>' +
+        `<input id="swal-fullname" class="swal2-input !mt-0 !w-full" value="${user.fullName || ''}"></div>` +
+        '<div><label class="block text-xs font-bold text-gray-400 uppercase mb-1">Phone Number</label>' +
+        `<input id="swal-phone" class="swal2-input !mt-0 !w-full" value="${user.phone || ''}"></div>` +
+        '<div><label class="block text-xs font-bold text-gray-400 uppercase mb-1">Email</label>' +
+        `<input id="swal-email" class="swal2-input !mt-0 !w-full" value="${user.email || ''}"></div>` +
+        '</div>',
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: 'Generate Code',
+      confirmButtonColor: '#295FA7',
+      preConfirm: () => {
+        const fullName = (document.getElementById('swal-fullname') as HTMLInputElement).value;
+        const phone = (document.getElementById('swal-phone') as HTMLInputElement).value;
+        const email = (document.getElementById('swal-email') as HTMLInputElement).value;
+        if (!fullName || !phone || !email) {
+          Swal.showValidationMessage('Please fill all fields');
+          return false;
+        }
+        return { fullName, phone, email };
+      }
+    });
+
+    if (formValues) {
+        try {
+            Swal.showLoading();
+            const targetId = venue?._id || venue?.id || slugOrId;
+            const response = await api.post(`/halls/${targetId}/generate-referral-code`, formValues);
+            const { code, discountPercentage } = response.data.data;
+
+            Swal.fire({
+                title: 'Your Discount Code',
+                html: `
+                    <div class="p-6 bg-blue-50 rounded-2xl border-2 border-dashed border-primary mt-4">
+                        <p class="text-4xl font-black text-primary tracking-widest uppercase mb-2">${code}</p>
+                        <p class="text-sm font-bold text-blue-700">Get ${discountPercentage}% OFF your booking!</p>
+                    </div>
+                    <p class="mt-4 text-xs text-gray-500">Show this code to the venue owner when making an offline booking.</p>
+                `,
+                icon: 'success',
+                confirmButtonText: 'Copy & Close',
+                confirmButtonColor: '#295FA7',
+            }).then(() => {
+                navigator.clipboard.writeText(code);
+                Swal.toast.fire({
+                    icon: 'success',
+                    title: 'Code copied to clipboard!'
+                });
+            });
+        } catch (err) {
+            console.error('Failed to generate referral code:', err);
+            Swal.fire('Error', translateError(err), 'error');
+        }
+    }
+  }, [user, venue, slugOrId, router]);
 
   const handleContactOwner = useCallback(async () => {
     if (!user) {
@@ -117,8 +199,19 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
     }
     try {
       const targetId = venue?._id || venue?.id || slugOrId;
-      const response = await api.post(`/halls/${targetId}/book-demo`);
-      setOwnerContact(response.data.data);
+
+      if (venue?.bookingMode === 'platform-managed' && venue.platformContact) {
+        setOwnerContact({
+            phone: venue.platformContact.phone,
+            name: venue.platformContact.name,
+            address: '',
+            directionUrl: ''
+        });
+      } else {
+        const response = await api.post(`/halls/${targetId}/book-demo`);
+        setOwnerContact(response.data.data);
+      }
+
       setDemoModalOpen(true);
     } catch (err: unknown) {
       console.error(`Failed to contact owner for venue with id ${slugOrId}:`, err);
@@ -244,6 +337,9 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
 
       if (isMatch && data.action === 'contactOwner') {
         handleContactOwner();
+        localStorage.removeItem('pendingAction');
+      } else if (isMatch && data.action === 'generateReferral') {
+        handleGenerateReferralCode();
         localStorage.removeItem('pendingAction');
       } else if (isMatch) {
         // If it's a match but not the right action, we might still want to clear it
@@ -567,10 +663,11 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
                   getDateAvailability={getDateAvailability}
                   onDateClick={(date) => {
                     if (!isOnlineBookingEnabled) {
+                      const msg = venue.bookingMessage || 'Online booking is currently disabled for this venue. Contact Owner to Book';
                       Swal.fire({
                         icon: 'info',
                         title: 'Contact Owner to Book',
-                        text: 'Online booking is currently disabled for this venue. Contact Owner to Book',
+                        text: msg,
                         confirmButtonColor: '#295FA7',
                       });
                       return;
@@ -730,45 +827,64 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
                 )}
               </div>
               {!isOnlineBookingEnabled && (
-                <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-3">
-                  <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-amber-800">
-                    Online booking is currently disabled for this venue. Contact Owner to Book
-                  </p>
+                <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-2xl flex flex-col gap-3">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <p className="text-sm font-medium text-amber-800">
+                      {venue.bookingMessage || 'Online booking is currently disabled for this venue.'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleContactOwner}
+                    className="w-full bg-primary text-white py-3 rounded-xl font-bold hover:bg-primary-dark transition duration-300 shadow-lg shadow-primary/20"
+                  >
+                    Contact Owner
+                  </button>
                 </div>
               )}
               {isOnlineBookingEnabled && (
-                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2">
-                  <button
-                    onClick={() => {
-                      setBookingMode('reserve');
-                      setInitialSelectedDates(undefined);
-                      setInitialStep(1);
-                      openBookingModal();
-                    }}
-                    className="w-full bg-transparent border border-[#B68945] text-[#B68945] cursor-pointer font-bold py-3 px-4 rounded-lg transition duration-300 hover:bg-[#B68945] hover:text-white"
-                  >
-                    Reserve Now
-                  </button>
-                  <button
-                    onClick={() => {
-                      setBookingMode('book');
-                      setInitialSelectedDates(undefined);
-                      setInitialStep(1);
-                      openBookingModal();
-                    }}
-                    className="w-full bg-[#295FA7] hover:bg-[#204a8a] cursor-pointer text-white font-bold py-3 px-4 rounded-lg transition duration-300"
-                  >
-                    Book Now
-                  </button>
-                </div>
+                <>
+                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <button
+                      onClick={() => {
+                        setBookingMode('reserve');
+                        setInitialSelectedDates(undefined);
+                        setInitialStep(1);
+                        openBookingModal();
+                      }}
+                      className="w-full bg-transparent border border-[#B68945] text-[#B68945] cursor-pointer font-bold py-3 px-4 rounded-lg transition duration-300 hover:bg-[#B68945] hover:text-white"
+                    >
+                      Reserve Now
+                    </button>
+                    <button
+                      onClick={() => {
+                        setBookingMode('book');
+                        setInitialSelectedDates(undefined);
+                        setInitialStep(1);
+                        openBookingModal();
+                      }}
+                      className="w-full bg-[#295FA7] hover:bg-[#204a8a] cursor-pointer text-white font-bold py-3 px-4 rounded-lg transition duration-300"
+                    >
+                      Book Now
+                    </button>
+                  </div>
+                  <div className="mt-2">
+                    <button
+                      onClick={handleContactOwner}
+                      className="w-full border border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-[#B68945] hover:text-white cursor-pointer transition duration-300"
+                    >
+                      Contact Owner
+                    </button>
+                  </div>
+                </>
               )}
               <div className="mt-2">
                 <button
-                  onClick={handleContactOwner}
-                  className="w-full border border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-[#B68945] hover:text-white cursor-pointer transition duration-300"
+                  onClick={handleGenerateReferralCode}
+                  className="w-full bg-emerald-50 text-emerald-700 border border-emerald-100 py-3 rounded-xl font-bold hover:bg-emerald-100 cursor-pointer transition duration-300 flex items-center justify-center gap-2"
                 >
-                  Contact Owner
+                  <Ticket size={18} />
+                  Generate Discount Code
                 </button>
               </div>
               <p className="text-center text-sm text-gray-500 mt-4">You won&apos;t be charged yet</p>
@@ -798,8 +914,9 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
             isOpen={isDemoModalOpen}
             onClose={() => setDemoModalOpen(false)}
             phone={ownerContact.phone}
-            directionUrl={venue.directionUrl}
-            address={venue.geoLocation?.address}
+            name={ownerContact.name}
+            directionUrl={venue.directionUrl || ownerContact.directionUrl}
+            address={venue.geoLocation?.address || ownerContact.address}
           />
         </>
       )}

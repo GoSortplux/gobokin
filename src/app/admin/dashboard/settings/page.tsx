@@ -4,8 +4,9 @@ import withAuth from "@/components/auth/withAuth";
 import api from "@/services/api";
 import Swal from "@/utils/sweetalert";
 import LoadingSpinner from "@/components/admin/LoadingSpinner";
-import { Save, CreditCard, Clock, Shield, Info, ChevronRight } from "lucide-react";
+import { Save, CreditCard, Clock, Shield, Info, ChevronRight, UserPlus, Contact, Plus, Trash2, Edit2, X, Phone, Mail } from "lucide-react";
 import CustomLoader from "@/components/CustomLoader";
+import { ReferralSource, PlatformContact } from "@/types";
 
 interface Settings {
     commissionRate: number;
@@ -15,51 +16,67 @@ interface Settings {
     onlineBookingDeactivationTime: number;
 }
 
-type TabId = 'financial' | 'automation' | 'vendor';
+type TabId = 'financial' | 'automation' | 'vendor' | 'referral' | 'contacts';
 
 const SettingsPage = () => {
     const [settings, setSettings] = useState<Partial<Settings>>({});
+    const [referralSources, setReferralSources] = useState<ReferralSource[]>([]);
+    const [platformContacts, setPlatformContacts] = useState<PlatformContact[]>([]);
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<TabId>('financial');
 
-    useEffect(() => {
-        const fetchSettings = async () => {
-            try {
-                const [commissionRes, vatRes, pendingRes, reactivationRes, deactivationRes] = await Promise.allSettled([
-                    api.get('/settings/commission-rate'),
-                    api.get('/settings/vat-rate'),
-                    api.get('/settings/pending-booking-deletion-time'),
-                    api.get('/settings/online-booking-reactivation-time'),
-                    api.get('/settings/online-booking-deactivation-time')
-                ]);
+    const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+    const [editingContact, setEditingContact] = useState<Partial<PlatformContact> | null>(null);
 
-                const newSettings: Partial<Settings> = {};
+    const fetchAllData = async () => {
+        setLoading(true);
+        try {
+            const [commissionRes, vatRes, pendingRes, reactivationRes, deactivationRes, referralRes, contactsRes] = await Promise.allSettled([
+                api.get('/settings/commission-rate'),
+                api.get('/settings/vat-rate'),
+                api.get('/settings/pending-booking-deletion-time'),
+                api.get('/settings/online-booking-reactivation-time'),
+                api.get('/settings/online-booking-deactivation-time'),
+                api.get('/settings/referral-sources'),
+                api.get('/settings/platform-contacts')
+            ]);
 
-                if (commissionRes.status === 'fulfilled') {
-                    newSettings.commissionRate = commissionRes.value.data.data.value ?? commissionRes.value.data.data.rate;
-                }
-                if (vatRes.status === 'fulfilled') {
-                    newSettings.vatRate = vatRes.value.data.data.rate ?? vatRes.value.data.data.value;
-                }
-                if (pendingRes.status === 'fulfilled') {
-                    newSettings.pendingBookingDeletionTime = pendingRes.value.data.data.time;
-                }
-                if (reactivationRes.status === 'fulfilled') {
-                    newSettings.onlineBookingReactivationTime = reactivationRes.value.data.data.time;
-                }
-                if (deactivationRes.status === 'fulfilled') {
-                    newSettings.onlineBookingDeactivationTime = deactivationRes.value.data.data.time;
-                }
+            const newSettings: Partial<Settings> = {};
 
-                setSettings(newSettings);
-            } catch (error) {
-                console.error("Error fetching initial settings:", error);
-            } finally {
-                setLoading(false);
+            if (commissionRes.status === 'fulfilled') {
+                newSettings.commissionRate = commissionRes.value.data.data.value ?? commissionRes.value.data.data.rate;
             }
-        };
-        fetchSettings();
+            if (vatRes.status === 'fulfilled') {
+                newSettings.vatRate = vatRes.value.data.data.rate ?? vatRes.value.data.data.value;
+            }
+            if (pendingRes.status === 'fulfilled') {
+                newSettings.pendingBookingDeletionTime = pendingRes.value.data.data.time;
+            }
+            if (reactivationRes.status === 'fulfilled') {
+                newSettings.onlineBookingReactivationTime = reactivationRes.value.data.data.time;
+            }
+            if (deactivationRes.status === 'fulfilled') {
+                newSettings.onlineBookingDeactivationTime = deactivationRes.value.data.data.time;
+            }
+
+            if (referralRes.status === 'fulfilled') {
+                setReferralSources(referralRes.value.data.data || []);
+            }
+            if (contactsRes.status === 'fulfilled') {
+                setPlatformContacts(contactsRes.value.data.data || []);
+            }
+
+            setSettings(newSettings);
+        } catch (error) {
+            console.error("Error fetching initial settings:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchAllData();
     }, []);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -113,6 +130,8 @@ const SettingsPage = () => {
         { id: 'financial' as TabId, label: 'Financial Settings', icon: CreditCard, description: 'Manage platform fees and commissions' },
         { id: 'automation' as TabId, label: 'Booking Automation', icon: Clock, description: 'Configure automated booking behavior' },
         { id: 'vendor' as TabId, label: 'Vendor Controls', icon: Shield, description: 'Set limits and controls for venue owners' },
+        { id: 'referral' as TabId, label: 'Referral Sources', icon: UserPlus, description: 'Manage options for tracking booking origins' },
+        { id: 'contacts' as TabId, label: 'Platform Contacts', icon: Contact, description: 'Manage universal list of platform representatives' },
     ];
 
     interface SettingCardProps {
@@ -124,6 +143,108 @@ const SettingsPage = () => {
         placeholder: string;
         unit?: string;
     }
+
+    const handleAddReferralSource = async () => {
+        const { value: name } = await Swal.fire({
+            title: 'Add Referral Source',
+            input: 'text',
+            inputLabel: 'Source Name',
+            inputPlaceholder: 'e.g., Instagram, Word of Mouth',
+            showCancelButton: true,
+            inputValidator: (value) => {
+                if (!value) return 'You need to enter a name!';
+            }
+        });
+
+        if (name) {
+            try {
+                await api.post('/settings/referral-sources', { name });
+                Swal.fire('Success', 'Referral source added.', 'success');
+                const res = await api.get('/settings/referral-sources');
+                setReferralSources(res.data.data);
+            } catch (error) {
+                console.error("Error adding referral source:", error);
+                Swal.fire('Error', 'Could not add referral source.', 'error');
+            }
+        }
+    };
+
+    const handleDeleteReferralSource = async (id: string) => {
+        const result = await Swal.fire({
+            title: 'Are you sure?',
+            text: "This source will be removed from future tracking options.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                await api.delete(`/settings/referral-sources/${id}`);
+                Swal.fire('Deleted!', 'Referral source has been deleted.', 'success');
+                const res = await api.get('/settings/referral-sources');
+                setReferralSources(res.data.data);
+            } catch (error) {
+                console.error("Error deleting referral source:", error);
+                Swal.fire('Error', 'Could not delete referral source.', 'error');
+            }
+        }
+    };
+
+    const handleSaveContact = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingContact) return;
+
+        try {
+            // Requirement says POST /settings/platform-contacts to update universal list
+            // Assuming it's a standard POST to create or a PUT/PATCH if it was an update.
+            // But if it's "Update the universal list", maybe it takes the whole array.
+            // Let's assume for now it's a create/update for a single entry if it has an ID.
+
+            let updatedContacts;
+            if (editingContact._id) {
+                updatedContacts = platformContacts.map(c => c._id === editingContact._id ? editingContact : c);
+            } else {
+                updatedContacts = [...platformContacts, { ...editingContact, _id: Date.now().toString() }];
+            }
+
+            await api.post('/settings/platform-contacts', { contacts: updatedContacts });
+
+            Swal.fire('Success', 'Platform contacts updated.', 'success');
+            setIsContactModalOpen(false);
+            setEditingContact(null);
+            const res = await api.get('/settings/platform-contacts');
+            setPlatformContacts(res.data.data);
+        } catch (error) {
+            console.error("Error saving platform contact:", error);
+            Swal.fire('Error', 'Could not save platform contact.', 'error');
+        }
+    };
+
+    const handleDeleteContact = async (id: string) => {
+        const result = await Swal.fire({
+            title: 'Remove Contact?',
+            text: "This representative will no longer be assignable to halls.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Yes, remove it!'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                const updatedContacts = platformContacts.filter(c => c._id !== id);
+                await api.post('/settings/platform-contacts', { contacts: updatedContacts });
+                Swal.fire('Removed!', 'Contact has been removed.', 'success');
+                const res = await api.get('/settings/platform-contacts');
+                setPlatformContacts(res.data.data);
+            } catch (error) {
+                console.error("Error deleting platform contact:", error);
+                Swal.fire('Error', 'Could not remove contact.', 'error');
+            }
+        }
+    };
 
     const SettingCard = ({ id, label, description, value, onSave, placeholder, unit }: SettingCardProps) => (
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 mb-6 transition-all hover:shadow-md">
@@ -301,8 +422,208 @@ const SettingsPage = () => {
                             />
                         </div>
                     )}
+
+                    {activeTab === 'referral' && (
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <div className="flex justify-between items-center mb-6">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                                        <UserPlus size={20} />
+                                    </div>
+                                    <h2 className="text-xl font-bold text-gray-900">Referral Sources</h2>
+                                </div>
+                                <button
+                                    onClick={handleAddReferralSource}
+                                    className="bg-primary hover:bg-primary/90 text-white font-bold px-4 py-2 rounded-lg flex items-center gap-2 transition-all active:scale-95 text-sm"
+                                >
+                                    <Plus size={18} />
+                                    <span>Add Source</span>
+                                </button>
+                            </div>
+
+                            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                                <table className="min-w-full divide-y divide-gray-100">
+                                    <thead className="bg-gray-50">
+                                        <tr>
+                                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Source Name</th>
+                                            <th className="px-6 py-4 text-right text-xs font-bold text-gray-400 uppercase tracking-widest">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100">
+                                        {referralSources.length > 0 ? referralSources.map((source) => (
+                                            <tr key={source._id} className="hover:bg-gray-50/50 transition-colors">
+                                                <td className="px-6 py-4 text-sm font-medium text-gray-700">{source.name}</td>
+                                                <td className="px-6 py-4 text-right">
+                                                    <button
+                                                        onClick={() => handleDeleteReferralSource(source._id)}
+                                                        className="text-red-400 hover:text-red-600 transition-colors p-2"
+                                                        title="Delete Source"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        )) : (
+                                            <tr>
+                                                <td colSpan={2} className="px-6 py-10 text-center text-gray-400 italic">No referral sources defined.</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'contacts' && (
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <div className="flex justify-between items-center mb-6">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                                        <Contact size={20} />
+                                    </div>
+                                    <h2 className="text-xl font-bold text-gray-900">Platform Contacts</h2>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        setEditingContact({ name: '', phone: '', email: '', role: '' });
+                                        setIsContactModalOpen(true);
+                                    }}
+                                    className="bg-primary hover:bg-primary/90 text-white font-bold px-4 py-2 rounded-lg flex items-center gap-2 transition-all active:scale-95 text-sm"
+                                >
+                                    <Plus size={18} />
+                                    <span>Add Representative</span>
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {platformContacts.length > 0 ? platformContacts.map((contact) => (
+                                    <div key={contact._id} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all group">
+                                        <div className="flex justify-between items-start">
+                                            <div className="flex gap-4">
+                                                <div className="w-12 h-12 rounded-xl bg-primary/5 flex items-center justify-center text-primary">
+                                                    <Contact size={24} />
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-bold text-gray-900">{contact.name}</h3>
+                                                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mt-0.5">{contact.role || 'Representative'}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button
+                                                    onClick={() => {
+                                                        setEditingContact(contact);
+                                                        setIsContactModalOpen(true);
+                                                    }}
+                                                    className="p-2 text-gray-400 hover:text-primary transition-colors"
+                                                >
+                                                    <Edit2 size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteContact(contact._id)}
+                                                    className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="mt-4 space-y-2">
+                                            <div className="flex items-center gap-3 text-sm text-gray-600">
+                                                <Phone size={14} className="text-gray-400" />
+                                                <span className="font-medium">{contact.phone}</span>
+                                            </div>
+                                            {contact.email && (
+                                                <div className="flex items-center gap-3 text-sm text-gray-600">
+                                                    <Mail size={14} className="text-gray-400" />
+                                                    <span className="truncate">{contact.email}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )) : (
+                                    <div className="col-span-full bg-white p-10 rounded-2xl border border-dashed border-gray-200 text-center text-gray-400 italic">
+                                        No platform representatives added yet.
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </main>
             </div>
+
+            {/* Contact Modal */}
+            {isContactModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95">
+                        <div className="p-6 border-b flex justify-between items-center bg-gray-50/50">
+                            <h2 className="text-xl font-bold text-gray-900 uppercase italic">
+                                {editingContact?._id ? 'Edit Representative' : 'Add Representative'}
+                            </h2>
+                            <button onClick={() => setIsContactModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-2 rounded-xl transition-colors">
+                                <X size={24} />
+                            </button>
+                        </div>
+                        <form onSubmit={handleSaveContact} className="p-8 space-y-6">
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Full Name</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={editingContact?.name || ''}
+                                    onChange={(e) => setEditingContact(prev => ({ ...prev!, name: e.target.value }))}
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                    placeholder="e.g. John Doe"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Phone Number</label>
+                                <input
+                                    type="tel"
+                                    required
+                                    value={editingContact?.phone || ''}
+                                    onChange={(e) => setEditingContact(prev => ({ ...prev!, phone: e.target.value }))}
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                    placeholder="e.g. +234..."
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Email (Optional)</label>
+                                <input
+                                    type="email"
+                                    value={editingContact?.email || ''}
+                                    onChange={(e) => setEditingContact(prev => ({ ...prev!, email: e.target.value }))}
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                    placeholder="e.g. john@gobokin.com"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Role / Designation</label>
+                                <input
+                                    type="text"
+                                    value={editingContact?.role || ''}
+                                    onChange={(e) => setEditingContact(prev => ({ ...prev!, role: e.target.value }))}
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                    placeholder="e.g. Customer Support"
+                                />
+                            </div>
+                            <div className="flex gap-4 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsContactModalOpen(false)}
+                                    className="flex-1 py-3 border border-gray-300 rounded-xl font-bold text-gray-600 hover:bg-gray-50 transition-all uppercase tracking-widest text-xs"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="flex-1 py-3 bg-primary text-white rounded-xl font-bold hover:bg-opacity-90 transition-all uppercase tracking-widest text-xs shadow-lg shadow-primary/20"
+                                >
+                                    {editingContact?._id ? 'Update' : 'Save'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

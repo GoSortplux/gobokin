@@ -87,6 +87,9 @@ export interface Booking {
     accountNumber: string;
     accountName: string;
   };
+  referralCode?: string;
+  referralSource?: string | ReferralSource;
+  referralSourceOther?: string;
 }
 
 export interface Reservation {
@@ -145,6 +148,9 @@ export interface Reservation {
     accountNumber: string;
     accountName: string;
   };
+  referralCode?: string;
+  referralSource?: string | ReferralSource;
+  referralSourceOther?: string;
 }
 
 export interface Suitability {
@@ -186,6 +192,34 @@ export interface User {
   };
   assignedHalls?: (string | { _id: string })[];
   hallIds?: string[];
+  commissionRate?: number;
+}
+
+export interface PlatformContact {
+  _id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  whatsappNumber?: string;
+  role?: string;
+}
+
+export interface ReferralSource {
+  _id: string;
+  name: string;
+}
+
+export interface ReferralCode {
+  _id: string;
+  code: string;
+  hall: string | Venue;
+  generatedBy?: string | UserProfile;
+  fullName: string;
+  phone: string;
+  email: string;
+  discountPercentage: number;
+  isUsed: boolean;
+  createdAt: string;
 }
 
 export interface Venue {
@@ -252,6 +286,10 @@ export interface Venue {
   isTaxEnabled?: boolean;
   serviceChargePercentage?: number;
   vatPercentage?: number;
+  bookingMode?: 'online' | 'enquiry-only' | 'platform-managed';
+  bookingMessage?: string;
+  platformContact?: PlatformContact;
+  commissionRate?: number;
 }
 
 export interface Notification {
@@ -324,6 +362,8 @@ export interface LicenseTier {
   }[];
   discountedPrice?: number;
   isPublic?: boolean;
+  isPartnershipTier?: boolean;
+  defaultCommissionRate?: number;
 }
 
 export interface ManualAssignmentPayload {

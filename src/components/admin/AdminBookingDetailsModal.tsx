@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
-import { X, RefreshCcw, FileText, List, User, Phone, Calendar } from 'lucide-react';
-import { Booking, Venue, UserProfile } from '@/types';
+import { X, RefreshCcw, FileText, List, User, Phone, Calendar, UserPlus } from 'lucide-react';
+import { Booking, Venue, UserProfile, ReferralSource } from '@/types';
 
 interface AdminBookingDetailsModalProps {
   isOpen: boolean;
@@ -102,6 +102,35 @@ const AdminBookingDetailsModal: React.FC<AdminBookingDetailsModalProps> = ({ isO
                 )}
               </div>
             </div>
+
+            {/* Referral Information */}
+            {(booking.referralCode || booking.referralSource) && (
+              <div className="bg-blue-50/50 p-4 border border-blue-100 rounded-xl shadow-sm space-y-4">
+                <h3 className="flex items-center gap-2 text-xs font-black text-blue-700 uppercase tracking-widest border-b border-blue-100/50 pb-2">
+                  <UserPlus size={14} /> Referral Tracking
+                </h3>
+                <div className="text-sm space-y-3">
+                  {booking.referralCode && (
+                    <div>
+                      <label className="text-[10px] font-bold text-gray-400 uppercase">Referral Code</label>
+                      <p className="font-mono font-bold text-primary">{booking.referralCode}</p>
+                    </div>
+                  )}
+                  {booking.referralSource && (
+                    <div>
+                      <label className="text-[10px] font-bold text-gray-400 uppercase">Referral Source</label>
+                      <p className="text-gray-800 font-medium">
+                        {typeof booking.referralSource === 'object'
+                          ? (booking.referralSource as ReferralSource).name
+                          : booking.referralSource === 'others'
+                            ? (booking.referralSourceOther || 'Other')
+                            : booking.referralSource}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Section 2: Financials & Payout */}
