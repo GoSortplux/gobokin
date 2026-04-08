@@ -102,7 +102,14 @@ const BookingsPage = () => {
         }
       } else if (activeTab === 'referrals') {
         const referralsRes = await api.get(`/admin/referral-codes?limit=${LIMIT}`);
-        setReferralCodes(referralsRes.data.data || []);
+        const data = referralsRes.data.data;
+        if (Array.isArray(data)) {
+          setReferralCodes(data);
+        } else if (data && Array.isArray(data.referralCodes)) {
+          setReferralCodes(data.referralCodes);
+        } else {
+          setReferralCodes([]);
+        }
       }
     } catch (err: unknown) {
       console.error("Failed to fetch data", err);
@@ -152,8 +159,9 @@ const BookingsPage = () => {
   }, [reservations, searchTerm]);
 
   const filteredReferralCodes = useMemo(() => {
-    if (!searchTerm) return referralCodes;
-    return referralCodes.filter(
+    const codes = Array.isArray(referralCodes) ? referralCodes : [];
+    if (!searchTerm) return codes;
+    return codes.filter(
       (ref) =>
         ref.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
         ref.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||

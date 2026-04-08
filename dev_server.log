@@ -17,3 +17,20 @@ Failed to fetch venue with slug: test-venue, status: 404
 Failed to fetch venue with slug: test-venue, status: 404
  GET /venues/test-venue 200 in 599ms
  ✓ Compiled in 1265ms (1797 modules)
+ ✓ Compiled in 8.2s (1797 modules)
+Failed to fetch venue with slug: test-venue, status: 404
+Failed to fetch venue with slug: test-venue, status: 404
+Failed to fetch venue with slug: m-and-m-event-center-1740523030238, status: 404
+Failed to fetch venue with slug: m-and-m-event-center-1740523030238, status: 404
+Failed to fetch venue with slug: test-venue, status: 404
+Failed to fetch venue with slug: test-venue, status: 404
+Failed to fetch venue with slug: m-and-m-event-center-1740523030238, status: 404
+Failed to fetch venue with slug: m-and-m-event-center-1740523030238, status: 404
+ GET /venues/m-and-m-event-center-1740523030238 200 in 1852ms
+ GET /venues/test-venue 200 in 1887ms
+ GET /venues/test-venue 200 in 1012ms
+ GET /venues/m-and-m-event-center-1740523030238 200 in 1017ms
+ ○ Compiling / ...
+ ✓ Compiled / in 2.7s (3809 modules)
+ GET / 200 in 3849ms
+ GET / 200 in 211ms
