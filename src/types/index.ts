@@ -193,6 +193,7 @@ export interface User {
   assignedHalls?: (string | { _id: string })[];
   hallIds?: string[];
   commissionRate?: number;
+  outstandingReferralCommission?: number;
 }
 
 export interface PlatformContact {

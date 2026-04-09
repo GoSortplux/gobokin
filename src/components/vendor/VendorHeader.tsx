@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import { Search, User as UserIcon, Plus, ChevronDown, Building, Calendar, Users, LogOut, LayoutDashboard, Menu, X } from "lucide-react";
+import { Search, User as UserIcon, Plus, ChevronDown, Building, Calendar, Users, LogOut, LayoutDashboard, Menu, X, Wallet } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useVendor } from "@/context/VendorContext";
 import { useRouter } from "next/navigation";
@@ -10,6 +10,7 @@ import NotificationDropdown from "../notifications/NotificationDropdown";
 import Swal from "@/utils/sweetalert";
 import { getDashboardPath } from "@/utils/redirects";
 import api from "@/services/api";
+import { translateError } from "@/utils/errors";
 import AccountSwitchModal from "../shared/AccountSwitchModal";
 import { useUI } from "@/context/UIContext";
 
@@ -111,6 +112,28 @@ const VendorHeader = () => {
         ]
       : []),
   ];
+
+  const handleSettleCommission = async () => {
+    const amount = user?.outstandingReferralCommission || 0;
+    try {
+      Swal.fire({
+        title: 'Settling Commission...',
+        text: 'Generating your payment link.',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+      });
+      const response = await api.post('/payments/settle-commission', { amount });
+      const { checkoutUrl } = response.data.data;
+      if (checkoutUrl) {
+        window.location.href = checkoutUrl;
+      } else {
+        throw new Error('Failed to generate payment link');
+      }
+    } catch (err) {
+      console.error('Failed to settle commission:', err);
+      Swal.fire('Error', translateError(err), 'error');
+    }
+  };
 
   return (
     <header className="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-gray-100 p-4 flex items-center justify-between">
@@ -370,6 +393,28 @@ const VendorHeader = () => {
                     )}
                   </div>
                 )}
+
+                <div className="my-1 border-t border-gray-50" />
+
+                <div className="px-4 py-2">
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Referral Balance</p>
+                  <div className={`flex items-center justify-between p-3 rounded-xl border ${ (user?.outstandingReferralCommission || 0) > 0 ? 'bg-rose-50 border-rose-100' : 'bg-gray-50 border-gray-100' }`}>
+                    <div className="flex items-center gap-2">
+                      <Wallet size={14} className={ (user?.outstandingReferralCommission || 0) > 0 ? 'text-rose-600' : 'text-gray-400' } />
+                      <span className={`text-xs font-bold ${ (user?.outstandingReferralCommission || 0) > 0 ? 'text-rose-700' : 'text-gray-600' }`}>
+                        ₦{(user?.outstandingReferralCommission || 0).toLocaleString()}
+                      </span>
+                    </div>
+                    {(user?.outstandingReferralCommission || 0) > 0 && (
+                      <button
+                        onClick={handleSettleCommission}
+                        className="text-[10px] font-black uppercase text-rose-600 hover:text-rose-800 underline underline-offset-2"
+                      >
+                        Settle
+                      </button>
+                    )}
+                  </div>
+                </div>
 
                 <div className="my-1 border-t border-gray-50" />
 

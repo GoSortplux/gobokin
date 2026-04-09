@@ -2,7 +2,10 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import api from '@/services/api';
-import { BarChart as BarChartIcon, Eye, Briefcase, TrendingUp, TrendingDown, Target, CalendarCheck, Calendar as CalendarIcon, ChevronDown, Search, ChevronLeft, ChevronRight, Clock, RotateCcw } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { translateError } from '@/utils/errors';
+import Swal from "@/utils/sweetalert";
+import { BarChart as BarChartIcon, Eye, Briefcase, TrendingUp, TrendingDown, Target, CalendarCheck, Calendar as CalendarIcon, ChevronDown, Search, ChevronLeft, ChevronRight, Clock, RotateCcw, Wallet, ArrowRight } from 'lucide-react';
 import { DateRange, Range } from 'react-date-range';
 import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
@@ -223,6 +226,7 @@ const DEFAULT_DATA: AnalyticsData = {
 };
 
 const EnhancedAnalytics = ({ initialData }: { initialData?: AnalyticsData | null }) => {
+  const { user, fetchUserProfile } = useAuth();
   const [data, setData] = useState<AnalyticsData | null>(initialData || null);
   const [loading, setLoading] = useState<boolean>(!initialData);
   const [venues, setVenues] = useState<Venue[]>([]);
@@ -295,6 +299,51 @@ const EnhancedAnalytics = ({ initialData }: { initialData?: AnalyticsData | null
     setDateRange([{ startDate: new Date(new Date().setDate(new Date().getDate() - 7)), endDate: new Date(), key: 'selection' }]);
     setSearchTerm('');
     setCurrentPage(1);
+  };
+
+  const handleSettleCommission = async () => {
+    const amount = user?.outstandingReferralCommission || 0;
+    if (amount <= 0) {
+      Swal.fire('No Balance', 'You do not have any outstanding commission to settle.', 'info');
+      return;
+    }
+
+    const { value: settleAmount } = await Swal.fire({
+      title: 'Settle Commission',
+      text: `Your outstanding balance is ${formatCurrency(amount)}. How much would you like to pay?`,
+      input: 'number',
+      inputValue: amount,
+      inputAttributes: {
+        min: '1',
+        max: String(amount),
+        step: '1'
+      },
+      showCancelButton: true,
+      confirmButtonText: 'Pay Now',
+      confirmButtonColor: '#295FA7',
+      inputValidator: (value) => {
+        if (!value || Number(value) <= 0) return 'Please enter a valid amount';
+        if (Number(value) > amount) return 'Amount cannot exceed your outstanding balance';
+      }
+    });
+
+    if (settleAmount) {
+      try {
+        Swal.showLoading();
+        const response = await api.post('/payments/settle-commission', { amount: Number(settleAmount) });
+        const { checkoutUrl } = response.data.data;
+        if (checkoutUrl) {
+          // Refresh profile in background before redirect
+          fetchUserProfile().catch(console.error);
+          window.location.href = checkoutUrl;
+        } else {
+          throw new Error('Failed to generate payment link');
+        }
+      } catch (err) {
+        console.error('Failed to settle commission:', err);
+        Swal.fire('Error', translateError(err), 'error');
+      }
+    }
   };
 
   const analyticsData = {
@@ -411,8 +460,24 @@ const EnhancedAnalytics = ({ initialData }: { initialData?: AnalyticsData | null
 
         {loading ? ( <div className="animate-pulse space-y-6"><div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">{[...Array(12)].map((_, i) => ( <div key={i} className="bg-gray-200 p-6 rounded-xl h-28"></div> ))}</div><div className="grid grid-cols-1 lg:grid-cols-2 gap-6"><div className="bg-gray-200 rounded-3xl h-96"></div><div className="bg-gray-200 rounded-3xl h-96"></div></div><div className="bg-gray-200 rounded-3xl h-96"></div></div>)
         : ( <>
-            <div className="space-y-2">
-                <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Financial Overview</h2>
+            <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                    <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Financial Overview</h2>
+                    {(user?.outstandingReferralCommission || 0) > 0 ? (
+                        <div className="animate-pulse bg-rose-50 border border-rose-100 px-4 py-2 rounded-2xl flex items-center gap-3">
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-black text-rose-400 uppercase">Outstanding Balance</span>
+                                <span className="text-sm font-black text-rose-600">{formatCurrency(user?.outstandingReferralCommission || 0)}</span>
+                            </div>
+                            <button
+                                onClick={handleSettleCommission}
+                                className="bg-rose-600 text-white text-[10px] font-black px-3 py-1.5 rounded-xl uppercase hover:bg-rose-700 transition-all flex items-center gap-1 shadow-lg shadow-rose-200"
+                            >
+                                Settle Now <ArrowRight size={12} />
+                            </button>
+                        </div>
+                    ) : null}
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     <StatCard title="Gross Revenue" value={formatCurrency(overallStats.grossRevenue)} icon={BarChartIcon} />
                     <StatCard title="Net Rev (Pre-Comm)" value={formatCurrency(overallStats.netRevenueBeforeCommission)} icon={TrendingUp} />
@@ -420,6 +485,26 @@ const EnhancedAnalytics = ({ initialData }: { initialData?: AnalyticsData | null
                     <StatCard title="Total Payout" value={formatCurrency(overallStats.totalPayout)} icon={TrendingUp} />
                     <StatCard title="Total Refunded" value={formatCurrency(overallStats.totalRefunded)} icon={TrendingDown} />
                     <StatCard title="Avg. Booking Value" value={formatCurrency(Number(kpis.averageBookingValue))} icon={Target} />
+                    {user?.outstandingReferralCommission !== undefined && (
+                        <div className={`p-6 rounded-xl shadow-md flex items-center justify-between transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border ${user.outstandingReferralCommission > 0 ? 'bg-rose-50 border-rose-100' : 'bg-white border-gray-100'}`}>
+                            <div className="flex items-center space-x-4">
+                                <div className={`p-4 rounded-xl ${user.outstandingReferralCommission > 0 ? 'bg-white text-rose-600 shadow-sm' : 'bg-blue-50 text-primary'}`}><Wallet className="h-6 w-6" /></div>
+                                <div>
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Referral Debt</p>
+                                    <p className={`text-2xl font-black mt-0.5 ${user.outstandingReferralCommission > 0 ? 'text-rose-700' : 'text-gray-900'}`}>{formatCurrency(user.outstandingReferralCommission)}</p>
+                                </div>
+                            </div>
+                            {user.outstandingReferralCommission > 0 && (
+                                <button
+                                    onClick={handleSettleCommission}
+                                    className="p-2 bg-white rounded-lg text-rose-600 hover:bg-rose-600 hover:text-white transition-all shadow-sm"
+                                    title="Settle Balance"
+                                >
+                                    <ArrowRight size={20} />
+                                </button>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
 
