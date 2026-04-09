@@ -28,6 +28,8 @@ const SettingsPage = () => {
 
     const [isContactModalOpen, setIsContactModalOpen] = useState(false);
     const [editingContact, setEditingContact] = useState<Partial<PlatformContact> | null>(null);
+    const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
+    const [editingReferral, setEditingReferral] = useState<Partial<ReferralSource> | null>(null);
 
     const fetchAllData = async () => {
         setLoading(true);
@@ -144,28 +146,31 @@ const SettingsPage = () => {
         unit?: string;
     }
 
-    const handleAddReferralSource = async () => {
-        const { value: name } = await Swal.fire({
-            title: 'Add Referral Source',
-            input: 'text',
-            inputLabel: 'Source Name',
-            inputPlaceholder: 'e.g., Instagram, Word of Mouth',
-            showCancelButton: true,
-            inputValidator: (value) => {
-                if (!value) return 'You need to enter a name!';
-            }
-        });
+    const handleSaveReferralSource = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingReferral) return;
 
-        if (name) {
-            try {
-                await api.post('/settings/referral-sources', { name });
+        try {
+            const payload = {
+                name: editingReferral.name,
+                triggersCommission: editingReferral.triggersCommission ?? false,
+                isDefault: editingReferral.isDefault ?? false,
+            };
+
+            if (editingReferral._id) {
+                await api.patch(`/settings/referral-sources/${editingReferral._id}`, payload);
+                Swal.fire('Success', 'Referral source updated.', 'success');
+            } else {
+                await api.post('/settings/referral-sources', payload);
                 Swal.fire('Success', 'Referral source added.', 'success');
-                const res = await api.get('/settings/referral-sources');
-                setReferralSources(res.data.data);
-            } catch (error) {
-                console.error("Error adding referral source:", error);
-                Swal.fire('Error', 'Could not add referral source.', 'error');
             }
+            setIsReferralModalOpen(false);
+            setEditingReferral(null);
+            const res = await api.get('/settings/referral-sources');
+            setReferralSources(res.data.data);
+        } catch (error) {
+            console.error("Error saving referral source:", error);
+            Swal.fire('Error', 'Could not save referral source.', 'error');
         }
     };
 
@@ -433,7 +438,10 @@ const SettingsPage = () => {
                                     <h2 className="text-xl font-bold text-gray-900">Referral Sources</h2>
                                 </div>
                                 <button
-                                    onClick={handleAddReferralSource}
+                                    onClick={() => {
+                                        setEditingReferral({ name: '', triggersCommission: false, isDefault: false });
+                                        setIsReferralModalOpen(true);
+                                    }}
                                     className="bg-primary hover:bg-primary/90 text-white font-bold px-4 py-2 rounded-lg flex items-center gap-2 transition-all active:scale-95 text-sm"
                                 >
                                     <Plus size={18} />
@@ -446,6 +454,8 @@ const SettingsPage = () => {
                                     <thead className="bg-gray-50">
                                         <tr>
                                             <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Source Name</th>
+                                            <th className="px-6 py-4 text-center text-xs font-bold text-gray-400 uppercase tracking-widest">Triggers Commission</th>
+                                            <th className="px-6 py-4 text-center text-xs font-bold text-gray-400 uppercase tracking-widest">Default</th>
                                             <th className="px-6 py-4 text-right text-xs font-bold text-gray-400 uppercase tracking-widest">Actions</th>
                                         </tr>
                                     </thead>
@@ -453,14 +463,38 @@ const SettingsPage = () => {
                                         {referralSources.length > 0 ? referralSources.map((source) => (
                                             <tr key={source._id} className="hover:bg-gray-50/50 transition-colors">
                                                 <td className="px-6 py-4 text-sm font-medium text-gray-700">{source.name}</td>
+                                                <td className="px-6 py-4 text-center">
+                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${source.triggersCommission ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
+                                                        {source.triggersCommission ? 'Yes' : 'No'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 text-center">
+                                                    {source.isDefault && (
+                                                        <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold uppercase">
+                                                            Default
+                                                        </span>
+                                                    )}
+                                                </td>
                                                 <td className="px-6 py-4 text-right">
-                                                    <button
-                                                        onClick={() => handleDeleteReferralSource(source._id)}
-                                                        className="text-red-400 hover:text-red-600 transition-colors p-2"
-                                                        title="Delete Source"
-                                                    >
-                                                        <Trash2 size={18} />
-                                                    </button>
+                                                    <div className="flex justify-end gap-2">
+                                                        <button
+                                                            onClick={() => {
+                                                                setEditingReferral(source);
+                                                                setIsReferralModalOpen(true);
+                                                            }}
+                                                            className="text-gray-400 hover:text-primary transition-colors p-2"
+                                                            title="Edit Source"
+                                                        >
+                                                            <Edit2 size={18} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteReferralSource(source._id)}
+                                                            className="text-red-400 hover:text-red-600 transition-colors p-2"
+                                                            title="Delete Source"
+                                                        >
+                                                            <Trash2 size={18} />
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         )) : (
@@ -549,6 +583,79 @@ const SettingsPage = () => {
                     )}
                 </main>
             </div>
+
+            {/* Referral Source Modal */}
+            {isReferralModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95">
+                        <div className="p-6 border-b flex justify-between items-center bg-gray-50/50">
+                            <h2 className="text-xl font-bold text-gray-900 uppercase italic">
+                                {editingReferral?._id ? 'Edit Referral Source' : 'Add Referral Source'}
+                            </h2>
+                            <button onClick={() => setIsReferralModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-2 rounded-xl transition-colors">
+                                <X size={24} />
+                            </button>
+                        </div>
+                        <form onSubmit={handleSaveReferralSource} className="p-8 space-y-6">
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Source Name</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={editingReferral?.name || ''}
+                                    onChange={(e) => setEditingReferral(prev => ({ ...prev!, name: e.target.value }))}
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                    placeholder="e.g. Social Media"
+                                />
+                            </div>
+
+                            <div className="space-y-4">
+                                <label className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-100 cursor-pointer hover:bg-gray-100 transition-all">
+                                    <input
+                                        type="checkbox"
+                                        checked={editingReferral?.triggersCommission || false}
+                                        onChange={(e) => setEditingReferral(prev => ({ ...prev!, triggersCommission: e.target.checked }))}
+                                        className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
+                                    />
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-bold text-gray-900">Triggers Commission</span>
+                                        <span className="text-[10px] text-gray-500">Should this source trigger a platform fee?</span>
+                                    </div>
+                                </label>
+
+                                <label className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-100 cursor-pointer hover:bg-gray-100 transition-all">
+                                    <input
+                                        type="checkbox"
+                                        checked={editingReferral?.isDefault || false}
+                                        onChange={(e) => setEditingReferral(prev => ({ ...prev!, isDefault: e.target.checked }))}
+                                        className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
+                                    />
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-bold text-gray-900">Default Source</span>
+                                        <span className="text-[10px] text-gray-500">Is this the standard selection for new bookings?</span>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div className="flex gap-4 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsReferralModalOpen(false)}
+                                    className="flex-1 py-3 border border-gray-300 rounded-xl font-bold text-gray-600 hover:bg-gray-50 transition-all uppercase tracking-widest text-xs"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="flex-1 py-3 bg-primary text-white rounded-xl font-bold hover:bg-opacity-90 transition-all uppercase tracking-widest text-xs shadow-lg shadow-primary/20"
+                                >
+                                    {editingReferral?._id ? 'Update' : 'Save'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
 
             {/* Contact Modal */}
             {isContactModalOpen && (

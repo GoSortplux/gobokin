@@ -363,7 +363,13 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
       const fetchReferralSources = async () => {
         try {
           const response = await api.get('/settings/referral-sources');
-          setReferralSources(response.data.data || []);
+          const sources = response.data.data || [];
+          setReferralSources(sources);
+
+          const defaultSource = sources.find((s: ReferralSource) => s.isDefault);
+          if (defaultSource) {
+            setFormData(prev => ({ ...prev, referralSource: defaultSource._id }));
+          }
         } catch (err) {
           console.error('Failed to fetch referral sources:', err);
         }
