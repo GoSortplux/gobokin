@@ -213,9 +213,12 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
               Swal.fire({
                   title: 'Your Discount Code',
                   html: `
-                      <div class="p-6 bg-blue-50 rounded-2xl border-2 border-dashed border-primary mt-4">
-                          <p class="text-4xl font-black text-primary tracking-widest uppercase mb-2">${code}</p>
+                      <div class="relative p-6 bg-blue-50 rounded-2xl border-2 border-dashed border-primary mt-4">
+                          <p class="text-4xl font-black text-primary tracking-widest uppercase mb-2 pr-10">${code}</p>
                           <p class="text-sm font-bold text-blue-700">Get ${discountPercentage}% OFF your booking!</p>
+                          <button id="swal-copy-btn" class="absolute top-4 right-4 p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors cursor-pointer" title="Copy Code">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                          </button>
                       </div>
                       <p class="mt-4 text-xs text-gray-500 mb-6">Show this code to the venue owner when making an offline booking.</p>
                       <div class="grid grid-cols-2 gap-3">
@@ -228,27 +231,29 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
                       </div>
                   `,
                   icon: 'success',
-                  showCancelButton: true,
-                  confirmButtonText: 'Copy Code',
-                  cancelButtonText: 'Close',
+                  showCancelButton: false,
+                  confirmButtonText: 'Close',
                   confirmButtonColor: '#295FA7',
                   didOpen: () => {
                     const downloadBtn = document.getElementById('swal-download-btn');
                     const shareBtn = document.getElementById('swal-share-btn');
+                    const copyBtn = document.getElementById('swal-copy-btn');
+
                     if (downloadBtn) {
                       downloadBtn.onclick = () => handleDownloadCodeImage(code);
                     }
                     if (shareBtn) {
                       shareBtn.onclick = () => handleShareCode(code, discountPercentage);
                     }
-                  }
-              }).then((result) => {
-                  if (result.isConfirmed) {
-                    navigator.clipboard.writeText(code);
-                    Swal.toast.fire({
-                        icon: 'success',
-                        title: 'Code copied to clipboard!'
-                    });
+                    if (copyBtn) {
+                      copyBtn.onclick = () => {
+                        navigator.clipboard.writeText(code);
+                        Swal.toast.fire({
+                            icon: 'success',
+                            title: 'Code copied to clipboard!'
+                        });
+                      };
+                    }
                   }
               });
             }, 100);

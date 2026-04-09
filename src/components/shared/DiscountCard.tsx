@@ -13,7 +13,7 @@ interface DiscountCardProps {
 const DiscountCard: React.FC<DiscountCardProps> = ({ venueName, code, discountPercentage }) => {
   return (
     <div
-      className="w-[500px] h-[300px] bg-white relative overflow-hidden flex flex-col border border-gray-100 shadow-2xl"
+      className="w-[500px] min-h-[350px] bg-white relative overflow-hidden flex flex-col border border-gray-100 shadow-2xl"
       style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
     >
       {/* Decorative Background Elements */}
@@ -43,8 +43,8 @@ const DiscountCard: React.FC<DiscountCardProps> = ({ venueName, code, discountPe
           <h2 className="text-xl font-black text-gray-900 leading-tight">{venueName}</h2>
         </div>
 
-        <div className="my-4 bg-gray-50 px-8 py-4 rounded-2xl border-2 border-dashed border-primary relative group">
-          <p className="text-4xl font-black text-primary tracking-[0.15em] uppercase">{code}</p>
+        <div className="my-4 bg-gray-50 px-8 py-4 rounded-2xl border-2 border-dashed border-primary relative group w-full max-w-[400px]">
+          <p className="text-3xl font-black text-primary tracking-[0.1em] uppercase break-all">{code}</p>
           <div className="absolute -top-3 -right-3 bg-secondary text-white p-1.5 rounded-full shadow-lg">
             <Sparkles size={14} className="animate-pulse" />
           </div>
