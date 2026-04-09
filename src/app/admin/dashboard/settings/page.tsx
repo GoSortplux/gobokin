@@ -18,6 +18,23 @@ interface Settings {
 
 type TabId = 'financial' | 'automation' | 'vendor' | 'referral' | 'contacts';
 
+const extractArray = <T,>(data: unknown, key?: string): T[] => {
+    if (Array.isArray(data)) return data;
+    if (data && typeof data === 'object') {
+        const obj = data as Record<string, unknown>;
+        if (key && Array.isArray(obj[key])) return obj[key] as T[];
+        // Try common keys if key not provided or not found
+        const potentialKeys = ['referralSources', 'contacts', 'platformContacts', 'data'];
+        for (const k of potentialKeys) {
+            if (Array.isArray(obj[k])) return obj[k] as T[];
+        }
+        // Last resort: find any array property
+        const foundKey = Object.keys(obj).find(k => Array.isArray(obj[k]));
+        if (foundKey) return obj[foundKey] as T[];
+    }
+    return [];
+};
+
 const SettingsPage = () => {
     const [settings, setSettings] = useState<Partial<Settings>>({});
     const [referralSources, setReferralSources] = useState<ReferralSource[]>([]);
@@ -63,10 +80,10 @@ const SettingsPage = () => {
             }
 
             if (referralRes.status === 'fulfilled') {
-                setReferralSources(referralRes.value.data.data || []);
+                setReferralSources(extractArray<ReferralSource>(referralRes.value.data.data, 'referralSources'));
             }
             if (contactsRes.status === 'fulfilled') {
-                setPlatformContacts(contactsRes.value.data.data || []);
+                setPlatformContacts(extractArray<PlatformContact>(contactsRes.value.data.data, 'platformContacts'));
             }
 
             setSettings(newSettings);
@@ -80,6 +97,18 @@ const SettingsPage = () => {
     useEffect(() => {
         fetchAllData();
     }, []);
+
+    useEffect(() => {
+        if (activeTab === 'referral') {
+            api.get('/settings/referral-sources').then(res => {
+                setReferralSources(extractArray<ReferralSource>(res.data.data, 'referralSources'));
+            }).catch(console.error);
+        } else if (activeTab === 'contacts') {
+            api.get('/settings/platform-contacts').then(res => {
+                setPlatformContacts(extractArray<PlatformContact>(res.data.data, 'platformContacts'));
+            }).catch(console.error);
+        }
+    }, [activeTab]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -167,7 +196,7 @@ const SettingsPage = () => {
             setIsReferralModalOpen(false);
             setEditingReferral(null);
             const res = await api.get('/settings/referral-sources');
-            setReferralSources(res.data.data);
+            setReferralSources(extractArray<ReferralSource>(res.data.data, 'referralSources'));
         } catch (error) {
             console.error("Error saving referral source:", error);
             Swal.fire('Error', 'Could not save referral source.', 'error');
@@ -189,7 +218,7 @@ const SettingsPage = () => {
                 await api.delete(`/settings/referral-sources/${id}`);
                 Swal.fire('Deleted!', 'Referral source has been deleted.', 'success');
                 const res = await api.get('/settings/referral-sources');
-                setReferralSources(res.data.data);
+                setReferralSources(extractArray<ReferralSource>(res.data.data, 'referralSources'));
             } catch (error) {
                 console.error("Error deleting referral source:", error);
                 Swal.fire('Error', 'Could not delete referral source.', 'error');
@@ -220,7 +249,7 @@ const SettingsPage = () => {
             setIsContactModalOpen(false);
             setEditingContact(null);
             const res = await api.get('/settings/platform-contacts');
-            setPlatformContacts(res.data.data);
+            setPlatformContacts(extractArray<PlatformContact>(res.data.data, 'platformContacts'));
         } catch (error) {
             console.error("Error saving platform contact:", error);
             Swal.fire('Error', 'Could not save platform contact.', 'error');
@@ -243,7 +272,7 @@ const SettingsPage = () => {
                 await api.post('/settings/platform-contacts', { contacts: updatedContacts });
                 Swal.fire('Removed!', 'Contact has been removed.', 'success');
                 const res = await api.get('/settings/platform-contacts');
-                setPlatformContacts(res.data.data);
+                setPlatformContacts(extractArray<PlatformContact>(res.data.data, 'platformContacts'));
             } catch (error) {
                 console.error("Error deleting platform contact:", error);
                 Swal.fire('Error', 'Could not remove contact.', 'error');
