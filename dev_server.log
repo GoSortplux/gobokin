@@ -34,3 +34,6 @@ Failed to fetch venue with slug: m-and-m-event-center-1740523030238, status: 404
  ✓ Compiled / in 2.7s (3809 modules)
  GET / 200 in 3849ms
  GET / 200 in 211ms
+ ✓ Compiled in 9.2s (1812 modules)
+ ✓ Compiled in 7.6s (3811 modules)
+ ✓ Compiled in 1676ms (1812 modules)

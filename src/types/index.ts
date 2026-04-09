@@ -290,6 +290,7 @@ export interface Venue {
   bookingMessage?: string;
   platformContact?: PlatformContact;
   commissionRate?: number;
+  isPartnership?: boolean;
 }
 
 export interface Notification {
