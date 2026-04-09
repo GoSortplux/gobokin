@@ -103,13 +103,17 @@ const BookingsPage = () => {
       } else if (activeTab === 'referrals') {
         const referralsRes = await api.get(`/admin/referral-codes?limit=${LIMIT}`);
         const data = referralsRes.data.data;
-        if (Array.isArray(data)) {
-          setReferralCodes(data);
-        } else if (data && Array.isArray(data.referralCodes)) {
-          setReferralCodes(data.referralCodes);
-        } else {
-          setReferralCodes([]);
-        }
+        const codes = Array.isArray(data) ? data : (data?.codes || data?.referralCodes || []);
+
+        // Normalize nested userDetails if present
+        const normalizedCodes = codes.map((ref: ReferralCode & { userDetails?: { fullName?: string; email?: string; phone?: string } }) => ({
+          ...ref,
+          fullName: ref.fullName || ref.userDetails?.fullName || 'N/A',
+          email: ref.email || ref.userDetails?.email || 'N/A',
+          phone: ref.phone || ref.userDetails?.phone || 'N/A'
+        }));
+
+        setReferralCodes(normalizedCodes);
       }
     } catch (err: unknown) {
       console.error("Failed to fetch data", err);
@@ -159,7 +163,16 @@ const BookingsPage = () => {
   }, [reservations, searchTerm]);
 
   const filteredReferralCodes = useMemo(() => {
-    const codes = Array.isArray(referralCodes) ? referralCodes : [];
+    let codes = Array.isArray(referralCodes) ? referralCodes : [];
+
+    if (selectedVenue) {
+      codes = codes.filter(ref => {
+        if (!ref.hall) return false;
+        const venueId = typeof ref.hall === 'object' ? (ref.hall as Venue)._id || (ref.hall as Venue).id : ref.hall;
+        return venueId === selectedVenue;
+      });
+    }
+
     if (!searchTerm) return codes;
     return codes.filter(
       (ref) =>
@@ -168,7 +181,7 @@ const BookingsPage = () => {
         ref.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (typeof ref.hall === 'object' && (ref.hall as Venue).name.toLowerCase().includes(searchTerm.toLowerCase()))
     );
-  }, [referralCodes, searchTerm]);
+  }, [referralCodes, searchTerm, selectedVenue]);
 
   const groupedBookings = useMemo(() => {
     const groups: Record<string, Booking[]> = {};

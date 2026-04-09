@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState, useCallback, useMemo } from 'react';
-import Image from 'next/image';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { toPng } from 'html-to-image';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/services/api';
 import BookingModal, { FacilityWithQuantity } from '@/components/BookingModal';
@@ -14,12 +14,12 @@ import VenueDetailSkeleton from '@/components/VenueDetailSkeleton';
 import Carousel from '@/components/Carousel';
 import MediaViewerModal from '@/components/MediaViewerModal';
 import MediaThumbnail from '@/components/MediaThumbnail';
-import { isVideo, getMediaThumbnail } from '@/utils/media';
 import { useBookingAvailability } from '@/hooks/useBookingAvailability';
 import { translateError } from '@/utils/errors';
 import { Venue, Review, Suitability } from '@/types';
 import FacilityIcon from '@/components/FacilityIcon';
 import ErrorState from '@/components/ErrorState';
+import DiscountCard from '@/components/shared/DiscountCard';
 import {
   CheckCircle,
   CircleDollarSign,
@@ -31,10 +31,9 @@ import {
   Church,
   Heart,
   Users,
-  Play,
   Share2,
   MapPin,
-  Ticket
+  Ticket,
 } from 'lucide-react';
 import Swal from "@/utils/sweetalert";
 
@@ -47,6 +46,8 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
   const { user } = useAuth();
   const router = useRouter();
   const [venue, setVenue] = useState<Venue | null>(initialVenue || null);
+  const discountCardRef = useRef<HTMLDivElement>(null);
+  const [generatedCode, setGeneratedCode] = useState<{ code: string; discountPercentage: number } | null>(null);
 
   const canSeeViews = useMemo(() => {
     if (!user || !venue) return false;
@@ -95,6 +96,61 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
   const { getDateAvailability } = useBookingAvailability(venue, undefined, displayedMonth);
 
   const isOnlineBookingEnabled = (venue?.isOnlineBookingEnabled !== false) && (venue?.bookingMode === 'online' || !venue?.bookingMode);
+
+  const handleDownloadCodeImage = async (code: string) => {
+    if (!discountCardRef.current) return;
+    try {
+      const dataUrl = await toPng(discountCardRef.current, { cacheBust: true, backgroundColor: '#ffffff' });
+      const link = document.createElement('a');
+      link.download = `discount-${code}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error('Failed to download discount code image', err);
+      Swal.toast.fire({
+        icon: 'error',
+        title: 'Failed to generate image',
+      });
+    }
+  };
+
+  const handleShareCode = useCallback(async (code: string, discount: number) => {
+    const shareText = `Hey! I just got a ${discount}% discount code for ${venue?.name} on GoBokin. Use code: ${code}`;
+
+    if (navigator.share) {
+      try {
+        if (discountCardRef.current) {
+          const dataUrl = await toPng(discountCardRef.current, { cacheBust: true, backgroundColor: '#ffffff' });
+          const blob = await (await fetch(dataUrl)).blob();
+          const file = new File([blob], `discount-${code}.png`, { type: 'image/png' });
+
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              files: [file],
+              title: 'My Discount Code',
+              text: shareText,
+            });
+            return;
+          }
+        }
+
+        // Fallback to text share if file share not supported
+        await navigator.share({
+          title: 'My Discount Code',
+          text: shareText,
+          url: window.location.href,
+        });
+      } catch (_err) {
+        // Silently ignore share cancellation or errors
+      }
+    } else {
+      navigator.clipboard.writeText(`${shareText} ${window.location.href}`);
+      Swal.toast.fire({
+        icon: 'success',
+        title: 'Share link copied to clipboard!',
+      });
+    }
+  }, [venue?.name]);
 
   const handleGenerateReferralCode = useCallback(async () => {
     if (!user) {
@@ -150,32 +206,63 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
             const targetId = venue?._id || venue?.id || slugOrId;
             const response = await api.post(`/halls/${targetId}/generate-referral-code`, formValues);
             const { code, discountPercentage } = response.data.data;
+            setGeneratedCode({ code, discountPercentage });
 
-            Swal.fire({
-                title: 'Your Discount Code',
-                html: `
-                    <div class="p-6 bg-blue-50 rounded-2xl border-2 border-dashed border-primary mt-4">
-                        <p class="text-4xl font-black text-primary tracking-widest uppercase mb-2">${code}</p>
-                        <p class="text-sm font-bold text-blue-700">Get ${discountPercentage}% OFF your booking!</p>
-                    </div>
-                    <p class="mt-4 text-xs text-gray-500">Show this code to the venue owner when making an offline booking.</p>
-                `,
-                icon: 'success',
-                confirmButtonText: 'Copy & Close',
-                confirmButtonColor: '#295FA7',
-            }).then(() => {
-                navigator.clipboard.writeText(code);
-                Swal.toast.fire({
-                    icon: 'success',
-                    title: 'Code copied to clipboard!'
-                });
-            });
+            // Small delay to ensure the hidden DiscountCard is rendered with the new data
+            setTimeout(() => {
+              Swal.fire({
+                  title: 'Your Discount Code',
+                  html: `
+                      <div class="relative p-6 bg-blue-50 rounded-2xl border-2 border-dashed border-primary mt-4">
+                          <p class="text-4xl font-black text-primary tracking-widest uppercase mb-2 pr-10">${code}</p>
+                          <p class="text-sm font-bold text-blue-700">Get ${discountPercentage}% OFF your booking!</p>
+                          <button id="swal-copy-btn" class="absolute top-4 right-4 p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors cursor-pointer" title="Copy Code">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                          </button>
+                      </div>
+                      <p class="mt-4 text-xs text-gray-500 mb-6">Show this code to the venue owner when making an offline booking.</p>
+                      <div class="grid grid-cols-2 gap-3">
+                          <button id="swal-download-btn" class="flex items-center justify-center gap-2 px-4 py-3 bg-secondary text-white rounded-xl font-bold text-sm cursor-pointer hover:opacity-90 transition-opacity">
+                              Download Image
+                          </button>
+                          <button id="swal-share-btn" class="flex items-center justify-center gap-2 px-4 py-3 bg-gray-800 text-white rounded-xl font-bold text-sm cursor-pointer hover:opacity-90 transition-opacity">
+                              Share Voucher
+                          </button>
+                      </div>
+                  `,
+                  icon: 'success',
+                  showCancelButton: false,
+                  confirmButtonText: 'Close',
+                  confirmButtonColor: '#295FA7',
+                  didOpen: () => {
+                    const downloadBtn = document.getElementById('swal-download-btn');
+                    const shareBtn = document.getElementById('swal-share-btn');
+                    const copyBtn = document.getElementById('swal-copy-btn');
+
+                    if (downloadBtn) {
+                      downloadBtn.onclick = () => handleDownloadCodeImage(code);
+                    }
+                    if (shareBtn) {
+                      shareBtn.onclick = () => handleShareCode(code, discountPercentage);
+                    }
+                    if (copyBtn) {
+                      copyBtn.onclick = () => {
+                        navigator.clipboard.writeText(code);
+                        Swal.toast.fire({
+                            icon: 'success',
+                            title: 'Code copied to clipboard!'
+                        });
+                      };
+                    }
+                  }
+              });
+            }, 100);
         } catch (err) {
             console.error('Failed to generate referral code:', err);
             Swal.fire('Error', translateError(err), 'error');
         }
     }
-  }, [user, venue, slugOrId, router]);
+  }, [user, venue, slugOrId, router, handleShareCode]);
 
   const handleContactOwner = useCallback(async () => {
     if (!user) {
@@ -346,7 +433,7 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
         // if we are sure it's stale, but for now let's be conservative.
       }
     }
-  }, [slugOrId, venue, handleContactOwner]);
+  }, [slugOrId, venue, handleContactOwner, handleGenerateReferralCode]);
 
   useEffect(() => {
     fetchVenueAndRecommendations(!!initialVenue);
@@ -429,7 +516,7 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
           const [, lat, lng] = coordsMatch;
           return `https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed`;
         }
-      } catch (e) {
+      } catch (_e) {
         // If URL parsing fails, try simple regex for coords
         const coordsMatch = venue.directionUrl.match(/destination=([0-9.-]+),([0-9.-]+)/);
         if (coordsMatch) {
@@ -469,6 +556,19 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
 
   return (
     <div className="bg-white min-h-screen">
+      {/* Hidden container for image generation */}
+      <div className="fixed -left-[9999px] top-0 pointer-events-none">
+        <div ref={discountCardRef}>
+          {generatedCode && (
+            <DiscountCard
+              venueName={venue.name}
+              code={generatedCode.code}
+              discountPercentage={generatedCode.discountPercentage}
+            />
+          )}
+        </div>
+      </div>
+
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-28">
         <div className="mb-4">
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">{venue.name}</h1>
