@@ -312,11 +312,11 @@ const AdminEnhancedAnalytics = () => {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
                 <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Overall Platform Statistics</h2>
-                {user?.outstandingReferralCommission && user.outstandingReferralCommission > 0 ? (
+                {(user?.outstandingReferralCommission || 0) > 0 ? (
                     <div className="animate-pulse bg-rose-50 border border-rose-100 px-4 py-2 rounded-2xl flex items-center gap-3 shadow-sm">
                         <div className="flex flex-col">
                             <span className="text-[10px] font-black text-rose-400 uppercase">Your Outstanding Debt</span>
-                            <span className="text-sm font-black text-rose-600">{formatCurrency(user.outstandingReferralCommission)}</span>
+                            <span className="text-sm font-black text-rose-600">{formatCurrency(user?.outstandingReferralCommission || 0)}</span>
                         </div>
                         <button
                             onClick={handleSettleCommission}

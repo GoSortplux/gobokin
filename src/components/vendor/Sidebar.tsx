@@ -15,7 +15,6 @@ import {
   ChevronLeft,
   Menu,
   X,
-  AlertCircle,
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -129,17 +128,6 @@ const Sidebar = () => {
       </div>
 
       <nav className="flex-1 flex flex-col px-3 space-y-3">
-        {user?.outstandingReferralCommission && user.outstandingReferralCommission > 0 && (isExpanded || isSidebarOpen) && (
-          <div className="mx-2 mb-4 p-3 bg-rose-50 border border-rose-100 rounded-2xl animate-in fade-in slide-in-from-top-2">
-            <div className="flex items-center gap-2 text-rose-600 mb-1">
-              <AlertCircle size={14} />
-              <span className="text-[10px] font-black uppercase tracking-wider">Payment Due</span>
-            </div>
-            <p className="text-[10px] text-rose-500 font-bold leading-tight">
-              You have an outstanding commission balance. Settle it in your dashboard.
-            </p>
-          </div>
-        )}
         {navLinks.map((link) => (
           <Link
             key={link.href}

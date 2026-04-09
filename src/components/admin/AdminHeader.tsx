@@ -224,20 +224,6 @@ const AdminHeader = () => {
       )}
 
       <div className="flex items-center space-x-2 md:space-x-6">
-        {user?.outstandingReferralCommission && user.outstandingReferralCommission > 0 && (
-          <button
-            onClick={handleSettleCommission}
-            className="hidden xl:flex items-center gap-3 px-4 py-2 bg-rose-50 border border-rose-100 rounded-2xl animate-in fade-in zoom-in duration-500 hover:bg-rose-100 transition-colors group"
-          >
-            <div className="w-8 h-8 rounded-xl bg-rose-600 flex items-center justify-center text-white shadow-lg shadow-rose-200 group-hover:scale-110 transition-transform">
-              <Wallet size={14} />
-            </div>
-            <div className="text-left">
-              <p className="text-[10px] font-black text-rose-400 uppercase leading-none">Your Debt</p>
-              <p className="text-xs font-black text-rose-600 mt-0.5">₦{user.outstandingReferralCommission.toLocaleString()}</p>
-            </div>
-          </button>
-        )}
         <button
           onClick={() => setIsMobileSearchOpen(true)}
           className="p-2 text-gray-400 hover:text-primary hover:bg-blue-50 rounded-xl md:hidden transition-all"
@@ -328,6 +314,16 @@ const AdminHeader = () => {
                 )}
 
                 <div className="my-1 border-t border-gray-50" />
+
+                {(user?.outstandingReferralCommission || 0) > 0 && (
+                  <button
+                    onClick={handleSettleCommission}
+                    className="flex items-center w-full px-4 py-2.5 text-sm font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
+                  >
+                    <Wallet size={18} className="mr-3" />
+                    Settle Commission (₦{user.outstandingReferralCommission!.toLocaleString()})
+                  </button>
+                )}
 
                 <button
                   onClick={logout}
