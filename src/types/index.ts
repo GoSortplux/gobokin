@@ -207,6 +207,8 @@ export interface PlatformContact {
 export interface ReferralSource {
   _id: string;
   name: string;
+  triggersCommission?: boolean;
+  isDefault?: boolean;
 }
 
 export interface ReferralCode {
