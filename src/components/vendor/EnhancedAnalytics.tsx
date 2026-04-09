@@ -226,7 +226,7 @@ const DEFAULT_DATA: AnalyticsData = {
 };
 
 const EnhancedAnalytics = ({ initialData }: { initialData?: AnalyticsData | null }) => {
-  const { user } = useAuth();
+  const { user, fetchUserProfile } = useAuth();
   const [data, setData] = useState<AnalyticsData | null>(initialData || null);
   const [loading, setLoading] = useState<boolean>(!initialData);
   const [venues, setVenues] = useState<Venue[]>([]);
@@ -333,6 +333,8 @@ const EnhancedAnalytics = ({ initialData }: { initialData?: AnalyticsData | null
         const response = await api.post('/payments/settle-commission', { amount: Number(settleAmount) });
         const { checkoutUrl } = response.data.data;
         if (checkoutUrl) {
+          // Refresh profile in background before redirect
+          fetchUserProfile().catch(console.error);
           window.location.href = checkoutUrl;
         } else {
           throw new Error('Failed to generate payment link');

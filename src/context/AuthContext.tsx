@@ -32,6 +32,7 @@ interface AuthContextType {
   updateToken: (token: string, redirectPath?: string | null) => void;
   updateUser: (updates: Partial<User>) => void;
   updateUserApplicationStatus: (status: string) => void;
+  fetchUserProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -171,22 +172,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           const storedUser = localStorage.getItem('user');
           if (storedUser) {
             setUser(JSON.parse(storedUser));
+            fetchUserProfile(); // Background refresh
           } else {
-            // This part is tricky without a /me endpoint,
-            // We'll rely on the login process to store the user
-            // For now, let's just decode and set what we have.
+            // Initial load from token then background fetch
             const userFromToken: User = {
                 id: decodedToken._id,
                 _id: decodedToken._id,
                 email: decodedToken.email,
                 role: decodedToken.role,
                 activeRole: decodedToken.activeRole,
-                fullName: '', // This will be incomplete
+                fullName: '',
                 hasAcceptedLatestPolicies: decodedToken.hasAcceptedLatestPolicies,
                 hasAcceptedHallOwnerPolicy: decodedToken.hasAcceptedHallOwnerPolicy,
                 hallOwnerApplication: decodedToken.hallOwnerApplication
             };
             setUser(userFromToken);
+            fetchUserProfile();
           }
         }
       } catch (error) {
@@ -308,6 +309,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
   }, []);
 
+  const fetchUserProfile = useCallback(async () => {
+    try {
+      const response = await api.get('/users/me');
+      const userData = response.data.data || response.data;
+      setUser(prev => {
+        const updated = { ...prev, ...userData };
+        localStorage.setItem('user', JSON.stringify(updated));
+        return updated;
+      });
+    } catch (error) {
+      console.error("Failed to fetch user profile", error);
+    }
+  }, []);
+
   const contextValue = useMemo(() => ({
     user,
     activeRole: user?.activeRole || null,
@@ -317,8 +332,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     logout,
     updateToken,
     updateUser,
-    updateUserApplicationStatus
-  }), [user, token, loading, login, logout, updateToken, updateUser, updateUserApplicationStatus]);
+    updateUserApplicationStatus,
+    fetchUserProfile
+  }), [user, token, loading, login, logout, updateToken, updateUser, updateUserApplicationStatus, fetchUserProfile]);
 
   return (
     <AuthContext.Provider value={contextValue}>

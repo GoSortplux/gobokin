@@ -152,7 +152,7 @@ const formatDateRange = (start: Date | undefined, end: Date | undefined) => {
 };
 
 const AdminEnhancedAnalytics = () => {
-  const { user } = useAuth();
+  const { user, fetchUserProfile } = useAuth();
   const [data, setData] = useState<AdminAnalyticsData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [dateRange, setDateRange] = useState<Range[]>([{ startDate: new Date(new Date().setDate(new Date().getDate() - 7)), endDate: new Date(), key: 'selection' }]);
@@ -226,6 +226,7 @@ const AdminEnhancedAnalytics = () => {
         const response = await api.post('/payments/settle-commission', { amount: Number(settleAmount) });
         const { checkoutUrl } = response.data.data;
         if (checkoutUrl) {
+          fetchUserProfile().catch(console.error);
           window.location.href = checkoutUrl;
         } else {
           throw new Error('Failed to generate payment link');

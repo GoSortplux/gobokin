@@ -396,15 +396,27 @@ const VendorHeader = () => {
 
                 <div className="my-1 border-t border-gray-50" />
 
-                {(user?.outstandingReferralCommission || 0) > 0 && (
-                  <button
-                    onClick={handleSettleCommission}
-                    className="flex items-center w-full px-4 py-2.5 text-sm font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
-                  >
-                    <Wallet size={18} className="mr-3" />
-                    Settle Commission (₦{user.outstandingReferralCommission!.toLocaleString()})
-                  </button>
-                )}
+                <div className="px-4 py-2">
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Referral Balance</p>
+                  <div className={`flex items-center justify-between p-3 rounded-xl border ${ (user?.outstandingReferralCommission || 0) > 0 ? 'bg-rose-50 border-rose-100' : 'bg-gray-50 border-gray-100' }`}>
+                    <div className="flex items-center gap-2">
+                      <Wallet size={14} className={ (user?.outstandingReferralCommission || 0) > 0 ? 'text-rose-600' : 'text-gray-400' } />
+                      <span className={`text-xs font-bold ${ (user?.outstandingReferralCommission || 0) > 0 ? 'text-rose-700' : 'text-gray-600' }`}>
+                        ₦{(user?.outstandingReferralCommission || 0).toLocaleString()}
+                      </span>
+                    </div>
+                    {(user?.outstandingReferralCommission || 0) > 0 && (
+                      <button
+                        onClick={handleSettleCommission}
+                        className="text-[10px] font-black uppercase text-rose-600 hover:text-rose-800 underline underline-offset-2"
+                      >
+                        Settle
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="my-1 border-t border-gray-50" />
 
                 <button
                   onClick={logout}
