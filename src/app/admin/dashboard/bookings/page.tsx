@@ -106,7 +106,7 @@ const BookingsPage = () => {
         const codes = Array.isArray(data) ? data : (data?.codes || data?.referralCodes || []);
 
         // Normalize nested userDetails if present
-        const normalizedCodes = codes.map((ref: any) => ({
+        const normalizedCodes = codes.map((ref: ReferralCode & { userDetails?: { fullName?: string; email?: string; phone?: string } }) => ({
           ...ref,
           fullName: ref.fullName || ref.userDetails?.fullName || 'N/A',
           email: ref.email || ref.userDetails?.email || 'N/A',
