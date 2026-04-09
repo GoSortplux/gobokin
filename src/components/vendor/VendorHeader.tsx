@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import { Search, User as UserIcon, Plus, ChevronDown, Building, Calendar, Users, LogOut, LayoutDashboard, Menu, X } from "lucide-react";
+import { Search, User as UserIcon, Plus, ChevronDown, Building, Calendar, Users, LogOut, LayoutDashboard, Menu, X, Wallet } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useVendor } from "@/context/VendorContext";
 import { useRouter } from "next/navigation";
@@ -10,6 +10,7 @@ import NotificationDropdown from "../notifications/NotificationDropdown";
 import Swal from "@/utils/sweetalert";
 import { getDashboardPath } from "@/utils/redirects";
 import api from "@/services/api";
+import { translateError } from "@/utils/errors";
 import AccountSwitchModal from "../shared/AccountSwitchModal";
 import { useUI } from "@/context/UIContext";
 
@@ -111,6 +112,28 @@ const VendorHeader = () => {
         ]
       : []),
   ];
+
+  const handleSettleCommission = async () => {
+    const amount = user?.outstandingReferralCommission || 0;
+    try {
+      Swal.fire({
+        title: 'Settling Commission...',
+        text: 'Generating your payment link.',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+      });
+      const response = await api.post('/payments/settle-commission', { amount });
+      const { checkoutUrl } = response.data.data;
+      if (checkoutUrl) {
+        window.location.href = checkoutUrl;
+      } else {
+        throw new Error('Failed to generate payment link');
+      }
+    } catch (err) {
+      console.error('Failed to settle commission:', err);
+      Swal.fire('Error', translateError(err), 'error');
+    }
+  };
 
   return (
     <header className="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-gray-100 p-4 flex items-center justify-between">
@@ -215,6 +238,20 @@ const VendorHeader = () => {
       )}
 
       <div className="flex items-center space-x-2 md:space-x-6">
+        {user?.outstandingReferralCommission && user.outstandingReferralCommission > 0 && (
+          <button
+            onClick={handleSettleCommission}
+            className="hidden xl:flex items-center gap-3 px-4 py-2 bg-rose-50 border border-rose-100 rounded-2xl animate-in fade-in zoom-in duration-500 hover:bg-rose-100 transition-colors group"
+          >
+            <div className="w-8 h-8 rounded-xl bg-rose-600 flex items-center justify-center text-white shadow-lg shadow-rose-200 group-hover:scale-110 transition-transform">
+              <Wallet size={14} />
+            </div>
+            <div className="text-left">
+              <p className="text-[10px] font-black text-rose-400 uppercase leading-none">Debt Due</p>
+              <p className="text-xs font-black text-rose-600 mt-0.5">₦{user.outstandingReferralCommission.toLocaleString()}</p>
+            </div>
+          </button>
+        )}
         <button
           onClick={() => setIsMobileSearchOpen(true)}
           className="p-2 text-gray-400 hover:text-primary hover:bg-blue-50 rounded-xl md:hidden transition-all"

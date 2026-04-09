@@ -2,12 +2,15 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import api from '@/services/api';
+import { useAuth } from '@/context/AuthContext';
+import { translateError } from '@/utils/errors';
+import Swal from "@/utils/sweetalert";
 import { format as formatDate } from 'date-fns';
 import { DateRange, Range } from 'react-date-range';
 import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
 import useOnClickOutside from '@/hooks/useOnClickOutside';
-import { TrendingUp, TrendingDown, Calendar as CalendarIcon, ChevronDown, DollarSign, Briefcase, Shield, Percent } from 'lucide-react';
+import { TrendingUp, TrendingDown, Calendar as CalendarIcon, ChevronDown, DollarSign, Briefcase, Shield, Percent, Wallet, ArrowRight } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 const BarChart = dynamic(() => import('recharts').then(mod => mod.BarChart), { ssr: false, loading: () => <div className="animate-pulse bg-gray-200 h-[300px] w-full rounded-md" /> });
@@ -149,6 +152,7 @@ const formatDateRange = (start: Date | undefined, end: Date | undefined) => {
 };
 
 const AdminEnhancedAnalytics = () => {
+  const { user } = useAuth();
   const [data, setData] = useState<AdminAnalyticsData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [dateRange, setDateRange] = useState<Range[]>([{ startDate: new Date(new Date().setDate(new Date().getDate() - 7)), endDate: new Date(), key: 'selection' }]);
@@ -189,6 +193,49 @@ const AdminEnhancedAnalytics = () => {
   }, [dateRange, selectedHallId]);
 
   useEffect(() => { fetchAdminAnalytics(); }, [fetchAdminAnalytics]);
+
+  const handleSettleCommission = async () => {
+    const amount = user?.outstandingReferralCommission || 0;
+    if (amount <= 0) {
+      Swal.fire('No Balance', 'You do not have any personal outstanding commission to settle.', 'info');
+      return;
+    }
+
+    const { value: settleAmount } = await Swal.fire({
+      title: 'Settle Your Commission',
+      text: `Your personal outstanding balance is ${formatCurrency(amount)}. How much would you like to pay?`,
+      input: 'number',
+      inputValue: amount,
+      inputAttributes: {
+        min: '1',
+        max: String(amount),
+        step: '1'
+      },
+      showCancelButton: true,
+      confirmButtonText: 'Pay Now',
+      confirmButtonColor: '#295FA7',
+      inputValidator: (value) => {
+        if (!value || Number(value) <= 0) return 'Please enter a valid amount';
+        if (Number(value) > amount) return 'Amount cannot exceed your outstanding balance';
+      }
+    });
+
+    if (settleAmount) {
+      try {
+        Swal.showLoading();
+        const response = await api.post('/payments/settle-commission', { amount: Number(settleAmount) });
+        const { checkoutUrl } = response.data.data;
+        if (checkoutUrl) {
+          window.location.href = checkoutUrl;
+        } else {
+          throw new Error('Failed to generate payment link');
+        }
+      } catch (err) {
+        console.error('Failed to settle commission:', err);
+        Swal.fire('Error', translateError(err), 'error');
+      }
+    }
+  };
 
   const topHallsData = data?.hallPerformance?.mostActiveHalls.slice(0, 5).map(venue => ({ name: venue.name, Revenue: venue.revenue })) || [];
   const revenueBreakdownData = data ? [
@@ -263,7 +310,23 @@ const AdminEnhancedAnalytics = () => {
       ) : (
         <>
           <div className="space-y-2">
-            <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Overall Platform Statistics</h2>
+            <div className="flex items-center justify-between">
+                <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Overall Platform Statistics</h2>
+                {user?.outstandingReferralCommission && user.outstandingReferralCommission > 0 ? (
+                    <div className="animate-pulse bg-rose-50 border border-rose-100 px-4 py-2 rounded-2xl flex items-center gap-3 shadow-sm">
+                        <div className="flex flex-col">
+                            <span className="text-[10px] font-black text-rose-400 uppercase">Your Outstanding Debt</span>
+                            <span className="text-sm font-black text-rose-600">{formatCurrency(user.outstandingReferralCommission)}</span>
+                        </div>
+                        <button
+                            onClick={handleSettleCommission}
+                            className="bg-rose-600 text-white text-[10px] font-black px-3 py-1.5 rounded-xl uppercase hover:bg-rose-700 transition-all flex items-center gap-1 shadow-lg shadow-rose-200"
+                        >
+                            Settle <ArrowRight size={12} />
+                        </button>
+                    </div>
+                ) : null}
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               <AdminStatCard title="System Gross Volume" value={formatCurrency(data.overallStats.systemGrossVolume)} icon={DollarSign} />
               <AdminStatCard title="Total Owner Payouts" value={formatCurrency(data.overallStats.totalOwnerPayouts)} icon={Briefcase} />
@@ -271,6 +334,26 @@ const AdminEnhancedAnalytics = () => {
               <AdminStatCard title="Platform Net" value={formatCurrency(data.overallStats.totalPlatformNet)} icon={TrendingUp} />
               <AdminStatCard title="Total Views" value={data.overallStats.totalViews.toLocaleString()} icon={TrendingUp} />
               <AdminStatCard title="Contact Attempts" value={data.overallStats.totalDemoBookings} icon={Briefcase} />
+              {user?.outstandingReferralCommission !== undefined && (
+                  <div className={`p-6 rounded-xl shadow-md flex items-center justify-between transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border ${user.outstandingReferralCommission > 0 ? 'bg-rose-50 border-rose-100' : 'bg-white border-gray-100'}`}>
+                      <div className="flex items-center space-x-4">
+                          <div className={`p-4 rounded-xl ${user.outstandingReferralCommission > 0 ? 'bg-white text-rose-600 shadow-sm' : 'bg-blue-50 text-primary'}`}><Wallet className="h-6 w-6" /></div>
+                          <div>
+                              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Referral Debt</p>
+                              <p className={`text-2xl font-black mt-0.5 ${user.outstandingReferralCommission > 0 ? 'text-rose-700' : 'text-gray-900'}`}>{formatCurrency(user.outstandingReferralCommission)}</p>
+                          </div>
+                      </div>
+                      {user.outstandingReferralCommission > 0 && (
+                          <button
+                              onClick={handleSettleCommission}
+                              className="p-2 bg-white rounded-lg text-rose-600 hover:bg-rose-600 hover:text-white transition-all shadow-sm"
+                              title="Settle Your Balance"
+                          >
+                              <ArrowRight size={20} />
+                          </button>
+                      )}
+                  </div>
+              )}
             </div>
           </div>
 
