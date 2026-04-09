@@ -2,13 +2,14 @@
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
-import { X, Plus, Trash2, Info, ChevronDown, ChevronUp, Settings2 } from 'lucide-react';
+import { X, Plus, Trash2, Info, ChevronDown, ChevronUp, Settings2, User } from 'lucide-react';
 import MediaUpload from './MediaUpload';
 import { isVideo } from '@/utils/media';
 import api from '@/services/api';
 import Swal from "@/utils/sweetalert";
 import { VendorContext } from '@/context/VendorContext';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 
 interface Facility {
   facility: string; // Changed from name to facility to store ID
@@ -90,6 +91,15 @@ interface VenueData {
   isTaxEnabled?: boolean;
   serviceChargePercentage?: number;
   vatPercentage?: number;
+  bookingMode?: 'online' | 'enquiry-only' | 'platform-managed';
+  platformContact?: {
+    _id: string;
+    name: string;
+    phone: string;
+    email?: string;
+  };
+  commissionRate?: number;
+  isPartnership?: boolean;
   images?: string[];
   videos?: string[];
 }
@@ -112,6 +122,8 @@ const parseHour = (timeStr: string | number) => {
 const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venue }) => {
   const router = useRouter();
   const vendorContext = useContext(VendorContext);
+  const { user } = useAuth();
+  const isSuperAdmin = user?.activeRole === 'super-admin';
 
   const resetForm = () => {
     setFormData({
@@ -155,6 +167,10 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
       isTaxEnabled: false,
       serviceChargePercentage: '' as number | string,
       vatPercentage: '' as number | string,
+      bookingMode: 'online' as 'online' | 'enquiry-only' | 'platform-managed',
+      platformContact: null as { _id: string; name: string; phone: string; email?: string } | null,
+      commissionRate: '' as number | string,
+      isPartnership: false,
     });
     setCurrentStep(1);
     setVenueId(null);
@@ -184,6 +200,7 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
   const [lgas, setLgas] = useState<{ _id: string; name: string }[]>([]);
   const [userVenues, setUserVenues] = useState<{ id: string; _id: string; name: string; slug?: string }[]>([]);
   const [isImporting, setIsImporting] = useState(false);
+  const [availablePlatformContacts, setAvailablePlatformContacts] = useState<{ _id: string; name: string; phone: string; email?: string }[]>([]);
   const [formData, setFormData] = useState({
     name: '',
     country: '',
@@ -225,6 +242,10 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
     isTaxEnabled: false,
     serviceChargePercentage: '' as number | string,
     vatPercentage: '' as number | string,
+    bookingMode: 'online' as 'online' | 'enquiry-only' | 'platform-managed',
+    platformContact: null as { _id: string; name: string; phone: string; email?: string } | null,
+    commissionRate: '' as number | string,
+    isPartnership: false,
   });
 
   useEffect(() => {
@@ -243,6 +264,15 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
           // Fetch countries
           const countriesResponse = await api.get('/locations/countries');
           setCountries(countriesResponse.data.data);
+
+          if (isSuperAdmin) {
+            try {
+              const contactsRes = await api.get('/settings/platform-contacts');
+              setAvailablePlatformContacts(contactsRes.data.data || []);
+            } catch (err) {
+              console.error('Failed to fetch platform contacts:', err);
+            }
+          }
 
           // Fetch user's venues for import
           if (!venue) {
@@ -373,6 +403,10 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
         isTaxEnabled: venue.isTaxEnabled || false,
         serviceChargePercentage: venue.serviceChargePercentage !== undefined ? venue.serviceChargePercentage : '',
         vatPercentage: venue.vatPercentage !== undefined ? venue.vatPercentage : '',
+        bookingMode: venue.bookingMode || 'online',
+        platformContact: venue.platformContact || null,
+        commissionRate: venue.commissionRate !== undefined ? venue.commissionRate : '',
+        isPartnership: venue.isPartnership || false,
       });
       setVenueId(venue._id || venue.id || null);
     } else {
@@ -421,6 +455,10 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
             isTaxEnabled: false,
             serviceChargePercentage: '',
             vatPercentage: '',
+            bookingMode: 'online',
+            platformContact: null,
+            commissionRate: '',
+            isPartnership: false,
             ...parsedData
           });
           setCurrentStep(1);
@@ -472,6 +510,10 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
           isTaxEnabled: false,
           serviceChargePercentage: '',
           vatPercentage: '',
+          bookingMode: 'online',
+          platformContact: null,
+          commissionRate: '',
+          isPartnership: false,
       });
       setCurrentStep(1);
       setVenueId(null);
@@ -659,6 +701,10 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
         isTaxEnabled: config.isTaxEnabled || false,
         serviceChargePercentage: config.serviceChargePercentage !== undefined ? config.serviceChargePercentage : '',
         vatPercentage: config.vatPercentage !== undefined ? config.vatPercentage : '',
+        bookingMode: config.bookingMode || prev.bookingMode,
+        platformContact: config.platformContact || prev.platformContact,
+        commissionRate: config.commissionRate !== undefined ? config.commissionRate : prev.commissionRate,
+        isPartnership: config.isPartnership !== undefined ? config.isPartnership : prev.isPartnership,
       }));
 
       Swal.toast.fire({
@@ -825,6 +871,10 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
         isTaxEnabled: formData.isTaxEnabled,
         serviceChargePercentage: formData.serviceChargePercentage !== '' ? Number(formData.serviceChargePercentage) : undefined,
         vatPercentage: formData.vatPercentage !== '' ? Number(formData.vatPercentage) : undefined,
+        bookingMode: formData.bookingMode,
+        platformContact: formData.platformContact,
+        commissionRate: formData.commissionRate !== '' ? Number(formData.commissionRate) : undefined,
+        isPartnership: formData.isPartnership,
         openingHour: parseHour(openingHour),
         closingHour: parseHour(closingHour),
         country,
@@ -917,6 +967,10 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
         isTaxEnabled: formData.isTaxEnabled,
         serviceChargePercentage: formData.serviceChargePercentage !== '' ? Number(formData.serviceChargePercentage) : undefined,
         vatPercentage: formData.vatPercentage !== '' ? Number(formData.vatPercentage) : undefined,
+        bookingMode: formData.bookingMode,
+        platformContact: formData.platformContact,
+        commissionRate: formData.commissionRate !== '' ? Number(formData.commissionRate) : undefined,
+        isPartnership: formData.isPartnership,
         discountSettings: {
           enabled: formData.discountSettings.enabled,
           hourly: {
@@ -1293,6 +1347,81 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
 
                 {showAdvancedSettings && (
                   <div className="mt-4 p-6 border border-gray-200 rounded-3xl space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                    {isSuperAdmin && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6 border-b border-gray-100">
+                        <div>
+                          <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Custom Commission Rate (%)</label>
+                          <input
+                            type="number"
+                            name="commissionRate"
+                            placeholder="Leave empty for default"
+                            value={formData.commissionRate}
+                            onChange={handleChange}
+                            className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary/20 transition-all"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Booking Mode</label>
+                          <select
+                            name="bookingMode"
+                            value={formData.bookingMode}
+                            onChange={handleChange}
+                            className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 focus:ring-2 focus:ring-primary/20 transition-all"
+                          >
+                            <option value="online">Online Booking</option>
+                            <option value="enquiry-only">Enquiry Only</option>
+                            <option value="platform-managed">Platform Managed</option>
+                          </select>
+                        </div>
+                        <div className="flex items-center justify-between p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 md:col-span-2">
+                          <div className="flex flex-col">
+                            <span className="text-sm font-bold text-emerald-900 uppercase italic">Partnership Venue</span>
+                            <span className="text-[10px] text-emerald-700 font-medium">Enable referral discount code generation for this venue.</span>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              name="isPartnership"
+                              checked={formData.isPartnership}
+                              onChange={handleChange}
+                              className="sr-only peer"
+                            />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                          </label>
+                        </div>
+                        {formData.bookingMode === 'platform-managed' && (
+                          <div className="col-span-full">
+                            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Assign Platform Contact</label>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <select
+                                value={formData.platformContact?._id || ''}
+                                onChange={(e) => {
+                                  const contact = availablePlatformContacts.find(c => c._id === e.target.value);
+                                  setFormData(prev => ({ ...prev, platformContact: contact || null }));
+                                }}
+                                className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 focus:ring-2 focus:ring-primary/20 transition-all"
+                              >
+                                <option value="">Select Platform Contact</option>
+                                {availablePlatformContacts.map(contact => (
+                                  <option key={contact._id} value={contact._id}>{contact.name} ({contact.phone})</option>
+                                ))}
+                              </select>
+                              {formData.platformContact && (
+                                <div className="p-3 bg-primary/5 rounded-xl border border-primary/10 flex items-center gap-3">
+                                  <div className="p-2 bg-white rounded-lg text-primary">
+                                    <User size={16} />
+                                  </div>
+                                  <div>
+                                    <p className="text-xs font-bold text-gray-900">{formData.platformContact.name}</p>
+                                    <p className="text-[10px] text-gray-500">{formData.platformContact.phone}</p>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Max Staff Manual Discount (%)</label>

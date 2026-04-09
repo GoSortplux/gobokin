@@ -12,7 +12,7 @@ import PaymentLinkModal from '@/components/shared/PaymentLinkModal';
 import { Search, ChevronDown, Eye, Share2, CreditCard, User, List, RefreshCcw, FileText, Phone, Mail } from 'lucide-react';
 import CustomLoader from '@/components/CustomLoader';
 import Swal from "@/utils/sweetalert";
-import { Booking, Venue, Reservation, UserProfile } from '@/types';
+import { Booking, Venue, Reservation, UserProfile, ReferralCode } from '@/types';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -29,6 +29,7 @@ const BookingsPage = () => {
   const [activeTab, setActiveTab] = useState('bookings');
   const [allBookings, setAllBookings] = useState<Booking[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [referralCodes, setReferralCodes] = useState<ReferralCode[]>([]);
   const [venues, setVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -99,6 +100,16 @@ const BookingsPage = () => {
         } else {
           setReservations([]);
         }
+      } else if (activeTab === 'referrals') {
+        const referralsRes = await api.get(`/admin/referral-codes?limit=${LIMIT}`);
+        const data = referralsRes.data.data;
+        if (Array.isArray(data)) {
+          setReferralCodes(data);
+        } else if (data && Array.isArray(data.referralCodes)) {
+          setReferralCodes(data.referralCodes);
+        } else {
+          setReferralCodes([]);
+        }
       }
     } catch (err: unknown) {
       console.error("Failed to fetch data", err);
@@ -146,6 +157,18 @@ const BookingsPage = () => {
         reservation.walkInUserDetails?.fullName?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [reservations, searchTerm]);
+
+  const filteredReferralCodes = useMemo(() => {
+    const codes = Array.isArray(referralCodes) ? referralCodes : [];
+    if (!searchTerm) return codes;
+    return codes.filter(
+      (ref) =>
+        ref.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ref.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ref.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (typeof ref.hall === 'object' && (ref.hall as Venue).name.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  }, [referralCodes, searchTerm]);
 
   const groupedBookings = useMemo(() => {
     const groups: Record<string, Booking[]> = {};
@@ -228,11 +251,20 @@ const BookingsPage = () => {
     return filteredReservations.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   }, [filteredReservations, currentPage]);
 
+  const paginatedReferrals = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredReferralCodes.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredReferralCodes, currentPage]);
+
   // Handle local total pages
   const effectiveTotalPages = useMemo(() => {
-    const dataToPaginate = (activeTab === 'reservations') ? filteredReservations : groupedBookings;
+    let dataToPaginate = [];
+    if (activeTab === 'reservations') dataToPaginate = filteredReservations;
+    else if (activeTab === 'referrals') dataToPaginate = filteredReferralCodes;
+    else dataToPaginate = groupedBookings;
+
     return Math.max(1, Math.ceil(dataToPaginate.length / ITEMS_PER_PAGE));
-  }, [activeTab, groupedBookings, filteredReservations]);
+  }, [activeTab, groupedBookings, filteredReservations, filteredReferralCodes]);
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= effectiveTotalPages) {
@@ -442,6 +474,12 @@ const BookingsPage = () => {
             onClick={() => setActiveTab('cancellations')}
           >
             Cancellations
+          </button>
+          <button
+            className={`px-8 py-2.5 text-xs font-black uppercase tracking-widest transition-all rounded-xl whitespace-nowrap ${activeTab === 'referrals' ? 'bg-white text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+            onClick={() => setActiveTab('referrals')}
+          >
+            Referral Codes
           </button>
         </div>
 
@@ -1099,6 +1137,54 @@ const BookingsPage = () => {
             </div>
 
               </>
+            ) : activeTab === 'referrals' ? (
+                <div className="overflow-x-auto shadow-sm border border-gray-100 rounded-xl">
+                    <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                            <tr>
+                                <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Code</th>
+                                <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">User</th>
+                                <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Venue</th>
+                                <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Discount</th>
+                                <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status</th>
+                                <th className="py-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Generated</th>
+                            </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-100">
+                            {paginatedReferrals.length > 0 ? (
+                                paginatedReferrals.map((ref) => (
+                                    <tr key={ref._id} className="hover:bg-gray-50">
+                                        <td className="py-4 px-4">
+                                            <span className="font-mono text-sm font-black text-primary uppercase">{ref.code}</span>
+                                        </td>
+                                        <td className="py-4 px-4">
+                                            <div className="text-sm font-bold text-gray-900">{ref.fullName}</div>
+                                            <div className="text-xs text-gray-500">{ref.phone}</div>
+                                        </td>
+                                        <td className="py-4 px-4 text-sm text-gray-700 font-medium">
+                                            {typeof ref.hall === 'object' ? (ref.hall as Venue).name : 'N/A'}
+                                        </td>
+                                        <td className="py-4 px-4 text-sm font-bold text-emerald-600">
+                                            {ref.discountPercentage}% OFF
+                                        </td>
+                                        <td className="py-4 px-4">
+                                            <span className={`px-2.5 py-1 text-[10px] font-black rounded-full uppercase ${ref.isUsed ? 'bg-gray-100 text-gray-500' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
+                                                {ref.isUsed ? 'Redeemed' : 'Active'}
+                                            </span>
+                                        </td>
+                                        <td className="py-4 px-4 text-xs text-gray-500">
+                                            {new Date(ref.createdAt).toLocaleDateString()}
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={6} className="py-20 text-center text-gray-400 font-medium italic">No referral codes found.</td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             ) : (
               <div className="space-y-4">
                  <div className="hidden xl:block overflow-x-auto shadow-sm border border-gray-100 rounded-xl">

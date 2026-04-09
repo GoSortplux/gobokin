@@ -5,11 +5,12 @@ interface DemoModalProps {
   isOpen: boolean;
   onClose: () => void;
   phone: string;
+  name?: string;
   directionUrl?: string;
   address?: string;
 }
 
-const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose, phone, directionUrl, address }) => {
+const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose, phone, name, directionUrl, address }) => {
   const [copiedPhone, setCopiedPhone] = useState(false);
 
   if (!isOpen) return null;
@@ -29,9 +30,18 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose, phone, direction
         className="relative z-10 bg-white rounded-xl p-6 md:p-8 max-w-sm w-full shadow-2xl border border-gray-200"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-2xl font-bold mb-6 text-gray-800">Contact Owner</h2>
+        <h2 className="text-2xl font-bold mb-6 text-gray-800">Contact Details</h2>
 
         <div className="space-y-4 mb-8">
+          {name && (
+            <div>
+              <label className="block text-sm font-medium text-gray-500 mb-1">Representative</label>
+              <div className="p-3 rounded-lg bg-gray-50 border border-gray-100 text-gray-900 font-bold text-sm">
+                {name}
+              </div>
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-medium text-gray-500 mb-1">Phone Number</label>
             <div className="flex items-center gap-2">

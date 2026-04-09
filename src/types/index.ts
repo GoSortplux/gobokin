@@ -87,6 +87,9 @@ export interface Booking {
     accountNumber: string;
     accountName: string;
   };
+  referralCode?: string;
+  referralSource?: string | ReferralSource;
+  referralSourceOther?: string;
 }
 
 export interface Reservation {
@@ -145,6 +148,9 @@ export interface Reservation {
     accountNumber: string;
     accountName: string;
   };
+  referralCode?: string;
+  referralSource?: string | ReferralSource;
+  referralSourceOther?: string;
 }
 
 export interface Suitability {
@@ -186,7 +192,34 @@ export interface User {
   };
   assignedHalls?: (string | { _id: string })[];
   hallIds?: string[];
-  organizerProfile?: OrganizerProfile;
+  commissionRate?: number;
+}
+
+export interface PlatformContact {
+  _id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  whatsappNumber?: string;
+  role?: string;
+}
+
+export interface ReferralSource {
+  _id: string;
+  name: string;
+}
+
+export interface ReferralCode {
+  _id: string;
+  code: string;
+  hall: string | Venue;
+  generatedBy?: string | UserProfile;
+  fullName: string;
+  phone: string;
+  email: string;
+  discountPercentage: number;
+  isUsed: boolean;
+  createdAt: string;
 }
 
 export interface Venue {
@@ -253,6 +286,11 @@ export interface Venue {
   isTaxEnabled?: boolean;
   serviceChargePercentage?: number;
   vatPercentage?: number;
+  bookingMode?: 'online' | 'enquiry-only' | 'platform-managed';
+  bookingMessage?: string;
+  platformContact?: PlatformContact;
+  commissionRate?: number;
+  isPartnership?: boolean;
 }
 
 export interface Notification {
@@ -325,6 +363,8 @@ export interface LicenseTier {
   }[];
   discountedPrice?: number;
   isPublic?: boolean;
+  isPartnershipTier?: boolean;
+  defaultCommissionRate?: number;
 }
 
 export interface ManualAssignmentPayload {
@@ -332,226 +372,4 @@ export interface ManualAssignmentPayload {
   tierId: string;
   adminNote: string;
   externalReference: string;
-}
-
-// Event Module Types
-export type OrganizerStatus = 'NEW' | 'ESTABLISHED' | 'VERIFIED';
-export type EventType = 'PHYSICAL' | 'ONLINE' | 'HYBRID';
-export type RefundType = 'FULL' | 'PARTIAL' | 'NONE';
-export type EventStatus = 'UPCOMING' | 'ONGOING' | 'COMPLETED' | 'CANCELLED';
-export type RegistrationMode = 'FULL_DETAILS' | 'BASIC_QUANTITY';
-export type TicketType = 'FREE' | 'PAID';
-export type PaymentStatus = 'PENDING' | 'PAID' | 'REFUNDED' | 'FAILED';
-export type WithdrawalStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'COMPLETED';
-
-export interface Wallet {
-  id: string;
-  pendingBalance: number;
-  availableBalance: number;
-  withdrawnBalance: number;
-  currency: string;
-}
-
-export interface OrganizerProfile {
-  id: string;
-  mongoUserId: string;
-  status: OrganizerStatus;
-  isVerified: boolean;
-  bio?: string;
-  website?: string;
-  commissionRate: number;
-  maxStaff: number;
-  defaultRefundType: RefundType;
-  defaultRefundPercentage: number;
-  defaultRefundCutoffDays: number;
-  wallet: Wallet;
-}
-
-export interface Event {
-  id: string;
-  _id?: string;
-  title: string;
-  description: string;
-  type: EventType;
-  startDate: string;
-  endDate: string;
-  location?: string;
-  latitude?: number;
-  longitude?: number;
-  virtualLink?: string;
-  capacity: number;
-  category: string;
-  tags?: string[];
-  bannerUrl?: string;
-  status: EventStatus;
-  isFeatured: boolean;
-  registrationMode: RegistrationMode;
-  isGroupingEnabled: boolean;
-  enforceUniqueGroupNames: boolean;
-  registrationFields: RegistrationField[];
-  organizer: OrganizerProfile;
-  tickets: Ticket[];
-  sessions: Session[];
-}
-
-export interface RegistrationField {
-  name: string;
-  label: string;
-  type: 'text' | 'number' | 'select' | 'checkbox';
-  required: boolean;
-  isPerAttendee: boolean;
-  options?: string[]; // Added for select type
-}
-
-export interface Ticket {
-  id: string;
-  name: string;
-  price: number;
-  type: TicketType;
-  totalQuantity: number;
-  availableQuantity: number;
-  groupSize: number;
-  isFixedGroup: boolean;
-  earlyBirdPrice?: number;
-  earlyBirdLimit?: number;
-  earlyBirdExpiry?: string;
-}
-
-export interface Session {
-  id: string;
-  title: string;
-  description?: string;
-  startTime: string;
-  endTime: string;
-  location?: string;
-}
-
-export interface Registration {
-  id: string;
-  orderId: string;
-  isLeader: boolean;
-  groupId?: string;
-  ticketNumber: string;
-  attendeeData: Record<string, any>;
-  pricePaid: number;
-  paymentStatus: PaymentStatus;
-  qrCodeUrl?: string;
-  checkInStatus: boolean;
-  checkedInAt?: string;
-}
-
-export interface Withdrawal {
-  id: string;
-  amount: number;
-  status: WithdrawalStatus;
-  bankDetails: {
-    bankName: string;
-    accountNumber: string;
-    accountName: string;
-  };
-  reference?: string;
-  adminNotes?: string;
-  createdAt: string;
-}
-
-export interface SubscriptionPackage {
-  id: string;
-  name: string;
-  price: number;
-  discountPercentage: number;
-  durationDays: number;
-  type: 'SUBSCRIPTION' | 'ONE_TIME_PASS';
-  rules: {
-    ruleKey: string;
-    ruleValue: string;
-  }[];
-}
-
-export interface OrganizerApplication {
-  id: string;
-  organizerId: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
-  data: Record<string, any>;
-  adminNotes?: string;
-  createdAt: string;
-}
-
-export interface Analytics {
-  views: number;
-  orders: number;
-  registrations: number;
-  checkInRate: number;
-  conversionRate: number;
-  totalRevenue: number;
-  avgOrderValue: number;
-  groupRegistrations: number;
-  ticketBreakdown: any[];
-}
-
-export interface Attendee {
-  fullName: string;
-  email: string;
-  phone?: string;
-  [key: string]: any; // For dynamic custom fields
-}
-
-export interface LocationData {
-  name: string;
-  code: string;
-  lgas: string[];
-}
-
-export interface CategoryData {
-  id: string;
-  name: string;
-  subcategories: string[];
-  count: number;
-}
-
-export interface StaffMember {
-  id: string;
-  fullName: string;
-  email: string;
-  role: 'STAFF' | 'MANAGER';
-  canRegisterGuests: boolean;
-  createdAt: string;
-}
-
-export interface FinanceSummary {
-  wallet: Wallet;
-  totals: {
-    amount: number;
-    commission: number;
-    netAmount: number;
-  };
-  transactionCount: number;
-  recentTransactions: {
-    id: string;
-    type: string;
-    amount: number;
-    status: string;
-    createdAt: string;
-  }[];
-}
-
-export interface Group {
-  id: string;
-  name: string;
-  leaderId?: string;
-  groupData: Record<string, any>;
-}
-
-export interface Order {
-  id: string;
-  amountPaid: number;
-  discountCode?: string;
-  sharedData: Record<string, any>;
-  createdAt: string;
-}
-
-export interface GuestCategory {
-  id: string;
-  name: string;
-  description: string;
-  createdAt: string;
 }

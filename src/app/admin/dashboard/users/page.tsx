@@ -16,6 +16,7 @@ interface User {
   phone?: string;
   whatsappNumber?: string;
   avatar?: string;
+  commissionRate?: number;
 }
 
 interface VenueOwnerApplication {
@@ -55,6 +56,7 @@ const UserEditModal = ({ user, onClose, onSave }: { user: User, onClose: () => v
     phone: user.phone || "",
     whatsappNumber: user.whatsappNumber || "",
     avatar: user.avatar || "",
+    commissionRate: user.commissionRate !== undefined ? String(user.commissionRate) : "",
   });
   const [saving, setSaving] = useState(false);
 
@@ -67,7 +69,11 @@ const UserEditModal = ({ user, onClose, onSave }: { user: User, onClose: () => v
     e.preventDefault();
     setSaving(true);
     try {
-      await api.patch(`/users/${user._id}`, formData);
+      const payload = {
+        ...formData,
+        commissionRate: formData.commissionRate === "" ? null : Number(formData.commissionRate)
+      };
+      await api.patch(`/users/${user._id}`, payload);
       Swal.fire("Success", "User updated successfully.", "success");
       onSave();
     } catch (error) {
@@ -130,6 +136,23 @@ const UserEditModal = ({ user, onClose, onSave }: { user: User, onClose: () => v
               placeholder="https://example.com/avatar.jpg"
             />
           </div>
+          {user.role.includes('hall-owner') && (
+            <div>
+              <label className="block text-sm font-semibold text-gray-600 mb-1 italic">Custom Commission Rate (%)</label>
+              <input
+                type="number"
+                name="commissionRate"
+                value={formData.commissionRate}
+                onChange={handleChange}
+                className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all text-gray-900"
+                placeholder="Leave empty to use tier default"
+                min="0"
+                max="100"
+                step="0.01"
+              />
+              <p className="text-[10px] text-gray-400 mt-1 italic">Override the default platform commission for this specific hall owner.</p>
+            </div>
+          )}
           <div className="flex gap-4 pt-4">
             <button
               type="button"
