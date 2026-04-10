@@ -16,6 +16,7 @@ import MediaViewerModal from '@/components/MediaViewerModal';
 import MediaThumbnail from '@/components/MediaThumbnail';
 import { useBookingAvailability } from '@/hooks/useBookingAvailability';
 import { translateError } from '@/utils/errors';
+import { formatDateLong } from '@/utils/date';
 import { Venue, Review, Suitability } from '@/types';
 import FacilityIcon from '@/components/FacilityIcon';
 import ErrorState from '@/components/ErrorState';
@@ -47,7 +48,12 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
   const router = useRouter();
   const [venue, setVenue] = useState<Venue | null>(initialVenue || null);
   const discountCardRef = useRef<HTMLDivElement>(null);
-  const [generatedCode, setGeneratedCode] = useState<{ code: string; discountPercentage: number } | null>(null);
+  const [generatedCode, setGeneratedCode] = useState<{
+    code: string;
+    discountPercentage: number;
+    expiryDate?: string;
+    daysRemaining?: number;
+  } | null>(null);
 
   const canSeeViews = useMemo(() => {
     if (!user || !venue) return false;
@@ -157,11 +163,11 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
       localStorage.setItem('pendingAction', JSON.stringify({ hallId: slugOrId, action: 'generateReferral' }));
       localStorage.setItem('returnUrl', window.location.pathname + window.location.search);
       Swal.fire({
-        title: 'Want a discount?',
-        text: 'Please log in to generate your unique referral code.',
+        title: 'Want a Discount?',
+        text: 'Kindly sign in to generate your unique discount code and enjoy exclusive savings.',
         icon: 'info',
         showCancelButton: true,
-        confirmButtonText: 'Log In',
+        confirmButtonText: 'Sign In',
         cancelButtonText: 'Cancel',
         confirmButtonColor: '#295FA7',
       }).then((result) => {
@@ -205,8 +211,10 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
             Swal.showLoading();
             const targetId = venue?._id || venue?.id || slugOrId;
             const response = await api.post(`/halls/${targetId}/generate-referral-code`, formValues);
-            const { code, discountPercentage } = response.data.data;
-            setGeneratedCode({ code, discountPercentage });
+            const { code, discountPercentage, expiryDate, daysRemaining } = response.data.data;
+            setGeneratedCode({ code, discountPercentage, expiryDate, daysRemaining });
+
+            const formattedExpiry = expiryDate ? formatDateLong(expiryDate) : null;
 
             // Small delay to ensure the hidden DiscountCard is rendered with the new data
             setTimeout(() => {
@@ -220,7 +228,11 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
                               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
                           </button>
                       </div>
-                      <p class="mt-4 text-xs text-gray-500 mb-6">Show this code to the venue owner when making an offline booking.</p>
+                      <div class="mt-4 mb-6">
+                        ${formattedExpiry ? `<p class="text-sm font-bold text-gray-700">Valid until ${formattedExpiry}</p>` : ''}
+                        ${daysRemaining !== undefined ? `<p class="text-xs text-primary italic">(${daysRemaining} ${daysRemaining === 1 ? 'day' : 'days'} remaining)</p>` : ''}
+                        <p class="mt-2 text-xs text-gray-500">Show this code to the venue owner when making an offline booking.</p>
+                      </div>
                       <div class="grid grid-cols-2 gap-3">
                           <button id="swal-download-btn" class="flex items-center justify-center gap-2 px-4 py-3 bg-secondary text-white rounded-xl font-bold text-sm cursor-pointer hover:opacity-90 transition-opacity">
                               Download Image
@@ -265,6 +277,15 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
   }, [user, venue, slugOrId, router, handleShareCode]);
 
   const handleContactOwner = useCallback(async () => {
+    const targetId = venue?._id || venue?.id || slugOrId;
+
+    // Track the click event
+    if (targetId) {
+      api.post(`/halls/${targetId}/contact-click`).catch(err => {
+        console.error('Failed to track contact click:', err);
+      });
+    }
+
     if (!user) {
       localStorage.setItem('pendingAction', JSON.stringify({ hallId: slugOrId, action: 'contactOwner' }));
       localStorage.setItem('returnUrl', window.location.pathname + window.location.search);
@@ -564,6 +585,8 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
               venueName={venue.name}
               code={generatedCode.code}
               discountPercentage={generatedCode.discountPercentage}
+              expiryDate={generatedCode.expiryDate}
+              daysRemaining={generatedCode.daysRemaining}
             />
           )}
         </div>
@@ -980,13 +1003,18 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
               )}
               {venue.isPartnership && (
                 <div className="mt-2">
-                  <button
-                    onClick={handleGenerateReferralCode}
-                    className="w-full bg-emerald-50 text-emerald-700 border border-emerald-100 py-3 rounded-xl font-bold hover:bg-emerald-100 cursor-pointer transition duration-300 flex items-center justify-center gap-2"
-                  >
-                    <Ticket size={18} />
-                    Generate Discount Code
-                  </button>
+                  <div className="flex flex-col gap-2">
+                    <button
+                      onClick={handleGenerateReferralCode}
+                      className="w-full bg-emerald-50 text-emerald-700 border border-emerald-100 py-3 rounded-xl font-bold hover:bg-emerald-100 cursor-pointer transition duration-300 flex items-center justify-center gap-2"
+                    >
+                      <Ticket size={18} />
+                      Generate Discount Code
+                    </button>
+                    <p className="text-[10px] text-center font-bold text-emerald-600 uppercase tracking-wider">
+                      Get a {venue.referralDiscountPercentage || 2}% discount when Paying for Booking
+                    </p>
+                  </div>
                 </div>
               )}
               <p className="text-center text-sm text-gray-500 mt-4">You won&apos;t be charged yet</p>

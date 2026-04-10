@@ -294,6 +294,7 @@ export interface Venue {
   platformContact?: PlatformContact;
   commissionRate?: number;
   isPartnership?: boolean;
+  referralDiscountPercentage?: number;
 }
 
 export interface Notification {
