@@ -1262,7 +1262,6 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                       {referralSources.map(source => (
                         <option key={source._id} value={source._id}>{source.name}</option>
                       ))}
-                      <option value="others">Others</option>
                     </select>
                   </div>
                   {formData.referralSource === 'others' && (
