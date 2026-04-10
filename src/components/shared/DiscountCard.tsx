@@ -3,14 +3,23 @@
 import React from 'react';
 import Image from 'next/image';
 import { Ticket, Sparkles } from 'lucide-react';
+import { formatDateLong } from '@/utils/date';
 
 interface DiscountCardProps {
   venueName: string;
   code: string;
   discountPercentage: number;
+  expiryDate?: string;
+  daysRemaining?: number;
 }
 
-const DiscountCard: React.FC<DiscountCardProps> = ({ venueName, code, discountPercentage }) => {
+const DiscountCard: React.FC<DiscountCardProps> = ({
+  venueName,
+  code,
+  discountPercentage,
+  expiryDate,
+  daysRemaining
+}) => {
   return (
     <div
       className="w-[500px] min-h-[350px] bg-white relative overflow-hidden flex flex-col border border-gray-100 shadow-2xl"
@@ -54,6 +63,16 @@ const DiscountCard: React.FC<DiscountCardProps> = ({ venueName, code, discountPe
           <p className="text-2xl font-black text-secondary uppercase">
             Get {discountPercentage}% OFF
           </p>
+          {expiryDate && (
+            <p className="text-sm font-bold text-gray-700 mt-1">
+              Valid until {formatDateLong(expiryDate)}
+              {daysRemaining !== undefined && (
+                <span className="text-xs text-primary ml-2 italic">
+                  ({daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} left)
+                </span>
+              )}
+            </p>
+          )}
           <p className="text-[10px] text-gray-400 font-medium mt-1">
             Valid for offline bookings made directly with the venue owner via GoBokin.
           </p>
