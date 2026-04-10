@@ -277,6 +277,15 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
   }, [user, venue, slugOrId, router, handleShareCode]);
 
   const handleContactOwner = useCallback(async () => {
+    const targetId = venue?._id || venue?.id || slugOrId;
+
+    // Track the click event
+    if (targetId) {
+      api.post(`/halls/${targetId}/contact-click`).catch(err => {
+        console.error('Failed to track contact click:', err);
+      });
+    }
+
     if (!user) {
       localStorage.setItem('pendingAction', JSON.stringify({ hallId: slugOrId, action: 'contactOwner' }));
       localStorage.setItem('returnUrl', window.location.pathname + window.location.search);
