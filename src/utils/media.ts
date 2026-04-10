@@ -15,3 +15,16 @@ export const getMediaThumbnail = (url: string | undefined | null) => {
   // For R2 or other URLs, return as is (browser handles video/image display)
   return url;
 };
+
+/**
+ * Reorders media so that an image is shown first if available.
+ * The rest of the media maintains its relative order (videos then remaining images).
+ */
+export const getReorderedMedia = (videos: string[] | null | undefined, images: string[] | null | undefined) => {
+  const v = videos || [];
+  const i = images || [];
+  if (i.length === 0) return [...v];
+
+  const [firstImage, ...remainingImages] = i;
+  return [firstImage, ...v, ...remainingImages];
+};
