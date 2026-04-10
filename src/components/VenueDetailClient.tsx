@@ -994,13 +994,18 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
               )}
               {venue.isPartnership && (
                 <div className="mt-2">
-                  <button
-                    onClick={handleGenerateReferralCode}
-                    className="w-full bg-emerald-50 text-emerald-700 border border-emerald-100 py-3 rounded-xl font-bold hover:bg-emerald-100 cursor-pointer transition duration-300 flex items-center justify-center gap-2"
-                  >
-                    <Ticket size={18} />
-                    Generate Discount Code
-                  </button>
+                  <div className="flex flex-col gap-2">
+                    <button
+                      onClick={handleGenerateReferralCode}
+                      className="w-full bg-emerald-50 text-emerald-700 border border-emerald-100 py-3 rounded-xl font-bold hover:bg-emerald-100 cursor-pointer transition duration-300 flex items-center justify-center gap-2"
+                    >
+                      <Ticket size={18} />
+                      Generate Discount Code
+                    </button>
+                    <p className="text-[10px] text-center font-bold text-emerald-600 uppercase tracking-wider">
+                      Get a {venue.referralDiscountPercentage || 2}% discount when Paying for Booking
+                    </p>
+                  </div>
                 </div>
               )}
               <p className="text-center text-sm text-gray-500 mt-4">You won&apos;t be charged yet</p>

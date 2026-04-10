@@ -100,6 +100,7 @@ interface VenueData {
   };
   commissionRate?: number;
   isPartnership?: boolean;
+  referralDiscountPercentage?: number;
   images?: string[];
   videos?: string[];
 }
@@ -171,6 +172,7 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
       platformContact: null as { _id: string; name: string; phone: string; email?: string } | null,
       commissionRate: '' as number | string,
       isPartnership: false,
+      referralDiscountPercentage: '' as number | string,
     });
     setCurrentStep(1);
     setVenueId(null);
@@ -246,6 +248,7 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
     platformContact: null as { _id: string; name: string; phone: string; email?: string } | null,
     commissionRate: '' as number | string,
     isPartnership: false,
+    referralDiscountPercentage: '' as number | string,
   });
 
   useEffect(() => {
@@ -407,6 +410,7 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
         platformContact: venue.platformContact || null,
         commissionRate: venue.commissionRate !== undefined ? venue.commissionRate : '',
         isPartnership: venue.isPartnership || false,
+        referralDiscountPercentage: venue.referralDiscountPercentage !== undefined ? venue.referralDiscountPercentage : '',
       });
       setVenueId(venue._id || venue.id || null);
     } else {
@@ -459,6 +463,7 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
             platformContact: null,
             commissionRate: '',
             isPartnership: false,
+            referralDiscountPercentage: '',
             ...parsedData
           });
           setCurrentStep(1);
@@ -514,6 +519,7 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
           platformContact: null,
           commissionRate: '',
           isPartnership: false,
+          referralDiscountPercentage: '',
       });
       setCurrentStep(1);
       setVenueId(null);
@@ -705,6 +711,7 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
         platformContact: config.platformContact || prev.platformContact,
         commissionRate: config.commissionRate !== undefined ? config.commissionRate : prev.commissionRate,
         isPartnership: config.isPartnership !== undefined ? config.isPartnership : prev.isPartnership,
+        referralDiscountPercentage: config.referralDiscountPercentage !== undefined ? config.referralDiscountPercentage : prev.referralDiscountPercentage,
       }));
 
       Swal.toast.fire({
@@ -875,6 +882,7 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
         platformContact: formData.platformContact,
         commissionRate: formData.commissionRate !== '' ? Number(formData.commissionRate) : undefined,
         isPartnership: formData.isPartnership,
+        referralDiscountPercentage: formData.referralDiscountPercentage !== '' ? Number(formData.referralDiscountPercentage) : undefined,
         openingHour: parseHour(openingHour),
         closingHour: parseHour(closingHour),
         country,
@@ -971,6 +979,7 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
         platformContact: formData.platformContact,
         commissionRate: formData.commissionRate !== '' ? Number(formData.commissionRate) : undefined,
         isPartnership: formData.isPartnership,
+        referralDiscountPercentage: formData.referralDiscountPercentage !== '' ? Number(formData.referralDiscountPercentage) : undefined,
         discountSettings: {
           enabled: formData.discountSettings.enabled,
           hourly: {
@@ -1373,21 +1382,36 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
                             <option value="platform-managed">Platform Managed</option>
                           </select>
                         </div>
-                        <div className="flex items-center justify-between p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 md:col-span-2">
-                          <div className="flex flex-col">
-                            <span className="text-sm font-bold text-emerald-900 uppercase italic">Partnership Venue</span>
-                            <span className="text-[10px] text-emerald-700 font-medium">Enable referral discount code generation for this venue.</span>
+                        <div className="flex flex-col gap-4 p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 md:col-span-2">
+                          <div className="flex items-center justify-between w-full">
+                            <div className="flex flex-col">
+                              <span className="text-sm font-bold text-emerald-900 uppercase italic">Partnership Venue</span>
+                              <span className="text-[10px] text-emerald-700 font-medium">Enable referral discount code generation for this venue.</span>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input
+                                type="checkbox"
+                                name="isPartnership"
+                                checked={formData.isPartnership}
+                                onChange={handleChange}
+                                className="sr-only peer"
+                              />
+                              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                            </label>
                           </div>
-                          <label className="relative inline-flex items-center cursor-pointer">
-                            <input
-                              type="checkbox"
-                              name="isPartnership"
-                              checked={formData.isPartnership}
-                              onChange={handleChange}
-                              className="sr-only peer"
-                            />
-                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
-                          </label>
+                          {formData.isPartnership && (
+                            <div className="pt-2 border-t border-emerald-100 animate-in fade-in slide-in-from-top-1 duration-300">
+                              <label className="block text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1.5 ml-1">Referral Discount Percentage (%)</label>
+                              <input
+                                type="number"
+                                name="referralDiscountPercentage"
+                                placeholder="e.g. 2"
+                                value={formData.referralDiscountPercentage}
+                                onChange={handleChange}
+                                className="w-full px-4 py-2 bg-white border border-emerald-100 rounded-xl text-sm text-gray-900 placeholder-emerald-200 focus:ring-2 focus:ring-emerald-200 transition-all"
+                              />
+                            </div>
+                          )}
                         </div>
                         {formData.bookingMode === 'platform-managed' && (
                           <div className="col-span-full">
