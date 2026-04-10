@@ -3,8 +3,9 @@ import React, { useState, useEffect } from "react";
 import withAuth from "@/components/auth/withAuth";
 import api from "@/services/api";
 import Swal from "@/utils/sweetalert";
-import { PlusCircle, Trash2 } from "lucide-react";
+import { PlusCircle, Trash2, ChevronDown, ChevronUp, Search, Mail, Phone, DollarSign } from "lucide-react";
 import LoadingSpinner from "@/components/admin/LoadingSpinner";
+import { OutstandingBalance } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 
 interface PaymentMethod {
@@ -483,6 +484,204 @@ const SubaccountsTab = () => {
   );
 };
 
+const OutstandingBalancesTab = () => {
+  const [balances, setBalances] = useState<OutstandingBalance[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [keyword, setKeyword] = useState("");
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+
+  const fetchBalances = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get(`/admin/finance/outstanding-balances`, {
+        params: { page, keyword, limit: 20 }
+      });
+      setBalances(res.data.data.balances || []);
+      setTotalPages(res.data.data.totalPages || 1);
+    } catch (error) {
+      console.error("Error fetching outstanding balances:", error);
+      Swal.fire("Error", "Could not fetch outstanding balances.", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      fetchBalances();
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, keyword]);
+
+  const toggleRow = (id: string) => {
+    const newExpandedRows = new Set(expandedRows);
+    if (newExpandedRows.has(id)) {
+      newExpandedRows.delete(id);
+    } else {
+      newExpandedRows.add(id);
+    }
+    setExpandedRows(newExpandedRows);
+  };
+
+  if (loading && page === 1 && !keyword) return <LoadingSpinner />;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <h2 className="text-xl font-bold text-gray-800 italic uppercase">Outstanding Commission Balances</h2>
+        <div className="relative max-w-sm w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+          <input
+            type="text"
+            placeholder="Search by owner name or email..."
+            value={keyword}
+            onChange={(e) => { setKeyword(e.target.value); setPage(1); }}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/20 outline-none transition-all text-sm text-gray-700"
+          />
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-100">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Hall Owner</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Contact Info</th>
+                <th className="px-6 py-4 text-right text-xs font-bold text-gray-400 uppercase tracking-widest">Outstanding Balance</th>
+                <th className="px-6 py-4 text-center text-xs font-bold text-gray-400 uppercase tracking-widest">Recent Bookings</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {balances.length > 0 ? balances.map((item) => (
+                <React.Fragment key={item.owner._id}>
+                  <tr className="hover:bg-gray-50/50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="font-bold text-gray-900">{item.owner.fullName}</div>
+                      <div className="text-[10px] text-gray-500 uppercase font-medium">Owner ID: {item.owner._id}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col space-y-1">
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <Mail size={14} className="text-gray-400" />
+                          <span>{item.owner.email}</span>
+                        </div>
+                        {item.owner.phone && (
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <Phone size={14} className="text-gray-400" />
+                            <span>{item.owner.phone}</span>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="text-lg font-extrabold text-primary">
+                        ₦{item.outstandingBalance.toLocaleString()}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <button
+                        onClick={() => toggleRow(item.owner._id)}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-primary hover:text-white text-gray-600 rounded-lg transition-all text-xs font-bold"
+                      >
+                        {expandedRows.has(item.owner._id) ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                        <span>{item.recentBookings.length} Bookings</span>
+                      </button>
+                    </td>
+                  </tr>
+                  {expandedRows.has(item.owner._id) && (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-4 bg-gray-50/50 border-y border-gray-100">
+                        <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                          <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 px-2">Recent Commission-Bearing Bookings</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {item.recentBookings.map((booking) => (
+                              <div key={booking._id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col justify-between">
+                                <div>
+                                  <div className="flex justify-between items-start mb-2">
+                                    <span className="text-xs font-bold text-primary italic">#{booking.bookingId}</span>
+                                    <span className="text-[10px] text-gray-400 font-medium">{new Date(booking.createdAt).toLocaleDateString()}</span>
+                                  </div>
+                                  <div className="flex justify-between text-sm mb-1">
+                                    <span className="text-gray-500">Booking Total:</span>
+                                    <span className="font-bold text-gray-900">₦{booking.totalPrice.toLocaleString()}</span>
+                                  </div>
+                                </div>
+                                <div className="mt-3 pt-3 border-t border-gray-50 flex justify-between items-center">
+                                  <span className="text-xs font-bold text-gray-400 uppercase">Commission:</span>
+                                  <span className="text-sm font-black text-emerald-600">₦{booking.commissionAmount.toLocaleString()}</span>
+                                </div>
+                              </div>
+                            ))}
+                            {item.recentBookings.length === 0 && (
+                              <div className="col-span-full text-center py-4 text-gray-400 italic text-sm">
+                                No recent bookings details available.
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              )) : (
+                <tr>
+                  <td colSpan={4} className="px-6 py-10 text-center text-gray-400 italic">
+                    {loading ? "Searching..." : "No outstanding balances found."}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 mt-6">
+          <button
+            onClick={() => setPage(prev => Math.max(1, prev - 1))}
+            disabled={page === 1}
+            className="px-4 py-2 rounded-lg text-sm font-bold bg-white text-gray-600 border border-gray-100 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          >
+            Previous
+          </button>
+
+          <div className="flex gap-2">
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+              .map((p, i, arr) => (
+                <React.Fragment key={p}>
+                  {i > 0 && arr[i-1] !== p - 1 && <span className="px-2 text-gray-400">...</span>}
+                  <button
+                    onClick={() => setPage(p)}
+                    className={`w-10 h-10 rounded-lg text-sm font-bold transition-all ${
+                      page === p ? "bg-primary text-white shadow-md" : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-100"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                </React.Fragment>
+              ))
+            }
+          </div>
+
+          <button
+            onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
+            disabled={page === totalPages}
+            className="px-4 py-2 rounded-lg text-sm font-bold bg-white text-gray-600 border border-gray-100 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          >
+            Next
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const PaymentManagementPage = () => {
   const [activeTab, setActiveTab] = useState("settings");
 
@@ -498,7 +697,7 @@ const PaymentManagementPage = () => {
                 activeTab === "settings"
                   ? "border-primary text-primary"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2`}
             >
               Payment Settings
             </button>
@@ -508,9 +707,20 @@ const PaymentManagementPage = () => {
                 activeTab === "subaccounts"
                   ? "border-primary text-primary"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2`}
             >
               Subaccounts
+            </button>
+            <button
+              onClick={() => setActiveTab("outstanding-balances")}
+              className={`${
+                activeTab === "outstanding-balances"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2`}
+            >
+              <DollarSign size={16} />
+              Outstanding Balances
             </button>
           </nav>
         </div>
@@ -518,6 +728,7 @@ const PaymentManagementPage = () => {
         <div className="mt-8">
           {activeTab === "settings" && <PaymentSettingsTab />}
           {activeTab === "subaccounts" && <SubaccountsTab />}
+          {activeTab === "outstanding-balances" && <OutstandingBalancesTab />}
         </div>
       </div>
     </div>

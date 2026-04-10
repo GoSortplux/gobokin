@@ -377,3 +377,43 @@ export interface ManualAssignmentPayload {
   adminNote: string;
   externalReference: string;
 }
+
+export interface OutstandingBalance {
+  owner: {
+    _id: string;
+    fullName: string;
+    email: string;
+    phone?: string;
+  };
+  outstandingBalance: number;
+  recentBookings: {
+    _id: string;
+    bookingId: string;
+    totalPrice: number;
+    commissionAmount: number;
+    createdAt: string;
+  }[];
+}
+
+export interface AuditLog {
+  _id: string;
+  action: string;
+  actor: {
+    _id: string;
+    fullName: string;
+    email: string;
+  };
+  actorName: string;
+  actorEmail: string;
+  resource: string;
+  resourceId: string;
+  status: 'success' | 'failure';
+  details: string;
+  metadata?: {
+    ip?: string;
+    userAgent?: string;
+    delta?: Record<string, unknown>;
+    [key: string]: unknown;
+  };
+  createdAt: string;
+}

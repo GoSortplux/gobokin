@@ -4,9 +4,9 @@ import withAuth from "@/components/auth/withAuth";
 import api from "@/services/api";
 import Swal from "@/utils/sweetalert";
 import LoadingSpinner from "@/components/admin/LoadingSpinner";
-import { Save, CreditCard, Clock, Shield, Info, ChevronRight, UserPlus, Contact, Plus, Trash2, Edit2, X, Phone, Mail } from "lucide-react";
+import { Save, CreditCard, Clock, Shield, Info, ChevronRight, UserPlus, Contact, Plus, Trash2, Edit2, X, Phone, Mail, History, Filter, Eye } from "lucide-react";
 import CustomLoader from "@/components/CustomLoader";
-import { ReferralSource, PlatformContact } from "@/types";
+import { ReferralSource, PlatformContact, AuditLog } from "@/types";
 
 interface Settings {
     commissionRate: number;
@@ -16,7 +16,7 @@ interface Settings {
     onlineBookingDeactivationTime: number;
 }
 
-type TabId = 'financial' | 'automation' | 'vendor' | 'referral' | 'contacts';
+type TabId = 'financial' | 'automation' | 'vendor' | 'referral' | 'contacts' | 'audit';
 
 const extractArray = <T,>(data: unknown, key?: string): T[] => {
     if (Array.isArray(data)) return data;
@@ -163,6 +163,7 @@ const SettingsPage = () => {
         { id: 'vendor' as TabId, label: 'Vendor Controls', icon: Shield, description: 'Set limits and controls for venue owners' },
         { id: 'referral' as TabId, label: 'Referral Sources', icon: UserPlus, description: 'Manage options for tracking booking origins' },
         { id: 'contacts' as TabId, label: 'Platform Contacts', icon: Contact, description: 'Manage universal list of platform representatives' },
+        { id: 'audit' as TabId, label: 'Audit Logs', icon: History, description: 'Track all administrative actions and system events' },
     ];
 
     interface SettingCardProps {
@@ -537,6 +538,8 @@ const SettingsPage = () => {
                         </div>
                     )}
 
+                    {activeTab === 'audit' && <AuditLogsTab />}
+
                     {activeTab === 'contacts' && (
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <div className="flex justify-between items-center mb-6">
@@ -757,6 +760,268 @@ const SettingsPage = () => {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+const AuditLogsTab = () => {
+    const [logs, setLogs] = useState<AuditLog[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [filters, setFilters] = useState({
+        action: '',
+        actorEmail: '',
+        resource: '',
+        status: '',
+        startDate: '',
+        endDate: ''
+    });
+    const [showFilters, setShowFilters] = useState(false);
+    const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
+
+    const fetchLogs = async () => {
+        setLoading(true);
+        try {
+            const params = {
+                page,
+                limit: 20,
+                ...Object.fromEntries(Object.entries(filters).filter(([_, v]) => v !== ''))
+            };
+            const res = await api.get('/admin/audit-logs', { params });
+            setLogs(res.data.data.logs || []);
+            setTotalPages(res.data.data.totalPages || 1);
+        } catch (error) {
+            console.error("Error fetching audit logs:", error);
+            Swal.fire("Error", "Could not fetch audit logs.", "error");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        const timeout = setTimeout(fetchLogs, 500);
+        return () => clearTimeout(timeout);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [page, filters]);
+
+    const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setFilters(prev => ({ ...prev, [name]: value }));
+        setPage(1);
+    };
+
+    const fetchLogDetails = async (id: string) => {
+        Swal.fire({ title: 'Loading...', didOpen: () => Swal.showLoading() });
+        try {
+            const res = await api.get(`/admin/audit-logs/${id}`);
+            setSelectedLog(res.data.data);
+            Swal.close();
+        } catch (error) {
+            console.error("Error fetching log details:", error);
+            Swal.fire("Error", "Could not fetch log details.", "error");
+        }
+    };
+
+    return (
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex justify-between items-center mb-6">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                        <History size={20} />
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-900">System Audit Logs</h2>
+                    {loading && <CustomLoader size={20} />}
+                </div>
+                <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                        showFilters ? 'bg-primary text-white' : 'bg-white text-gray-600 border border-gray-100 hover:bg-gray-50'
+                    }`}
+                >
+                    <Filter size={18} />
+                    <span>Filters</span>
+                </button>
+            </div>
+
+            {showFilters && (
+                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm mb-6 grid grid-cols-1 md:grid-cols-3 gap-4 animate-in slide-in-from-top-2">
+                    <div>
+                        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Action</label>
+                        <input name="action" value={filters.action} onChange={handleFilterChange} className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm" placeholder="e.g. USER_LOGIN" />
+                    </div>
+                    <div>
+                        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Actor Email</label>
+                        <input name="actorEmail" value={filters.actorEmail} onChange={handleFilterChange} className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm" placeholder="Search by email" />
+                    </div>
+                    <div>
+                        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Resource</label>
+                        <input name="resource" value={filters.resource} onChange={handleFilterChange} className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm" placeholder="e.g. Booking" />
+                    </div>
+                    <div>
+                        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Status</label>
+                        <select name="status" value={filters.status} onChange={handleFilterChange} className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm">
+                            <option value="">All Statuses</option>
+                            <option value="success">Success</option>
+                            <option value="failure">Failure</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Start Date</label>
+                        <input type="date" name="startDate" value={filters.startDate} onChange={handleFilterChange} className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm" />
+                    </div>
+                    <div>
+                        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">End Date</label>
+                        <input type="date" name="endDate" value={filters.endDate} onChange={handleFilterChange} className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm" />
+                    </div>
+                </div>
+            )}
+
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-100">
+                        <thead className="bg-gray-50">
+                            <tr>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Time</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Action</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Actor</th>
+                                <th className="px-6 py-4 text-center text-xs font-bold text-gray-400 uppercase tracking-widest">Status</th>
+                                <th className="px-6 py-4 text-right text-xs font-bold text-gray-400 uppercase tracking-widest">Details</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                            {logs.length > 0 ? logs.map((log) => (
+                                <tr key={log._id} className="hover:bg-gray-50/50 transition-colors">
+                                    <td className="px-6 py-4 text-xs text-gray-500">{new Date(log.createdAt).toLocaleString()}</td>
+                                    <td className="px-6 py-4">
+                                        <span className="text-sm font-bold text-gray-900">{log.action}</span>
+                                        <div className="text-[10px] text-gray-400 font-medium uppercase">{log.resource} ({log.resourceId})</div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="text-sm font-medium text-gray-700">{log.actorName}</div>
+                                        <div className="text-[10px] text-gray-400">{log.actorEmail}</div>
+                                    </td>
+                                    <td className="px-6 py-4 text-center">
+                                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${log.status === 'success' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                                            {log.status}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                        <button onClick={() => fetchLogDetails(log._id)} className="text-primary hover:bg-primary/10 p-2 rounded-lg transition-all">
+                                            <Eye size={18} />
+                                        </button>
+                                    </td>
+                                </tr>
+                            )) : (
+                                <tr>
+                                    <td colSpan={5} className="px-6 py-10 text-center text-gray-400 italic">No audit logs found.</td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-6">
+                    <button
+                        onClick={() => setPage(prev => Math.max(1, prev - 1))}
+                        disabled={page === 1}
+                        className="px-4 py-2 rounded-lg text-sm font-bold bg-white text-gray-600 border border-gray-100 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    >
+                        Previous
+                    </button>
+
+                    <div className="flex gap-2">
+                        {Array.from({ length: totalPages }, (_, i) => i + 1)
+                            .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+                            .map((p, i, arr) => (
+                                <React.Fragment key={p}>
+                                    {i > 0 && arr[i-1] !== p - 1 && <span className="px-2 text-gray-400">...</span>}
+                                    <button
+                                        onClick={() => setPage(p)}
+                                        className={`w-10 h-10 rounded-lg text-sm font-bold transition-all ${
+                                            page === p ? 'bg-primary text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-100'
+                                        }`}
+                                    >
+                                        {p}
+                                    </button>
+                                </React.Fragment>
+                            ))
+                        }
+                    </div>
+
+                    <button
+                        onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={page === totalPages}
+                        className="px-4 py-2 rounded-lg text-sm font-bold bg-white text-gray-600 border border-gray-100 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    >
+                        Next
+                    </button>
+                </div>
+            )}
+
+            {selectedLog && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
+                        <div className="p-6 border-b flex justify-between items-center bg-gray-50/50">
+                            <div>
+                                <h2 className="text-xl font-bold text-gray-900 italic uppercase">Audit Log Details</h2>
+                                <p className="text-xs text-gray-500 mt-1">{selectedLog._id}</p>
+                            </div>
+                            <button onClick={() => setSelectedLog(null)} className="text-gray-400 hover:text-gray-600 p-2 rounded-xl transition-colors">
+                                <X size={24} />
+                            </button>
+                        </div>
+                        <div className="p-8 overflow-y-auto max-h-[calc(90vh-120px)] space-y-6">
+                            <div className="grid grid-cols-2 gap-6">
+                                <div>
+                                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Action</label>
+                                    <div className="text-sm font-bold text-gray-900">{selectedLog.action}</div>
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Timestamp</label>
+                                    <div className="text-sm text-gray-700">{new Date(selectedLog.createdAt).toLocaleString()}</div>
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Actor</label>
+                                    <div className="text-sm font-bold text-gray-900">{selectedLog.actorName}</div>
+                                    <div className="text-xs text-gray-500">{selectedLog.actorEmail}</div>
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Status</label>
+                                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${selectedLog.status === 'success' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                                        {selectedLog.status}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Details</label>
+                                <p className="text-sm text-gray-700 leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-100">{selectedLog.details}</p>
+                            </div>
+
+                            {selectedLog.metadata && (
+                                <div>
+                                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Metadata & Context</label>
+                                    <pre className="text-xs bg-gray-900 text-emerald-400 p-6 rounded-2xl overflow-x-auto shadow-inner font-mono leading-relaxed">
+                                        {JSON.stringify(selectedLog.metadata, null, 2)}
+                                    </pre>
+                                </div>
+                            )}
+
+                            {selectedLog.metadata?.delta && Object.keys(selectedLog.metadata.delta).length > 0 && (
+                                <div>
+                                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Changes (Delta)</label>
+                                    <pre className="text-xs bg-gray-50 text-gray-700 p-6 rounded-2xl overflow-x-auto border border-gray-200 font-mono leading-relaxed">
+                                        {JSON.stringify(selectedLog.metadata.delta, null, 2)}
+                                    </pre>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}
