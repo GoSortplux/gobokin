@@ -17,6 +17,7 @@ import MediaThumbnail from '@/components/MediaThumbnail';
 import { useBookingAvailability } from '@/hooks/useBookingAvailability';
 import { translateError } from '@/utils/errors';
 import { formatDateLong } from '@/utils/date';
+import { getReorderedMedia } from '@/utils/media';
 import { Venue, Review, Suitability } from '@/types';
 import FacilityIcon from '@/components/FacilityIcon';
 import ErrorState from '@/components/ErrorState';
@@ -502,7 +503,7 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
     }
   };
 
-  const media = [...(venue.videos || []), ...(venue.images || [])];
+  const media = getReorderedMedia(venue.videos, venue.images);
 
   const getMapEmbedUrl = () => {
     // 1. Coordinates from geoLocation

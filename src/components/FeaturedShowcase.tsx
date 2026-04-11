@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { createVenueSlug } from '@/utils/slugify';
 import MediaThumbnail from './MediaThumbnail';
 import useIntersectionObserver from '@/hooks/useIntersectionObserver';
+import { getReorderedMedia } from '@/utils/media';
 
 interface FeaturedShowcaseProps {
   venues: Venue[];
@@ -23,7 +24,7 @@ const FeaturedShowcase = ({ venues, interval = 12000, badge = 'Featured Venue' }
   const isVisible = useIntersectionObserver(containerRef, { threshold: 0.1 });
 
   const currentVenue = venues[index];
-  const media = [...(currentVenue?.videos || []), ...(currentVenue?.images || [])];
+  const media = getReorderedMedia(currentVenue?.videos, currentVenue?.images);
 
   // Venue cycling effect
   useEffect(() => {

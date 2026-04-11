@@ -8,6 +8,7 @@ import { Venue } from "@/types/venue";
 import { useAuth } from "@/context/AuthContext";
 import { createVenueSlug } from "@/utils/slugify";
 import MediaThumbnail from "@/components/MediaThumbnail";
+import { getReorderedMedia } from "@/utils/media";
 
 interface VenueCardProps {
   venue: Venue;
@@ -58,7 +59,7 @@ const VenueCard = ({ venue, variant = 'default' }: VenueCardProps) => {
   const isFeatured = variant === 'featured';
 
   const media = useMemo(() => {
-    return [...(venue.videos || []), ...(venue.images || [])];
+    return getReorderedMedia(venue.videos, venue.images);
   }, [venue.videos, venue.images]);
 
   return (
