@@ -2,7 +2,7 @@ import axios from 'axios';
 import { translateError } from '@/utils/errors';
 
 const api = axios.create({
-  baseURL: 'https://api.gobokin.com/api/v1',
+  baseURL: 'https://dev.gobokin.com/api/v1',
   headers: {
     'Content-Type': 'application/json',
   },
