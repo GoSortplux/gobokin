@@ -19,10 +19,13 @@ import { StaffMember } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
+import OrganizerStaffModal from "@/components/organizer/OrganizerStaffModal";
 
 const StaffPool = () => {
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalLoading, setModalLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
@@ -42,26 +45,18 @@ const StaffPool = () => {
     }
   };
 
-  const handleAddStaff = async () => {
-    const { value: email, isConfirmed } = await Swal.fire({
-      title: 'Add Staff to Pool',
-      text: 'Invite staff members to help manage your event check-ins.',
-      input: 'email',
-      inputPlaceholder: 'Enter staff email address...',
-      showCancelButton: true,
-      confirmButtonText: 'Invite Staff',
-      confirmButtonColor: '#295FA7',
-    });
-
-    if (isConfirmed && email) {
-      try {
-        Swal.showLoading();
-        await api.post("/events/my-organizer-profile/staff", { email, role: 'STAFF' });
-        Swal.fire('Invited!', 'Staff member has been added to your pool.', 'success');
-        fetchStaff();
-      } catch (error) {
-        Swal.fire('Error', translateError(error), 'error');
-      }
+  const handleAddStaffSubmit = async (formData: { fullName: string; email: string; role: string }) => {
+    try {
+      setModalLoading(true);
+      Swal.showLoading();
+      await api.post("/events/my-organizer-profile/staff", formData);
+      Swal.fire('Invited!', 'Staff member has been added to your pool.', 'success');
+      setIsModalOpen(false);
+      fetchStaff();
+    } catch (error) {
+      Swal.fire('Error', translateError(error), 'error');
+    } finally {
+      setModalLoading(false);
     }
   };
 
@@ -97,13 +92,21 @@ const StaffPool = () => {
           <p className="text-gray-500 font-medium mt-1">Manage your global pool of event staff and managers.</p>
         </div>
         <button
-          onClick={handleAddStaff}
+          onClick={() => setIsModalOpen(true)}
           className="flex items-center justify-center gap-2 bg-primary text-white font-bold px-6 py-4 rounded-2xl hover:bg-opacity-90 transition-all shadow-xl shadow-primary/20"
         >
           <UserPlus size={20} />
           Add New Staff
         </button>
       </div>
+
+      {/* Staff Modal */}
+      <OrganizerStaffModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleAddStaffSubmit}
+        loading={modalLoading}
+      />
 
       {/* Toolbar */}
       <div className="bg-white p-2 md:p-3 rounded-2xl md:rounded-[2rem] border border-gray-100 shadow-sm flex items-center gap-4">
@@ -173,7 +176,7 @@ const StaffPool = () => {
                Build your team to help manage attendees and ensure smooth event operations.
              </p>
              <button
-                onClick={handleAddStaff}
+                onClick={() => setIsModalOpen(true)}
                 className="bg-primary text-white font-bold px-8 py-4 rounded-2xl hover:bg-opacity-90 transition-all shadow-xl shadow-primary/20 flex items-center gap-2 mx-auto"
               >
                 <UserPlus size={20} />

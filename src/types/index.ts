@@ -417,3 +417,15 @@ export interface AuditLog {
   };
   createdAt: string;
 }
+
+export type EventType = 'PHYSICAL' | 'ONLINE' | 'HYBRID';
+export type TicketType = 'FREE' | 'PAID';
+export type RegistrationMode = 'FULL_DETAILS' | 'BASIC_QUANTITY';
+
+export interface StaffMember {
+  id: string;
+  fullName: string;
+  email: string;
+  role: 'STAFF' | 'MANAGER';
+  canRegisterGuests?: boolean;
+}

@@ -247,6 +247,7 @@ const CreateEvent = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
 
   // Form State
   const [basicInfo, setBasicInfo] = useState({
@@ -401,18 +402,45 @@ const CreateEvent = () => {
     try {
       Swal.showLoading();
       const payload = {
-        ...basicInfo,
-        ...mediaInfo,
+        title: basicInfo.title,
+        description: basicInfo.description,
+        type: basicInfo.type,
+        startDate: basicInfo.startDate,
+        endDate: basicInfo.endDate,
+        location: basicInfo.type === 'ONLINE' ? 'Virtual' : (basicInfo.location || 'Virtual'),
+        virtualLink: basicInfo.virtualLink,
+        capacity: basicInfo.capacity,
+        category: basicInfo.category,
+        bannerUrl: mediaInfo.bannerUrl,
         tags: basicInfo.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== ""),
-        sessions: sessions.map(({ id, ...rest }) => rest),
-        tickets: tickets.map(({ id, ...rest }) => rest),
+        sessions: sessions.map(({ id, ...rest }) => ({
+          title: rest.title,
+          description: rest.description,
+          startTime: rest.startTime,
+          endTime: rest.endTime,
+          location: rest.location || (basicInfo.type === 'ONLINE' ? 'Virtual' : (basicInfo.location || 'Virtual'))
+        })),
+        tickets: tickets.map(({ id, ...rest }) => ({
+          name: rest.name,
+          price: rest.type === 'FREE' ? 0 : rest.price,
+          type: rest.type,
+          totalQuantity: rest.totalQuantity,
+          groupSize: rest.groupSize,
+          description: rest.description
+        })),
         registrationMode: registration.mode,
         isGroupingEnabled: registration.isGroupingEnabled,
         enforceUniqueGroupNames: registration.enforceUniqueGroupNames,
-        registrationFields: registration.fields,
+        registrationFields: registration.fields.map(f => ({
+          name: f.name || f.label.toLowerCase().replace(/\s+/g, '-'),
+          label: f.label,
+          type: f.type,
+          required: f.required,
+          isPerAttendee: f.isPerAttendee
+        })),
       };
 
-      const response = await api.post("/events", payload);
+      const response = await api.post("/events", { data: payload });
 
       await Swal.fire({
         title: "Event Launched!",
@@ -445,11 +473,18 @@ const CreateEvent = () => {
 
         <div className="flex items-center gap-4">
           <button
-            onClick={() => setShowPreview(!showPreview)}
+            onClick={() => {
+              if (window.innerWidth < 1024) {
+                setIsPreviewModalOpen(true);
+              } else {
+                setShowPreview(!showPreview);
+              }
+            }}
             className="flex items-center gap-2.5 bg-white text-gray-500 font-black px-6 py-4 rounded-2xl border border-gray-100 shadow-sm hover:bg-gray-50 hover:text-primary transition-all text-[10px] uppercase tracking-[0.2em]"
           >
-            {showPreview ? <EyeOff size={16} /> : <Eye size={16} />}
-            {showPreview ? "Hide Preview" : "Show Preview"}
+            <Eye size={16} />
+            <span className="hidden sm:inline">{showPreview ? "Hide Preview" : "Show Preview"}</span>
+            <span className="sm:hidden">Preview</span>
           </button>
 
           {/* Step Indicator Desktop */}
@@ -515,7 +550,7 @@ const CreateEvent = () => {
                             <p className="text-sm text-gray-400 font-medium">Define the core personality of your event.</p>
                        </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                        <div className="space-y-3 md:col-span-2">
                           <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Official Event Title</label>
                           <input
@@ -523,7 +558,7 @@ const CreateEvent = () => {
                             name="title"
                             required
                             placeholder="e.g., Annual Tech Summit 2024"
-                            className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
+                            className="w-full p-5 sm:p-6 bg-white border border-gray-300 rounded-[1.5rem] sm:rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
                             value={basicInfo.title}
                             onChange={handleBasicChange}
                           />
@@ -570,15 +605,15 @@ const CreateEvent = () => {
                             <p className="text-sm text-gray-400 font-medium">When should attendees mark their calendars?</p>
                        </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                        <div className="space-y-3">
                           <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Event Commences</label>
                           <div className="relative">
-                             <Clock size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-primary" />
+                             <Clock size={18} className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 text-primary" />
                              <input
                                 type="datetime-local"
                                 name="startDate"
-                                className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
+                                className="w-full pl-12 sm:pl-14 pr-4 sm:pr-6 py-5 sm:py-6 bg-white border border-gray-300 rounded-[1.5rem] sm:rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
                                 value={basicInfo.startDate}
                                 onChange={handleBasicChange}
                              />
@@ -587,11 +622,11 @@ const CreateEvent = () => {
                        <div className="space-y-3">
                           <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Event Concludes</label>
                           <div className="relative">
-                             <Clock size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-primary" />
+                             <Clock size={18} className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 text-primary" />
                              <input
                                 type="datetime-local"
                                 name="endDate"
-                                className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
+                                className="w-full pl-12 sm:pl-14 pr-4 sm:pr-6 py-5 sm:py-6 bg-white border border-gray-300 rounded-[1.5rem] sm:rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
                                 value={basicInfo.endDate}
                                 onChange={handleBasicChange}
                              />
@@ -614,7 +649,7 @@ const CreateEvent = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                        <div className="space-y-3 md:col-span-2">
                           <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Access Method</label>
-                          <div className="grid grid-cols-3 gap-6">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
                              {["PHYSICAL", "ONLINE", "HYBRID"].map((type) => (
                                 <button
                                    key={type}
@@ -1399,9 +1434,9 @@ const CreateEvent = () => {
           </div>
         </div>
 
-        {/* Live Preview Pane */}
+        {/* Live Preview Pane (Desktop) */}
         {showPreview && (
-          <div className="w-full lg:w-[400px] xl:w-[480px] shrink-0 animate-in fade-in slide-in-from-bottom-12 lg:slide-in-from-right-12 duration-1000 ease-out">
+          <div className="hidden lg:block w-[400px] xl:w-[480px] shrink-0 animate-in fade-in slide-in-from-right-12 duration-1000 ease-out">
             <LivePreview
               basicInfo={basicInfo}
               mediaInfo={mediaInfo}
@@ -1411,6 +1446,29 @@ const CreateEvent = () => {
           </div>
         )}
       </div>
+
+      {/* Live Preview Modal (Mobile) */}
+      {isPreviewModalOpen && (
+        <div className="fixed inset-0 z-[150] lg:hidden flex flex-col bg-white animate-in slide-in-from-bottom duration-500">
+          <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-white sticky top-0 z-30">
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-primary">Event Preview</h3>
+            <button
+              onClick={() => setIsPreviewModalOpen(false)}
+              className="p-2 bg-gray-50 rounded-xl text-gray-400 hover:text-gray-900"
+            >
+              <XCircle size={24} />
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            <LivePreview
+              basicInfo={basicInfo}
+              mediaInfo={mediaInfo}
+              sessions={sessions}
+              tickets={tickets}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Visual Support Badges */}
       <div className="mt-20 flex flex-wrap items-center justify-center gap-16 opacity-10 grayscale pointer-events-none px-4">
