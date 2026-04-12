@@ -11,7 +11,7 @@ import {
   Ticket,
   Settings,
   Share2,
-  Broadcast,
+  Radio,
   Eye,
   CheckCircle2,
   AlertCircle,
@@ -91,7 +91,7 @@ const EventDetails = () => {
             <Share2 size={20} />
           </button>
           <button onClick={handleBroadcast} className="flex items-center gap-2 bg-blue-50 text-primary font-bold px-5 py-2.5 rounded-xl hover:bg-blue-100 transition-all border border-blue-100">
-            <Broadcast size={18} />
+            <Radio size={18} />
             Broadcast
           </button>
           <Link href={`/organizer/dashboard/events/${eventId}/edit`} className="flex items-center gap-2 bg-primary text-white font-bold px-5 py-2.5 rounded-xl hover:bg-opacity-90 transition-all shadow-lg shadow-primary/20">
@@ -105,8 +105,8 @@ const EventDetails = () => {
       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden p-6 lg:p-8">
         <div className="flex flex-col lg:flex-row items-center gap-8">
            <div className="w-full lg:w-48 h-48 rounded-3xl overflow-hidden relative shadow-lg">
-             {event.bannerUrl ? (
-               <Image src={event.bannerUrl} alt={event.title} fill className="object-cover" />
+             {event.bannerUrl || event.image ? (
+               <Image src={event.bannerUrl || event.image} alt={event.title} fill className="object-cover" />
              ) : (
                <div className="w-full h-full bg-primary/10 text-primary flex items-center justify-center text-5xl font-black">
                  {event.title[0]}
