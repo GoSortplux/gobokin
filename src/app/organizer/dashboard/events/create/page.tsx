@@ -38,6 +38,7 @@ import {
 } from "lucide-react";
 import api from "@/services/api";
 import axios from "axios";
+import { useEffect } from "react";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 import { EventType, RegistrationMode, TicketType } from "@/types";
@@ -247,6 +248,20 @@ const CreateEvent = () => {
   const [eventId, setEventId] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(true);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+
+  // Fetch Categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await api.get("/events/utils/categories");
+        setCategories(response.data.data || []);
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   // Form State
   const [basicInfo, setBasicInfo] = useState({
@@ -459,10 +474,8 @@ const CreateEvent = () => {
                   price: rest.type === 'FREE' ? 0 : rest.price,
                   earlyBirdPrice: rest.earlyBirdPrice || undefined,
                   earlyBirdLimit: rest.earlyBirdLimit || undefined,
-                  earlyBirdExpiry: rest.earlyBirdExpiry || undefined,
+                  earlyBirdExpiry: rest.earlyBirdExpiry ? new Date(rest.earlyBirdExpiry).toISOString() : undefined,
                   totalQuantity: rest.totalQuantity,
-                  groupSize: rest.groupSize,
-                  description: rest.description
               }))
           };
           await api.post(`/events/${eventId}/tickets`, payload);
@@ -490,9 +503,8 @@ const CreateEvent = () => {
           const payload = {
               sessions: sessions.map(({ id, ...rest }) => ({
                   title: rest.title,
-                  description: rest.description,
-                  startTime: rest.startTime,
-                  endTime: rest.endTime,
+                  startTime: rest.startTime ? new Date(rest.startTime).toISOString() : "",
+                  endTime: rest.endTime ? new Date(rest.endTime).toISOString() : "",
                   location: rest.location || (basicInfo.type === 'ONLINE' ? 'Virtual' : (basicInfo.location || 'Virtual'))
               }))
           };
@@ -620,15 +632,19 @@ const CreateEvent = () => {
                        <div className="space-y-3">
                           <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Event Category</label>
                           <div className="relative">
-                             <Layout size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-primary" />
-                             <input
-                                type="text"
+                             <Layout size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-primary pointer-events-none" />
+                             <select
                                 name="category"
-                                placeholder="Music, Sports, AI..."
-                                className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
+                                className="w-full pl-14 pr-12 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none appearance-none shadow-sm cursor-pointer"
                                 value={basicInfo.category || ""}
                                 onChange={handleBasicChange}
-                             />
+                             >
+                                <option value="">Select a category</option>
+                                {categories.map((cat) => (
+                                  <option key={cat.id} value={cat.name}>{cat.name}</option>
+                                ))}
+                             </select>
+                             <ChevronDown size={20} className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                           </div>
                        </div>
                        <div className="space-y-3">
