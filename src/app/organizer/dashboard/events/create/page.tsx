@@ -437,7 +437,7 @@ const CreateEvent = () => {
         virtualLink: basicInfo.virtualLink,
         capacity: basicInfo.capacity,
         category: basicInfo.category,
-        bannerUrl: mediaInfo.bannerUrl,
+        image: mediaInfo.bannerUrl,
         tags: basicInfo.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== ""),
         registrationFields: registration.fields.map(f => ({
           name: f.name || f.label.toLowerCase().replace(/\s+/g, '-'),
