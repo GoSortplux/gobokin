@@ -95,7 +95,7 @@ const LivePreview = ({ basicInfo, mediaInfo, sessions, tickets }: LivePreviewPro
         {/* Banner */}
         <div className="relative aspect-video rounded-[2rem] overflow-hidden shadow-inner bg-gray-50 group">
           {mediaInfo.bannerUrl ? (
-            <Image src={mediaInfo.bannerUrl} alt="Preview" fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
+            <Image src={mediaInfo.bannerUrl} alt="Preview" fill unoptimized={true} className="object-cover transition-transform duration-700 group-hover:scale-105" />
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center text-gray-300 gap-3">
               <ImageIcon size={40} strokeWidth={1.5} />
@@ -413,8 +413,8 @@ const CreateEvent = () => {
         title: basicInfo.title,
         description: basicInfo.description,
         type: basicInfo.type,
-        startDate: basicInfo.startDate,
-        endDate: basicInfo.endDate,
+        startDate: basicInfo.startDate ? new Date(basicInfo.startDate).toISOString() : "",
+        endDate: basicInfo.endDate ? new Date(basicInfo.endDate).toISOString() : "",
         location: basicInfo.type === 'ONLINE' ? 'Virtual' : (basicInfo.location || 'Virtual'),
         virtualLink: basicInfo.virtualLink,
         capacity: basicInfo.capacity,
@@ -430,7 +430,7 @@ const CreateEvent = () => {
         })),
       };
 
-      const response = await api.post("/events", { data: payload });
+      const response = await api.post("/events", payload);
       setEventId(response.data.data.id);
       setCurrentStep(2);
       Swal.fire({
@@ -613,7 +613,7 @@ const CreateEvent = () => {
                             required
                             placeholder="e.g., Annual Tech Summit 2024"
                             className="w-full p-5 sm:p-6 bg-white border border-gray-300 rounded-[1.5rem] sm:rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
-                            value={basicInfo.title}
+                            value={basicInfo.title || ""}
                             onChange={handleBasicChange}
                           />
                        </div>
@@ -626,7 +626,7 @@ const CreateEvent = () => {
                                 name="category"
                                 placeholder="Music, Sports, AI..."
                                 className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
-                                value={basicInfo.category}
+                                value={basicInfo.category || ""}
                                 onChange={handleBasicChange}
                              />
                           </div>
@@ -640,7 +640,7 @@ const CreateEvent = () => {
                                 name="tags"
                                 placeholder="Comma separated tags"
                                 className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
-                                value={basicInfo.tags}
+                                value={basicInfo.tags || ""}
                                 onChange={handleBasicChange}
                              />
                           </div>
@@ -730,7 +730,7 @@ const CreateEvent = () => {
                                    name="location"
                                    placeholder="Street address, City, State"
                                    className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
-                                   value={basicInfo.location}
+                                   value={basicInfo.location || ""}
                                    onChange={handleBasicChange}
                                 />
                              </div>
@@ -746,7 +746,7 @@ const CreateEvent = () => {
                                    name="virtualLink"
                                    placeholder="https://zoom.us/j/..."
                                    className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
-                                   value={basicInfo.virtualLink}
+                                   value={basicInfo.virtualLink || ""}
                                    onChange={handleBasicChange}
                                 />
                              </div>
@@ -784,7 +784,7 @@ const CreateEvent = () => {
                       rows={8}
                       placeholder="Describe your event in detail. What should attendees expect?"
                       className="w-full p-8 bg-white border border-gray-300 rounded-[2.5rem] text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 min-h-[200px] shadow-sm"
-                      value={basicInfo.description}
+                      value={basicInfo.description || ""}
                       onChange={handleBasicChange}
                     />
                  </div>
@@ -817,7 +817,7 @@ const CreateEvent = () => {
 
                           {mediaInfo.bannerUrl && !isUploading ? (
                              <div className="relative w-full h-full rounded-[2rem] overflow-hidden shadow-2xl group-hover/upload:scale-[0.98] transition-transform duration-500">
-                                <Image src={mediaInfo.bannerUrl} alt="Banner" fill className="object-cover" />
+                                <Image src={mediaInfo.bannerUrl} alt="Banner" fill unoptimized={true} className="object-cover" />
                                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/upload:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
                                     <div className="bg-white px-8 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.2em] text-gray-900 shadow-2xl flex items-center gap-3">
                                         <Upload size={16} />
@@ -868,10 +868,10 @@ const CreateEvent = () => {
                                   <Globe size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300" />
                                   <input
                                     type="text"
-                                    name="bannerUrl"
+                                    name="bannerUrl" autoComplete="off" autoCorrect="off"
                                     placeholder="https://..."
                                     className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
-                                    value={mediaInfo.bannerUrl}
+                                    value={mediaInfo.bannerUrl || ""}
                                     onChange={handleMediaChange}
                                   />
                               </div>
