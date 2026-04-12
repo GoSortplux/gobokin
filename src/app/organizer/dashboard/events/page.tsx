@@ -39,7 +39,7 @@ const MyEvents = () => {
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const response = await api.get("/events");
+      const response = await api.get("/events/my-events");
       setEvents(response.data.data || []);
     } catch (error) {
       console.error("Failed to fetch events:", error);

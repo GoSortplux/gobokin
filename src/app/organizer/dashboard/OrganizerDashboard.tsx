@@ -49,7 +49,7 @@ const OrganizerDashboard = () => {
       try {
         const [financeRes, eventsRes, ordersRes] = await Promise.all([
           api.get("/events/my-organizer-profile/finance"),
-          api.get("/events?limit=4"),
+          api.get("/events/my-events?limit=4"),
           api.get("/events/orders/all?limit=5").catch(() => ({ data: { data: [] } }))
         ]);
 
