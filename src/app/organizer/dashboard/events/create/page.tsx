@@ -248,14 +248,17 @@ const CreateEvent = () => {
   const [eventId, setEventId] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(true);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
-  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
 
   // Fetch Categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const response = await api.get("/events/utils/categories");
-        setCategories(response.data.data || []);
+        const data = response.data.data || [];
+        // Handle both array of strings and array of objects
+        const categoryNames = data.map((cat: any) => typeof cat === 'string' ? cat : cat.name);
+        setCategories(categoryNames);
       } catch (error) {
         console.error("Failed to fetch categories:", error);
       }
@@ -640,8 +643,8 @@ const CreateEvent = () => {
                                 onChange={handleBasicChange}
                              >
                                 <option value="">Select a category</option>
-                                {categories.map((cat) => (
-                                  <option key={cat.id} value={cat.name}>{cat.name}</option>
+                                {categories.map((cat, idx) => (
+                                  <option key={idx} value={cat}>{cat}</option>
                                 ))}
                              </select>
                              <ChevronDown size={20} className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
