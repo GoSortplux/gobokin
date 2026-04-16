@@ -10,6 +10,7 @@ import {
   MapPin,
   Globe,
   Users,
+  User,
   Ticket,
   Layers,
   Trash2,
@@ -41,7 +42,7 @@ import axios from "axios";
 import { useEffect } from "react";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
-import { EventType, RegistrationMode, TicketType } from "@/types";
+import { AgendaItem, EventType, RegistrationMode, Speaker, TicketType } from "@/types";
 
 const steps = [
   { id: 1, title: "Event Details", icon: Info },
@@ -60,12 +61,16 @@ interface LivePreviewProps {
     virtualLink: string;
     capacity: number;
     category: string;
+    isPublic: boolean;
   };
   mediaInfo: {
     bannerUrl: string;
+    mediaUrls: string[];
     seoTitle: string;
     seoDescription: string;
   };
+  speakers: Speaker[];
+  agenda: AgendaItem[];
   sessions: {
     title: string;
     startTime: string;
@@ -77,7 +82,7 @@ interface LivePreviewProps {
   }[];
 }
 
-const LivePreview = ({ basicInfo, mediaInfo, sessions, tickets }: LivePreviewProps) => {
+const LivePreview = ({ basicInfo, mediaInfo, speakers, agenda, sessions, tickets }: LivePreviewProps) => {
   const [activeTab, setActiveTab] = useState("overview");
 
   return (
@@ -128,7 +133,7 @@ const LivePreview = ({ basicInfo, mediaInfo, sessions, tickets }: LivePreviewPro
 
         {/* Info */}
         <div className="space-y-5">
-          <div className="flex wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="px-3.5 py-1.5 rounded-full bg-primary/5 text-primary text-[9px] font-black uppercase tracking-widest border border-primary/10">
               {basicInfo.category || "Category"}
             </span>
@@ -136,6 +141,12 @@ const LivePreview = ({ basicInfo, mediaInfo, sessions, tickets }: LivePreviewPro
               <Zap size={10} />
               {basicInfo.type}
             </span>
+            {basicInfo.isPublic === false && (
+                <span className="px-3.5 py-1.5 rounded-full bg-gray-100 text-gray-400 text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 border border-gray-200">
+                    <EyeOff size={10} />
+                    Private
+                </span>
+            )}
           </div>
           <h2 className="text-3xl font-black text-gray-900 tracking-tight leading-tight">
             {basicInfo.title || "Your Event Title"}
@@ -165,8 +176,8 @@ const LivePreview = ({ basicInfo, mediaInfo, sessions, tickets }: LivePreviewPro
 
         {/* Tabs */}
         <div className="space-y-6">
-           <div className="flex items-center gap-1.5 p-1.5 bg-gray-50 rounded-2xl border border-gray-100 w-fit">
-              {["overview", "schedule", "tickets"].map(tab => (
+           <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-gray-50 rounded-2xl border border-gray-100 w-fit">
+              {["overview", "agenda", "speakers", "schedule", "tickets"].map(tab => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -183,15 +194,99 @@ const LivePreview = ({ basicInfo, mediaInfo, sessions, tickets }: LivePreviewPro
               <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
 
               {activeTab === "overview" && (
-                <div className="space-y-5 animate-in fade-in duration-500">
-                  <div className="flex items-center gap-2">
-                    <div className="w-1 h-4 bg-primary rounded-full"></div>
-                    <p className="text-[10px] font-black text-gray-900 uppercase tracking-widest">About Event</p>
+                <div className="space-y-8 animate-in fade-in duration-500">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                        <div className="w-1 h-4 bg-primary rounded-full"></div>
+                        <p className="text-[10px] font-black text-gray-900 uppercase tracking-widest">About Event</p>
+                    </div>
+                    <p className="text-xs text-gray-500 leading-relaxed whitespace-pre-wrap font-medium">
+                        {basicInfo.description || "Enter a description to see it here..."}
+                    </p>
                   </div>
-                  <p className="text-xs text-gray-500 leading-relaxed whitespace-pre-wrap font-medium">
-                    {basicInfo.description || "Enter a description to see it here..."}
-                  </p>
+
+                  {mediaInfo.mediaUrls.length > 0 && (
+                      <div className="space-y-4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-1 h-4 bg-secondary rounded-full"></div>
+                            <p className="text-[10px] font-black text-gray-900 uppercase tracking-widest">Gallery</p>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                              {mediaInfo.mediaUrls.map((url, i) => (
+                                  <div key={i} className="relative aspect-square rounded-2xl overflow-hidden bg-gray-100">
+                                      {url.match(/\.(mp4|webm|ogg)$/) ? (
+                                          <video src={url} className="w-full h-full object-cover" />
+                                      ) : (
+                                          <Image src={url} alt="Gallery" fill unoptimized={true} className="object-cover" />
+                                      )}
+                                  </div>
+                              ))}
+                          </div>
+                      </div>
+                  )}
                 </div>
+              )}
+
+              {activeTab === "agenda" && (
+                <div className="space-y-6 animate-in fade-in duration-500">
+                  {agenda.length === 0 ? (
+                      <p className="text-[10px] font-bold text-gray-300 uppercase tracking-widest text-center py-10">No agenda items added yet</p>
+                  ) : (
+                    agenda.map((item, i) => (
+                        <div key={i} className="flex gap-4 group">
+                        <div className="flex flex-col items-center">
+                            <div className="w-8 h-8 rounded-lg bg-secondary text-white flex items-center justify-center font-black text-[10px] flex-shrink-0 shadow-lg shadow-secondary/20">
+                            {i + 1}
+                            </div>
+                            {i !== agenda.length - 1 && <div className="flex-1 w-[1px] bg-gray-100 my-2"></div>}
+                        </div>
+                        <div className="space-y-1.5 min-w-0 pt-0.5">
+                            <p className="text-[11px] font-black text-gray-900 truncate tracking-tight">{item.title || "Untitled Agenda"}</p>
+                            <div className="flex flex-wrap items-center gap-3">
+                                <div className="flex items-center gap-1.5">
+                                    <Clock size={10} className="text-secondary" />
+                                    <p className="text-[8px] text-gray-400 font-bold uppercase tracking-widest">
+                                    {item.startTime ? new Date(item.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                                    </p>
+                                </div>
+                                {item.speakerName && (
+                                    <div className="flex items-center gap-1.5">
+                                        <User size={10} className="text-secondary" />
+                                        <p className="text-[8px] text-gray-400 font-bold uppercase tracking-widest">{item.speakerName}</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {activeTab === "speakers" && (
+                  <div className="grid grid-cols-1 gap-6 animate-in fade-in duration-500">
+                      {speakers.length === 0 ? (
+                          <p className="text-[10px] font-bold text-gray-300 uppercase tracking-widest text-center py-10">No speakers added yet</p>
+                      ) : (
+                        speakers.map((speaker, i) => (
+                            <div key={i} className="flex items-center gap-4 bg-gray-50/50 p-4 rounded-3xl border border-gray-100/50">
+                                <div className="relative w-16 h-16 rounded-2xl overflow-hidden bg-gray-100 flex-shrink-0">
+                                    {speaker.imageUrl ? (
+                                        <Image src={speaker.imageUrl} alt={speaker.name} fill unoptimized={true} className="object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                            <User size={24} />
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="text-[11px] font-black text-gray-900 truncate leading-tight">{speaker.name || "Unnamed Speaker"}</p>
+                                    <p className="text-[9px] font-bold text-primary uppercase tracking-widest mt-0.5 truncate">{speaker.title || "Position"}</p>
+                                </div>
+                            </div>
+                        ))
+                      )}
+                  </div>
               )}
 
               {activeTab === "schedule" && (
@@ -270,6 +365,7 @@ const CreateEvent = () => {
   const [basicInfo, setBasicInfo] = useState({
     title: "",
     description: "",
+    slug: "",
     type: "PHYSICAL" as EventType,
     startDate: "",
     endDate: "",
@@ -278,14 +374,21 @@ const CreateEvent = () => {
     capacity: 0,
     category: "",
     tags: "",
+    isPublic: true,
+    isFeatured: false,
+    status: "UPCOMING",
   });
 
   const [mediaInfo, setMediaInfo] = useState({
     bannerUrl: "",
+    mediaUrls: [] as string[],
     seoTitle: "",
     seoDescription: "",
     socialImage: "",
   });
+
+  const [speakers, setSpeakers] = useState<Speaker[]>([]);
+  const [agenda, setAgenda] = useState<AgendaItem[]>([]);
 
   const [sessions, setSessions] = useState([{
     id: "1",
@@ -323,13 +426,7 @@ const CreateEvent = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const handleBannerUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsUploading(true);
-    setUploadProgress(0);
-
+  const uploadMedia = async (file: File) => {
     try {
       // 1. Get presigned URL
       const presignedResponse = await api.get('/events/utils/upload-url', {
@@ -346,10 +443,25 @@ const CreateEvent = () => {
         }
       });
 
+      return fileUrl;
+    } catch (error) {
+      console.error('Upload failed:', error);
+      throw error;
+    }
+  };
+
+  const handleBannerUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    try {
+      const fileUrl = await uploadMedia(file);
       setMediaInfo(prev => ({ ...prev, bannerUrl: fileUrl }));
       Swal.toast.fire({ icon: 'success', title: 'Banner uploaded successfully!' });
     } catch (error) {
-      console.error('Upload failed:', error);
       Swal.fire('Error', 'Failed to upload banner. Please try again.', 'error');
     } finally {
       setIsUploading(false);
@@ -365,6 +477,69 @@ const CreateEvent = () => {
   const handleMediaChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setMediaInfo(prev => ({ ...prev, [name]: value }));
+  };
+
+  const addSpeaker = () => {
+    setSpeakers([...speakers, { name: "", title: "", bio: "", imageUrl: "" }]);
+  };
+
+  const updateSpeaker = (index: number, field: keyof Speaker, value: string) => {
+    const newSpeakers = [...speakers];
+    newSpeakers[index] = { ...newSpeakers[index], [field]: value };
+    setSpeakers(newSpeakers);
+  };
+
+  const removeSpeaker = (index: number) => {
+    setSpeakers(speakers.filter((_, i) => i !== index));
+  };
+
+  const handleSpeakerImageUpload = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      Swal.showLoading();
+      const fileUrl = await uploadMedia(file);
+      updateSpeaker(index, 'imageUrl', fileUrl);
+      Swal.close();
+      Swal.toast.fire({ icon: 'success', title: 'Speaker image uploaded!' });
+    } catch (error) {
+      Swal.fire('Error', 'Upload failed', 'error');
+    }
+  };
+
+  const addAgendaItem = () => {
+    setAgenda([...agenda, { title: "", description: "", startTime: "", endTime: "", speakerName: "" }]);
+  };
+
+  const updateAgendaItem = (index: number, field: keyof AgendaItem, value: string) => {
+    const newAgenda = [...agenda];
+    newAgenda[index] = { ...newAgenda[index], [field]: value };
+    setAgenda(newAgenda);
+  };
+
+  const removeAgendaItem = (index: number) => {
+    setAgenda(agenda.filter((_, i) => i !== index));
+  };
+
+  const handleMediaUrlUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploading(true);
+    setUploadProgress(0);
+    try {
+      const urls: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+          const url = await uploadMedia(files[i]);
+          urls.push(url);
+      }
+      setMediaInfo(prev => ({ ...prev, mediaUrls: [...prev.mediaUrls, ...urls] }));
+      Swal.toast.fire({ icon: 'success', title: 'Media uploaded successfully!' });
+    } catch (error) {
+      Swal.fire('Error', 'Some uploads failed', 'error');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const addSession = () => {
@@ -430,6 +605,10 @@ const CreateEvent = () => {
       const payload = {
         title: basicInfo.title,
         description: basicInfo.description,
+        slug: basicInfo.slug || undefined,
+        isPublic: basicInfo.isPublic,
+        isFeatured: basicInfo.isFeatured,
+        status: basicInfo.status,
         type: basicInfo.type,
         startDate: basicInfo.startDate ? new Date(basicInfo.startDate).toISOString() : "",
         endDate: basicInfo.endDate ? new Date(basicInfo.endDate).toISOString() : "",
@@ -437,8 +616,25 @@ const CreateEvent = () => {
         virtualLink: basicInfo.virtualLink,
         capacity: basicInfo.capacity,
         category: basicInfo.category,
-        image: mediaInfo.bannerUrl,
+        bannerUrl: mediaInfo.bannerUrl,
+        mediaUrls: mediaInfo.mediaUrls,
         tags: basicInfo.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== ""),
+        speakers: speakers.map(s => ({
+          name: s.name,
+          title: s.title,
+          bio: s.bio,
+          imageUrl: s.imageUrl
+        })),
+        agenda: agenda.map(a => ({
+          title: a.title,
+          description: a.description,
+          startTime: a.startTime ? new Date(a.startTime).toISOString() : undefined,
+          endTime: a.endTime ? new Date(a.endTime).toISOString() : undefined,
+          speakerName: a.speakerName
+        })),
+        registrationMode: registration.mode,
+        isGroupingEnabled: registration.isGroupingEnabled,
+        enforceUniqueGroupNames: registration.enforceUniqueGroupNames,
         registrationFields: registration.fields.map(f => ({
           name: f.name || f.label.toLowerCase().replace(/\s+/g, '-'),
           label: f.label,
@@ -620,7 +816,7 @@ const CreateEvent = () => {
                        </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
-                       <div className="space-y-3 md:col-span-2">
+                       <div className="space-y-3">
                           <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Official Event Title</label>
                           <input
                             type="text"
@@ -629,6 +825,17 @@ const CreateEvent = () => {
                             placeholder="e.g., Annual Tech Summit 2024"
                             className="w-full p-5 sm:p-6 bg-white border border-gray-300 rounded-[1.5rem] sm:rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
                             value={basicInfo.title || ""}
+                            onChange={handleBasicChange}
+                          />
+                       </div>
+                       <div className="space-y-3">
+                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Event Slug (URL Friendly)</label>
+                          <input
+                            type="text"
+                            name="slug"
+                            placeholder="e.g., tech-summit-2024"
+                            className="w-full p-5 sm:p-6 bg-white border border-gray-300 rounded-[1.5rem] sm:rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
+                            value={basicInfo.slug || ""}
                             onChange={handleBasicChange}
                           />
                        </div>
@@ -756,7 +963,7 @@ const CreateEvent = () => {
                           </div>
                        )}
                        {basicInfo.type !== "PHYSICAL" && (
-                          <div className="space-y-3 md:col-span-2">
+                       <div className="space-y-3">
                              <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Digital Meeting Link</label>
                              <div className="relative">
                                 <Globe size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-primary" />
@@ -784,6 +991,31 @@ const CreateEvent = () => {
                              />
                           </div>
                        </div>
+                      <div className="space-y-3">
+                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Additional Media Gallery</label>
+                          <div className="flex flex-wrap gap-4">
+                              {mediaInfo.mediaUrls.map((url, idx) => (
+                                  <div key={idx} className="relative w-24 h-24 rounded-2xl overflow-hidden border border-gray-100 group">
+                                      {url.match(/\.(mp4|webm|ogg)$/) ? (
+                                          <video src={url} className="w-full h-full object-cover" />
+                                      ) : (
+                                          <Image src={url} alt="Media" fill unoptimized={true} className="object-cover" />
+                                      )}
+                                      <button
+                                          onClick={() => setMediaInfo(prev => ({ ...prev, mediaUrls: prev.mediaUrls.filter((_, i) => i !== idx) }))}
+                                          className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white"
+                                      >
+                                          <Trash2 size={16} />
+                                      </button>
+                                  </div>
+                              ))}
+                              <label className="w-24 h-24 rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-300 hover:border-primary hover:text-primary cursor-pointer transition-all">
+                                  <Plus size={24} />
+                                  <span className="text-[8px] font-black uppercase tracking-widest mt-1">Add</span>
+                                  <input type="file" multiple className="hidden" onChange={handleMediaUrlUpload} accept="image/*,video/*" />
+                              </label>
+                          </div>
+                      </div>
                     </div>
                  </div>
 
@@ -907,7 +1139,270 @@ const CreateEvent = () => {
                     </div>
                  </div>
 
-                 {/* Section 6: Registration Fields */}
+                 {/* Section 6: Speakers */}
+                 <div className="space-y-10 group/section">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-gray-100 pb-10">
+                       <div className="flex items-center gap-5">
+                          <div className="w-14 h-14 rounded-2xl bg-gray-50 text-primary flex items-center justify-center shadow-sm border border-gray-100">
+                             <Users size={24} />
+                          </div>
+                          <div>
+                             <h3 className="text-2xl font-black text-gray-900 tracking-tight">Speakers & Guests</h3>
+                             <p className="text-sm text-gray-400 font-medium">Highlight the key people at your event.</p>
+                          </div>
+                       </div>
+                       <button
+                         onClick={addSpeaker}
+                         className="flex items-center gap-3 bg-gray-900 text-white font-black px-8 py-5 rounded-3xl hover:bg-black transition-all shadow-2xl shadow-gray-900/20 text-[10px] uppercase tracking-[0.2em]"
+                       >
+                         <Plus size={18} />
+                         Add Speaker
+                       </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                       {speakers.map((speaker, idx) => (
+                          <div key={idx} className="p-8 bg-gray-50 rounded-[3rem] space-y-6 relative group/speaker">
+                             <button
+                                onClick={() => removeSpeaker(idx)}
+                                className="absolute top-6 right-6 w-10 h-10 bg-white text-gray-300 hover:text-secondary rounded-xl flex items-center justify-center shadow-sm transition-all"
+                             >
+                                <Trash2 size={16} />
+                             </button>
+
+                             <div className="flex items-center gap-6">
+                                <div className="relative w-24 h-24 rounded-[2rem] overflow-hidden bg-white shadow-lg border border-gray-100 group/img">
+                                   {speaker.imageUrl ? (
+                                      <Image src={speaker.imageUrl} alt="Speaker" fill unoptimized={true} className="object-cover" />
+                                   ) : (
+                                      <div className="w-full h-full flex items-center justify-center text-gray-200">
+                                         <Users size={32} />
+                                      </div>
+                                   )}
+                                   <label className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                                      <Upload size={20} className="text-white" />
+                                      <input type="file" className="hidden" onChange={(e) => handleSpeakerImageUpload(idx, e)} />
+                                   </label>
+                                </div>
+                                <div className="flex-1 space-y-4">
+                                   <input
+                                      type="text"
+                                      placeholder="Full Name"
+                                      className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all"
+                                      value={speaker.name}
+                                      onChange={(e) => updateSpeaker(idx, 'name', e.target.value)}
+                                   />
+                                   <input
+                                      type="text"
+                                      placeholder="Title (e.g., CEO, Speaker)"
+                                      className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all"
+                                      value={speaker.title}
+                                      onChange={(e) => updateSpeaker(idx, 'title', e.target.value)}
+                                   />
+                                </div>
+                             </div>
+                             <textarea
+                                placeholder="Short bio about the speaker..."
+                                rows={3}
+                                className="w-full p-6 bg-white border border-gray-200 rounded-[1.5rem] text-sm font-bold outline-none focus:border-primary transition-all"
+                                value={speaker.bio}
+                                onChange={(e) => updateSpeaker(idx, 'bio', e.target.value)}
+                             />
+                          </div>
+                       ))}
+                    </div>
+                 </div>
+
+                 {/* Section 7: Agenda */}
+                 <div className="space-y-10 group/section">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-gray-100 pb-10">
+                       <div className="flex items-center gap-5">
+                          <div className="w-14 h-14 rounded-2xl bg-gray-50 text-secondary flex items-center justify-center shadow-sm border border-gray-100">
+                             <Calendar size={24} />
+                          </div>
+                          <div>
+                             <h3 className="text-2xl font-black text-gray-900 tracking-tight">Event Agenda</h3>
+                             <p className="text-sm text-gray-400 font-medium">Outline the flow of your event.</p>
+                          </div>
+                       </div>
+                       <button
+                         onClick={addAgendaItem}
+                         className="flex items-center gap-3 bg-secondary text-white font-black px-8 py-5 rounded-3xl hover:bg-opacity-90 transition-all shadow-2xl shadow-secondary/20 text-[10px] uppercase tracking-[0.2em]"
+                       >
+                         <Plus size={18} />
+                         Add Agenda Item
+                       </button>
+                    </div>
+
+                    <div className="space-y-6">
+                       {agenda.map((item, idx) => (
+                          <div key={idx} className="p-8 bg-gray-50 rounded-[3rem] border border-gray-100 hover:bg-white transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50 group/agenda">
+                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                <div className="md:col-span-2 space-y-3">
+                                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Title</label>
+                                   <input
+                                      type="text"
+                                      placeholder="Opening Keynote"
+                                      className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all"
+                                      value={item.title}
+                                      onChange={(e) => updateAgendaItem(idx, 'title', e.target.value)}
+                                   />
+                                </div>
+                                <div className="space-y-3">
+                                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Speaker</label>
+                                   <select
+                                      className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all appearance-none"
+                                      value={item.speakerName}
+                                      onChange={(e) => updateAgendaItem(idx, 'speakerName', e.target.value)}
+                                   >
+                                      <option value="">No Speaker</option>
+                                      {speakers.filter(s => s.name).map((s, i) => (
+                                         <option key={i} value={s.name}>{s.name}</option>
+                                      ))}
+                                   </select>
+                                </div>
+                                <div className="flex items-end justify-end">
+                                   <button
+                                      onClick={() => removeAgendaItem(idx)}
+                                      className="w-14 h-14 bg-white text-gray-300 hover:text-secondary rounded-2xl flex items-center justify-center shadow-sm hover:shadow-xl transition-all border border-gray-100"
+                                   >
+                                      <Trash2 size={20} />
+                                   </button>
+                                </div>
+                                <div className="space-y-3">
+                                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Start Time</label>
+                                   <input
+                                      type="datetime-local"
+                                      className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all"
+                                      value={item.startTime}
+                                      min={basicInfo.startDate}
+                                      max={basicInfo.endDate}
+                                      onChange={(e) => updateAgendaItem(idx, 'startTime', e.target.value)}
+                                   />
+                                </div>
+                                <div className="space-y-3">
+                                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">End Time</label>
+                                   <input
+                                      type="datetime-local"
+                                      className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all"
+                                      value={item.endTime}
+                                      min={item.startTime || basicInfo.startDate}
+                                      max={basicInfo.endDate}
+                                      onChange={(e) => updateAgendaItem(idx, 'endTime', e.target.value)}
+                                   />
+                                </div>
+                                <div className="md:col-span-2 space-y-3">
+                                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Description</label>
+                                   <textarea
+                                      rows={1}
+                                      placeholder="Short summary of the session..."
+                                      className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all"
+                                      value={item.description}
+                                      onChange={(e) => updateAgendaItem(idx, 'description', e.target.value)}
+                                   />
+                                </div>
+                             </div>
+                          </div>
+                       ))}
+                    </div>
+                 </div>
+
+                 {/* Section 8: Advanced Settings */}
+                 <div className="space-y-10 group/section">
+                    <div className="flex items-center gap-5 border-b border-gray-100 pb-10">
+                       <div className="w-14 h-14 rounded-2xl bg-gray-50 text-primary flex items-center justify-center shadow-sm border border-gray-100">
+                          <ShieldCheck size={24} />
+                       </div>
+                       <div>
+                          <h3 className="text-2xl font-black text-gray-900 tracking-tight">Advanced Settings</h3>
+                          <p className="text-sm text-gray-400 font-medium">Fine-tune your event's visibility and registration.</p>
+                       </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                       <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
+                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                             <Globe size={12} />
+                             Public Visibility
+                          </label>
+                          <div className="flex items-center justify-between">
+                             <span className="text-sm font-bold text-gray-700">{basicInfo.isPublic ? 'Publicly Listed' : 'Hidden from Search'}</span>
+                             <button
+                                onClick={() => setBasicInfo(prev => ({ ...prev, isPublic: !prev.isPublic }))}
+                                className={`w-14 h-8 rounded-full transition-all relative ${basicInfo.isPublic ? 'bg-primary' : 'bg-gray-300'}`}
+                             >
+                                <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${basicInfo.isPublic ? 'left-7' : 'left-1'}`} />
+                             </button>
+                          </div>
+                       </div>
+                       <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
+                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                             <Sparkles size={12} />
+                             Featured Event
+                          </label>
+                          <div className="flex items-center justify-between">
+                             <span className="text-sm font-bold text-gray-700">{basicInfo.isFeatured ? 'Promoted' : 'Standard'}</span>
+                             <button
+                                onClick={() => setBasicInfo(prev => ({ ...prev, isFeatured: !prev.isFeatured }))}
+                                className={`w-14 h-8 rounded-full transition-all relative ${basicInfo.isFeatured ? 'bg-secondary' : 'bg-gray-300'}`}
+                             >
+                                <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${basicInfo.isFeatured ? 'left-7' : 'left-1'}`} />
+                             </button>
+                          </div>
+                       </div>
+                       <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
+                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                             <User size={12} />
+                             Registration Mode
+                          </label>
+                          <div className="relative">
+                             <select
+                                className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-xs font-bold outline-none focus:border-primary appearance-none"
+                                value={registration.mode}
+                                onChange={(e) => setRegistration(prev => ({ ...prev, mode: e.target.value as RegistrationMode }))}
+                             >
+                                <option value="FULL_DETAILS">Full Details (Each Guest)</option>
+                                <option value="BASIC_QUANTITY">Basic Quantity (Buyer Only)</option>
+                             </select>
+                             <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                          </div>
+                       </div>
+                       <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
+                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                             <Users size={12} />
+                             Grouping
+                          </label>
+                          <div className="flex items-center justify-between">
+                             <span className="text-sm font-bold text-gray-700">Allow Grouping</span>
+                             <button
+                                onClick={() => setRegistration(prev => ({ ...prev, isGroupingEnabled: !prev.isGroupingEnabled }))}
+                                className={`w-14 h-8 rounded-full transition-all relative ${registration.isGroupingEnabled ? 'bg-primary' : 'bg-gray-300'}`}
+                             >
+                                <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${registration.isGroupingEnabled ? 'left-7' : 'left-1'}`} />
+                             </button>
+                          </div>
+                       </div>
+                       {registration.isGroupingEnabled && (
+                          <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
+                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                <Users size={12} />
+                                Unique Names
+                             </label>
+                             <div className="flex items-center justify-between">
+                                <span className="text-sm font-bold text-gray-700">Enforce Unique Names</span>
+                                <button
+                                   onClick={() => setRegistration(prev => ({ ...prev, enforceUniqueGroupNames: !prev.enforceUniqueGroupNames }))}
+                                   className={`w-14 h-8 rounded-full transition-all relative ${registration.enforceUniqueGroupNames ? 'bg-primary' : 'bg-gray-300'}`}
+                                >
+                                   <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${registration.enforceUniqueGroupNames ? 'left-7' : 'left-1'}`} />
+                                </button>
+                             </div>
+                          </div>
+                       )}
+                    </div>
+                 </div>
+
+                 {/* Section 9: Registration Fields */}
                  <div className="space-y-10">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-gray-100 pb-10">
                        <div>

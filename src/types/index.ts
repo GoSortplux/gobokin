@@ -422,6 +422,21 @@ export type EventType = 'PHYSICAL' | 'ONLINE' | 'HYBRID';
 export type TicketType = 'FREE' | 'PAID';
 export type RegistrationMode = 'FULL_DETAILS' | 'BASIC_QUANTITY';
 
+export interface Speaker {
+  name: string;
+  title: string;
+  bio: string;
+  imageUrl: string;
+}
+
+export interface AgendaItem {
+  title: string;
+  description: string;
+  startTime: string;
+  endTime: string;
+  speakerName: string;
+}
+
 export interface StaffMember {
   id: string;
   fullName: string;
