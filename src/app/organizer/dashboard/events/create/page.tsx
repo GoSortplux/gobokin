@@ -214,10 +214,10 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, agenda, sessions, tickets
                           <div className="grid grid-cols-2 gap-3">
                               {mediaInfo.mediaUrls.map((url, i) => (
                                   <div key={i} className="relative aspect-square rounded-2xl overflow-hidden bg-gray-100">
-                                      {url.match(/\.(mp4|webm|ogg)$/) ? (
+                                      {url && typeof url === 'string' && url.match(/\.(mp4|webm|ogg)$/) ? (
                                           <video src={url} className="w-full h-full object-cover" />
                                       ) : (
-                                          <Image src={url} alt="Gallery" fill unoptimized={true} className="object-cover" />
+                                          <Image src={url || ''} alt="Gallery" fill unoptimized={true} className="object-cover" />
                                       )}
                                   </div>
                               ))}
@@ -996,10 +996,10 @@ const CreateEvent = () => {
                           <div className="flex flex-wrap gap-4">
                               {mediaInfo.mediaUrls.map((url, idx) => (
                                   <div key={idx} className="relative w-24 h-24 rounded-2xl overflow-hidden border border-gray-100 group">
-                                      {url.match(/\.(mp4|webm|ogg)$/) ? (
+                                      {url && typeof url === 'string' && url.match(/\.(mp4|webm|ogg)$/) ? (
                                           <video src={url} className="w-full h-full object-cover" />
                                       ) : (
-                                          <Image src={url} alt="Media" fill unoptimized={true} className="object-cover" />
+                                          <Image src={url || ''} alt="Media" fill unoptimized={true} className="object-cover" />
                                       )}
                                       <button
                                           onClick={() => setMediaInfo(prev => ({ ...prev, mediaUrls: prev.mediaUrls.filter((_, i) => i !== idx) }))}
