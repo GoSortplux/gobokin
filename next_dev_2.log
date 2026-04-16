@@ -1,0 +1,24 @@
+ ⚠ Port 3000 is in use by an unknown process, using available port 3002 instead.
+   ▲ Next.js 15.5.9
+   - Local:        http://localhost:3002
+   - Network:      http://192.168.0.2:3002
+
+ ✓ Starting...
+ ✓ Ready in 4.1s
+ ○ Compiling / ...
+
+
+Retrying 1/3...
+
+
+Retrying 1/3...
+ ✓ Compiled / in 18.6s (3777 modules)
+ GET / 200 in 20456ms
+ ○ Compiling /organizer/dashboard/events/[eventId]/edit ...
+ ✓ Compiled /organizer/dashboard/events/[eventId]/edit in 3.7s (3788 modules)
+ GET / 200 in 345ms
+ GET /organizer/dashboard/events/abc-123/edit 200 in 6714ms
+ ○ Compiling /auth/login ...
+ ✓ Compiled /auth/login in 1535ms (3785 modules)
+ GET /auth/login 200 in 1712ms
+ GET /auth/login 200 in 73ms

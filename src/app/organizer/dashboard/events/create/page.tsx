@@ -468,7 +468,7 @@ const CreateEvent = () => {
 
       // If event exists, attach it via post-creation route
       if (eventId) {
-          await api.post(`/events/${eventId}/media`, { mediaUrl: fileUrl });
+          await api.post(`/events/${eventId}/media`, { bannerUrl: fileUrl });
       }
 
       setMediaInfo(prev => ({ ...prev, bannerUrl: fileUrl }));
