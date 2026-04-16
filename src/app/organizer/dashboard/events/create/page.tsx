@@ -216,8 +216,12 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, agenda, sessions, tickets
                                   <div key={i} className="relative aspect-square rounded-2xl overflow-hidden bg-gray-100">
                                       {url && typeof url === 'string' && url.match(/\.(mp4|webm|ogg)$/) ? (
                                           <video src={url} className="w-full h-full object-cover" />
+                                      ) : url ? (
+                                          <Image src={url} alt="Gallery" fill unoptimized={true} className="object-cover" />
                                       ) : (
-                                          <Image src={url || ''} alt="Gallery" fill unoptimized={true} className="object-cover" />
+                                          <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                              <ImageIcon size={20} />
+                                          </div>
                                       )}
                                   </div>
                               ))}
@@ -998,8 +1002,12 @@ const CreateEvent = () => {
                                   <div key={idx} className="relative w-24 h-24 rounded-2xl overflow-hidden border border-gray-100 group">
                                       {url && typeof url === 'string' && url.match(/\.(mp4|webm|ogg)$/) ? (
                                           <video src={url} className="w-full h-full object-cover" />
+                                      ) : url ? (
+                                          <Image src={url} alt="Media" fill unoptimized={true} className="object-cover" />
                                       ) : (
-                                          <Image src={url || ''} alt="Media" fill unoptimized={true} className="object-cover" />
+                                          <div className="w-full h-full flex items-center justify-center text-gray-300 bg-gray-50">
+                                              <ImageIcon size={24} />
+                                          </div>
                                       )}
                                       <button
                                           onClick={() => setMediaInfo(prev => ({ ...prev, mediaUrls: prev.mediaUrls.filter((_, i) => i !== idx) }))}
