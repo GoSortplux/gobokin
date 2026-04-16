@@ -18,7 +18,6 @@ import {
   Info,
   Image as ImageIcon,
   Share2,
-  Search,
   ShieldCheck,
   Clock,
   ChevronDown,
@@ -356,9 +355,9 @@ const CreateEvent = () => {
         const response = await api.get("/events/utils/categories");
         const data = response.data.data || [];
         // Handle both array of strings and array of objects
-        const categoryNames = data.map((cat: any) => typeof cat === 'string' ? cat : cat.name);
+        const categoryNames = data.map((cat: string | { name: string }) => typeof cat === 'string' ? cat : cat.name);
         setCategories(categoryNames);
-      } catch (error) {
+      } catch (_error) {
         console.error("Failed to fetch categories:", error);
       }
     };
@@ -448,9 +447,9 @@ const CreateEvent = () => {
       });
 
       return fileUrl;
-    } catch (error) {
-      console.error('Upload failed:', error);
-      throw error;
+    } catch (_error) {
+      console.error('Upload failed:', _error);
+      throw _error;
     }
   };
 
@@ -465,7 +464,7 @@ const CreateEvent = () => {
       const fileUrl = await uploadMedia(file);
       setMediaInfo(prev => ({ ...prev, bannerUrl: fileUrl }));
       Swal.toast.fire({ icon: 'success', title: 'Banner uploaded successfully!' });
-    } catch (error) {
+    } catch (_error) {
       Swal.fire('Error', 'Failed to upload banner. Please try again.', 'error');
     } finally {
       setIsUploading(false);
@@ -506,7 +505,7 @@ const CreateEvent = () => {
       updateSpeaker(index, 'imageUrl', fileUrl);
       Swal.close();
       Swal.toast.fire({ icon: 'success', title: 'Speaker image uploaded!' });
-    } catch (error) {
+    } catch (_error) {
       Swal.fire('Error', 'Upload failed', 'error');
     }
   };
@@ -539,7 +538,7 @@ const CreateEvent = () => {
       }
       setMediaInfo(prev => ({ ...prev, mediaUrls: [...prev.mediaUrls, ...urls] }));
       Swal.toast.fire({ icon: 'success', title: 'Media uploaded successfully!' });
-    } catch (error) {
+    } catch (_error) {
       Swal.fire('Error', 'Some uploads failed', 'error');
     } finally {
       setIsUploading(false);
@@ -606,36 +605,22 @@ const CreateEvent = () => {
     setLoading(true);
     try {
       Swal.showLoading();
-      const payload = {
+      const filteredMediaUrls = mediaInfo.mediaUrls.filter(url => typeof url === 'string' && url.trim() !== "");
+
+      const payload: Record<string, unknown> = {
         title: basicInfo.title,
         description: basicInfo.description,
         slug: basicInfo.slug || undefined,
         isPublic: basicInfo.isPublic,
-        isFeatured: basicInfo.isFeatured,
-        status: basicInfo.status,
         type: basicInfo.type,
         startDate: basicInfo.startDate ? new Date(basicInfo.startDate).toISOString() : "",
         endDate: basicInfo.endDate ? new Date(basicInfo.endDate).toISOString() : "",
         location: basicInfo.type === 'ONLINE' ? 'Virtual' : (basicInfo.location || 'Virtual'),
-        virtualLink: basicInfo.virtualLink,
+        virtualLink: basicInfo.virtualLink || undefined,
         capacity: basicInfo.capacity,
         category: basicInfo.category,
-        bannerUrl: mediaInfo.bannerUrl,
-        mediaUrls: mediaInfo.mediaUrls,
+        bannerUrl: mediaInfo.bannerUrl || undefined,
         tags: basicInfo.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== ""),
-        speakers: speakers.map(s => ({
-          name: s.name,
-          title: s.title,
-          bio: s.bio,
-          imageUrl: s.imageUrl
-        })),
-        agenda: agenda.map(a => ({
-          title: a.title,
-          description: a.description,
-          startTime: a.startTime ? new Date(a.startTime).toISOString() : undefined,
-          endTime: a.endTime ? new Date(a.endTime).toISOString() : undefined,
-          speakerName: a.speakerName
-        })),
         registrationMode: registration.mode,
         isGroupingEnabled: registration.isGroupingEnabled,
         enforceUniqueGroupNames: registration.enforceUniqueGroupNames,
@@ -648,19 +633,42 @@ const CreateEvent = () => {
         })),
       };
 
+      if (filteredMediaUrls.length > 0) {
+        payload.mediaUrls = filteredMediaUrls;
+      }
+
+      if (speakers.length > 0) {
+        payload.speakers = speakers.map(s => ({
+          name: s.name,
+          title: s.title,
+          bio: s.bio,
+          imageUrl: s.imageUrl
+        }));
+      }
+
+      if (agenda.length > 0) {
+        payload.agenda = agenda.map(a => ({
+          title: a.title,
+          description: a.description,
+          startTime: a.startTime ? new Date(a.startTime).toISOString() : undefined,
+          endTime: a.endTime ? new Date(a.endTime).toISOString() : undefined,
+          speakerName: a.speakerName
+        }));
+      }
+
       const response = await api.post("/events", payload);
       setEventId(response.data.data.id);
       setCurrentStep(2);
       Swal.fire({
           title: 'Step 1 Complete',
-          text: 'Event details saved. Now let\'s configure your tickets.',
+          text: 'Event details saved. Now let&apos;s configure your tickets.',
           icon: 'success',
           timer: 1500,
           showConfirmButton: false
       });
-    } catch (error) {
-      console.error("Failed to create event:", error);
-      Swal.fire("Error", translateError(error), "error");
+    } catch (_error) {
+      console.error("Failed to create event:", _error);
+      Swal.fire("Error", translateError(_error), "error");
     } finally {
       setLoading(false);
     }
@@ -672,7 +680,7 @@ const CreateEvent = () => {
       try {
           Swal.showLoading();
           const payload = {
-              tickets: tickets.map(({ id, ...rest }) => ({
+              tickets: tickets.map(({ id: _, ...rest }) => ({
                   name: rest.name,
                   price: rest.type === 'FREE' ? 0 : rest.price,
                   earlyBirdPrice: rest.earlyBirdPrice || undefined,
@@ -690,9 +698,9 @@ const CreateEvent = () => {
               timer: 1500,
               showConfirmButton: false
           });
-      } catch (error) {
-          console.error("Failed to create tickets:", error);
-          Swal.fire("Error", translateError(error), "error");
+      } catch (_error) {
+          console.error("Failed to create tickets:", _error);
+          Swal.fire("Error", translateError(_error), "error");
       } finally {
           setLoading(false);
       }
@@ -704,7 +712,7 @@ const CreateEvent = () => {
       try {
           Swal.showLoading();
           const payload = {
-              sessions: sessions.map(({ id, ...rest }) => ({
+              sessions: sessions.map(({ id: _, ...rest }) => ({
                   title: rest.title,
                   startTime: rest.startTime ? new Date(rest.startTime).toISOString() : "",
                   endTime: rest.endTime ? new Date(rest.endTime).toISOString() : "",
@@ -719,9 +727,9 @@ const CreateEvent = () => {
               confirmButtonColor: "#295FA7",
           });
           router.push(`/organizer/dashboard/events/${eventId}`);
-      } catch (error) {
-          console.error("Failed to create sessions:", error);
-          Swal.fire("Error", translateError(error), "error");
+      } catch (_error) {
+          console.error("Failed to create sessions:", _error);
+          Swal.fire("Error", translateError(_error), "error");
       } finally {
           setLoading(false);
       }
@@ -1323,7 +1331,7 @@ const CreateEvent = () => {
                        </div>
                        <div>
                           <h3 className="text-2xl font-black text-gray-900 tracking-tight">Advanced Settings</h3>
-                          <p className="text-sm text-gray-400 font-medium">Fine-tune your event's visibility and registration.</p>
+                          <p className="text-sm text-gray-400 font-medium">Fine-tune your event&apos;s visibility and registration.</p>
                        </div>
                     </div>
 
