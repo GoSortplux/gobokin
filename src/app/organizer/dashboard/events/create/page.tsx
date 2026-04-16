@@ -682,7 +682,9 @@ const CreateEvent = () => {
         }));
       }
 
-      const response = await api.post("/events", payload);
+      // Remove restricted fields from creation payload
+      const { isFeatured: _isFeatured, status: _status, ...creationPayload } = payload as Record<string, unknown>;
+      const response = await api.post("/events", creationPayload);
       const newEventId = response.data.data.id;
       setEventId(newEventId);
 

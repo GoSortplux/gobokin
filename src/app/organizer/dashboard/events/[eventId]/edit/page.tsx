@@ -5,35 +5,24 @@ import Image from "next/image";
 import {
   ArrowLeft,
   ArrowRight,
-  CheckCircle2,
   Calendar,
   MapPin,
-  Globe,
   Users,
   User,
   Ticket,
-  Layers,
   Trash2,
   Plus,
   Info,
   Image as ImageIcon,
-  Share2,
   ShieldCheck,
   Clock,
-  ChevronDown,
   Type,
-  Layout,
-  Tag,
   FileText,
   Eye,
   EyeOff,
   Zap,
-  Sparkles,
   UploadCloud,
   Upload,
-  Coins,
-  History,
-  MousePointer2,
   XCircle
 } from "lucide-react";
 import api from "@/services/api";
@@ -452,16 +441,16 @@ const EditEvent = () => {
         });
 
         setSpeakers(event.speakers || []);
-        setAgenda((event.agenda || []).map((a: any) => ({ ...a, startTime: formatDate(a.startTime), endTime: formatDate(a.endTime) })));
+        setAgenda((event.agenda || []).map((a: AgendaItem) => ({ ...a, startTime: formatDate(a.startTime || ""), endTime: formatDate(a.endTime || "") })));
 
-        setSessions((event.sessions || []).map((s: any) => ({
+        setSessions((event.sessions || []).map((s: { _id?: string; title: string; description: string; startTime: string; endTime: string; location: string }) => ({
           ...s,
           id: s._id || Math.random().toString(),
           startTime: formatDate(s.startTime),
           endTime: formatDate(s.endTime)
         })));
 
-        setTickets((event.tickets || []).map((t: any) => ({
+        setTickets((event.tickets || []).map((t: { _id?: string; name: string; price: number; type: TicketType; totalQuantity: number; groupSize: number; description: string; earlyBirdPrice: number; earlyBirdLimit: number; earlyBirdExpiry: string }) => ({
           ...t,
           id: t._id || Math.random().toString(),
           earlyBirdExpiry: formatDate(t.earlyBirdExpiry)
@@ -523,15 +512,14 @@ const EditEvent = () => {
 
     try {
       const fileUrl = await uploadMedia(file);
-      await api.post(`/events/${eventId}/media`, { bannerUrl: fileUrl });
       setMediaInfo(prev => ({ ...prev, bannerUrl: fileUrl }));
-      Swal.toast.fire({ icon: 'success', title: 'Banner updated!' });
-    } catch (error) {
+      Swal.toast.fire({ icon: 'success', title: 'Banner uploaded (pending save)!' });
+    } catch (_error) {
       Swal.fire('Error', 'Failed to upload banner.', 'error');
     } finally {
       setIsUploading(false);
     }
-  }, [eventId]);
+  }, [eventId, uploadMedia]);
 
   const handleMediaUrlUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -543,12 +531,11 @@ const EditEvent = () => {
       const urls: string[] = [];
       for (let i = 0; i < files.length; i++) {
           const url = await uploadMedia(files[i]);
-          await api.post(`/events/${eventId}/media`, { mediaUrl: url });
           urls.push(url);
       }
       setMediaInfo(prev => ({ ...prev, mediaUrls: [...prev.mediaUrls, ...urls] }));
-      Swal.toast.fire({ icon: 'success', title: 'Media added!' });
-    } catch (error) {
+      Swal.toast.fire({ icon: 'success', title: 'Media added (pending save)!' });
+    } catch (_error) {
       Swal.fire('Error', 'Some uploads failed', 'error');
     } finally {
       setIsUploading(false);
@@ -556,13 +543,7 @@ const EditEvent = () => {
   };
 
   const removeMediaUrl = async (idx: number) => {
-      const urlToDelete = mediaInfo.mediaUrls[idx];
-      try {
-          await api.delete(`/events/${eventId}/media`, { data: { mediaUrl: urlToDelete } });
-          setMediaInfo(prev => ({ ...prev, mediaUrls: prev.mediaUrls.filter((_, i) => i !== idx) }));
-      } catch (err) {
-          Swal.fire("Error", "Failed to remove media", "error");
-      }
+      setMediaInfo(prev => ({ ...prev, mediaUrls: prev.mediaUrls.filter((_, i) => i !== idx) }));
   };
 
   // Handlers
@@ -600,23 +581,28 @@ const EditEvent = () => {
     setSessions(sessions.map(s => s.id === sessionId ? { ...s, [field]: value } : s));
   };
 
-  const updateTicket = (ticketId: string, field: string, value: any) => {
+  const updateTicket = (ticketId: string, field: string, value: string | number) => {
     setTickets(tickets.map(t => t.id === ticketId ? { ...t, [field]: value } : t));
   };
 
-  const updateField = (index: number, field: string, value: any) => {
-    const newFields = [...registration.fields];
-    newFields[index] = { ...newFields[index], [field]: value };
-    setRegistration({ ...registration, fields: newFields });
-  };
-
-  // Save Handlers
-  const saveEventBase = async () => {
+  // Consolidate Save Handler
+  const saveAllChanges = async () => {
     setSaving(true);
     try {
       Swal.showLoading();
-      const payload = {
-        ...basicInfo,
+
+      // 1. Save Event Base Details
+      const basePayload = {
+        title: basicInfo.title,
+        description: basicInfo.description,
+        slug: basicInfo.slug,
+        type: basicInfo.type,
+        startDate: basicInfo.startDate ? new Date(basicInfo.startDate).toISOString() : "",
+        endDate: basicInfo.endDate ? new Date(basicInfo.endDate).toISOString() : "",
+        location: basicInfo.location,
+        virtualLink: basicInfo.virtualLink,
+        capacity: basicInfo.capacity,
+        category: basicInfo.category,
         tags: basicInfo.tags.split(',').map(t => t.trim()).filter(t => t),
         speakers: speakers.map(s => ({ name: s.name, title: s.title, bio: s.bio, imageUrl: s.imageUrl })),
         agenda: agenda.map(a => ({
@@ -634,63 +620,37 @@ const EditEvent = () => {
         mediaUrls: mediaInfo.mediaUrls,
       };
 
-      await api.patch(`/events/${eventId}`, payload);
+      // Fix: Remove restricted fields
+      const { isFeatured: _isFeatured, status: _status, ...patchPayload } = basePayload as Record<string, unknown>;
+      await api.patch(`/events/${eventId}`, patchPayload);
 
-      if (currentStep === 1 && subStep < 5) {
-          setSubStep(subStep + 1);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else if (currentStep === 1 && subStep === 5) {
-          setCurrentStep(2);
-      }
-      Swal.close();
-      Swal.toast.fire({ icon: 'success', title: 'Changes saved!' });
+      // 2. Save Tickets
+      const ticketPayload = {
+          tickets: tickets.map(({ id: _id, ...rest }) => ({
+              ...rest,
+              price: rest.type === 'FREE' ? 0 : rest.price,
+              earlyBirdExpiry: rest.earlyBirdExpiry ? new Date(rest.earlyBirdExpiry).toISOString() : undefined,
+          }))
+      };
+      await api.post(`/events/${eventId}/tickets`, ticketPayload);
+
+      // 3. Save Sessions
+      const sessionPayload = {
+          sessions: sessions.map(({ id: _id, ...rest }) => ({
+              ...rest,
+              startTime: new Date(rest.startTime).toISOString(),
+              endTime: new Date(rest.endTime).toISOString(),
+          }))
+      };
+      await api.post(`/events/${eventId}/sessions`, sessionPayload);
+
+      Swal.fire("Success", "Event updated successfully", "success");
+      router.push(`/organizer/dashboard/events/${eventId}`);
     } catch (error) {
       Swal.fire("Error", translateError(error), "error");
     } finally {
       setSaving(false);
     }
-  };
-
-  const saveTickets = async () => {
-      setSaving(true);
-      try {
-          Swal.showLoading();
-          const payload = {
-              tickets: tickets.map(({ id, ...rest }) => ({
-                  ...rest,
-                  price: rest.type === 'FREE' ? 0 : rest.price,
-                  earlyBirdExpiry: rest.earlyBirdExpiry ? new Date(rest.earlyBirdExpiry).toISOString() : undefined,
-              }))
-          };
-          await api.post(`/events/${eventId}/tickets`, payload);
-          setCurrentStep(3);
-          Swal.close();
-      } catch (error) {
-          Swal.fire("Error", translateError(error), "error");
-      } finally {
-          setSaving(false);
-      }
-  };
-
-  const saveSessions = async () => {
-      setSaving(true);
-      try {
-          Swal.showLoading();
-          const payload = {
-              sessions: sessions.map(({ id, ...rest }) => ({
-                  ...rest,
-                  startTime: new Date(rest.startTime).toISOString(),
-                  endTime: new Date(rest.endTime).toISOString(),
-              }))
-          };
-          await api.post(`/events/${eventId}/sessions`, payload);
-          Swal.fire("Success", "Event updated successfully", "success");
-          router.push(`/organizer/dashboard/events/${eventId}`);
-      } catch (error) {
-          Swal.fire("Error", translateError(error), "error");
-      } finally {
-          setSaving(false);
-      }
   };
 
   if (loading) return <div className="h-screen flex items-center justify-center"><CustomLoader /></div>;
@@ -952,7 +912,7 @@ const EditEvent = () => {
                     </button>
                  </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {tickets.map((ticket, index) => (
+                    {tickets.map((ticket, _index) => (
                         <div key={ticket.id} className="p-8 bg-gray-50 rounded-[3rem] border border-gray-100 space-y-6 group/ticket">
                             <div className="flex justify-between items-center">
                                 <h4 className="font-black text-gray-900 uppercase tracking-[0.3em] text-[10px]">Tier #{index+1}</h4>
@@ -1000,20 +960,33 @@ const EditEvent = () => {
              <button onClick={() => router.back()} className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-gray-900 transition-colors">Discard Changes</button>
              <div className="flex items-center gap-6">
                 {currentStep === 1 && (
-                    <button onClick={saveEventBase} disabled={saving} className="flex items-center gap-4 bg-primary text-white font-black px-14 py-6 rounded-[2.5rem] shadow-3xl shadow-primary/30 uppercase tracking-[0.3em] text-[11px] disabled:opacity-50">
-                        {saving ? "Saving..." : subStep < 5 ? "Update & Proceed" : "Update Details"}
+                    <button
+                        onClick={() => {
+                            if (subStep < 5) setSubStep(subStep + 1);
+                            else setCurrentStep(2);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className="flex items-center gap-4 bg-primary text-white font-black px-14 py-6 rounded-[2.5rem] shadow-3xl shadow-primary/30 uppercase tracking-[0.3em] text-[11px]"
+                    >
+                        {subStep < 5 ? "Next Phase" : "Next: Ticketing"}
                         <ArrowRight size={20} />
                     </button>
                 )}
                 {currentStep === 2 && (
-                    <button onClick={saveTickets} disabled={saving} className="flex items-center gap-4 bg-primary text-white font-black px-14 py-6 rounded-[2.5rem] shadow-3xl shadow-primary/30 uppercase tracking-[0.3em] text-[11px] disabled:opacity-50">
-                        {saving ? "Saving..." : "Update Tickets"}
+                    <button
+                        onClick={() => {
+                            setCurrentStep(3);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className="flex items-center gap-4 bg-primary text-white font-black px-14 py-6 rounded-[2.5rem] shadow-3xl shadow-primary/30 uppercase tracking-[0.3em] text-[11px]"
+                    >
+                        Next: Schedule
                         <ArrowRight size={20} />
                     </button>
                 )}
                 {currentStep === 3 && (
-                    <button onClick={saveSessions} disabled={saving} className="flex items-center gap-4 bg-secondary text-white font-black px-14 py-6 rounded-[2.5rem] shadow-3xl shadow-secondary/30 uppercase tracking-[0.3em] text-[11px] disabled:opacity-50">
-                        {saving ? "Finalizing..." : "Update Schedule"}
+                    <button onClick={saveAllChanges} disabled={saving} className="flex items-center gap-4 bg-secondary text-white font-black px-14 py-6 rounded-[2.5rem] shadow-3xl shadow-secondary/30 uppercase tracking-[0.3em] text-[11px] disabled:opacity-50">
+                        {saving ? "Finalizing..." : "Finalize & Update"}
                         <ShieldCheck size={20} />
                     </button>
                 )}
