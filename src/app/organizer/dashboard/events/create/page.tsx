@@ -342,6 +342,7 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, agenda, sessions, tickets
 const CreateEvent = () => {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
+  const [subStep, setSubStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [eventId, setEventId] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(true);
@@ -358,7 +359,7 @@ const CreateEvent = () => {
         const categoryNames = data.map((cat: string | { name: string }) => typeof cat === 'string' ? cat : cat.name);
         setCategories(categoryNames);
       } catch (_error) {
-        console.error("Failed to fetch categories:", error);
+        console.error("Failed to fetch categories:", _error);
       }
     };
     fetchCategories();
@@ -816,689 +817,721 @@ const CreateEvent = () => {
             {/* STEP 1: EVENT DETAILS */}
             {currentStep === 1 && (
               <div className="space-y-16 animate-in fade-in slide-in-from-bottom-8 duration-700">
-                 {/* Section 1: Event Identity */}
-                 <div className="space-y-10 group/section">
-                    <div className="flex items-center gap-5">
-                       <div className="w-14 h-14 rounded-2xl bg-gray-50 text-primary flex items-center justify-center transition-all group-hover/section:bg-primary group-hover/section:text-white group-hover/section:rotate-3 shadow-sm border border-gray-100">
-                          <Type size={24} />
+                 {/* Sub-progress for Step 1 */}
+                 <div className="flex items-center gap-4 mb-8">
+                    {[1, 2, 3, 4].map((s) => (
+                       <div key={s} className="flex-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                          <div
+                             className={`h-full transition-all duration-500 ${
+                                s <= subStep ? 'bg-primary' : 'bg-transparent'
+                             }`}
+                          />
                        </div>
-                       <div>
-                            <h3 className="text-2xl font-black text-gray-900 tracking-tight">Event Identity</h3>
-                            <p className="text-sm text-gray-400 font-medium">Define the core personality of your event.</p>
+                    ))}
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap ml-2">
+                       {subStep} of 4
+                    </span>
+                 </div>
+
+                 {subStep === 1 && (
+                    <div className="space-y-16 animate-in fade-in duration-500">
+                       {/* Section 1: Event Identity */}
+                       <div className="space-y-10 group/section">
+                          <div className="flex items-center gap-5">
+                             <div className="w-14 h-14 rounded-2xl bg-gray-50 text-primary flex items-center justify-center transition-all group-hover/section:bg-primary group-hover/section:text-white group-hover/section:rotate-3 shadow-sm border border-gray-100">
+                                <Type size={24} />
+                             </div>
+                             <div>
+                                  <h3 className="text-2xl font-black text-gray-900 tracking-tight">Event Identity</h3>
+                                  <p className="text-sm text-gray-400 font-medium">Define the core personality of your event.</p>
+                             </div>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+                             <div className="space-y-3">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Official Event Title</label>
+                                <input
+                                  type="text"
+                                  name="title"
+                                  required
+                                  placeholder="e.g., Annual Tech Summit 2024"
+                                  className="w-full p-5 sm:p-6 bg-white border border-gray-300 rounded-[1.5rem] sm:rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
+                                  value={basicInfo.title || ""}
+                                  onChange={handleBasicChange}
+                                />
+                             </div>
+                             <div className="space-y-3">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Event Slug (URL Friendly)</label>
+                                <input
+                                  type="text"
+                                  name="slug"
+                                  placeholder="e.g., tech-summit-2024"
+                                  className="w-full p-5 sm:p-6 bg-white border border-gray-300 rounded-[1.5rem] sm:rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
+                                  value={basicInfo.slug || ""}
+                                  onChange={handleBasicChange}
+                                />
+                             </div>
+                             <div className="space-y-3">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Event Category</label>
+                                <div className="relative">
+                                   <Layout size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-primary pointer-events-none" />
+                                   <select
+                                      name="category"
+                                      className="w-full pl-14 pr-12 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none appearance-none shadow-sm cursor-pointer"
+                                      value={basicInfo.category || ""}
+                                      onChange={handleBasicChange}
+                                   >
+                                      <option value="">Select a category</option>
+                                      {categories.map((cat, idx) => (
+                                        <option key={idx} value={cat}>{cat}</option>
+                                      ))}
+                                   </select>
+                                   <ChevronDown size={20} className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                </div>
+                             </div>
+                             <div className="space-y-3">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Search Keywords</label>
+                                <div className="relative">
+                                   <Tag size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-primary" />
+                                   <input
+                                      type="text"
+                                      name="tags"
+                                      placeholder="Comma separated tags"
+                                      className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
+                                      value={basicInfo.tags || ""}
+                                      onChange={handleBasicChange}
+                                   />
+                                </div>
+                             </div>
+                          </div>
+                       </div>
+
+                       {/* Section 2: Date & Time */}
+                       <div className="space-y-10 group/section">
+                          <div className="flex items-center gap-5">
+                             <div className="w-14 h-14 rounded-2xl bg-gray-50 text-primary flex items-center justify-center transition-all group-hover/section:bg-primary group-hover/section:text-white group-hover/section:-rotate-3 shadow-sm border border-gray-100">
+                                <Calendar size={24} />
+                             </div>
+                             <div>
+                                  <h3 className="text-2xl font-black text-gray-900 tracking-tight">Timeline</h3>
+                                  <p className="text-sm text-gray-400 font-medium">When should attendees mark their calendars?</p>
+                             </div>
+                          </div>
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+                             <div className="space-y-3">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Event Commences</label>
+                                <div className="relative">
+                                      <Clock size={18} className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 text-primary" />
+                                   <input
+                                      type="datetime-local"
+                                      name="startDate"
+                                         className="w-full pl-12 sm:pl-14 pr-4 sm:pr-6 py-5 sm:py-6 bg-white border border-gray-300 rounded-[1.5rem] sm:rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
+                                      value={basicInfo.startDate}
+                                      onChange={handleBasicChange}
+                                   />
+                                </div>
+                             </div>
+                             <div className="space-y-3">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Event Concludes</label>
+                                <div className="relative">
+                                      <Clock size={18} className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 text-primary" />
+                                   <input
+                                      type="datetime-local"
+                                      name="endDate"
+                                         className="w-full pl-12 sm:pl-14 pr-4 sm:pr-6 py-5 sm:py-6 bg-white border border-gray-300 rounded-[1.5rem] sm:rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
+                                      value={basicInfo.endDate}
+                                      onChange={handleBasicChange}
+                                   />
+                                </div>
+                             </div>
+                          </div>
+                       </div>
+
+                       {/* Section 3: Location & Format */}
+                       <div className="space-y-10 group/section">
+                          <div className="flex items-center gap-5">
+                             <div className="w-14 h-14 rounded-2xl bg-gray-50 text-primary flex items-center justify-center transition-all group-hover/section:bg-primary group-hover/section:text-white group-hover/section:scale-110 shadow-sm border border-gray-100">
+                                <MapPin size={24} />
+                             </div>
+                             <div>
+                                  <h3 className="text-2xl font-black text-gray-900 tracking-tight">Location & Format</h3>
+                                  <p className="text-sm text-gray-400 font-medium">Choose where the magic happens.</p>
+                             </div>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                             <div className="space-y-3 md:col-span-2">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Access Method</label>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+                                   {["PHYSICAL", "ONLINE", "HYBRID"].map((type) => (
+                                      <button
+                                         key={type}
+                                         type="button"
+                                         onClick={() => setBasicInfo({...basicInfo, type: type as EventType})}
+                                         className={`py-5 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.2em] border-2 transition-all ${
+                                            basicInfo.type === type
+                                            ? "bg-primary text-white border-primary shadow-xl shadow-primary/30"
+                                            : "bg-white border-gray-100 text-gray-400 hover:border-gray-200 hover:bg-gray-50"
+                                         }`}
+                                      >
+                                         {type}
+                                      </button>
+                                   ))}
+                                </div>
+                             </div>
+                             {basicInfo.type !== "ONLINE" && (
+                                <div className="space-y-3 md:col-span-2">
+                                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Physical Venue Address</label>
+                                   <div className="relative">
+                                      <MapPin size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-primary" />
+                                      <input
+                                         type="text"
+                                         name="location"
+                                         placeholder="Street address, City, State"
+                                         className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
+                                         value={basicInfo.location || ""}
+                                         onChange={handleBasicChange}
+                                      />
+                                   </div>
+                                </div>
+                             )}
+                             {basicInfo.type !== "PHYSICAL" && (
+                             <div className="space-y-3">
+                                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Digital Meeting Link</label>
+                                   <div className="relative">
+                                      <Globe size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-primary" />
+                                      <input
+                                         type="url"
+                                         name="virtualLink"
+                                         placeholder="https://zoom.us/j/..."
+                                         className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
+                                         value={basicInfo.virtualLink || ""}
+                                         onChange={handleBasicChange}
+                                      />
+                                   </div>
+                                </div>
+                             )}
+                             <div className="space-y-3 md:col-span-2">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Attendee Capacity</label>
+                                <div className="relative">
+                                   <Users size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-primary" />
+                                   <input
+                                      type="number"
+                                      name="capacity"
+                                      className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
+                                      value={basicInfo.capacity}
+                                      onChange={handleBasicChange}
+                                   />
+                                </div>
+                             </div>
+                          </div>
                        </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
-                       <div className="space-y-3">
-                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Official Event Title</label>
-                          <input
-                            type="text"
-                            name="title"
-                            required
-                            placeholder="e.g., Annual Tech Summit 2024"
-                            className="w-full p-5 sm:p-6 bg-white border border-gray-300 rounded-[1.5rem] sm:rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
-                            value={basicInfo.title || ""}
+                 )}
+
+                 {subStep === 2 && (
+                    <div className="space-y-16 animate-in fade-in duration-500">
+                       {/* Section 4: Bio */}
+                       <div className="space-y-10 group/section">
+                          <div className="flex items-center gap-5">
+                             <div className="w-14 h-14 rounded-2xl bg-gray-50 text-secondary flex items-center justify-center transition-all group-hover/section:bg-secondary group-hover/section:text-white shadow-sm border border-gray-100">
+                                <FileText size={24} />
+                             </div>
+                             <div>
+                                  <h3 className="text-2xl font-black text-gray-900 tracking-tight">Detailed Narrative</h3>
+                                  <p className="text-sm text-gray-400 font-medium">Tell the story of your event.</p>
+                             </div>
+                          </div>
+                          <textarea
+                            name="description"
+                            rows={8}
+                            placeholder="Describe your event in detail. What should attendees expect?"
+                            className="w-full p-8 bg-white border border-gray-300 rounded-[2.5rem] text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 min-h-[200px] shadow-sm"
+                            value={basicInfo.description || ""}
                             onChange={handleBasicChange}
                           />
                        </div>
-                       <div className="space-y-3">
-                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Event Slug (URL Friendly)</label>
-                          <input
-                            type="text"
-                            name="slug"
-                            placeholder="e.g., tech-summit-2024"
-                            className="w-full p-5 sm:p-6 bg-white border border-gray-300 rounded-[1.5rem] sm:rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
-                            value={basicInfo.slug || ""}
-                            onChange={handleBasicChange}
-                          />
-                       </div>
-                       <div className="space-y-3">
-                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Event Category</label>
-                          <div className="relative">
-                             <Layout size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-primary pointer-events-none" />
-                             <select
-                                name="category"
-                                className="w-full pl-14 pr-12 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none appearance-none shadow-sm cursor-pointer"
-                                value={basicInfo.category || ""}
-                                onChange={handleBasicChange}
+
+                       {/* Section 5: Media */}
+                       <div className="space-y-10 group/section">
+                          <div className="flex items-center gap-5">
+                             <div className="w-14 h-14 rounded-2xl bg-gray-50 text-primary flex items-center justify-center shadow-sm border border-gray-100">
+                                <ImageIcon size={24} />
+                             </div>
+                             <div>
+                                <h3 className="text-2xl font-black text-gray-900 tracking-tight">Visual Identity</h3>
+                                <p className="text-sm text-gray-400 font-medium">Upload a captivating banner for your event.</p>
+                             </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                             <div
+                                className={`bg-gray-50 rounded-[3rem] p-8 border-2 border-dashed transition-all duration-500 flex flex-col items-center justify-center space-y-6 group/upload shadow-sm h-full relative overflow-hidden min-h-[400px]
+                                  ${isUploading ? 'border-primary bg-primary/5' : 'border-gray-200 hover:bg-white hover:border-primary/30 cursor-pointer'}
+                                `}
                              >
-                                <option value="">Select a category</option>
-                                {categories.map((cat, idx) => (
-                                  <option key={idx} value={cat}>{cat}</option>
-                                ))}
-                             </select>
-                             <ChevronDown size={20} className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                          </div>
-                       </div>
-                       <div className="space-y-3">
-                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Search Keywords</label>
-                          <div className="relative">
-                             <Tag size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-primary" />
-                             <input
-                                type="text"
-                                name="tags"
-                                placeholder="Comma separated tags"
-                                className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
-                                value={basicInfo.tags || ""}
-                                onChange={handleBasicChange}
-                             />
-                          </div>
-                       </div>
-                    </div>
-                 </div>
+                                <input
+                                  type="file"
+                                  className="absolute inset-0 opacity-0 cursor-pointer z-20"
+                                  onChange={handleBannerUpload}
+                                  accept="image/*"
+                                  disabled={isUploading}
+                                />
 
-                 {/* Section 2: Date & Time */}
-                 <div className="space-y-10 group/section">
-                    <div className="flex items-center gap-5">
-                       <div className="w-14 h-14 rounded-2xl bg-gray-50 text-primary flex items-center justify-center transition-all group-hover/section:bg-primary group-hover/section:text-white group-hover/section:-rotate-3 shadow-sm border border-gray-100">
-                          <Calendar size={24} />
-                       </div>
-                       <div>
-                            <h3 className="text-2xl font-black text-gray-900 tracking-tight">Timeline</h3>
-                            <p className="text-sm text-gray-400 font-medium">When should attendees mark their calendars?</p>
-                       </div>
-                    </div>
-                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
-                       <div className="space-y-3">
-                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Event Commences</label>
-                          <div className="relative">
-                                <Clock size={18} className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 text-primary" />
-                             <input
-                                type="datetime-local"
-                                name="startDate"
-                                   className="w-full pl-12 sm:pl-14 pr-4 sm:pr-6 py-5 sm:py-6 bg-white border border-gray-300 rounded-[1.5rem] sm:rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
-                                value={basicInfo.startDate}
-                                onChange={handleBasicChange}
-                             />
-                          </div>
-                       </div>
-                       <div className="space-y-3">
-                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Event Concludes</label>
-                          <div className="relative">
-                                <Clock size={18} className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 text-primary" />
-                             <input
-                                type="datetime-local"
-                                name="endDate"
-                                   className="w-full pl-12 sm:pl-14 pr-4 sm:pr-6 py-5 sm:py-6 bg-white border border-gray-300 rounded-[1.5rem] sm:rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
-                                value={basicInfo.endDate}
-                                onChange={handleBasicChange}
-                             />
-                          </div>
-                       </div>
-                    </div>
-                 </div>
+                                {mediaInfo.bannerUrl && !isUploading ? (
+                                   <div className="relative w-full h-full rounded-[2rem] overflow-hidden shadow-2xl group-hover/upload:scale-[0.98] transition-transform duration-500">
+                                      <Image src={mediaInfo.bannerUrl} alt="Banner" fill unoptimized={true} className="object-cover" />
+                                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/upload:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+                                          <div className="bg-white px-8 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.2em] text-gray-900 shadow-2xl flex items-center gap-3">
+                                              <Upload size={16} />
+                                              Update Banner
+                                          </div>
+                                      </div>
+                                   </div>
+                                ) : isUploading ? (
+                                   <div className="flex flex-col items-center gap-6 animate-pulse w-full px-10">
+                                       <div className="w-20 h-20 bg-primary/20 rounded-3xl flex items-center justify-center text-primary">
+                                            <UploadCloud size={40} className="animate-bounce" />
+                                       </div>
+                                       <div className="w-full space-y-3">
+                                           <div className="flex justify-between text-[10px] font-black text-primary uppercase tracking-widest">
+                                               <span>Uploading Art</span>
+                                               <span>{uploadProgress}%</span>
+                                           </div>
+                                           <div className="w-full h-3 bg-primary/10 rounded-full overflow-hidden">
+                                               <div
+                                                 className="h-full bg-primary transition-all duration-300"
+                                                 style={{ width: `${uploadProgress}%` }}
+                                               />
+                                           </div>
+                                       </div>
+                                   </div>
+                                ) : (
+                                   <>
+                                      <div className="w-24 h-24 rounded-[2rem] bg-white shadow-xl shadow-gray-200 flex items-center justify-center text-gray-300 group-hover/upload:text-primary group-hover/upload:scale-110 group-hover/upload:rotate-3 transition-all duration-500">
+                                        <Plus size={48} />
+                                      </div>
+                                      <div className="text-center space-y-2">
+                                        <p className="text-xs font-black text-gray-900 uppercase tracking-[0.3em]">Drop your masterpiece here</p>
+                                        <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.2em]">or click to browse gallery</p>
+                                      </div>
+                                      <div className="flex items-center gap-4 pt-4">
+                                          <div className="px-4 py-2 rounded-xl bg-white border border-gray-100 text-[8px] font-black text-gray-400 uppercase tracking-widest">JPG</div>
+                                          <div className="px-4 py-2 rounded-xl bg-white border border-gray-100 text-[8px] font-black text-gray-400 uppercase tracking-widest">PNG</div>
+                                          <div className="px-4 py-2 rounded-xl bg-white border border-gray-100 text-[8px] font-black text-gray-400 uppercase tracking-widest">WEBP</div>
+                                      </div>
+                                   </>
+                                )}
+                             </div>
 
-                 {/* Section 3: Location & Format */}
-                 <div className="space-y-10 group/section">
-                    <div className="flex items-center gap-5">
-                       <div className="w-14 h-14 rounded-2xl bg-gray-50 text-primary flex items-center justify-center transition-all group-hover/section:bg-primary group-hover/section:text-white group-hover/section:scale-110 shadow-sm border border-gray-100">
-                          <MapPin size={24} />
-                       </div>
-                       <div>
-                            <h3 className="text-2xl font-black text-gray-900 tracking-tight">Location & Format</h3>
-                            <p className="text-sm text-gray-400 font-medium">Choose where the magic happens.</p>
+                             <div className="space-y-10 flex flex-col justify-center">
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Asset Source URL</label>
+                                    <div className="relative">
+                                        <Globe size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300" />
+                                        <input
+                                          type="text"
+                                          name="bannerUrl" autoComplete="off" autoCorrect="off"
+                                          placeholder="https://..."
+                                          className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
+                                          value={mediaInfo.bannerUrl || ""}
+                                          onChange={handleMediaChange}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Additional Media Gallery</label>
+                                    <div className="flex flex-wrap gap-4">
+                                        {mediaInfo.mediaUrls.map((url, idx) => (
+                                            <div key={idx} className="relative w-24 h-24 rounded-2xl overflow-hidden border border-gray-100 group">
+                                                {url && typeof url === 'string' && url.match(/\.(mp4|webm|ogg)$/) ? (
+                                                    <video src={url} className="w-full h-full object-cover" />
+                                                ) : url ? (
+                                                    <Image src={url} alt="Media" fill unoptimized={true} className="object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-gray-300 bg-gray-50">
+                                                        <ImageIcon size={24} />
+                                                    </div>
+                                                )}
+                                                <button
+                                                    onClick={() => setMediaInfo(prev => ({ ...prev, mediaUrls: prev.mediaUrls.filter((_, i) => i !== idx) }))}
+                                                    className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                        <label className="w-24 h-24 rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-300 hover:border-primary hover:text-primary cursor-pointer transition-all">
+                                            <Plus size={24} />
+                                            <span className="text-[8px] font-black uppercase tracking-widest mt-1">Add</span>
+                                            <input type="file" multiple className="hidden" onChange={handleMediaUrlUpload} accept="image/*,video/*" />
+                                        </label>
+                                    </div>
+                                </div>
+                                <div className="bg-gray-900 p-10 rounded-[3rem] relative overflow-hidden group">
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
+                                    <Sparkles className="text-primary mb-6" size={32} strokeWidth={1.5} />
+                                    <h4 className="text-lg font-black text-white tracking-tight mb-3">Optimization Protocol</h4>
+                                    <p className="text-sm text-gray-400 font-medium leading-relaxed">
+                                        Our engine automatically compresses and serves your images via a global CDN. For best results, use a 16:9 aspect ratio image with at least 1920px width.
+                                    </p>
+                                </div>
+                             </div>
+                          </div>
                        </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                       <div className="space-y-3 md:col-span-2">
-                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Access Method</label>
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-                             {["PHYSICAL", "ONLINE", "HYBRID"].map((type) => (
-                                <button
-                                   key={type}
-                                   type="button"
-                                   onClick={() => setBasicInfo({...basicInfo, type: type as EventType})}
-                                   className={`py-5 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.2em] border-2 transition-all ${
-                                      basicInfo.type === type
-                                      ? "bg-primary text-white border-primary shadow-xl shadow-primary/20"
-                                      : "bg-white border-gray-100 text-gray-400 hover:border-gray-200 hover:bg-gray-50"
-                                   }`}
-                                >
-                                   {type}
-                                </button>
+                 )}
+
+                 {subStep === 3 && (
+                    <div className="space-y-16 animate-in fade-in duration-500">
+                       {/* Section 6: Speakers */}
+                       <div className="space-y-10 group/section">
+                          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-gray-100 pb-10">
+                             <div className="flex items-center gap-5">
+                                <div className="w-14 h-14 rounded-2xl bg-gray-50 text-primary flex items-center justify-center shadow-sm border border-gray-100">
+                                   <Users size={24} />
+                                </div>
+                                <div>
+                                   <h3 className="text-2xl font-black text-gray-900 tracking-tight">Speakers & Guests</h3>
+                                   <p className="text-sm text-gray-400 font-medium">Highlight the key people at your event.</p>
+                                </div>
+                             </div>
+                             <button
+                               onClick={addSpeaker}
+                               className="flex items-center gap-3 bg-gray-900 text-white font-black px-8 py-5 rounded-3xl hover:bg-black transition-all shadow-2xl shadow-gray-900/20 text-[10px] uppercase tracking-[0.2em]"
+                             >
+                               <Plus size={18} />
+                               Add Speaker
+                             </button>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                             {speakers.map((speaker, idx) => (
+                                <div key={idx} className="p-8 bg-gray-50 rounded-[3rem] space-y-6 relative group/speaker">
+                                   <button
+                                      onClick={() => removeSpeaker(idx)}
+                                      className="absolute top-6 right-6 w-10 h-10 bg-white text-gray-300 hover:text-secondary rounded-xl flex items-center justify-center shadow-sm transition-all"
+                                   >
+                                      <Trash2 size={16} />
+                                   </button>
+
+                                   <div className="flex items-center gap-6">
+                                      <div className="relative w-24 h-24 rounded-[2rem] overflow-hidden bg-white shadow-lg border border-gray-100 group/img">
+                                         {speaker.imageUrl ? (
+                                            <Image src={speaker.imageUrl} alt="Speaker" fill unoptimized={true} className="object-cover" />
+                                         ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-gray-200">
+                                               <Users size={32} />
+                                            </div>
+                                         )}
+                                         <label className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                                            <Upload size={20} className="text-white" />
+                                            <input type="file" className="hidden" onChange={(e) => handleSpeakerImageUpload(idx, e)} />
+                                         </label>
+                                      </div>
+                                      <div className="flex-1 space-y-4">
+                                         <input
+                                            type="text"
+                                            placeholder="Full Name"
+                                            className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all"
+                                            value={speaker.name}
+                                            onChange={(e) => updateSpeaker(idx, 'name', e.target.value)}
+                                         />
+                                         <input
+                                            type="text"
+                                            placeholder="Title (e.g., CEO, Speaker)"
+                                            className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all"
+                                            value={speaker.title}
+                                            onChange={(e) => updateSpeaker(idx, 'title', e.target.value)}
+                                         />
+                                      </div>
+                                   </div>
+                                   <textarea
+                                      placeholder="Short bio about the speaker..."
+                                      rows={3}
+                                      className="w-full p-6 bg-white border border-gray-200 rounded-[1.5rem] text-sm font-bold outline-none focus:border-primary transition-all"
+                                      value={speaker.bio}
+                                      onChange={(e) => updateSpeaker(idx, 'bio', e.target.value)}
+                                   />
+                                </div>
                              ))}
                           </div>
                        </div>
-                       {basicInfo.type !== "ONLINE" && (
-                          <div className="space-y-3 md:col-span-2">
-                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Physical Venue Address</label>
-                             <div className="relative">
-                                <MapPin size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-primary" />
-                                <input
-                                   type="text"
-                                   name="location"
-                                   placeholder="Street address, City, State"
-                                   className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
-                                   value={basicInfo.location || ""}
-                                   onChange={handleBasicChange}
-                                />
-                             </div>
-                          </div>
-                       )}
-                       {basicInfo.type !== "PHYSICAL" && (
-                       <div className="space-y-3">
-                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Digital Meeting Link</label>
-                             <div className="relative">
-                                <Globe size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-primary" />
-                                <input
-                                   type="url"
-                                   name="virtualLink"
-                                   placeholder="https://zoom.us/j/..."
-                                   className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
-                                   value={basicInfo.virtualLink || ""}
-                                   onChange={handleBasicChange}
-                                />
-                             </div>
-                          </div>
-                       )}
-                       <div className="space-y-3 md:col-span-2">
-                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Attendee Capacity</label>
-                          <div className="relative">
-                             <Users size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-primary" />
-                             <input
-                                type="number"
-                                name="capacity"
-                                className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
-                                value={basicInfo.capacity}
-                                onChange={handleBasicChange}
-                             />
-                          </div>
-                       </div>
-                      <div className="space-y-3">
-                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Additional Media Gallery</label>
-                          <div className="flex flex-wrap gap-4">
-                              {mediaInfo.mediaUrls.map((url, idx) => (
-                                  <div key={idx} className="relative w-24 h-24 rounded-2xl overflow-hidden border border-gray-100 group">
-                                      {url && typeof url === 'string' && url.match(/\.(mp4|webm|ogg)$/) ? (
-                                          <video src={url} className="w-full h-full object-cover" />
-                                      ) : url ? (
-                                          <Image src={url} alt="Media" fill unoptimized={true} className="object-cover" />
-                                      ) : (
-                                          <div className="w-full h-full flex items-center justify-center text-gray-300 bg-gray-50">
-                                              <ImageIcon size={24} />
-                                          </div>
-                                      )}
-                                      <button
-                                          onClick={() => setMediaInfo(prev => ({ ...prev, mediaUrls: prev.mediaUrls.filter((_, i) => i !== idx) }))}
-                                          className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white"
-                                      >
-                                          <Trash2 size={16} />
-                                      </button>
-                                  </div>
-                              ))}
-                              <label className="w-24 h-24 rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-300 hover:border-primary hover:text-primary cursor-pointer transition-all">
-                                  <Plus size={24} />
-                                  <span className="text-[8px] font-black uppercase tracking-widest mt-1">Add</span>
-                                  <input type="file" multiple className="hidden" onChange={handleMediaUrlUpload} accept="image/*,video/*" />
-                              </label>
-                          </div>
-                      </div>
-                    </div>
-                 </div>
 
-                 {/* Section 4: Bio */}
-                 <div className="space-y-10 group/section">
-                    <div className="flex items-center gap-5">
-                       <div className="w-14 h-14 rounded-2xl bg-gray-50 text-secondary flex items-center justify-center transition-all group-hover/section:bg-secondary group-hover/section:text-white shadow-sm border border-gray-100">
-                          <FileText size={24} />
-                       </div>
-                       <div>
-                            <h3 className="text-2xl font-black text-gray-900 tracking-tight">Detailed Narrative</h3>
-                            <p className="text-sm text-gray-400 font-medium">Tell the story of your event.</p>
-                       </div>
-                    </div>
-                    <textarea
-                      name="description"
-                      rows={8}
-                      placeholder="Describe your event in detail. What should attendees expect?"
-                      className="w-full p-8 bg-white border border-gray-300 rounded-[2.5rem] text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 min-h-[200px] shadow-sm"
-                      value={basicInfo.description || ""}
-                      onChange={handleBasicChange}
-                    />
-                 </div>
-
-                 {/* Section 5: Media */}
-                 <div className="space-y-10 group/section">
-                    <div className="flex items-center gap-5">
-                       <div className="w-14 h-14 rounded-2xl bg-gray-50 text-primary flex items-center justify-center shadow-sm border border-gray-100">
-                          <ImageIcon size={24} />
-                       </div>
-                       <div>
-                          <h3 className="text-2xl font-black text-gray-900 tracking-tight">Visual Identity</h3>
-                          <p className="text-sm text-gray-400 font-medium">Upload a captivating banner for your event.</p>
-                       </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                       <div
-                          className={`bg-gray-50 rounded-[3rem] p-8 border-2 border-dashed transition-all duration-500 flex flex-col items-center justify-center space-y-6 group/upload shadow-sm h-full relative overflow-hidden min-h-[400px]
-                            ${isUploading ? 'border-primary bg-primary/5' : 'border-gray-200 hover:bg-white hover:border-primary/30 cursor-pointer'}
-                          `}
-                       >
-                          <input
-                            type="file"
-                            className="absolute inset-0 opacity-0 cursor-pointer z-20"
-                            onChange={handleBannerUpload}
-                            accept="image/*"
-                            disabled={isUploading}
-                          />
-
-                          {mediaInfo.bannerUrl && !isUploading ? (
-                             <div className="relative w-full h-full rounded-[2rem] overflow-hidden shadow-2xl group-hover/upload:scale-[0.98] transition-transform duration-500">
-                                <Image src={mediaInfo.bannerUrl} alt="Banner" fill unoptimized={true} className="object-cover" />
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/upload:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
-                                    <div className="bg-white px-8 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.2em] text-gray-900 shadow-2xl flex items-center gap-3">
-                                        <Upload size={16} />
-                                        Update Banner
-                                    </div>
+                       {/* Section 7: Agenda */}
+                       <div className="space-y-10 group/section">
+                          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-gray-100 pb-10">
+                             <div className="flex items-center gap-5">
+                                <div className="w-14 h-14 rounded-2xl bg-gray-50 text-secondary flex items-center justify-center shadow-sm border border-gray-100">
+                                   <Calendar size={24} />
+                                </div>
+                                <div>
+                                   <h3 className="text-2xl font-black text-gray-900 tracking-tight">Event Agenda</h3>
+                                   <p className="text-sm text-gray-400 font-medium">Outline the flow of your event.</p>
                                 </div>
                              </div>
-                          ) : isUploading ? (
-                             <div className="flex flex-col items-center gap-6 animate-pulse w-full px-10">
-                                 <div className="w-20 h-20 bg-primary/20 rounded-3xl flex items-center justify-center text-primary">
-                                      <UploadCloud size={40} className="animate-bounce" />
-                                 </div>
-                                 <div className="w-full space-y-3">
-                                     <div className="flex justify-between text-[10px] font-black text-primary uppercase tracking-widest">
-                                         <span>Uploading Art</span>
-                                         <span>{uploadProgress}%</span>
-                                     </div>
-                                     <div className="w-full h-3 bg-primary/10 rounded-full overflow-hidden">
-                                         <div
-                                           className="h-full bg-primary transition-all duration-300"
-                                           style={{ width: `${uploadProgress}%` }}
-                                         />
-                                     </div>
-                                 </div>
-                             </div>
-                          ) : (
-                             <>
-                                <div className="w-24 h-24 rounded-[2rem] bg-white shadow-xl shadow-gray-200 flex items-center justify-center text-gray-300 group-hover/upload:text-primary group-hover/upload:scale-110 group-hover/upload:rotate-3 transition-all duration-500">
-                                  <Plus size={48} />
-                                </div>
-                                <div className="text-center space-y-2">
-                                  <p className="text-xs font-black text-gray-900 uppercase tracking-[0.3em]">Drop your masterpiece here</p>
-                                  <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.2em]">or click to browse gallery</p>
-                                </div>
-                                <div className="flex items-center gap-4 pt-4">
-                                    <div className="px-4 py-2 rounded-xl bg-white border border-gray-100 text-[8px] font-black text-gray-400 uppercase tracking-widest">JPG</div>
-                                    <div className="px-4 py-2 rounded-xl bg-white border border-gray-100 text-[8px] font-black text-gray-400 uppercase tracking-widest">PNG</div>
-                                    <div className="px-4 py-2 rounded-xl bg-white border border-gray-100 text-[8px] font-black text-gray-400 uppercase tracking-widest">WEBP</div>
-                                </div>
-                             </>
-                          )}
-                       </div>
-
-                       <div className="space-y-10 flex flex-col justify-center">
-                          <div className="space-y-3">
-                              <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Asset Source URL</label>
-                              <div className="relative">
-                                  <Globe size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300" />
-                                  <input
-                                    type="text"
-                                    name="bannerUrl" autoComplete="off" autoCorrect="off"
-                                    placeholder="https://..."
-                                    className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
-                                    value={mediaInfo.bannerUrl || ""}
-                                    onChange={handleMediaChange}
-                                  />
-                              </div>
-                          </div>
-                          <div className="bg-gray-900 p-10 rounded-[3rem] relative overflow-hidden group">
-                              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
-                              <Sparkles className="text-primary mb-6" size={32} strokeWidth={1.5} />
-                              <h4 className="text-lg font-black text-white tracking-tight mb-3">Optimization Protocol</h4>
-                              <p className="text-sm text-gray-400 font-medium leading-relaxed">
-                                  Our engine automatically compresses and serves your images via a global CDN. For best results, use a 16:9 aspect ratio image with at least 1920px width.
-                              </p>
-                          </div>
-                       </div>
-                    </div>
-                 </div>
-
-                 {/* Section 6: Speakers */}
-                 <div className="space-y-10 group/section">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-gray-100 pb-10">
-                       <div className="flex items-center gap-5">
-                          <div className="w-14 h-14 rounded-2xl bg-gray-50 text-primary flex items-center justify-center shadow-sm border border-gray-100">
-                             <Users size={24} />
-                          </div>
-                          <div>
-                             <h3 className="text-2xl font-black text-gray-900 tracking-tight">Speakers & Guests</h3>
-                             <p className="text-sm text-gray-400 font-medium">Highlight the key people at your event.</p>
-                          </div>
-                       </div>
-                       <button
-                         onClick={addSpeaker}
-                         className="flex items-center gap-3 bg-gray-900 text-white font-black px-8 py-5 rounded-3xl hover:bg-black transition-all shadow-2xl shadow-gray-900/20 text-[10px] uppercase tracking-[0.2em]"
-                       >
-                         <Plus size={18} />
-                         Add Speaker
-                       </button>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                       {speakers.map((speaker, idx) => (
-                          <div key={idx} className="p-8 bg-gray-50 rounded-[3rem] space-y-6 relative group/speaker">
                              <button
-                                onClick={() => removeSpeaker(idx)}
-                                className="absolute top-6 right-6 w-10 h-10 bg-white text-gray-300 hover:text-secondary rounded-xl flex items-center justify-center shadow-sm transition-all"
+                               onClick={addAgendaItem}
+                               className="flex items-center gap-3 bg-secondary text-white font-black px-8 py-5 rounded-3xl hover:bg-opacity-90 transition-all shadow-2xl shadow-secondary/20 text-[10px] uppercase tracking-[0.2em]"
                              >
-                                <Trash2 size={16} />
+                               <Plus size={18} />
+                               Add Agenda Item
                              </button>
+                          </div>
 
-                             <div className="flex items-center gap-6">
-                                <div className="relative w-24 h-24 rounded-[2rem] overflow-hidden bg-white shadow-lg border border-gray-100 group/img">
-                                   {speaker.imageUrl ? (
-                                      <Image src={speaker.imageUrl} alt="Speaker" fill unoptimized={true} className="object-cover" />
-                                   ) : (
-                                      <div className="w-full h-full flex items-center justify-center text-gray-200">
-                                         <Users size={32} />
+                          <div className="space-y-6">
+                             {agenda.map((item, idx) => (
+                                <div key={idx} className="p-8 bg-gray-50 rounded-[3rem] border border-gray-100 hover:bg-white transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50 group/agenda">
+                                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                      <div className="md:col-span-2 space-y-3">
+                                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Title</label>
+                                         <input
+                                            type="text"
+                                            placeholder="Opening Keynote"
+                                            className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all"
+                                            value={item.title}
+                                            onChange={(e) => updateAgendaItem(idx, 'title', e.target.value)}
+                                         />
                                       </div>
-                                   )}
-                                   <label className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
-                                      <Upload size={20} className="text-white" />
-                                      <input type="file" className="hidden" onChange={(e) => handleSpeakerImageUpload(idx, e)} />
-                                   </label>
+                                      <div className="space-y-3">
+                                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Speaker</label>
+                                         <select
+                                            className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all appearance-none"
+                                            value={item.speakerName}
+                                            onChange={(e) => updateAgendaItem(idx, 'speakerName', e.target.value)}
+                                         >
+                                            <option value="">No Speaker</option>
+                                            {speakers.filter(s => s.name).map((s, i) => (
+                                               <option key={i} value={s.name}>{s.name}</option>
+                                            ))}
+                                         </select>
+                                      </div>
+                                      <div className="flex items-end justify-end">
+                                         <button
+                                            onClick={() => removeAgendaItem(idx)}
+                                            className="w-14 h-14 bg-white text-gray-300 hover:text-secondary rounded-2xl flex items-center justify-center shadow-sm hover:shadow-xl transition-all border border-gray-100"
+                                         >
+                                            <Trash2 size={20} />
+                                         </button>
+                                      </div>
+                                      <div className="space-y-3">
+                                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Start Time</label>
+                                         <input
+                                            type="datetime-local"
+                                            className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all"
+                                            value={item.startTime}
+                                            min={basicInfo.startDate}
+                                            max={basicInfo.endDate}
+                                            onChange={(e) => updateAgendaItem(idx, 'startTime', e.target.value)}
+                                         />
+                                      </div>
+                                      <div className="space-y-3">
+                                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">End Time</label>
+                                         <input
+                                            type="datetime-local"
+                                            className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all"
+                                            value={item.endTime}
+                                            min={item.startTime || basicInfo.startDate}
+                                            max={basicInfo.endDate}
+                                            onChange={(e) => updateAgendaItem(idx, 'endTime', e.target.value)}
+                                         />
+                                      </div>
+                                      <div className="md:col-span-2 space-y-3">
+                                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Description</label>
+                                         <textarea
+                                            rows={1}
+                                            placeholder="Short summary of the session..."
+                                            className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all"
+                                            value={item.description}
+                                            onChange={(e) => updateAgendaItem(idx, 'description', e.target.value)}
+                                         />
+                                      </div>
+                                   </div>
                                 </div>
-                                <div className="flex-1 space-y-4">
-                                   <input
-                                      type="text"
-                                      placeholder="Full Name"
-                                      className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all"
-                                      value={speaker.name}
-                                      onChange={(e) => updateSpeaker(idx, 'name', e.target.value)}
-                                   />
-                                   <input
-                                      type="text"
-                                      placeholder="Title (e.g., CEO, Speaker)"
-                                      className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all"
-                                      value={speaker.title}
-                                      onChange={(e) => updateSpeaker(idx, 'title', e.target.value)}
-                                   />
-                                </div>
-                             </div>
-                             <textarea
-                                placeholder="Short bio about the speaker..."
-                                rows={3}
-                                className="w-full p-6 bg-white border border-gray-200 rounded-[1.5rem] text-sm font-bold outline-none focus:border-primary transition-all"
-                                value={speaker.bio}
-                                onChange={(e) => updateSpeaker(idx, 'bio', e.target.value)}
-                             />
-                          </div>
-                       ))}
-                    </div>
-                 </div>
-
-                 {/* Section 7: Agenda */}
-                 <div className="space-y-10 group/section">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-gray-100 pb-10">
-                       <div className="flex items-center gap-5">
-                          <div className="w-14 h-14 rounded-2xl bg-gray-50 text-secondary flex items-center justify-center shadow-sm border border-gray-100">
-                             <Calendar size={24} />
-                          </div>
-                          <div>
-                             <h3 className="text-2xl font-black text-gray-900 tracking-tight">Event Agenda</h3>
-                             <p className="text-sm text-gray-400 font-medium">Outline the flow of your event.</p>
+                             ))}
                           </div>
                        </div>
-                       <button
-                         onClick={addAgendaItem}
-                         className="flex items-center gap-3 bg-secondary text-white font-black px-8 py-5 rounded-3xl hover:bg-opacity-90 transition-all shadow-2xl shadow-secondary/20 text-[10px] uppercase tracking-[0.2em]"
-                       >
-                         <Plus size={18} />
-                         Add Agenda Item
-                       </button>
                     </div>
+                 )}
 
-                    <div className="space-y-6">
-                       {agenda.map((item, idx) => (
-                          <div key={idx} className="p-8 bg-gray-50 rounded-[3rem] border border-gray-100 hover:bg-white transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50 group/agenda">
-                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                <div className="md:col-span-2 space-y-3">
-                                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Title</label>
-                                   <input
-                                      type="text"
-                                      placeholder="Opening Keynote"
-                                      className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all"
-                                      value={item.title}
-                                      onChange={(e) => updateAgendaItem(idx, 'title', e.target.value)}
-                                   />
-                                </div>
-                                <div className="space-y-3">
-                                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Speaker</label>
-                                   <select
-                                      className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all appearance-none"
-                                      value={item.speakerName}
-                                      onChange={(e) => updateAgendaItem(idx, 'speakerName', e.target.value)}
-                                   >
-                                      <option value="">No Speaker</option>
-                                      {speakers.filter(s => s.name).map((s, i) => (
-                                         <option key={i} value={s.name}>{s.name}</option>
-                                      ))}
-                                   </select>
-                                </div>
-                                <div className="flex items-end justify-end">
+                 {subStep === 4 && (
+                    <div className="space-y-16 animate-in fade-in duration-500">
+                       {/* Section 8: Advanced Settings */}
+                       <div className="space-y-10 group/section">
+                          <div className="flex items-center gap-5 border-b border-gray-100 pb-10">
+                             <div className="w-14 h-14 rounded-2xl bg-gray-50 text-primary flex items-center justify-center shadow-sm border border-gray-100">
+                                <ShieldCheck size={24} />
+                             </div>
+                             <div>
+                                <h3 className="text-2xl font-black text-gray-900 tracking-tight">Advanced Settings</h3>
+                                <p className="text-sm text-gray-400 font-medium">Fine-tune your event&apos;s visibility and registration.</p>
+                             </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                             <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                   <Globe size={12} />
+                                   Public Visibility
+                                </label>
+                                <div className="flex items-center justify-between">
+                                   <span className="text-sm font-bold text-gray-700">{basicInfo.isPublic ? 'Publicly Listed' : 'Hidden from Search'}</span>
                                    <button
-                                      onClick={() => removeAgendaItem(idx)}
-                                      className="w-14 h-14 bg-white text-gray-300 hover:text-secondary rounded-2xl flex items-center justify-center shadow-sm hover:shadow-xl transition-all border border-gray-100"
+                                      onClick={() => setBasicInfo(prev => ({ ...prev, isPublic: !prev.isPublic }))}
+                                      className={`w-14 h-8 rounded-full transition-all relative ${basicInfo.isPublic ? 'bg-primary' : 'bg-gray-300'}`}
                                    >
-                                      <Trash2 size={20} />
+                                      <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${basicInfo.isPublic ? 'left-7' : 'left-1'}`} />
                                    </button>
                                 </div>
-                                <div className="space-y-3">
-                                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Start Time</label>
-                                   <input
-                                      type="datetime-local"
-                                      className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all"
-                                      value={item.startTime}
-                                      min={basicInfo.startDate}
-                                      max={basicInfo.endDate}
-                                      onChange={(e) => updateAgendaItem(idx, 'startTime', e.target.value)}
-                                   />
-                                </div>
-                                <div className="space-y-3">
-                                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">End Time</label>
-                                   <input
-                                      type="datetime-local"
-                                      className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all"
-                                      value={item.endTime}
-                                      min={item.startTime || basicInfo.startDate}
-                                      max={basicInfo.endDate}
-                                      onChange={(e) => updateAgendaItem(idx, 'endTime', e.target.value)}
-                                   />
-                                </div>
-                                <div className="md:col-span-2 space-y-3">
-                                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Description</label>
-                                   <textarea
-                                      rows={1}
-                                      placeholder="Short summary of the session..."
-                                      className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all"
-                                      value={item.description}
-                                      onChange={(e) => updateAgendaItem(idx, 'description', e.target.value)}
-                                   />
+                             </div>
+                             <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                   <Sparkles size={12} />
+                                   Featured Event
+                                </label>
+                                <div className="flex items-center justify-between">
+                                   <span className="text-sm font-bold text-gray-700">{basicInfo.isFeatured ? 'Promoted' : 'Standard'}</span>
+                                   <button
+                                      onClick={() => setBasicInfo(prev => ({ ...prev, isFeatured: !prev.isFeatured }))}
+                                      className={`w-14 h-8 rounded-full transition-all relative ${basicInfo.isFeatured ? 'bg-secondary' : 'bg-gray-300'}`}
+                                   >
+                                      <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${basicInfo.isFeatured ? 'left-7' : 'left-1'}`} />
+                                   </button>
                                 </div>
                              </div>
-                          </div>
-                       ))}
-                    </div>
-                 </div>
-
-                 {/* Section 8: Advanced Settings */}
-                 <div className="space-y-10 group/section">
-                    <div className="flex items-center gap-5 border-b border-gray-100 pb-10">
-                       <div className="w-14 h-14 rounded-2xl bg-gray-50 text-primary flex items-center justify-center shadow-sm border border-gray-100">
-                          <ShieldCheck size={24} />
-                       </div>
-                       <div>
-                          <h3 className="text-2xl font-black text-gray-900 tracking-tight">Advanced Settings</h3>
-                          <p className="text-sm text-gray-400 font-medium">Fine-tune your event&apos;s visibility and registration.</p>
-                       </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                       <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
-                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                             <Globe size={12} />
-                             Public Visibility
-                          </label>
-                          <div className="flex items-center justify-between">
-                             <span className="text-sm font-bold text-gray-700">{basicInfo.isPublic ? 'Publicly Listed' : 'Hidden from Search'}</span>
-                             <button
-                                onClick={() => setBasicInfo(prev => ({ ...prev, isPublic: !prev.isPublic }))}
-                                className={`w-14 h-8 rounded-full transition-all relative ${basicInfo.isPublic ? 'bg-primary' : 'bg-gray-300'}`}
-                             >
-                                <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${basicInfo.isPublic ? 'left-7' : 'left-1'}`} />
-                             </button>
-                          </div>
-                       </div>
-                       <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
-                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                             <Sparkles size={12} />
-                             Featured Event
-                          </label>
-                          <div className="flex items-center justify-between">
-                             <span className="text-sm font-bold text-gray-700">{basicInfo.isFeatured ? 'Promoted' : 'Standard'}</span>
-                             <button
-                                onClick={() => setBasicInfo(prev => ({ ...prev, isFeatured: !prev.isFeatured }))}
-                                className={`w-14 h-8 rounded-full transition-all relative ${basicInfo.isFeatured ? 'bg-secondary' : 'bg-gray-300'}`}
-                             >
-                                <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${basicInfo.isFeatured ? 'left-7' : 'left-1'}`} />
-                             </button>
-                          </div>
-                       </div>
-                       <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
-                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                             <User size={12} />
-                             Registration Mode
-                          </label>
-                          <div className="relative">
-                             <select
-                                className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-xs font-bold outline-none focus:border-primary appearance-none"
-                                value={registration.mode}
-                                onChange={(e) => setRegistration(prev => ({ ...prev, mode: e.target.value as RegistrationMode }))}
-                             >
-                                <option value="FULL_DETAILS">Full Details (Each Guest)</option>
-                                <option value="BASIC_QUANTITY">Basic Quantity (Buyer Only)</option>
-                             </select>
-                             <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                          </div>
-                       </div>
-                       <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
-                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                             <Users size={12} />
-                             Grouping
-                          </label>
-                          <div className="flex items-center justify-between">
-                             <span className="text-sm font-bold text-gray-700">Allow Grouping</span>
-                             <button
-                                onClick={() => setRegistration(prev => ({ ...prev, isGroupingEnabled: !prev.isGroupingEnabled }))}
-                                className={`w-14 h-8 rounded-full transition-all relative ${registration.isGroupingEnabled ? 'bg-primary' : 'bg-gray-300'}`}
-                             >
-                                <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${registration.isGroupingEnabled ? 'left-7' : 'left-1'}`} />
-                             </button>
-                          </div>
-                       </div>
-                       {registration.isGroupingEnabled && (
-                          <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
-                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                                <Users size={12} />
-                                Unique Names
-                             </label>
-                             <div className="flex items-center justify-between">
-                                <span className="text-sm font-bold text-gray-700">Enforce Unique Names</span>
-                                <button
-                                   onClick={() => setRegistration(prev => ({ ...prev, enforceUniqueGroupNames: !prev.enforceUniqueGroupNames }))}
-                                   className={`w-14 h-8 rounded-full transition-all relative ${registration.enforceUniqueGroupNames ? 'bg-primary' : 'bg-gray-300'}`}
-                                >
-                                   <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${registration.enforceUniqueGroupNames ? 'left-7' : 'left-1'}`} />
-                                </button>
-                             </div>
-                          </div>
-                       )}
-                    </div>
-                 </div>
-
-                 {/* Section 9: Registration Fields */}
-                 <div className="space-y-10">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-gray-100 pb-10">
-                       <div>
-                          <h3 className="text-3xl font-black text-gray-900 tracking-tight">Intelligence Gathering</h3>
-                          <p className="text-sm text-gray-500 font-medium">Capture custom data points from your attendees.</p>
-                       </div>
-                       <button
-                         onClick={addField}
-                         className="flex items-center gap-3 bg-gray-900 text-white font-black px-8 py-5 rounded-3xl hover:bg-black transition-all shadow-2xl shadow-gray-900/20 text-[10px] uppercase tracking-[0.2em]"
-                       >
-                         <Plus size={18} />
-                         Add Dynamic Field
-                       </button>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-6">
-                       {registration.fields.map((field, idx) => (
-                          <div key={idx} className="flex flex-col lg:flex-row items-center gap-6 lg:gap-10 p-8 bg-gray-50 rounded-[3rem] group relative border border-transparent hover:border-primary/10 hover:bg-white transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50">
-                             <div className="flex-1 w-full space-y-3">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Label Name</label>
-                                <input
-                                   type="text"
-                                   placeholder="e.g., T-Shirt Size"
-                                   className="w-full p-5 bg-white border border-gray-300 rounded-2xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
-                                   value={field.label}
-                                   onChange={(e) => updateField(idx, "label", e.target.value)}
-                                   disabled={idx < 2}
-                                />
-                             </div>
-                             <div className="w-full lg:w-56 space-y-3">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Input Archetype</label>
+                             <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                   <User size={12} />
+                                   Registration Mode
+                                </label>
                                 <div className="relative">
                                    <select
-                                      className="w-full p-5 bg-white border border-gray-300 rounded-2xl text-sm font-bold appearance-none outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all shadow-sm"
-                                      value={field.type}
-                                      onChange={(e) => updateField(idx, "type", e.target.value)}
-                                      disabled={idx < 2}
+                                      className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-xs font-bold outline-none focus:border-primary appearance-none"
+                                      value={registration.mode}
+                                      onChange={(e) => setRegistration(prev => ({ ...prev, mode: e.target.value as RegistrationMode }))}
                                    >
-                                      <option value="text">Standard Text</option>
-                                      <option value="number">Numeric Only</option>
-                                      <option value="select">Dropdown Menu</option>
-                                      <option value="checkbox">Multi-Selection</option>
+                                      <option value="FULL_DETAILS">Full Details (Each Guest)</option>
+                                      <option value="BASIC_QUANTITY">Basic Quantity (Buyer Only)</option>
                                    </select>
-                                   <ChevronDown size={16} className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none" />
+                                   <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                                 </div>
                              </div>
-                             <div className="flex items-center gap-10 px-6 h-20 bg-white/50 rounded-2xl border border-gray-50">
-                                <label className="flex items-center gap-3 cursor-pointer group/toggle">
-                                   <input
-                                      type="checkbox"
-                                      checked={field.required}
-                                      onChange={(e) => updateField(idx, "required", e.target.checked)}
-                                      className="w-6 h-6 rounded-lg border-gray-200 text-primary cursor-pointer shadow-sm transition-all"
-                                      disabled={idx < 2}
-                                   />
-                                   <span className="text-[10px] font-black text-gray-400 group-hover/toggle:text-gray-900 uppercase tracking-widest transition-colors">Mandatory</span>
+                             <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                   <Users size={12} />
+                                   Grouping
                                 </label>
-                                <label className="flex items-center gap-3 cursor-pointer group/toggle">
-                                   <input
-                                      type="checkbox"
-                                      checked={field.isPerAttendee}
-                                      onChange={(e) => updateField(idx, "isPerAttendee", e.target.checked)}
-                                      className="w-6 h-6 rounded-lg border-gray-200 text-primary cursor-pointer shadow-sm transition-all"
-                                      disabled={idx < 2}
-                                   />
-                                   <span className="text-[10px] font-black text-gray-400 group-hover/toggle:text-gray-900 uppercase tracking-widest transition-colors">Granular</span>
-                                </label>
+                                <div className="flex items-center justify-between">
+                                   <span className="text-sm font-bold text-gray-700">Allow Grouping</span>
+                                   <button
+                                      onClick={() => setRegistration(prev => ({ ...prev, isGroupingEnabled: !prev.isGroupingEnabled }))}
+                                      className={`w-14 h-8 rounded-full transition-all relative ${registration.isGroupingEnabled ? 'bg-primary' : 'bg-gray-300'}`}
+                                   >
+                                      <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${registration.isGroupingEnabled ? 'left-7' : 'left-1'}`} />
+                                   </button>
+                                </div>
                              </div>
-                             {idx >= 2 && (
-                                <button
-                                   onClick={() => removeField(idx)}
-                                   className="w-14 h-14 bg-white text-gray-300 hover:text-secondary rounded-2xl flex items-center justify-center shadow-sm hover:shadow-xl hover:scale-110 transition-all border border-gray-100"
-                                >
-                                   <Trash2 size={20} />
-                                </button>
+                             {registration.isGroupingEnabled && (
+                                <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
+                                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                      <Users size={12} />
+                                      Unique Names
+                                   </label>
+                                   <div className="flex items-center justify-between">
+                                      <span className="text-sm font-bold text-gray-700">Enforce Unique Names</span>
+                                      <button
+                                         onClick={() => setRegistration(prev => ({ ...prev, enforceUniqueGroupNames: !prev.enforceUniqueGroupNames }))}
+                                         className={`w-14 h-8 rounded-full transition-all relative ${registration.enforceUniqueGroupNames ? 'bg-primary' : 'bg-gray-300'}`}
+                                      >
+                                         <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${registration.enforceUniqueGroupNames ? 'left-7' : 'left-1'}`} />
+                                      </button>
+                                   </div>
+                                </div>
                              )}
                           </div>
-                       ))}
+                       </div>
+
+                       {/* Section 9: Registration Fields */}
+                       <div className="space-y-10">
+                          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-gray-100 pb-10">
+                             <div>
+                                <h3 className="text-3xl font-black text-gray-900 tracking-tight">Intelligence Gathering</h3>
+                                <p className="text-sm text-gray-500 font-medium">Capture custom data points from your attendees.</p>
+                             </div>
+                             <button
+                               onClick={addField}
+                               className="flex items-center gap-3 bg-gray-900 text-white font-black px-8 py-5 rounded-3xl hover:bg-black transition-all shadow-2xl shadow-gray-900/20 text-[10px] uppercase tracking-[0.2em]"
+                             >
+                               <Plus size={18} />
+                               Add Dynamic Field
+                             </button>
+                          </div>
+
+                          <div className="grid grid-cols-1 gap-6">
+                             {registration.fields.map((field, idx) => (
+                                <div key={idx} className="flex flex-col lg:flex-row items-center gap-6 lg:gap-10 p-8 bg-gray-50 rounded-[3rem] group relative border border-transparent hover:border-primary/10 hover:bg-white transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50">
+                                   <div className="flex-1 w-full space-y-3">
+                                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Label Name</label>
+                                      <input
+                                         type="text"
+                                         placeholder="e.g., T-Shirt Size"
+                                         className="w-full p-5 bg-white border border-gray-300 rounded-2xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
+                                         value={field.label}
+                                         onChange={(e) => updateField(idx, "label", e.target.value)}
+                                         disabled={idx < 2}
+                                      />
+                                   </div>
+                                   <div className="w-full lg:w-56 space-y-3">
+                                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Input Archetype</label>
+                                      <div className="relative">
+                                         <select
+                                            className="w-full p-5 bg-white border border-gray-300 rounded-2xl text-sm font-bold appearance-none outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all shadow-sm"
+                                            value={field.type}
+                                            onChange={(e) => updateField(idx, "type", e.target.value)}
+                                            disabled={idx < 2}
+                                         >
+                                            <option value="text">Standard Text</option>
+                                            <option value="number">Numeric Only</option>
+                                            <option value="select">Dropdown Menu</option>
+                                            <option value="checkbox">Multi-Selection</option>
+                                         </select>
+                                         <ChevronDown size={16} className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none" />
+                                      </div>
+                                   </div>
+                                   <div className="flex items-center gap-10 px-6 h-20 bg-white/50 rounded-2xl border border-gray-50">
+                                      <label className="flex items-center gap-3 cursor-pointer group/toggle">
+                                         <input
+                                            type="checkbox"
+                                            checked={field.required}
+                                            onChange={(e) => updateField(idx, "required", e.target.checked)}
+                                            className="w-6 h-6 rounded-lg border-gray-200 text-primary cursor-pointer shadow-sm transition-all"
+                                            disabled={idx < 2}
+                                         />
+                                         <span className="text-[10px] font-black text-gray-400 group-hover/toggle:text-gray-900 uppercase tracking-widest transition-colors">Mandatory</span>
+                                      </label>
+                                      <label className="flex items-center gap-3 cursor-pointer group/toggle">
+                                         <input
+                                            type="checkbox"
+                                            checked={field.isPerAttendee}
+                                            onChange={(e) => updateField(idx, "isPerAttendee", e.target.checked)}
+                                            className="w-6 h-6 rounded-lg border-gray-200 text-primary cursor-pointer shadow-sm transition-all"
+                                            disabled={idx < 2}
+                                         />
+                                         <span className="text-[10px] font-black text-gray-400 group-hover/toggle:text-gray-900 uppercase tracking-widest transition-colors">Granular</span>
+                                      </label>
+                                   </div>
+                                   {idx >= 2 && (
+                                      <button
+                                         onClick={() => removeField(idx)}
+                                         className="w-14 h-14 bg-white text-gray-300 hover:text-secondary rounded-2xl flex items-center justify-center shadow-sm hover:shadow-xl hover:scale-110 transition-all border border-gray-100"
+                                      >
+                                         <Trash2 size={20} />
+                                      </button>
+                                   )}
+                                </div>
+                             ))}
+                          </div>
+                       </div>
                     </div>
-                 </div>
+                 )}
               </div>
             )}
 
@@ -1753,10 +1786,16 @@ const CreateEvent = () => {
           {/* Action Footer */}
           <div className="bg-white px-8 md:px-16 py-12 border-t border-gray-50 flex flex-col sm:flex-row items-center justify-between gap-8">
              <button
-               onClick={() => setCurrentStep(currentStep - 1)}
-               disabled={currentStep === 1 || loading}
+               onClick={() => {
+                 if (currentStep === 1 && subStep > 1) {
+                   setSubStep(subStep - 1);
+                 } else {
+                   setCurrentStep(currentStep - 1);
+                 }
+               }}
+               disabled={(currentStep === 1 && subStep === 1) || loading}
                className={`flex items-center gap-4 font-black text-[10px] uppercase tracking-[0.3em] transition-all px-10 py-5 rounded-3xl border-2 ${
-                 currentStep === 1 ? "opacity-0 invisible" : "bg-white text-gray-400 border-gray-100 hover:text-gray-900 hover:border-gray-900 shadow-sm"
+                 (currentStep === 1 && subStep === 1) ? "opacity-0 invisible" : "bg-white text-gray-400 border-gray-100 hover:text-gray-900 hover:border-gray-900 shadow-sm"
                }`}
              >
                <ArrowLeft size={16} />
@@ -1772,11 +1811,18 @@ const CreateEvent = () => {
                  </div>
                  {currentStep === 1 && (
                     <button
-                      onClick={createEventBase}
+                      onClick={() => {
+                        if (subStep < 4) {
+                          setSubStep(subStep + 1);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        } else {
+                          createEventBase();
+                        }
+                      }}
                       disabled={loading}
                       className="flex items-center gap-4 bg-primary text-white font-black px-14 py-6 rounded-[2.5rem] hover:bg-opacity-90 transition-all shadow-3xl shadow-primary/30 uppercase tracking-[0.3em] text-[11px] group active:scale-95"
                     >
-                      {loading ? "Saving..." : "Save & Continue"}
+                      {loading ? "Saving..." : subStep < 4 ? "Next Phase" : "Save & Continue"}
                       <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform duration-500" />
                     </button>
                  )}
@@ -1810,6 +1856,8 @@ const CreateEvent = () => {
             <LivePreview
               basicInfo={basicInfo}
               mediaInfo={mediaInfo}
+              speakers={speakers}
+              agenda={agenda}
               sessions={sessions}
               tickets={tickets}
             />
@@ -1833,6 +1881,8 @@ const CreateEvent = () => {
             <LivePreview
               basicInfo={basicInfo}
               mediaInfo={mediaInfo}
+              speakers={speakers}
+              agenda={agenda}
               sessions={sessions}
               tickets={tickets}
             />
