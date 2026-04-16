@@ -620,7 +620,6 @@ const CreateEvent = () => {
         virtualLink: basicInfo.virtualLink || undefined,
         capacity: basicInfo.capacity,
         category: basicInfo.category,
-        bannerUrl: mediaInfo.bannerUrl || undefined,
         tags: basicInfo.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== ""),
         registrationMode: registration.mode,
         isGroupingEnabled: registration.isGroupingEnabled,
@@ -633,10 +632,6 @@ const CreateEvent = () => {
           isPerAttendee: f.isPerAttendee
         })),
       };
-
-      if (filteredMediaUrls.length > 0) {
-        payload.mediaUrls = filteredMediaUrls;
-      }
 
       if (speakers.length > 0) {
         payload.speakers = speakers.map(s => ({
@@ -658,7 +653,29 @@ const CreateEvent = () => {
       }
 
       const response = await api.post("/events", payload);
-      setEventId(response.data.data.id);
+      const newEventId = response.data.data.id;
+      setEventId(newEventId);
+
+      // Attach Banner separately
+      if (mediaInfo.bannerUrl) {
+          try {
+              await api.post(`/events/${newEventId}/media`, { mediaUrl: mediaInfo.bannerUrl });
+          } catch (err) {
+              console.error("Failed to attach banner:", err);
+          }
+      }
+
+      // Attach Gallery Media separately
+      if (filteredMediaUrls.length > 0) {
+          for (const url of filteredMediaUrls) {
+              try {
+                  await api.post(`/events/${newEventId}/media`, { mediaUrl: url });
+              } catch (err) {
+                  console.error("Failed to attach gallery media:", err);
+              }
+          }
+      }
+
       setCurrentStep(2);
       Swal.fire({
           title: 'Step 1 Complete',
