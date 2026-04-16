@@ -430,13 +430,15 @@ const CreateEvent = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const uploadMedia = async (file: File) => {
+  const uploadMedia = async (file: File, currentEventId?: string | null) => {
     try {
       // 1. Get presigned URL
-      const presignedResponse = await api.get('/events/utils/upload-url', {
+      const endpoint = currentEventId ? `/events/${currentEventId}/media/upload-url` : '/events/utils/upload-url';
+      const presignedResponse = await api.get(endpoint, {
         params: { fileName: file.name, fileType: file.type }
       });
-      const { uploadUrl, fileUrl } = presignedResponse.data.data;
+      const { uploadUrl, fileUrl, publicUrl } = presignedResponse.data.data;
+      const finalUrl = publicUrl || fileUrl;
 
       // 2. Upload to R2
       await axios.put(uploadUrl, file, {
@@ -447,7 +449,7 @@ const CreateEvent = () => {
         }
       });
 
-      return fileUrl;
+      return finalUrl;
     } catch (_error) {
       console.error('Upload failed:', _error);
       throw _error;
@@ -462,7 +464,13 @@ const CreateEvent = () => {
     setUploadProgress(0);
 
     try {
-      const fileUrl = await uploadMedia(file);
+      const fileUrl = await uploadMedia(file, eventId);
+
+      // If event exists, attach it via post-creation route
+      if (eventId) {
+          await api.post(`/events/${eventId}/media`, { mediaUrl: fileUrl });
+      }
+
       setMediaInfo(prev => ({ ...prev, bannerUrl: fileUrl }));
       Swal.toast.fire({ icon: 'success', title: 'Banner uploaded successfully!' });
     } catch (_error) {
@@ -470,7 +478,7 @@ const CreateEvent = () => {
     } finally {
       setIsUploading(false);
     }
-  }, []);
+  }, [eventId]);
 
   // Handlers
   const handleBasicChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -502,6 +510,7 @@ const CreateEvent = () => {
     if (!file) return;
     try {
       Swal.showLoading();
+      // Speakers are uploaded via utility route before event creation
       const fileUrl = await uploadMedia(file);
       updateSpeaker(index, 'imageUrl', fileUrl);
       Swal.close();
@@ -534,7 +543,11 @@ const CreateEvent = () => {
     try {
       const urls: string[] = [];
       for (let i = 0; i < files.length; i++) {
-          const url = await uploadMedia(files[i]);
+          const url = await uploadMedia(files[i], eventId);
+          // If event exists, attach it via post-creation route
+          if (eventId) {
+              await api.post(`/events/${eventId}/media`, { mediaUrl: url });
+          }
           urls.push(url);
       }
       setMediaInfo(prev => ({ ...prev, mediaUrls: [...prev.mediaUrls, ...urls] }));
@@ -544,6 +557,18 @@ const CreateEvent = () => {
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const removeMediaUrl = async (idx: number) => {
+      const urlToDelete = mediaInfo.mediaUrls[idx];
+      if (eventId) {
+          try {
+              await api.delete(`/events/${eventId}/media`, { data: { mediaUrl: urlToDelete } });
+          } catch (err) {
+              console.error("Failed to delete media from backend:", err);
+          }
+      }
+      setMediaInfo(prev => ({ ...prev, mediaUrls: prev.mediaUrls.filter((_, i) => i !== idx) }));
   };
 
   const addSession = () => {
@@ -603,10 +628,15 @@ const CreateEvent = () => {
   };
 
   const createEventBase = async () => {
+    // If event already created, just move to media phase
+    if (eventId) {
+        setSubStep(5);
+        return;
+    }
+
     setLoading(true);
     try {
       Swal.showLoading();
-      const filteredMediaUrls = mediaInfo.mediaUrls.filter(url => typeof url === 'string' && url.trim() !== "");
 
       const payload: Record<string, unknown> = {
         title: basicInfo.title,
@@ -656,30 +686,10 @@ const CreateEvent = () => {
       const newEventId = response.data.data.id;
       setEventId(newEventId);
 
-      // Attach Banner separately
-      if (mediaInfo.bannerUrl) {
-          try {
-              await api.post(`/events/${newEventId}/media`, { mediaUrl: mediaInfo.bannerUrl });
-          } catch (err) {
-              console.error("Failed to attach banner:", err);
-          }
-      }
-
-      // Attach Gallery Media separately
-      if (filteredMediaUrls.length > 0) {
-          for (const url of filteredMediaUrls) {
-              try {
-                  await api.post(`/events/${newEventId}/media`, { mediaUrl: url });
-              } catch (err) {
-                  console.error("Failed to attach gallery media:", err);
-              }
-          }
-      }
-
-      setCurrentStep(2);
+      setSubStep(5);
       Swal.fire({
-          title: 'Step 1 Complete',
-          text: 'Event details saved. Now let&apos;s configure your tickets.',
+          title: 'Event Created!',
+          text: 'Now let&apos;s upload your banner and gallery images.',
           icon: 'success',
           timer: 1500,
           showConfirmButton: false
@@ -836,7 +846,7 @@ const CreateEvent = () => {
               <div className="space-y-16 animate-in fade-in slide-in-from-bottom-8 duration-700">
                  {/* Sub-progress for Step 1 */}
                  <div className="flex items-center gap-4 mb-8">
-                    {[1, 2, 3, 4].map((s) => (
+                    {[1, 2, 3, 4, 5].map((s) => (
                        <div key={s} className="flex-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
                           <div
                              className={`h-full transition-all duration-500 ${
@@ -846,7 +856,7 @@ const CreateEvent = () => {
                        </div>
                     ))}
                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap ml-2">
-                       {subStep} of 4
+                       {subStep} of 5
                     </span>
                  </div>
 
@@ -1046,159 +1056,6 @@ const CreateEvent = () => {
 
                  {subStep === 2 && (
                     <div className="space-y-16 animate-in fade-in duration-500">
-                       {/* Section 4: Bio */}
-                       <div className="space-y-10 group/section">
-                          <div className="flex items-center gap-5">
-                             <div className="w-14 h-14 rounded-2xl bg-gray-50 text-secondary flex items-center justify-center transition-all group-hover/section:bg-secondary group-hover/section:text-white shadow-sm border border-gray-100">
-                                <FileText size={24} />
-                             </div>
-                             <div>
-                                  <h3 className="text-2xl font-black text-gray-900 tracking-tight">Detailed Narrative</h3>
-                                  <p className="text-sm text-gray-400 font-medium">Tell the story of your event.</p>
-                             </div>
-                          </div>
-                          <textarea
-                            name="description"
-                            rows={8}
-                            placeholder="Describe your event in detail. What should attendees expect?"
-                            className="w-full p-8 bg-white border border-gray-300 rounded-[2.5rem] text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 min-h-[200px] shadow-sm"
-                            value={basicInfo.description || ""}
-                            onChange={handleBasicChange}
-                          />
-                       </div>
-
-                       {/* Section 5: Media */}
-                       <div className="space-y-10 group/section">
-                          <div className="flex items-center gap-5">
-                             <div className="w-14 h-14 rounded-2xl bg-gray-50 text-primary flex items-center justify-center shadow-sm border border-gray-100">
-                                <ImageIcon size={24} />
-                             </div>
-                             <div>
-                                <h3 className="text-2xl font-black text-gray-900 tracking-tight">Visual Identity</h3>
-                                <p className="text-sm text-gray-400 font-medium">Upload a captivating banner for your event.</p>
-                             </div>
-                          </div>
-
-                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                             <div
-                                className={`bg-gray-50 rounded-[3rem] p-8 border-2 border-dashed transition-all duration-500 flex flex-col items-center justify-center space-y-6 group/upload shadow-sm h-full relative overflow-hidden min-h-[400px]
-                                  ${isUploading ? 'border-primary bg-primary/5' : 'border-gray-200 hover:bg-white hover:border-primary/30 cursor-pointer'}
-                                `}
-                             >
-                                <input
-                                  type="file"
-                                  className="absolute inset-0 opacity-0 cursor-pointer z-20"
-                                  onChange={handleBannerUpload}
-                                  accept="image/*"
-                                  disabled={isUploading}
-                                />
-
-                                {mediaInfo.bannerUrl && !isUploading ? (
-                                   <div className="relative w-full h-full rounded-[2rem] overflow-hidden shadow-2xl group-hover/upload:scale-[0.98] transition-transform duration-500">
-                                      <Image src={mediaInfo.bannerUrl} alt="Banner" fill unoptimized={true} className="object-cover" />
-                                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/upload:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
-                                          <div className="bg-white px-8 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.2em] text-gray-900 shadow-2xl flex items-center gap-3">
-                                              <Upload size={16} />
-                                              Update Banner
-                                          </div>
-                                      </div>
-                                   </div>
-                                ) : isUploading ? (
-                                   <div className="flex flex-col items-center gap-6 animate-pulse w-full px-10">
-                                       <div className="w-20 h-20 bg-primary/20 rounded-3xl flex items-center justify-center text-primary">
-                                            <UploadCloud size={40} className="animate-bounce" />
-                                       </div>
-                                       <div className="w-full space-y-3">
-                                           <div className="flex justify-between text-[10px] font-black text-primary uppercase tracking-widest">
-                                               <span>Uploading Art</span>
-                                               <span>{uploadProgress}%</span>
-                                           </div>
-                                           <div className="w-full h-3 bg-primary/10 rounded-full overflow-hidden">
-                                               <div
-                                                 className="h-full bg-primary transition-all duration-300"
-                                                 style={{ width: `${uploadProgress}%` }}
-                                               />
-                                           </div>
-                                       </div>
-                                   </div>
-                                ) : (
-                                   <>
-                                      <div className="w-24 h-24 rounded-[2rem] bg-white shadow-xl shadow-gray-200 flex items-center justify-center text-gray-300 group-hover/upload:text-primary group-hover/upload:scale-110 group-hover/upload:rotate-3 transition-all duration-500">
-                                        <Plus size={48} />
-                                      </div>
-                                      <div className="text-center space-y-2">
-                                        <p className="text-xs font-black text-gray-900 uppercase tracking-[0.3em]">Drop your masterpiece here</p>
-                                        <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.2em]">or click to browse gallery</p>
-                                      </div>
-                                      <div className="flex items-center gap-4 pt-4">
-                                          <div className="px-4 py-2 rounded-xl bg-white border border-gray-100 text-[8px] font-black text-gray-400 uppercase tracking-widest">JPG</div>
-                                          <div className="px-4 py-2 rounded-xl bg-white border border-gray-100 text-[8px] font-black text-gray-400 uppercase tracking-widest">PNG</div>
-                                          <div className="px-4 py-2 rounded-xl bg-white border border-gray-100 text-[8px] font-black text-gray-400 uppercase tracking-widest">WEBP</div>
-                                      </div>
-                                   </>
-                                )}
-                             </div>
-
-                             <div className="space-y-10 flex flex-col justify-center">
-                                <div className="space-y-3">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Asset Source URL</label>
-                                    <div className="relative">
-                                        <Globe size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300" />
-                                        <input
-                                          type="text"
-                                          name="bannerUrl" autoComplete="off" autoCorrect="off"
-                                          placeholder="https://..."
-                                          className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
-                                          value={mediaInfo.bannerUrl || ""}
-                                          onChange={handleMediaChange}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="space-y-3">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Additional Media Gallery</label>
-                                    <div className="flex flex-wrap gap-4">
-                                        {mediaInfo.mediaUrls.map((url, idx) => (
-                                            <div key={idx} className="relative w-24 h-24 rounded-2xl overflow-hidden border border-gray-100 group">
-                                                {url && typeof url === 'string' && url.match(/\.(mp4|webm|ogg)$/) ? (
-                                                    <video src={url} className="w-full h-full object-cover" />
-                                                ) : url ? (
-                                                    <Image src={url} alt="Media" fill unoptimized={true} className="object-cover" />
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center text-gray-300 bg-gray-50">
-                                                        <ImageIcon size={24} />
-                                                    </div>
-                                                )}
-                                                <button
-                                                    onClick={() => setMediaInfo(prev => ({ ...prev, mediaUrls: prev.mediaUrls.filter((_, i) => i !== idx) }))}
-                                                    className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
-                                        ))}
-                                        <label className="w-24 h-24 rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-300 hover:border-primary hover:text-primary cursor-pointer transition-all">
-                                            <Plus size={24} />
-                                            <span className="text-[8px] font-black uppercase tracking-widest mt-1">Add</span>
-                                            <input type="file" multiple className="hidden" onChange={handleMediaUrlUpload} accept="image/*,video/*" />
-                                        </label>
-                                    </div>
-                                </div>
-                                <div className="bg-gray-900 p-10 rounded-[3rem] relative overflow-hidden group">
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
-                                    <Sparkles className="text-primary mb-6" size={32} strokeWidth={1.5} />
-                                    <h4 className="text-lg font-black text-white tracking-tight mb-3">Optimization Protocol</h4>
-                                    <p className="text-sm text-gray-400 font-medium leading-relaxed">
-                                        Our engine automatically compresses and serves your images via a global CDN. For best results, use a 16:9 aspect ratio image with at least 1920px width.
-                                    </p>
-                                </div>
-                             </div>
-                          </div>
-                       </div>
-                    </div>
-                 )}
-
-                 {subStep === 3 && (
-                    <div className="space-y-16 animate-in fade-in duration-500">
                        {/* Section 6: Speakers */}
                        <div className="space-y-10 group/section">
                           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-gray-100 pb-10">
@@ -1369,7 +1226,7 @@ const CreateEvent = () => {
                     </div>
                  )}
 
-                 {subStep === 4 && (
+                 {subStep === 3 && (
                     <div className="space-y-16 animate-in fade-in duration-500">
                        {/* Section 8: Advanced Settings */}
                        <div className="space-y-10 group/section">
@@ -1545,6 +1402,163 @@ const CreateEvent = () => {
                                    )}
                                 </div>
                              ))}
+                          </div>
+                       </div>
+                    </div>
+                 )}
+
+                 {subStep === 4 && (
+                    <div className="space-y-16 animate-in fade-in duration-500">
+                       {/* Section 4: Bio */}
+                       <div className="space-y-10 group/section">
+                          <div className="flex items-center gap-5">
+                             <div className="w-14 h-14 rounded-2xl bg-gray-50 text-secondary flex items-center justify-center transition-all group-hover/section:bg-secondary group-hover/section:text-white shadow-sm border border-gray-100">
+                                <FileText size={24} />
+                             </div>
+                             <div>
+                                  <h3 className="text-2xl font-black text-gray-900 tracking-tight">Detailed Narrative</h3>
+                                  <p className="text-sm text-gray-400 font-medium">Tell the story of your event.</p>
+                             </div>
+                          </div>
+                          <textarea
+                            name="description"
+                            rows={12}
+                            placeholder="Describe your event in detail. What should attendees expect?"
+                            className="w-full p-8 bg-white border border-gray-300 rounded-[2.5rem] text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 min-h-[400px] shadow-sm"
+                            value={basicInfo.description || ""}
+                            onChange={handleBasicChange}
+                          />
+                       </div>
+                    </div>
+                 )}
+
+                 {subStep === 5 && (
+                    <div className="space-y-16 animate-in fade-in duration-500">
+                       {/* Section 5: Media */}
+                       <div className="space-y-10 group/section">
+                          <div className="flex items-center gap-5">
+                             <div className="w-14 h-14 rounded-2xl bg-gray-50 text-primary flex items-center justify-center shadow-sm border border-gray-100">
+                                <ImageIcon size={24} />
+                             </div>
+                             <div>
+                                <h3 className="text-2xl font-black text-gray-900 tracking-tight">Visual Identity</h3>
+                                <p className="text-sm text-gray-400 font-medium">Upload a captivating banner and gallery images.</p>
+                             </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                             <div
+                                className={`bg-gray-50 rounded-[3rem] p-8 border-2 border-dashed transition-all duration-500 flex flex-col items-center justify-center space-y-6 group/upload shadow-sm h-full relative overflow-hidden min-h-[400px]
+                                  ${isUploading ? 'border-primary bg-primary/5' : 'border-gray-200 hover:bg-white hover:border-primary/30 cursor-pointer'}
+                                `}
+                             >
+                                <input
+                                  type="file"
+                                  className="absolute inset-0 opacity-0 cursor-pointer z-20"
+                                  onChange={handleBannerUpload}
+                                  accept="image/*"
+                                  disabled={isUploading}
+                                />
+
+                                {mediaInfo.bannerUrl && !isUploading ? (
+                                   <div className="relative w-full h-full rounded-[2rem] overflow-hidden shadow-2xl group-hover/upload:scale-[0.98] transition-transform duration-500">
+                                      <Image src={mediaInfo.bannerUrl} alt="Banner" fill unoptimized={true} className="object-cover" />
+                                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/upload:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+                                          <div className="bg-white px-8 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.2em] text-gray-900 shadow-2xl flex items-center gap-3">
+                                              <Upload size={16} />
+                                              Update Banner
+                                          </div>
+                                      </div>
+                                   </div>
+                                ) : isUploading ? (
+                                   <div className="flex flex-col items-center gap-6 animate-pulse w-full px-10">
+                                       <div className="w-20 h-20 bg-primary/20 rounded-3xl flex items-center justify-center text-primary">
+                                            <UploadCloud size={40} className="animate-bounce" />
+                                       </div>
+                                       <div className="w-full space-y-3">
+                                           <div className="flex justify-between text-[10px] font-black text-primary uppercase tracking-widest">
+                                               <span>Uploading Art</span>
+                                               <span>{uploadProgress}%</span>
+                                           </div>
+                                           <div className="w-full h-3 bg-primary/10 rounded-full overflow-hidden">
+                                               <div
+                                                 className="h-full bg-primary transition-all duration-300"
+                                                 style={{ width: `${uploadProgress}%` }}
+                                               />
+                                           </div>
+                                       </div>
+                                   </div>
+                                ) : (
+                                   <>
+                                      <div className="w-24 h-24 rounded-[2rem] bg-white shadow-xl shadow-gray-200 flex items-center justify-center text-gray-300 group-hover/upload:text-primary group-hover/upload:scale-110 group-hover/upload:rotate-3 transition-all duration-500">
+                                        <Plus size={48} />
+                                      </div>
+                                      <div className="text-center space-y-2">
+                                        <p className="text-xs font-black text-gray-900 uppercase tracking-[0.3em]">Drop your masterpiece here</p>
+                                        <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.2em]">or click to browse gallery</p>
+                                      </div>
+                                      <div className="flex items-center gap-4 pt-4">
+                                          <div className="px-4 py-2 rounded-xl bg-white border border-gray-100 text-[8px] font-black text-gray-400 uppercase tracking-widest">JPG</div>
+                                          <div className="px-4 py-2 rounded-xl bg-white border border-gray-100 text-[8px] font-black text-gray-400 uppercase tracking-widest">PNG</div>
+                                          <div className="px-4 py-2 rounded-xl bg-white border border-gray-100 text-[8px] font-black text-gray-400 uppercase tracking-widest">WEBP</div>
+                                      </div>
+                                   </>
+                                )}
+                             </div>
+
+                             <div className="space-y-10 flex flex-col justify-center">
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Asset Source URL</label>
+                                    <div className="relative">
+                                        <Globe size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300" />
+                                        <input
+                                          type="text"
+                                          name="bannerUrl" autoComplete="off" autoCorrect="off"
+                                          placeholder="https://..."
+                                          className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
+                                          value={mediaInfo.bannerUrl || ""}
+                                          onChange={handleMediaChange}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Additional Media Gallery</label>
+                                    <div className="flex flex-wrap gap-4">
+                                        {mediaInfo.mediaUrls.map((url, idx) => (
+                                            <div key={idx} className="relative w-24 h-24 rounded-2xl overflow-hidden border border-gray-100 group">
+                                                {url && typeof url === 'string' && url.match(/\.(mp4|webm|ogg)$/) ? (
+                                                    <video src={url} className="w-full h-full object-cover" />
+                                                ) : url ? (
+                                                    <Image src={url} alt="Media" fill unoptimized={true} className="object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-gray-300 bg-gray-50">
+                                                        <ImageIcon size={24} />
+                                                    </div>
+                                                )}
+                                                <button
+                                                    onClick={() => removeMediaUrl(idx)}
+                                                    className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                        <label className="w-24 h-24 rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-300 hover:border-primary hover:text-primary cursor-pointer transition-all">
+                                            <Plus size={24} />
+                                            <span className="text-[8px] font-black uppercase tracking-widest mt-1">Add</span>
+                                            <input type="file" multiple className="hidden" onChange={handleMediaUrlUpload} accept="image/*,video/*" />
+                                        </label>
+                                    </div>
+                                </div>
+                                <div className="bg-gray-900 p-10 rounded-[3rem] relative overflow-hidden group">
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
+                                    <Sparkles className="text-primary mb-6" size={32} strokeWidth={1.5} />
+                                    <h4 className="text-lg font-black text-white tracking-tight mb-3">Optimization Protocol</h4>
+                                    <p className="text-sm text-gray-400 font-medium leading-relaxed">
+                                        Our engine automatically compresses and serves your images via a global CDN. For best results, use a 16:9 aspect ratio image with at least 1920px width.
+                                    </p>
+                                </div>
+                             </div>
                           </div>
                        </div>
                     </div>
@@ -1823,7 +1837,7 @@ const CreateEvent = () => {
                  <div className="hidden sm:flex flex-col items-end">
                     <p className="text-[9px] font-black text-gray-300 uppercase tracking-[0.4em] mb-1">Upcoming Sequence</p>
                     <span className="text-xs font-black text-gray-900 uppercase tracking-widest">
-                        {currentStep < 3 ? steps[currentStep].title : 'Mission Completion'}
+                        {currentStep < 3 ? (currentStep === 1 && subStep < 5 ? 'Creation Phase' : steps[currentStep].title) : 'Mission Completion'}
                     </span>
                  </div>
                  {currentStep === 1 && (
@@ -1832,14 +1846,18 @@ const CreateEvent = () => {
                         if (subStep < 4) {
                           setSubStep(subStep + 1);
                           window.scrollTo({ top: 0, behavior: 'smooth' });
-                        } else {
+                        } else if (subStep === 4) {
                           createEventBase();
+                        } else {
+                          // Phase 5 completed, go to step 2
+                          setCurrentStep(2);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
                         }
                       }}
                       disabled={loading}
                       className="flex items-center gap-4 bg-primary text-white font-black px-14 py-6 rounded-[2.5rem] hover:bg-opacity-90 transition-all shadow-3xl shadow-primary/30 uppercase tracking-[0.3em] text-[11px] group active:scale-95"
                     >
-                      {loading ? "Saving..." : subStep < 4 ? "Next Phase" : "Save & Continue"}
+                      {loading ? "Saving..." : subStep < 4 ? "Next Phase" : subStep === 4 ? "Create Event & Add Visuals" : "Continue to Ticketing"}
                       <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform duration-500" />
                     </button>
                  )}
