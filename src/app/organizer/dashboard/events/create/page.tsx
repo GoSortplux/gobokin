@@ -1692,7 +1692,8 @@ const CreateEvent = () => {
                                             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-black text-[10px]">₦</span>
                                             <input
                                                 type="number"
-                                                className="w-full pl-8 pr-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
+                                                disabled={ticket.type === "FREE"}
+                                                className="w-full pl-8 pr-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none disabled:bg-gray-100 disabled:opacity-50"
                                                 value={ticket.earlyBirdPrice}
                                                 onChange={(e) => updateTicket(ticket.id, "earlyBirdPrice", parseFloat(e.target.value))}
                                             />
@@ -1702,7 +1703,8 @@ const CreateEvent = () => {
                                         <label className="text-[9px] font-bold text-gray-400 uppercase">Units Limit</label>
                                         <input
                                             type="number"
-                                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
+                                            disabled={ticket.type === "FREE"}
+                                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none disabled:bg-gray-100 disabled:opacity-50"
                                             value={ticket.earlyBirdLimit}
                                             onChange={(e) => updateTicket(ticket.id, "earlyBirdLimit", parseInt(e.target.value))}
                                         />
@@ -1711,7 +1713,8 @@ const CreateEvent = () => {
                                         <label className="text-[9px] font-bold text-gray-400 uppercase">Expiry Date</label>
                                         <input
                                             type="datetime-local"
-                                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
+                                            disabled={ticket.type === "FREE"}
+                                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none disabled:bg-gray-100 disabled:opacity-50"
                                             value={ticket.earlyBirdExpiry}
                                             onChange={(e) => updateTicket(ticket.id, "earlyBirdExpiry", e.target.value)}
                                         />
@@ -1792,6 +1795,8 @@ const CreateEvent = () => {
                                    type="datetime-local"
                                    className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
                                    value={session.startTime}
+                                   min={basicInfo.startDate}
+                                   max={basicInfo.endDate}
                                    onChange={(e) => updateSession(session.id, "startTime", e.target.value)}
                                    />
                                 </div>
@@ -1804,6 +1809,8 @@ const CreateEvent = () => {
                                    type="datetime-local"
                                    className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
                                    value={session.endTime}
+                                   min={session.startTime || basicInfo.startDate}
+                                   max={basicInfo.endDate}
                                    onChange={(e) => updateSession(session.id, "endTime", e.target.value)}
                                    />
                                 </div>

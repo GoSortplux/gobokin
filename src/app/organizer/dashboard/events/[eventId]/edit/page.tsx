@@ -585,6 +585,112 @@ const EditEvent = () => {
     setTickets(tickets.map(t => t.id === ticketId ? { ...t, [field]: value } : t));
   };
 
+  const deleteTicket = async (ticketId: string) => {
+    // If it's a new ticket (not in DB yet), just filter it out
+    if (ticketId.length < 10) {
+      setTickets(tickets.filter(t => t.id !== ticketId));
+      return;
+    }
+
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this ticket deletion!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!"
+    });
+
+    if (result.isConfirmed) {
+      try {
+        Swal.showLoading();
+        await api.delete(`/events/${eventId}/tickets/${ticketId}`);
+        setTickets(tickets.filter(t => t.id !== ticketId));
+        Swal.fire("Deleted!", "Your ticket has been deleted.", "success");
+      } catch (error) {
+        Swal.fire("Error", translateError(error), "error");
+      }
+    }
+  };
+
+  const handleUpdateTicket = async (ticket: any) => {
+    // If it's a new ticket, we can't update it individually yet, it will be saved with saveAllChanges
+    if (ticket.id.length < 10) {
+      Swal.fire("Info", "This is a new ticket. Please use 'Finalize & Update' to save it.", "info");
+      return;
+    }
+
+    try {
+      Swal.showLoading();
+      const payload = {
+        name: ticket.name,
+        price: ticket.type === 'FREE' ? 0 : ticket.price,
+        type: ticket.type,
+        totalQuantity: ticket.totalQuantity,
+        groupSize: ticket.groupSize,
+        description: ticket.description,
+        earlyBirdPrice: ticket.earlyBirdPrice || undefined,
+        earlyBirdLimit: ticket.earlyBirdLimit || undefined,
+        earlyBirdExpiry: ticket.earlyBirdExpiry ? new Date(ticket.earlyBirdExpiry).toISOString() : undefined,
+      };
+      await api.patch(`/events/${eventId}/tickets/${ticket.id}`, payload);
+      Swal.fire("Updated!", "Ticket updated successfully.", "success");
+    } catch (error) {
+      Swal.fire("Error", translateError(error), "error");
+    }
+  };
+
+  const deleteSession = async (sessionId: string) => {
+    if (sessionId.length < 10) {
+      setSessions(sessions.filter(s => s.id !== sessionId));
+      return;
+    }
+
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this session deletion!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!"
+    });
+
+    if (result.isConfirmed) {
+      try {
+        Swal.showLoading();
+        await api.delete(`/events/${eventId}/sessions/${sessionId}`);
+        setSessions(sessions.filter(s => s.id !== sessionId));
+        Swal.fire("Deleted!", "Your session has been deleted.", "success");
+      } catch (error) {
+        Swal.fire("Error", translateError(error), "error");
+      }
+    }
+  };
+
+  const handleUpdateSession = async (session: any) => {
+    if (session.id.length < 10) {
+      Swal.fire("Info", "This is a new session. Please use 'Finalize & Update' to save it.", "info");
+      return;
+    }
+
+    try {
+      Swal.showLoading();
+      const payload = {
+        title: session.title,
+        description: session.description,
+        startTime: session.startTime ? new Date(session.startTime).toISOString() : "",
+        endTime: session.endTime ? new Date(session.endTime).toISOString() : "",
+        location: session.location,
+      };
+      await api.patch(`/events/${eventId}/sessions/${session.id}`, payload);
+      Swal.fire("Updated!", "Session updated successfully.", "success");
+    } catch (error) {
+      Swal.fire("Error", translateError(error), "error");
+    }
+  };
+
   // Consolidate Save Handler
   const saveAllChanges = async () => {
     setSaving(true);
@@ -915,16 +1021,64 @@ const EditEvent = () => {
                     {tickets.map((ticket, _index) => (
                         <div key={ticket.id} className="p-8 bg-gray-50 rounded-[3rem] border border-gray-100 space-y-6 group/ticket">
                             <div className="flex justify-between items-center">
-                                <h4 className="font-black text-gray-900 uppercase tracking-[0.3em] text-[10px]">Tier #{index+1}</h4>
-                                <button onClick={() => setTickets(tickets.filter(t => t.id !== ticket.id))} className="text-gray-300 hover:text-secondary"><Trash2 size={18} /></button>
+                                <div className="flex items-center gap-4">
+                                    <h4 className="font-black text-gray-900 uppercase tracking-[0.3em] text-[10px]">Tier #{_index+1}</h4>
+                                    {ticket.id.length >= 10 && (
+                                        <button
+                                            onClick={() => handleUpdateTicket(ticket)}
+                                            className="text-[8px] font-black text-primary bg-primary/5 px-2 py-1 rounded-lg uppercase tracking-widest border border-primary/10 hover:bg-primary hover:text-white transition-all"
+                                        >
+                                            Update Ticket
+                                        </button>
+                                    )}
+                                </div>
+                                <button onClick={() => deleteTicket(ticket.id)} className="text-gray-300 hover:text-secondary"><Trash2 size={18} /></button>
                             </div>
                             <input type="text" placeholder="Tier Name" className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-sm font-bold outline-none" value={ticket.name} onChange={(e) => updateTicket(ticket.id, "name", e.target.value)} />
                             <div className="grid grid-cols-2 gap-4">
-                                <select className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-sm font-bold outline-none appearance-none" value={ticket.type} onChange={(e) => updateTicket(ticket.id, "type", e.target.value)}>
+                                <select className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-sm font-bold outline-none appearance-none" value={ticket.type} onChange={(e) => updateTicket(ticket.id, "type", e.target.value as TicketType)}>
                                     <option value="PAID">Paid</option>
                                     <option value="FREE">Free</option>
                                 </select>
-                                <input type="number" placeholder="Price" className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-sm font-bold outline-none" value={ticket.price} onChange={(e) => updateTicket(ticket.id, "price", parseFloat(e.target.value))} disabled={ticket.type === 'FREE'} />
+                                <input type="number" placeholder="Price" className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-sm font-bold outline-none disabled:bg-gray-100 disabled:opacity-50" value={ticket.price} onChange={(e) => updateTicket(ticket.id, "price", parseFloat(e.target.value))} disabled={ticket.type === 'FREE'} />
+                            </div>
+                            <div className="pt-6 border-t border-gray-100 space-y-6">
+                                <h5 className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Early Bird Configuration (Optional)</h5>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="text-[9px] font-bold text-gray-400 uppercase">Discount Price</label>
+                                        <div className="relative">
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-black text-[10px]">₦</span>
+                                            <input
+                                                type="number"
+                                                disabled={ticket.type === "FREE"}
+                                                className="w-full pl-8 pr-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none disabled:bg-gray-100 disabled:opacity-50"
+                                                value={ticket.earlyBirdPrice}
+                                                onChange={(e) => updateTicket(ticket.id, "earlyBirdPrice", parseFloat(e.target.value))}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[9px] font-bold text-gray-400 uppercase">Units Limit</label>
+                                        <input
+                                            type="number"
+                                            disabled={ticket.type === "FREE"}
+                                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none disabled:bg-gray-100 disabled:opacity-50"
+                                            value={ticket.earlyBirdLimit}
+                                            onChange={(e) => updateTicket(ticket.id, "earlyBirdLimit", parseInt(e.target.value))}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[9px] font-bold text-gray-400 uppercase">Expiry Date</label>
+                                        <input
+                                            type="datetime-local"
+                                            disabled={ticket.type === "FREE"}
+                                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none disabled:bg-gray-100 disabled:opacity-50"
+                                            value={ticket.earlyBirdExpiry}
+                                            onChange={(e) => updateTicket(ticket.id, "earlyBirdExpiry", e.target.value)}
+                                        />
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     ))}
@@ -944,10 +1098,23 @@ const EditEvent = () => {
                  <div className="space-y-6">
                     {sessions.map((session, index) => (
                         <div key={session.id} className="p-8 bg-gray-50 rounded-[3rem] border border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-6 relative">
-                            <button onClick={() => setSessions(sessions.filter(s => s.id !== session.id))} className="absolute top-6 right-6 text-gray-300 hover:text-secondary"><Trash2 size={18} /></button>
+                            <div className="md:col-span-2 flex justify-between items-center mb-2">
+                                <div className="flex items-center gap-4">
+                                    <h4 className="font-black text-gray-900 uppercase tracking-[0.3em] text-[10px]">Session #{index+1}</h4>
+                                    {session.id.length >= 10 && (
+                                        <button
+                                            onClick={() => handleUpdateSession(session)}
+                                            className="text-[8px] font-black text-primary bg-primary/5 px-2 py-1 rounded-lg uppercase tracking-widest border border-primary/10 hover:bg-primary hover:text-white transition-all"
+                                        >
+                                            Update Session
+                                        </button>
+                                    )}
+                                </div>
+                                <button onClick={() => deleteSession(session.id)} className="text-gray-300 hover:text-secondary"><Trash2 size={18} /></button>
+                            </div>
                             <input type="text" placeholder="Session Title" className="md:col-span-2 p-4 bg-white border border-gray-300 rounded-2xl text-sm font-bold outline-none" value={session.title} onChange={(e) => updateSession(session.id, "title", e.target.value)} />
-                            <input type="datetime-local" className="p-4 bg-white border border-gray-300 rounded-2xl text-sm font-bold outline-none" value={session.startTime} onChange={(e) => updateSession(session.id, "startTime", e.target.value)} />
-                            <input type="datetime-local" className="p-4 bg-white border border-gray-300 rounded-2xl text-sm font-bold outline-none" value={session.endTime} onChange={(e) => updateSession(session.id, "endTime", e.target.value)} />
+                            <input type="datetime-local" className="p-4 bg-white border border-gray-300 rounded-2xl text-sm font-bold outline-none" value={session.startTime} min={basicInfo.startDate} max={basicInfo.endDate} onChange={(e) => updateSession(session.id, "startTime", e.target.value)} />
+                            <input type="datetime-local" className="p-4 bg-white border border-gray-300 rounded-2xl text-sm font-bold outline-none" value={session.endTime} min={session.startTime || basicInfo.startDate} max={basicInfo.endDate} onChange={(e) => updateSession(session.id, "endTime", e.target.value)} />
                         </div>
                     ))}
                  </div>

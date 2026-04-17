@@ -49,6 +49,29 @@ const MyEvents = () => {
     }
   };
 
+  const deleteEvent = async (eventId: string) => {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this event deletion!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!"
+    });
+
+    if (result.isConfirmed) {
+      try {
+        Swal.showLoading();
+        await api.delete(`/events/${eventId}`);
+        setEvents(events.filter(e => e.id !== eventId));
+        Swal.fire("Deleted!", "Your event has been deleted.", "success");
+      } catch (error) {
+        Swal.fire("Error", translateError(error), "error");
+      }
+    }
+  };
+
   const filteredEvents = events.filter(event => {
     const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = activeFilter === "ALL" || event.status === activeFilter;
@@ -150,7 +173,13 @@ const MyEvents = () => {
                       {event.status}
                     </span>
                   </div>
-                  <div className="absolute top-4 right-4">
+                  <div className="absolute top-4 right-4 flex items-center gap-2">
+                    <button
+                        onClick={() => deleteEvent(event.id)}
+                        className="w-10 h-10 bg-rose-500/20 backdrop-blur-md rounded-xl text-white flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all"
+                    >
+                      <Trash2 size={20} />
+                    </button>
                     <button className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl text-white flex items-center justify-center hover:bg-white hover:text-primary transition-all">
                       <MoreVertical size={20} />
                     </button>
@@ -193,13 +222,21 @@ const MyEvents = () => {
                     </div>
                   </div>
 
-                  <Link
-                    href={`/organizer/dashboard/events/${event.id}`}
-                    className="w-full mt-6 bg-gray-50 text-gray-900 font-black py-4 rounded-2xl hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-2 group/btn shadow-sm text-sm uppercase tracking-widest"
-                  >
-                    Manage Event
-                    <ArrowRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
-                  </Link>
+                  <div className="flex items-center gap-3 mt-6">
+                    <Link
+                        href={`/organizer/dashboard/events/${event.id}`}
+                        className="flex-1 bg-gray-50 text-gray-900 font-black py-4 rounded-2xl hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-2 group/btn shadow-sm text-sm uppercase tracking-widest"
+                    >
+                        Manage Event
+                        <ArrowRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
+                    </Link>
+                    <button
+                        onClick={() => deleteEvent(event.id)}
+                        className="w-14 h-14 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all shadow-sm"
+                    >
+                        <Trash2 size={20} />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -257,12 +294,20 @@ const MyEvents = () => {
                       </td>
                       <td className="px-6 py-5 font-black text-emerald-600 text-sm">₦{((event as any).totalRevenue || 0).toLocaleString()}</td>
                       <td className="px-6 py-5 text-right">
-                        <Link
-                          href={`/organizer/dashboard/events/${event.id}`}
-                          className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-blue-50 text-primary hover:bg-primary hover:text-white transition-all shadow-sm"
-                        >
-                          <Eye size={18} />
-                        </Link>
+                        <div className="flex items-center justify-end gap-3">
+                            <Link
+                                href={`/organizer/dashboard/events/${event.id}`}
+                                className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-blue-50 text-primary hover:bg-primary hover:text-white transition-all shadow-sm"
+                            >
+                                <Eye size={18} />
+                            </Link>
+                            <button
+                                onClick={() => deleteEvent(event.id)}
+                                className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white transition-all shadow-sm"
+                            >
+                                <Trash2 size={18} />
+                            </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
