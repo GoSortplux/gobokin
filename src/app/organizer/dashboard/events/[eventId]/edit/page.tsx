@@ -629,9 +629,6 @@ const EditEvent = () => {
         type: ticket.type,
         totalQuantity: ticket.totalQuantity,
         groupSize: ticket.groupSize,
-        description: ticket.description || undefined,
-        earlyBirdPrice: ticket.earlyBirdPrice || undefined,
-        earlyBirdLimit: ticket.earlyBirdLimit || undefined,
         earlyBirdExpiry: ticket.earlyBirdExpiry ? new Date(ticket.earlyBirdExpiry).toISOString() : undefined,
       };
       await api.patch(`/events/${eventId}/tickets/${ticket.id}`, payload);
@@ -679,7 +676,6 @@ const EditEvent = () => {
       Swal.showLoading();
       const payload = {
         title: session.title,
-        description: session.description || undefined,
         startTime: session.startTime ? new Date(session.startTime).toISOString() : undefined,
         endTime: session.endTime ? new Date(session.endTime).toISOString() : undefined,
         location: session.location,
@@ -741,9 +737,6 @@ const EditEvent = () => {
               type: ticket.type,
               totalQuantity: ticket.totalQuantity,
               groupSize: ticket.groupSize,
-              description: ticket.description || undefined,
-              earlyBirdPrice: ticket.earlyBirdPrice || undefined,
-              earlyBirdLimit: ticket.earlyBirdLimit || undefined,
               earlyBirdExpiry: ticket.earlyBirdExpiry ? new Date(ticket.earlyBirdExpiry).toISOString() : undefined,
           };
           await api.patch(`/events/${eventId}/tickets/${ticket.id}`, payload);
@@ -757,9 +750,6 @@ const EditEvent = () => {
                   type: t.type,
                   totalQuantity: t.totalQuantity,
                   groupSize: t.groupSize,
-                  description: t.description || undefined,
-                  earlyBirdPrice: t.earlyBirdPrice || undefined,
-                  earlyBirdLimit: t.earlyBirdLimit || undefined,
                   earlyBirdExpiry: t.earlyBirdExpiry ? new Date(t.earlyBirdExpiry).toISOString() : undefined,
               }))
           };
@@ -773,7 +763,6 @@ const EditEvent = () => {
       for (const session of existingSessions) {
           const payload = {
               title: session.title,
-              description: session.description || undefined,
               startTime: session.startTime ? new Date(session.startTime).toISOString() : undefined,
               endTime: session.endTime ? new Date(session.endTime).toISOString() : undefined,
               location: session.location,
@@ -785,7 +774,6 @@ const EditEvent = () => {
           const sessionPayload = {
               sessions: newSessions.map(s => ({
                   title: s.title,
-                  description: s.description || undefined,
                   startTime: s.startTime ? new Date(s.startTime).toISOString() : undefined,
                   endTime: s.endTime ? new Date(s.endTime).toISOString() : undefined,
                   location: s.location,
