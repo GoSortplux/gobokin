@@ -16,7 +16,8 @@ import {
   Clock,
   LayoutGrid,
   List,
-  Eye
+  Eye,
+  Trash2
 } from "lucide-react";
 import Image from "next/image";
 import api from "@/services/api";
