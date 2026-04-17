@@ -680,8 +680,8 @@ const EditEvent = () => {
       const payload = {
         title: session.title,
         description: session.description,
-        startTime: session.startTime ? new Date(session.startTime).toISOString() : "",
-        endTime: session.endTime ? new Date(session.endTime).toISOString() : "",
+        startTime: session.startTime ? new Date(session.startTime).toISOString() : undefined,
+        endTime: session.endTime ? new Date(session.endTime).toISOString() : undefined,
         location: session.location,
       };
       await api.patch(`/events/${eventId}/sessions/${session.id}`, payload);
@@ -703,8 +703,8 @@ const EditEvent = () => {
         description: basicInfo.description,
         slug: basicInfo.slug,
         type: basicInfo.type,
-        startDate: basicInfo.startDate ? new Date(basicInfo.startDate).toISOString() : "",
-        endDate: basicInfo.endDate ? new Date(basicInfo.endDate).toISOString() : "",
+        startDate: basicInfo.startDate ? new Date(basicInfo.startDate).toISOString() : undefined,
+        endDate: basicInfo.endDate ? new Date(basicInfo.endDate).toISOString() : undefined,
         location: basicInfo.location,
         virtualLink: basicInfo.virtualLink,
         capacity: basicInfo.capacity,
@@ -714,8 +714,8 @@ const EditEvent = () => {
         agenda: agenda.map(a => ({
           title: a.title,
           description: a.description,
-          startTime: a.startTime ? new Date(a.startTime).toISOString() : "",
-          endTime: a.endTime ? new Date(a.endTime).toISOString() : "",
+          startTime: a.startTime ? new Date(a.startTime).toISOString() : undefined,
+          endTime: a.endTime ? new Date(a.endTime).toISOString() : undefined,
           speakerName: a.speakerName
         })),
         registrationMode: registration.mode,
@@ -744,8 +744,8 @@ const EditEvent = () => {
       const sessionPayload = {
           sessions: sessions.map(({ id: _id, ...rest }) => ({
               ...rest,
-              startTime: new Date(rest.startTime).toISOString(),
-              endTime: new Date(rest.endTime).toISOString(),
+              startTime: rest.startTime ? new Date(rest.startTime).toISOString() : undefined,
+              endTime: rest.endTime ? new Date(rest.endTime).toISOString() : undefined,
           }))
       };
       await api.post(`/events/${eventId}/sessions`, sessionPayload);
@@ -901,14 +901,83 @@ const EditEvent = () => {
                           </div>
 
                           <div className="pt-10 border-t border-gray-100">
-                             <button onClick={() => setAgenda([...agenda, { title: "", description: "", startTime: "", endTime: "", speakerName: "" }])} className="flex items-center gap-3 bg-secondary text-white font-black px-8 py-5 rounded-3xl text-[10px] uppercase tracking-[0.2em]">
-                               <Plus size={18} /> Add Agenda Item
-                             </button>
-                             <div className="mt-8 space-y-4">
+                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-10">
+                                <div>
+                                   <h3 className="text-2xl font-black text-gray-900 tracking-tight">Event Agenda</h3>
+                                   <p className="text-sm text-gray-400 font-medium">Outline the flow of your event.</p>
+                                </div>
+                                <button onClick={() => setAgenda([...agenda, { title: "", description: "", startTime: "", endTime: "", speakerName: "" }])} className="flex items-center gap-3 bg-secondary text-white font-black px-8 py-5 rounded-3xl text-[10px] uppercase tracking-[0.2em]">
+                                  <Plus size={18} /> Add Agenda Item
+                                </button>
+                             </div>
+                             <div className="space-y-6">
                                 {agenda.map((item, idx) => (
-                                    <div key={idx} className="p-6 bg-gray-50 rounded-3xl border border-gray-100 flex items-center gap-4">
-                                        <input type="text" placeholder="Session Title" className="flex-1 p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none" value={item.title} onChange={(e) => updateAgendaItem(idx, 'title', e.target.value)} />
-                                        <button onClick={() => setAgenda(agenda.filter((_, i) => i !== idx))} className="text-gray-300 hover:text-secondary"><Trash2 size={20} /></button>
+                                    <div key={idx} className="p-8 bg-gray-50 rounded-[3rem] border border-gray-100 hover:bg-white transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50 group/agenda">
+                                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                          <div className="md:col-span-2 space-y-3">
+                                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Title</label>
+                                             <input
+                                                type="text"
+                                                placeholder="Opening Keynote"
+                                                className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all"
+                                                value={item.title}
+                                                onChange={(e) => updateAgendaItem(idx, 'title', e.target.value)}
+                                             />
+                                          </div>
+                                          <div className="space-y-3">
+                                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Speaker</label>
+                                             <select
+                                                className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all appearance-none"
+                                                value={item.speakerName}
+                                                onChange={(e) => updateAgendaItem(idx, 'speakerName', e.target.value)}
+                                             >
+                                                <option value="">No Speaker</option>
+                                                {speakers.filter(s => s.name).map((s, i) => (
+                                                   <option key={i} value={s.name}>{s.name}</option>
+                                                ))}
+                                             </select>
+                                          </div>
+                                          <div className="flex items-end justify-end">
+                                             <button
+                                                onClick={() => setAgenda(agenda.filter((_, i) => i !== idx))}
+                                                className="w-14 h-14 bg-white text-gray-300 hover:text-secondary rounded-2xl flex items-center justify-center shadow-sm hover:shadow-xl transition-all border border-gray-100"
+                                             >
+                                                <Trash2 size={20} />
+                                             </button>
+                                          </div>
+                                          <div className="space-y-3">
+                                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Start Time</label>
+                                             <input
+                                                type="datetime-local"
+                                                className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all"
+                                                value={item.startTime}
+                                                min={basicInfo.startDate}
+                                                max={basicInfo.endDate}
+                                                onChange={(e) => updateAgendaItem(idx, 'startTime', e.target.value)}
+                                             />
+                                          </div>
+                                          <div className="space-y-3">
+                                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">End Time</label>
+                                             <input
+                                                type="datetime-local"
+                                                className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all"
+                                                value={item.endTime}
+                                                min={item.startTime || basicInfo.startDate}
+                                                max={basicInfo.endDate}
+                                                onChange={(e) => updateAgendaItem(idx, 'endTime', e.target.value)}
+                                             />
+                                          </div>
+                                          <div className="md:col-span-2 space-y-3">
+                                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Description</label>
+                                             <textarea
+                                                rows={1}
+                                                placeholder="Short summary of the session..."
+                                                className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all"
+                                                value={item.description}
+                                                onChange={(e) => updateAgendaItem(idx, 'description', e.target.value)}
+                                             />
+                                          </div>
+                                       </div>
                                     </div>
                                 ))}
                              </div>

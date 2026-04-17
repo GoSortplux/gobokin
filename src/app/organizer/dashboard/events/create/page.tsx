@@ -644,8 +644,8 @@ const CreateEvent = () => {
         slug: basicInfo.slug || undefined,
         isPublic: basicInfo.isPublic,
         type: basicInfo.type,
-        startDate: basicInfo.startDate ? new Date(basicInfo.startDate).toISOString() : "",
-        endDate: basicInfo.endDate ? new Date(basicInfo.endDate).toISOString() : "",
+        startDate: basicInfo.startDate ? new Date(basicInfo.startDate).toISOString() : undefined,
+        endDate: basicInfo.endDate ? new Date(basicInfo.endDate).toISOString() : undefined,
         location: basicInfo.type === 'ONLINE' ? 'Virtual' : (basicInfo.location || 'Virtual'),
         virtualLink: basicInfo.virtualLink || undefined,
         capacity: basicInfo.capacity,
@@ -744,8 +744,8 @@ const CreateEvent = () => {
           const payload = {
               sessions: sessions.map(({ id: _, ...rest }) => ({
                   title: rest.title,
-                  startTime: rest.startTime ? new Date(rest.startTime).toISOString() : "",
-                  endTime: rest.endTime ? new Date(rest.endTime).toISOString() : "",
+                  startTime: rest.startTime ? new Date(rest.startTime).toISOString() : undefined,
+                  endTime: rest.endTime ? new Date(rest.endTime).toISOString() : undefined,
                   location: rest.location || (basicInfo.type === 'ONLINE' ? 'Virtual' : (basicInfo.location || 'Virtual'))
               }))
           };
