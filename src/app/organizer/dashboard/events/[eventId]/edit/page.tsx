@@ -616,7 +616,7 @@ const EditEvent = () => {
 
   const handleUpdateTicket = async (ticket: any) => {
     // If it's a new ticket, we can't update it individually yet, it will be saved with saveAllChanges
-    if (ticket.id.length < 10) {
+    if (!ticket.id || ticket.id.length < 10) {
       Swal.fire("Info", "This is a new ticket. Please use 'Finalize & Update' to save it.", "info");
       return;
     }
@@ -629,7 +629,7 @@ const EditEvent = () => {
         type: ticket.type,
         totalQuantity: ticket.totalQuantity,
         groupSize: ticket.groupSize,
-        description: ticket.description,
+        description: ticket.description || undefined,
         earlyBirdPrice: ticket.earlyBirdPrice || undefined,
         earlyBirdLimit: ticket.earlyBirdLimit || undefined,
         earlyBirdExpiry: ticket.earlyBirdExpiry ? new Date(ticket.earlyBirdExpiry).toISOString() : undefined,
@@ -670,7 +670,7 @@ const EditEvent = () => {
   };
 
   const handleUpdateSession = async (session: any) => {
-    if (session.id.length < 10) {
+    if (!session.id || session.id.length < 10) {
       Swal.fire("Info", "This is a new session. Please use 'Finalize & Update' to save it.", "info");
       return;
     }
@@ -679,7 +679,7 @@ const EditEvent = () => {
       Swal.showLoading();
       const payload = {
         title: session.title,
-        description: session.description,
+        description: session.description || undefined,
         startTime: session.startTime ? new Date(session.startTime).toISOString() : undefined,
         endTime: session.endTime ? new Date(session.endTime).toISOString() : undefined,
         location: session.location,
@@ -730,25 +730,69 @@ const EditEvent = () => {
       const { isFeatured: _isFeatured, status: _status, ...patchPayload } = basePayload as Record<string, unknown>;
       await api.patch(`/events/${eventId}`, patchPayload);
 
-      // 2. Save Tickets
-      const ticketPayload = {
-          tickets: tickets.map(({ id: _id, ...rest }) => ({
-              ...rest,
-              price: rest.type === 'FREE' ? 0 : rest.price,
-              earlyBirdExpiry: rest.earlyBirdExpiry ? new Date(rest.earlyBirdExpiry).toISOString() : undefined,
-          }))
-      };
-      await api.post(`/events/${eventId}/tickets`, ticketPayload);
+      // 2. Save Tickets (Handle both new and existing)
+      const existingTickets = tickets.filter(t => t.id && t.id.length >= 10);
+      const newTickets = tickets.filter(t => !t.id || t.id.length < 10);
 
-      // 3. Save Sessions
-      const sessionPayload = {
-          sessions: sessions.map(({ id: _id, ...rest }) => ({
-              ...rest,
-              startTime: rest.startTime ? new Date(rest.startTime).toISOString() : undefined,
-              endTime: rest.endTime ? new Date(rest.endTime).toISOString() : undefined,
-          }))
-      };
-      await api.post(`/events/${eventId}/sessions`, sessionPayload);
+      for (const ticket of existingTickets) {
+          const payload = {
+              name: ticket.name,
+              price: ticket.type === 'FREE' ? 0 : ticket.price,
+              type: ticket.type,
+              totalQuantity: ticket.totalQuantity,
+              groupSize: ticket.groupSize,
+              description: ticket.description || undefined,
+              earlyBirdPrice: ticket.earlyBirdPrice || undefined,
+              earlyBirdLimit: ticket.earlyBirdLimit || undefined,
+              earlyBirdExpiry: ticket.earlyBirdExpiry ? new Date(ticket.earlyBirdExpiry).toISOString() : undefined,
+          };
+          await api.patch(`/events/${eventId}/tickets/${ticket.id}`, payload);
+      }
+
+      if (newTickets.length > 0) {
+          const ticketPayload = {
+              tickets: newTickets.map(t => ({
+                  name: t.name,
+                  price: t.type === 'FREE' ? 0 : t.price,
+                  type: t.type,
+                  totalQuantity: t.totalQuantity,
+                  groupSize: t.groupSize,
+                  description: t.description || undefined,
+                  earlyBirdPrice: t.earlyBirdPrice || undefined,
+                  earlyBirdLimit: t.earlyBirdLimit || undefined,
+                  earlyBirdExpiry: t.earlyBirdExpiry ? new Date(t.earlyBirdExpiry).toISOString() : undefined,
+              }))
+          };
+          await api.post(`/events/${eventId}/tickets`, ticketPayload);
+      }
+
+      // 3. Save Sessions (Handle both new and existing)
+      const existingSessions = sessions.filter(s => s.id && s.id.length >= 10);
+      const newSessions = sessions.filter(s => !s.id || s.id.length < 10);
+
+      for (const session of existingSessions) {
+          const payload = {
+              title: session.title,
+              description: session.description || undefined,
+              startTime: session.startTime ? new Date(session.startTime).toISOString() : undefined,
+              endTime: session.endTime ? new Date(session.endTime).toISOString() : undefined,
+              location: session.location,
+          };
+          await api.patch(`/events/${eventId}/sessions/${session.id}`, payload);
+      }
+
+      if (newSessions.length > 0) {
+          const sessionPayload = {
+              sessions: newSessions.map(s => ({
+                  title: s.title,
+                  description: s.description || undefined,
+                  startTime: s.startTime ? new Date(s.startTime).toISOString() : undefined,
+                  endTime: s.endTime ? new Date(s.endTime).toISOString() : undefined,
+                  location: s.location,
+              }))
+          };
+          await api.post(`/events/${eventId}/sessions`, sessionPayload);
+      }
 
       Swal.fire("Success", "Event updated successfully", "success");
       router.push(`/organizer/dashboard/events/${eventId}`);

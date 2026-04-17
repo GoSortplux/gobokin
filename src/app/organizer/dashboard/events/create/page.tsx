@@ -712,11 +712,14 @@ const CreateEvent = () => {
           const payload = {
               tickets: tickets.map(({ id: _, ...rest }) => ({
                   name: rest.name,
+                  type: rest.type,
                   price: rest.type === 'FREE' ? 0 : rest.price,
+                  totalQuantity: rest.totalQuantity,
+                  groupSize: rest.groupSize,
+                  description: rest.description || undefined,
                   earlyBirdPrice: rest.earlyBirdPrice || undefined,
                   earlyBirdLimit: rest.earlyBirdLimit || undefined,
                   earlyBirdExpiry: rest.earlyBirdExpiry ? new Date(rest.earlyBirdExpiry).toISOString() : undefined,
-                  totalQuantity: rest.totalQuantity,
               }))
           };
           await api.post(`/events/${eventId}/tickets`, payload);
