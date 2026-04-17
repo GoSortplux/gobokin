@@ -603,7 +603,16 @@ const CreateEvent = () => {
   };
 
   const updateTicket = (ticketId: string, field: string, value: string | number) => {
-    setTickets(tickets.map(t => t.id === ticketId ? { ...t, [field]: value } : t));
+    setTickets(tickets.map(t => {
+        if (t.id === ticketId) {
+            const updated = { ...t, [field]: value };
+            if (field === 'type' && value === 'FREE') {
+                return { ...updated, price: 0, earlyBirdPrice: 0, earlyBirdLimit: 0, earlyBirdExpiry: "" };
+            }
+            return updated;
+        }
+        return t;
+    }));
   };
 
   const addField = () => {
