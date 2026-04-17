@@ -443,16 +443,16 @@ const EditEvent = () => {
         setSpeakers(event.speakers || []);
         setAgenda((event.agenda || []).map((a: AgendaItem) => ({ ...a, startTime: formatDate(a.startTime || ""), endTime: formatDate(a.endTime || "") })));
 
-        setSessions((event.sessions || []).map((s: { _id?: string; title: string; description: string; startTime: string; endTime: string; location: string }) => ({
+        setSessions((event.sessions || []).map((s: { id?: string; _id?: string; title: string; description: string; startTime: string; endTime: string; location: string }) => ({
           ...s,
-          id: s._id || Math.random().toString(),
+          id: s.id || s._id || Math.random().toString(),
           startTime: formatDate(s.startTime),
           endTime: formatDate(s.endTime)
         })));
 
-        setTickets((event.tickets || []).map((t: { _id?: string; name: string; price: number; type: TicketType; totalQuantity: number; groupSize: number; description: string; earlyBirdPrice: number; earlyBirdLimit: number; earlyBirdExpiry: string }) => ({
+        setTickets((event.tickets || []).map((t: { id?: string; _id?: string; name: string; price: number; type: TicketType; totalQuantity: number; groupSize: number; description: string; earlyBirdPrice: number; earlyBirdLimit: number; earlyBirdExpiry: string }) => ({
           ...t,
-          id: t._id || Math.random().toString(),
+          id: t.id || t._id || Math.random().toString(),
           earlyBirdExpiry: formatDate(t.earlyBirdExpiry)
         })));
 
@@ -587,7 +587,7 @@ const EditEvent = () => {
 
   const deleteTicket = async (ticketId: string) => {
     // If it's a new ticket (not in DB yet), just filter it out
-    if (ticketId.length < 10) {
+    if (!ticketId || ticketId.includes('.')) {
       setTickets(tickets.filter(t => t.id !== ticketId));
       return;
     }
@@ -616,7 +616,7 @@ const EditEvent = () => {
 
   const handleUpdateTicket = async (ticket: any) => {
     // If it's a new ticket, we can't update it individually yet, it will be saved with saveAllChanges
-    if (!ticket.id || ticket.id.length < 10) {
+    if (!ticket.id || ticket.id.includes('.')) {
       Swal.fire("Info", "This is a new ticket. Please use 'Finalize & Update' to save it.", "info");
       return;
     }
@@ -639,7 +639,7 @@ const EditEvent = () => {
   };
 
   const deleteSession = async (sessionId: string) => {
-    if (sessionId.length < 10) {
+    if (!sessionId || sessionId.includes('.')) {
       setSessions(sessions.filter(s => s.id !== sessionId));
       return;
     }
@@ -667,7 +667,7 @@ const EditEvent = () => {
   };
 
   const handleUpdateSession = async (session: any) => {
-    if (!session.id || session.id.length < 10) {
+    if (!session.id || session.id.includes('.')) {
       Swal.fire("Info", "This is a new session. Please use 'Finalize & Update' to save it.", "info");
       return;
     }
@@ -727,8 +727,8 @@ const EditEvent = () => {
       await api.patch(`/events/${eventId}`, patchPayload);
 
       // 2. Save Tickets (Handle both new and existing)
-      const existingTickets = tickets.filter(t => t.id && t.id.length >= 10);
-      const newTickets = tickets.filter(t => !t.id || t.id.length < 10);
+      const existingTickets = tickets.filter(t => t.id && !t.id.includes('.'));
+      const newTickets = tickets.filter(t => !t.id || t.id.includes('.'));
 
       for (const ticket of existingTickets) {
           const payload = {
@@ -757,8 +757,8 @@ const EditEvent = () => {
       }
 
       // 3. Save Sessions (Handle both new and existing)
-      const existingSessions = sessions.filter(s => s.id && s.id.length >= 10);
-      const newSessions = sessions.filter(s => !s.id || s.id.length < 10);
+      const existingSessions = sessions.filter(s => s.id && !s.id.includes('.'));
+      const newSessions = sessions.filter(s => !s.id || s.id.includes('.'));
 
       for (const session of existingSessions) {
           const payload = {
