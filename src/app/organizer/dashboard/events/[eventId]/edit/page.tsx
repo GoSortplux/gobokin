@@ -744,7 +744,7 @@ const EditEvent = () => {
               name: ticket.name,
               price: ticket.type === 'FREE' ? 0 : ticket.price,
               type: ticket.type,
-              totalQuantity: ticket.totalQuantity,
+              totalQuantity: Math.max(1, ticket.totalQuantity || 1),
               groupSize: ticket.groupSize,
               earlyBirdExpiry: ticket.earlyBirdExpiry ? new Date(ticket.earlyBirdExpiry).toISOString() : undefined,
           };
@@ -757,7 +757,7 @@ const EditEvent = () => {
                   name: t.name,
                   price: t.type === 'FREE' ? 0 : t.price,
                   type: t.type,
-                  totalQuantity: t.totalQuantity,
+                  totalQuantity: Math.max(1, t.totalQuantity || 1),
                   groupSize: t.groupSize,
                   earlyBirdExpiry: t.earlyBirdExpiry ? new Date(t.earlyBirdExpiry).toISOString() : undefined,
               }))
@@ -1123,7 +1123,7 @@ const EditEvent = () => {
               <div className="space-y-12 animate-in fade-in duration-500">
                  <div className="flex items-center justify-between px-4">
                     <h3 className="text-3xl font-black text-gray-900 tracking-tight">Ticket Vault</h3>
-                    <button onClick={() => setTickets([...tickets, { id: Math.random().toString(), name: "", price: 0, type: "PAID", totalQuantity: 0, groupSize: 1, description: "", earlyBirdPrice: 0, earlyBirdLimit: 0, earlyBirdExpiry: "" }])} className="flex items-center gap-3 bg-secondary text-white font-black px-8 py-5 rounded-3xl text-[10px] uppercase tracking-[0.2em]">
+                    <button onClick={() => setTickets([...tickets, { id: Math.random().toString(), name: "", price: 0, type: "PAID", totalQuantity: 1, groupSize: 1, description: "", earlyBirdPrice: 0, earlyBirdLimit: 0, earlyBirdExpiry: "" }])} className="flex items-center gap-3 bg-secondary text-white font-black px-8 py-5 rounded-3xl text-[10px] uppercase tracking-[0.2em]">
                       <Plus size={18} /> Create Tier
                     </button>
                  </div>
