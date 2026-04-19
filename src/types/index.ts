@@ -444,3 +444,27 @@ export interface StaffMember {
   role: 'STAFF' | 'MANAGER';
   canRegisterGuests?: boolean;
 }
+
+export interface QuantityDiscount {
+  minQuantity: number;
+  discountPercentage: number;
+}
+
+export interface Ticket {
+  id?: string;
+  name: string;
+  description?: string;
+  price: number;
+  type: TicketType;
+  allocationType: string;
+  totalQuantity: number;
+  maxPerOrder: number;
+  salesStart?: string;
+  salesEnd?: string;
+  earlyBirdPrice?: number;
+  earlyBirdLimit?: number;
+  earlyBirdExpiry?: string;
+  groupSize: number;
+  isOffline: boolean;
+  quantityDiscounts?: QuantityDiscount[];
+}
