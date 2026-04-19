@@ -1152,6 +1152,16 @@ const EditEvent = () => {
                                 </select>
                                 <input type="number" placeholder="Price" className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-sm font-bold outline-none disabled:bg-gray-100 disabled:opacity-50" value={ticket.price} onChange={(e) => updateTicket(ticket.id, "price", parseFloat(e.target.value))} disabled={ticket.type === 'FREE'} />
                             </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-[9px] font-bold text-gray-400 uppercase ml-1">Total Quantity</label>
+                                    <input type="number" placeholder="Total Quantity" className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-sm font-bold outline-none" value={ticket.totalQuantity} onChange={(e) => updateTicket(ticket.id, "totalQuantity", parseInt(e.target.value))} />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[9px] font-bold text-gray-400 uppercase ml-1">Group Size</label>
+                                    <input type="number" placeholder="Group Size" className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-sm font-bold outline-none" value={ticket.groupSize} onChange={(e) => updateTicket(ticket.id, "groupSize", parseInt(e.target.value))} />
+                                </div>
+                            </div>
                             <div className="pt-6 border-t border-gray-100 space-y-6">
                                 <h5 className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Early Bird Configuration (Optional)</h5>
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
