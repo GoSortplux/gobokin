@@ -900,9 +900,13 @@ const EditEvent = () => {
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Concludes</label>
                                 <input type="datetime-local" name="endDate" className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold outline-none" value={basicInfo.endDate} onChange={handleBasicChange} />
                              </div>
-                             <div className="space-y-3 md:col-span-2">
+                             <div className="space-y-3">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Location</label>
                                 <input type="text" name="location" className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold outline-none" value={basicInfo.location} onChange={handleBasicChange} />
+                             </div>
+                             <div className="space-y-3">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Attendee Capacity</label>
+                                <input type="number" name="capacity" className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold outline-none" value={basicInfo.capacity} onChange={handleBasicChange} />
                              </div>
                           </div>
                        </div>
