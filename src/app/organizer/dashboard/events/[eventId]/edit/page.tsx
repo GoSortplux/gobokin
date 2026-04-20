@@ -686,16 +686,13 @@ const EditEvent = () => {
 
     try {
       Swal.showLoading();
-      const payload = {
+      const payload: any = {
         name: ticket.name,
         description: ticket.description,
         price: ticket.type === 'FREE' ? 0 : ticket.price,
         type: ticket.type,
         totalQuantity: ticket.totalQuantity,
         groupSize: ticket.groupSize,
-        earlyBirdPrice: ticket.type === 'FREE' ? 0 : (ticket.earlyBirdPrice || 0),
-        earlyBirdLimit: ticket.type === 'FREE' ? 0 : (ticket.earlyBirdLimit || 0),
-        earlyBirdExpiry: (ticket.type !== 'FREE' && ticket.earlyBirdExpiry) ? new Date(ticket.earlyBirdExpiry).toISOString() : undefined,
         allocationType: ticket.allocationType,
         maxPerOrder: ticket.maxPerOrder,
         salesStart: ticket.salesStart ? new Date(ticket.salesStart).toISOString() : undefined,
@@ -703,6 +700,12 @@ const EditEvent = () => {
         isOffline: ticket.isOffline,
         quantityDiscounts: ticket.quantityDiscounts
       };
+
+      if (ticket.type !== 'FREE') {
+          payload.earlyBirdPrice = ticket.earlyBirdPrice || 0;
+          payload.earlyBirdLimit = ticket.earlyBirdLimit || 0;
+          payload.earlyBirdExpiry = ticket.earlyBirdExpiry ? new Date(ticket.earlyBirdExpiry).toISOString() : undefined;
+      }
       await api.patch(`/events/${eventId}/tickets/${ticket.id}`, payload);
       Swal.fire("Updated!", "Ticket updated successfully.", "success");
     } catch (error) {
@@ -803,16 +806,13 @@ const EditEvent = () => {
       const newTickets = tickets.filter(t => !t.id || t.id.includes('.'));
 
       for (const ticket of existingTickets) {
-          const payload = {
+          const payload: any = {
               name: ticket.name,
               description: ticket.description,
               price: ticket.type === 'FREE' ? 0 : ticket.price,
               type: ticket.type,
               totalQuantity: Math.max(1, ticket.totalQuantity || 1),
               groupSize: ticket.groupSize,
-              earlyBirdPrice: ticket.type === 'FREE' ? 0 : (ticket.earlyBirdPrice || 0),
-              earlyBirdLimit: ticket.type === 'FREE' ? 0 : (ticket.earlyBirdLimit || 0),
-              earlyBirdExpiry: (ticket.type !== 'FREE' && ticket.earlyBirdExpiry) ? new Date(ticket.earlyBirdExpiry).toISOString() : undefined,
               allocationType: ticket.allocationType,
               maxPerOrder: ticket.maxPerOrder,
               salesStart: ticket.salesStart ? new Date(ticket.salesStart).toISOString() : undefined,
@@ -820,28 +820,41 @@ const EditEvent = () => {
               isOffline: ticket.isOffline,
               quantityDiscounts: ticket.quantityDiscounts
           };
+
+          if (ticket.type !== 'FREE') {
+              payload.earlyBirdPrice = ticket.earlyBirdPrice || 0;
+              payload.earlyBirdLimit = ticket.earlyBirdLimit || 0;
+              payload.earlyBirdExpiry = ticket.earlyBirdExpiry ? new Date(ticket.earlyBirdExpiry).toISOString() : undefined;
+          }
           await api.patch(`/events/${eventId}/tickets/${ticket.id}`, payload);
       }
 
       if (newTickets.length > 0) {
           const ticketPayload = {
-              tickets: newTickets.map(t => ({
-                  name: t.name,
-                  description: t.description,
-                  price: t.type === 'FREE' ? 0 : t.price,
-                  type: t.type,
-                  totalQuantity: Math.max(1, t.totalQuantity || 1),
-                  groupSize: t.groupSize,
-                  earlyBirdPrice: t.type === 'FREE' ? 0 : (t.earlyBirdPrice || 0),
-                  earlyBirdLimit: t.type === 'FREE' ? 0 : (t.earlyBirdLimit || 0),
-                  earlyBirdExpiry: (t.type !== 'FREE' && t.earlyBirdExpiry) ? new Date(t.earlyBirdExpiry).toISOString() : undefined,
-                  allocationType: t.allocationType,
-                  maxPerOrder: t.maxPerOrder,
-                  salesStart: t.salesStart ? new Date(t.salesStart).toISOString() : undefined,
-                  salesEnd: t.salesEnd ? new Date(t.salesEnd).toISOString() : undefined,
-                  isOffline: t.isOffline,
-                  quantityDiscounts: t.quantityDiscounts
-              }))
+              tickets: newTickets.map(t => {
+                  const item: any = {
+                      name: t.name,
+                      description: t.description,
+                      price: t.type === 'FREE' ? 0 : t.price,
+                      type: t.type,
+                      totalQuantity: Math.max(1, t.totalQuantity || 1),
+                      groupSize: t.groupSize,
+                      allocationType: t.allocationType,
+                      maxPerOrder: t.maxPerOrder,
+                      salesStart: t.salesStart ? new Date(t.salesStart).toISOString() : undefined,
+                      salesEnd: t.salesEnd ? new Date(t.salesEnd).toISOString() : undefined,
+                      isOffline: t.isOffline,
+                      quantityDiscounts: t.quantityDiscounts
+                  };
+
+                  if (t.type !== 'FREE') {
+                      item.earlyBirdPrice = t.earlyBirdPrice || 0;
+                      item.earlyBirdLimit = t.earlyBirdLimit || 0;
+                      item.earlyBirdExpiry = t.earlyBirdExpiry ? new Date(t.earlyBirdExpiry).toISOString() : undefined;
+                  }
+
+                  return item;
+              })
           };
           await api.post(`/events/${eventId}/tickets`, ticketPayload);
       }

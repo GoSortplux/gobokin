@@ -762,22 +762,30 @@ const CreateEvent = () => {
       try {
           Swal.showLoading();
           const payload = {
-              tickets: tickets.map(({ id: _, ...rest }) => ({
-                  name: rest.name,
-                  type: rest.type,
-                  price: rest.type === 'FREE' ? 0 : rest.price,
-                  totalQuantity: Math.max(1, rest.totalQuantity || 1),
-                  groupSize: rest.groupSize,
-                  earlyBirdPrice: rest.type === 'FREE' ? 0 : (rest.earlyBirdPrice || 0),
-                  earlyBirdLimit: rest.type === 'FREE' ? 0 : (rest.earlyBirdLimit || 0),
-                  earlyBirdExpiry: (rest.type !== 'FREE' && rest.earlyBirdExpiry) ? new Date(rest.earlyBirdExpiry).toISOString() : undefined,
-                  allocationType: rest.allocationType,
-                  maxPerOrder: rest.maxPerOrder,
-                  salesStart: rest.salesStart ? new Date(rest.salesStart).toISOString() : undefined,
-                  salesEnd: rest.salesEnd ? new Date(rest.salesEnd).toISOString() : undefined,
-                  isOffline: rest.isOffline,
-                  quantityDiscounts: rest.quantityDiscounts
-              }))
+              tickets: tickets.map(({ id: _, ...rest }) => {
+                  const tPayload: any = {
+                      name: rest.name,
+                      description: rest.description,
+                      type: rest.type,
+                      price: rest.type === 'FREE' ? 0 : rest.price,
+                      totalQuantity: Math.max(1, rest.totalQuantity || 1),
+                      groupSize: rest.groupSize,
+                      allocationType: rest.allocationType,
+                      maxPerOrder: rest.maxPerOrder,
+                      salesStart: rest.salesStart ? new Date(rest.salesStart).toISOString() : undefined,
+                      salesEnd: rest.salesEnd ? new Date(rest.salesEnd).toISOString() : undefined,
+                      isOffline: rest.isOffline,
+                      quantityDiscounts: rest.quantityDiscounts
+                  };
+
+                  if (rest.type !== 'FREE') {
+                      tPayload.earlyBirdPrice = rest.earlyBirdPrice || 0;
+                      tPayload.earlyBirdLimit = rest.earlyBirdLimit || 0;
+                      tPayload.earlyBirdExpiry = rest.earlyBirdExpiry ? new Date(rest.earlyBirdExpiry).toISOString() : undefined;
+                  }
+
+                  return tPayload;
+              })
           };
           await api.post(`/events/${eventId}/tickets`, payload);
           setCurrentStep(3);
