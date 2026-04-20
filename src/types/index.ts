@@ -456,7 +456,7 @@ export interface Ticket {
   description?: string;
   price: number;
   type: TicketType;
-  allocationType: string;
+  allocationType: 'GENERAL' | 'RESERVED';
   totalQuantity: number;
   maxPerOrder: number;
   salesStart?: string;

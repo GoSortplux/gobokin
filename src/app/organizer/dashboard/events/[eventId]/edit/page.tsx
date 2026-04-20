@@ -394,7 +394,7 @@ const EditEvent = () => {
     earlyBirdPrice: number;
     earlyBirdLimit: number;
     earlyBirdExpiry: string;
-    allocationType?: "LIMITED" | "UNLIMITED";
+    allocationType?: "GENERAL" | "RESERVED";
     maxPerOrder?: number;
     salesStart?: string;
     salesEnd?: string;
@@ -468,7 +468,7 @@ const EditEvent = () => {
           earlyBirdExpiry: formatDate(t.earlyBirdExpiry),
           salesStart: formatDate(t.salesStart || ""),
           salesEnd: formatDate(t.salesEnd || ""),
-          allocationType: t.allocationType || "LIMITED",
+          allocationType: t.allocationType || "GENERAL",
           maxPerOrder: t.maxPerOrder || 10,
           isOffline: !!t.isOffline,
           quantityDiscounts: t.quantityDiscounts || []
@@ -684,6 +684,11 @@ const EditEvent = () => {
       return;
     }
 
+    if (!ticket.name || ticket.name.trim() === "") {
+        Swal.fire("Validation Error", "Ticket must have a public name.", "error");
+        return;
+    }
+
     try {
       Swal.showLoading();
       const payload: any = {
@@ -764,6 +769,13 @@ const EditEvent = () => {
 
   // Consolidate Save Handler
   const saveAllChanges = async () => {
+    // Validate Ticket Names
+    const emptyTicket = tickets.find(t => !t.name || t.name.trim() === "");
+    if (emptyTicket) {
+        Swal.fire("Validation Error", "All ticket tiers must have a public name.", "error");
+        return;
+    }
+
     setSaving(true);
     try {
       Swal.showLoading();
@@ -1232,7 +1244,7 @@ const EditEvent = () => {
                       earlyBirdPrice: 0,
                       earlyBirdLimit: 0,
                       earlyBirdExpiry: "",
-                      allocationType: "LIMITED",
+                      allocationType: "GENERAL",
                       maxPerOrder: 10,
                       salesStart: "",
                       salesEnd: "",
@@ -1430,10 +1442,10 @@ const EditEvent = () => {
                                            <select
                                                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
                                                value={ticket.allocationType}
-                                               onChange={(e) => updateTicket(ticket.id, "allocationType", e.target.value as "LIMITED" | "UNLIMITED")}
+                                               onChange={(e) => updateTicket(ticket.id, "allocationType", e.target.value as "GENERAL" | "RESERVED")}
                                            >
-                                               <option value="LIMITED">Limited</option>
-                                               <option value="UNLIMITED">Unlimited</option>
+                                               <option value="GENERAL">General</option>
+                                               <option value="RESERVED">Reserved</option>
                                            </select>
                                        </div>
                                        <div className="space-y-2">
