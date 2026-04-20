@@ -34,14 +34,16 @@ import {
   Coins,
   History,
   MousePointer2,
-  XCircle
+  XCircle,
+  Settings,
+  Percent
 } from "lucide-react";
 import api from "@/services/api";
 import axios from "axios";
 import { useEffect } from "react";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
-import { AgendaItem, EventType, RegistrationMode, Speaker, TicketType } from "@/types";
+import { AgendaItem, EventType, RegistrationMode, Speaker, TicketType, Ticket as TicketData } from "@/types";
 
 const steps = [
   { id: 1, title: "Event Details", icon: Info },
@@ -403,17 +405,23 @@ const CreateEvent = () => {
     location: "",
   }]);
 
-  const [tickets, setTickets] = useState([{
+  const [tickets, setTickets] = useState<TicketData[]>([{
     id: "1",
     name: "General Admission",
     price: 0,
     type: "FREE" as TicketType,
-    totalQuantity: 0,
+    allocationType: "GENERAL",
+    totalQuantity: 1,
+    maxPerOrder: 5,
+    salesStart: "",
+    salesEnd: "",
     groupSize: 1,
     description: "",
     earlyBirdPrice: 0,
     earlyBirdLimit: 0,
     earlyBirdExpiry: "",
+    isOffline: false,
+    quantityDiscounts: []
   }]);
 
   const [registration, setRegistration] = useState({
@@ -589,12 +597,18 @@ const CreateEvent = () => {
         name: "",
         price: 0,
         type: "PAID",
-        totalQuantity: 0,
+        allocationType: "GENERAL",
+        totalQuantity: 1,
+        maxPerOrder: 5,
+        salesStart: "",
+        salesEnd: "",
         groupSize: 1,
         description: "",
         earlyBirdPrice: 0,
         earlyBirdLimit: 0,
         earlyBirdExpiry: "",
+        isOffline: false,
+        quantityDiscounts: []
     }]);
   };
 
@@ -602,8 +616,46 @@ const CreateEvent = () => {
     if (tickets.length > 1) setTickets(tickets.filter(t => t.id !== ticketId));
   };
 
-  const updateTicket = (ticketId: string, field: string, value: string | number) => {
-    setTickets(tickets.map(t => t.id === ticketId ? { ...t, [field]: value } : t));
+  const updateTicket = (ticketId: string, field: string, value: any) => {
+    setTickets(tickets.map(t => {
+        if (t.id === ticketId) {
+            const updated = { ...t, [field]: value };
+            if (field === 'type' && value === 'FREE') {
+                return { ...updated, price: 0, earlyBirdPrice: 0, earlyBirdLimit: 0, earlyBirdExpiry: "" };
+            }
+            return updated;
+        }
+        return t;
+    }));
+  };
+
+  const addQuantityDiscount = (ticketId: string) => {
+    setTickets(tickets.map(t => t.id === ticketId ? {
+      ...t,
+      quantityDiscounts: [...(t.quantityDiscounts || []), { minQuantity: 0, discountPercentage: 0 }]
+    } : t));
+  };
+
+  const updateQuantityDiscount = (ticketId: string, index: number, field: string, value: number) => {
+    setTickets(tickets.map(t => {
+      if (t.id === ticketId) {
+        const discounts = [...(t.quantityDiscounts || [])];
+        discounts[index] = { ...discounts[index], [field]: value };
+        return { ...t, quantityDiscounts: discounts };
+      }
+      return t;
+    }));
+  };
+
+  const removeQuantityDiscount = (ticketId: string, index: number) => {
+    setTickets(tickets.map(t => {
+      if (t.id === ticketId) {
+        const discounts = [...(t.quantityDiscounts || [])];
+        discounts.splice(index, 1);
+        return { ...t, quantityDiscounts: discounts };
+      }
+      return t;
+    }));
   };
 
   const addField = () => {
@@ -644,8 +696,8 @@ const CreateEvent = () => {
         slug: basicInfo.slug || undefined,
         isPublic: basicInfo.isPublic,
         type: basicInfo.type,
-        startDate: basicInfo.startDate ? new Date(basicInfo.startDate).toISOString() : "",
-        endDate: basicInfo.endDate ? new Date(basicInfo.endDate).toISOString() : "",
+        startDate: basicInfo.startDate ? new Date(basicInfo.startDate).toISOString() : undefined,
+        endDate: basicInfo.endDate ? new Date(basicInfo.endDate).toISOString() : undefined,
         location: basicInfo.type === 'ONLINE' ? 'Virtual' : (basicInfo.location || 'Virtual'),
         virtualLink: basicInfo.virtualLink || undefined,
         capacity: basicInfo.capacity,
@@ -706,18 +758,42 @@ const CreateEvent = () => {
 
   const createTickets = async () => {
       if (!eventId) return;
+
+      // Validate Ticket Names
+      const emptyTicket = tickets.find(t => !t.name || t.name.trim() === "");
+      if (emptyTicket) {
+          Swal.fire("Validation Error", "All ticket tiers must have a public name.", "error");
+          return;
+      }
+
       setLoading(true);
       try {
           Swal.showLoading();
           const payload = {
-              tickets: tickets.map(({ id: _, ...rest }) => ({
-                  name: rest.name,
-                  price: rest.type === 'FREE' ? 0 : rest.price,
-                  earlyBirdPrice: rest.earlyBirdPrice || undefined,
-                  earlyBirdLimit: rest.earlyBirdLimit || undefined,
-                  earlyBirdExpiry: rest.earlyBirdExpiry ? new Date(rest.earlyBirdExpiry).toISOString() : undefined,
-                  totalQuantity: rest.totalQuantity,
-              }))
+              tickets: tickets.map(({ id: _, ...rest }) => {
+                  const tPayload: any = {
+                      name: rest.name,
+                      description: rest.description,
+                      type: rest.type,
+                      price: rest.type === 'FREE' ? 0 : rest.price,
+                      totalQuantity: Math.max(1, rest.totalQuantity || 1),
+                      groupSize: rest.groupSize,
+                      allocationType: rest.allocationType,
+                      maxPerOrder: rest.maxPerOrder,
+                      salesStart: rest.salesStart ? new Date(rest.salesStart).toISOString() : undefined,
+                      salesEnd: rest.salesEnd ? new Date(rest.salesEnd).toISOString() : undefined,
+                      isOffline: rest.isOffline,
+                      quantityDiscounts: rest.quantityDiscounts
+                  };
+
+                  if (rest.type !== 'FREE') {
+                      tPayload.earlyBirdPrice = rest.earlyBirdPrice || 0;
+                      tPayload.earlyBirdLimit = rest.earlyBirdLimit || 0;
+                      tPayload.earlyBirdExpiry = rest.earlyBirdExpiry ? new Date(rest.earlyBirdExpiry).toISOString() : undefined;
+                  }
+
+                  return tPayload;
+              })
           };
           await api.post(`/events/${eventId}/tickets`, payload);
           setCurrentStep(3);
@@ -744,8 +820,8 @@ const CreateEvent = () => {
           const payload = {
               sessions: sessions.map(({ id: _, ...rest }) => ({
                   title: rest.title,
-                  startTime: rest.startTime ? new Date(rest.startTime).toISOString() : "",
-                  endTime: rest.endTime ? new Date(rest.endTime).toISOString() : "",
+                  startTime: rest.startTime ? new Date(rest.startTime).toISOString() : undefined,
+                  endTime: rest.endTime ? new Date(rest.endTime).toISOString() : undefined,
                   location: rest.location || (basicInfo.type === 'ONLINE' ? 'Virtual' : (basicInfo.location || 'Virtual'))
               }))
           };
@@ -1623,6 +1699,20 @@ const CreateEvent = () => {
                                 />
                              </div>
 
+                             <div className="space-y-3">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
+                                    <FileText size={12} className="text-secondary" />
+                                    Public Description
+                                </label>
+                                <textarea
+                                   rows={2}
+                                   placeholder="What's included in this tier? (e.g., Free drinks, Front row seating)"
+                                   className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none transition-all shadow-sm resize-none"
+                                   value={ticket.description}
+                                   onChange={(e) => updateTicket(ticket.id, "description", e.target.value)}
+                                />
+                             </div>
+
                              <div className="grid grid-cols-2 gap-8">
                                 <div className="space-y-3">
                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
@@ -1719,6 +1809,118 @@ const CreateEvent = () => {
                                             onChange={(e) => updateTicket(ticket.id, "earlyBirdExpiry", e.target.value)}
                                         />
                                     </div>
+                                </div>
+                             </div>
+
+                             <div className="pt-6 border-t border-gray-100 space-y-6">
+                                <h5 className="text-[10px] font-black text-primary uppercase tracking-[0.3em] flex items-center gap-2">
+                                    <Settings size={12} />
+                                    Advanced Sales Configuration
+                                </h5>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="text-[9px] font-bold text-gray-400 uppercase">Sales Start</label>
+                                        <input
+                                            type="datetime-local"
+                                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-[10px] font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
+                                            value={ticket.salesStart}
+                                            onChange={(e) => updateTicket(ticket.id, "salesStart", e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[9px] font-bold text-gray-400 uppercase">Sales End</label>
+                                        <input
+                                            type="datetime-local"
+                                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-[10px] font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
+                                            value={ticket.salesEnd}
+                                            onChange={(e) => updateTicket(ticket.id, "salesEnd", e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[9px] font-bold text-gray-400 uppercase">Allocation Type</label>
+                                        <select
+                                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
+                                            value={ticket.allocationType}
+                                            onChange={(e) => updateTicket(ticket.id, "allocationType", e.target.value as "GENERAL" | "RESERVED")}
+                                        >
+                                            <option value="GENERAL">General</option>
+                                            <option value="RESERVED">Reserved</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[9px] font-bold text-gray-400 uppercase">Max Per Order</label>
+                                        <input
+                                            type="number"
+                                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
+                                            value={ticket.maxPerOrder}
+                                            onChange={(e) => updateTicket(ticket.id, "maxPerOrder", parseInt(e.target.value))}
+                                        />
+                                    </div>
+                                    <div className="flex items-center gap-3 pt-6">
+                                        <input
+                                            type="checkbox"
+                                            id={`isOffline-${ticket.id}`}
+                                            className="w-4 h-4 rounded text-secondary focus:ring-secondary border-gray-300"
+                                            checked={ticket.isOffline}
+                                            onChange={(e) => updateTicket(ticket.id, "isOffline", e.target.checked)}
+                                        />
+                                        <label htmlFor={`isOffline-${ticket.id}`} className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                            Offline Ticket
+                                        </label>
+                                    </div>
+                                </div>
+                             </div>
+
+                             <div className="pt-6 border-t border-gray-100 space-y-6">
+                                <div className="flex items-center justify-between">
+                                    <h5 className="text-[10px] font-black text-primary uppercase tracking-[0.3em] flex items-center gap-2">
+                                        <Percent size={12} />
+                                        Quantity Discounts
+                                    </h5>
+                                    <button
+                                        onClick={() => addQuantityDiscount(ticket.id)}
+                                        className="text-[9px] font-black text-secondary uppercase tracking-widest hover:underline flex items-center gap-1"
+                                    >
+                                        <Plus size={10} /> Add Rule
+                                    </button>
+                                </div>
+                                <div className="space-y-4">
+                                    {ticket.quantityDiscounts?.map((discount, dIndex) => (
+                                        <div key={dIndex} className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-gray-100/50 rounded-2xl items-end">
+                                            <div className="space-y-2">
+                                                <label className="text-[8px] font-bold text-gray-400 uppercase">Min Quantity</label>
+                                                <input
+                                                    type="number"
+                                                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold outline-none"
+                                                    value={discount.minQuantity}
+                                                    onChange={(e) => updateQuantityDiscount(ticket.id, dIndex, "minQuantity", parseInt(e.target.value))}
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[8px] font-bold text-gray-400 uppercase">Discount Price</label>
+                                                <div className="relative">
+                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-primary font-black text-[9px]">₦</span>
+                                                    <input
+                                                        type="number"
+                                                        className="w-full pl-6 pr-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold outline-none"
+                                                        value={discount.price}
+                                                        onChange={(e) => updateQuantityDiscount(ticket.id, dIndex, "price", parseFloat(e.target.value))}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="flex justify-end">
+                                                <button
+                                                    onClick={() => removeQuantityDiscount(ticket.id, dIndex)}
+                                                    className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {(!ticket.quantityDiscounts || ticket.quantityDiscounts.length === 0) && (
+                                        <p className="text-[10px] text-gray-400 italic text-center py-2">No quantity discounts configured</p>
+                                    )}
                                 </div>
                              </div>
                           </div>
