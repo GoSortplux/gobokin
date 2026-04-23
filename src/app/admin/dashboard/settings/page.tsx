@@ -4,7 +4,7 @@ import withAuth from "@/components/auth/withAuth";
 import api from "@/services/api";
 import Swal from "@/utils/sweetalert";
 import LoadingSpinner from "@/components/admin/LoadingSpinner";
-import { Save, CreditCard, Clock, Shield, Info, ChevronRight, UserPlus, Contact, Plus, Trash2, Edit2, X, Phone, Mail, History, Filter, Eye } from "lucide-react";
+import { Save, CreditCard, Clock, Shield, Info, ChevronRight, UserPlus, Contact, Plus, Trash2, Edit2, X, Phone, Mail, History, Filter, Eye, Gem } from "lucide-react";
 import CustomLoader from "@/components/CustomLoader";
 import { ReferralSource, PlatformContact, AuditLog } from "@/types";
 
@@ -16,7 +16,7 @@ interface Settings {
     onlineBookingDeactivationTime: number;
 }
 
-type TabId = 'financial' | 'automation' | 'vendor' | 'referral' | 'contacts' | 'audit';
+type TabId = 'financial' | 'automation' | 'vendor' | 'premium' | 'referral' | 'contacts' | 'audit';
 
 const extractArray = <T,>(data: unknown, key?: string): T[] => {
     if (Array.isArray(data)) return data;
@@ -39,6 +39,8 @@ const SettingsPage = () => {
     const [settings, setSettings] = useState<Partial<Settings>>({});
     const [referralSources, setReferralSources] = useState<ReferralSource[]>([]);
     const [platformContacts, setPlatformContacts] = useState<PlatformContact[]>([]);
+    const [premiumEligibilityConfig, setPremiumEligibilityConfig] = useState<string>('');
+    const [premiumAreasConfig, setPremiumAreasConfig] = useState<string>('');
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<TabId>('financial');
@@ -51,14 +53,15 @@ const SettingsPage = () => {
     const fetchAllData = async () => {
         setLoading(true);
         try {
-            const [commissionRes, vatRes, pendingRes, reactivationRes, deactivationRes, referralRes, contactsRes] = await Promise.allSettled([
+            const [commissionRes, vatRes, pendingRes, reactivationRes, deactivationRes, referralRes, contactsRes, premiumRes] = await Promise.allSettled([
                 api.get('/settings/commission-rate'),
                 api.get('/settings/vat-rate'),
                 api.get('/settings/pending-booking-deletion-time'),
                 api.get('/settings/online-booking-reactivation-time'),
                 api.get('/settings/online-booking-deactivation-time'),
                 api.get('/settings/referral-sources'),
-                api.get('/settings/platform-contacts')
+                api.get('/settings/platform-contacts'),
+                api.get('/settings/premium')
             ]);
 
             const newSettings: Partial<Settings> = {};
@@ -86,6 +89,12 @@ const SettingsPage = () => {
                 setPlatformContacts(extractArray<PlatformContact>(contactsRes.value.data.data, 'platformContacts'));
             }
 
+            if (premiumRes.status === 'fulfilled') {
+                const premiumData = premiumRes.value.data.data;
+                setPremiumEligibilityConfig(JSON.stringify(premiumData.premiumEligibilityConfig || {}, null, 2));
+                setPremiumAreasConfig(JSON.stringify(premiumData.premiumAreasConfig || {}, null, 2));
+            }
+
             setSettings(newSettings);
         } catch (error) {
             console.error("Error fetching initial settings:", error);
@@ -106,6 +115,12 @@ const SettingsPage = () => {
         } else if (activeTab === 'contacts') {
             api.get('/settings/platform-contacts').then(res => {
                 setPlatformContacts(extractArray<PlatformContact>(res.data.data, 'platformContacts'));
+            }).catch(console.error);
+        } else if (activeTab === 'premium') {
+            api.get('/settings/premium').then(res => {
+                const premiumData = res.data.data;
+                setPremiumEligibilityConfig(JSON.stringify(premiumData.premiumEligibilityConfig || {}, null, 2));
+                setPremiumAreasConfig(JSON.stringify(premiumData.premiumAreasConfig || {}, null, 2));
             }).catch(console.error);
         }
     }, [activeTab]);
@@ -161,6 +176,7 @@ const SettingsPage = () => {
         { id: 'financial' as TabId, label: 'Financial Settings', icon: CreditCard, description: 'Manage platform fees and commissions' },
         { id: 'automation' as TabId, label: 'Booking Automation', icon: Clock, description: 'Configure automated booking behavior' },
         { id: 'vendor' as TabId, label: 'Vendor Controls', icon: Shield, description: 'Set limits and controls for venue owners' },
+        { id: 'premium' as TabId, label: 'Premium Configuration', icon: Gem, description: 'Manage premium eligibility and area settings' },
         { id: 'referral' as TabId, label: 'Referral Sources', icon: UserPlus, description: 'Manage options for tracking booking origins' },
         { id: 'contacts' as TabId, label: 'Platform Contacts', icon: Contact, description: 'Manage universal list of platform representatives' },
         { id: 'audit' as TabId, label: 'Audit Logs', icon: History, description: 'Track all administrative actions and system events' },
@@ -224,6 +240,38 @@ const SettingsPage = () => {
                 console.error("Error deleting referral source:", error);
                 Swal.fire('Error', 'Could not delete referral source.', 'error');
             }
+        }
+    };
+
+    const handleSavePremium = async (type: 'eligibility' | 'areas') => {
+        const configStr = type === 'eligibility' ? premiumEligibilityConfig : premiumAreasConfig;
+
+        try {
+            const config = JSON.parse(configStr);
+            setIsSaving(`premium-${type}`);
+
+            const endpoint = type === 'eligibility' ? '/settings/premium/eligibility' : '/settings/premium/areas';
+            await api.patch(endpoint, { config });
+
+            Swal.fire({
+                title: 'Success',
+                text: `Premium ${type} configuration updated.`,
+                icon: 'success',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+            });
+        } catch (error) {
+            if (error instanceof SyntaxError) {
+                Swal.fire('Invalid JSON', 'Please check your JSON format and try again.', 'error');
+            } else {
+                console.error(`Error updating premium ${type}:`, error);
+                Swal.fire('Error', `Could not update premium ${type}.`, 'error');
+            }
+        } finally {
+            setIsSaving(null);
         }
     };
 
@@ -406,6 +454,105 @@ const SettingsPage = () => {
                                 placeholder="e.g., 7.5"
                                 unit="%"
                             />
+                        </div>
+                    )}
+
+                    {activeTab === 'premium' && (
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
+                            <div className="mb-6 flex items-center gap-3">
+                                <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                                    <Gem size={20} />
+                                </div>
+                                <h2 className="text-xl font-bold text-gray-900">Premium Configuration</h2>
+                            </div>
+
+                            {/* Eligibility Config */}
+                            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+                                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-6">
+                                    <div className="flex-grow max-w-2xl">
+                                        <h3 className="text-lg font-bold text-gray-900 mb-1">Eligibility Configuration</h3>
+                                        <p className="text-sm text-gray-500 leading-relaxed">Define the criteria and weights for premium venue status eligibility.</p>
+                                    </div>
+                                    <button
+                                        onClick={() => handleSavePremium('eligibility')}
+                                        disabled={isSaving === 'premium-eligibility'}
+                                        className="bg-primary hover:bg-primary/90 text-white font-bold px-6 py-2.5 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 disabled:bg-gray-300 disabled:scale-100 shadow-sm whitespace-nowrap self-start lg:self-center"
+                                    >
+                                        {isSaving === 'premium-eligibility' ? (
+                                            <CustomLoader size={20} className="brightness-0 invert" />
+                                        ) : (
+                                            <Save size={18} />
+                                        )}
+                                        <span>Save Eligibility</span>
+                                    </button>
+                                </div>
+                                <div className="relative">
+                                    <textarea
+                                        value={premiumEligibilityConfig}
+                                        onChange={(e) => setPremiumEligibilityConfig(e.target.value)}
+                                        className="w-full h-80 p-4 bg-gray-900 text-emerald-400 font-mono text-sm rounded-xl border border-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none shadow-inner"
+                                        spellCheck={false}
+                                    />
+                                    <div className="absolute top-4 right-4 flex gap-2">
+                                        <button
+                                            onClick={() => {
+                                                try {
+                                                    setPremiumEligibilityConfig(JSON.stringify(JSON.parse(premiumEligibilityConfig), null, 2));
+                                                } catch (_e) {
+                                                    Swal.fire('Error', 'Invalid JSON format', 'error');
+                                                }
+                                            }}
+                                            className="px-2 py-1 bg-white/10 hover:bg-white/20 text-white/50 hover:text-white text-[10px] font-bold uppercase tracking-wider rounded border border-white/10 transition-all"
+                                        >
+                                            Format
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Areas Config */}
+                            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+                                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-6">
+                                    <div className="flex-grow max-w-2xl">
+                                        <h3 className="text-lg font-bold text-gray-900 mb-1">Areas Configuration</h3>
+                                        <p className="text-sm text-gray-500 leading-relaxed">Configure geographic areas, neighborhoods, and their associated weights for premium scoring.</p>
+                                    </div>
+                                    <button
+                                        onClick={() => handleSavePremium('areas')}
+                                        disabled={isSaving === 'premium-areas'}
+                                        className="bg-primary hover:bg-primary/90 text-white font-bold px-6 py-2.5 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 disabled:bg-gray-300 disabled:scale-100 shadow-sm whitespace-nowrap self-start lg:self-center"
+                                    >
+                                        {isSaving === 'premium-areas' ? (
+                                            <CustomLoader size={20} className="brightness-0 invert" />
+                                        ) : (
+                                            <Save size={18} />
+                                        )}
+                                        <span>Save Areas</span>
+                                    </button>
+                                </div>
+                                <div className="relative">
+                                    <textarea
+                                        value={premiumAreasConfig}
+                                        onChange={(e) => setPremiumAreasConfig(e.target.value)}
+                                        className="w-full h-80 p-4 bg-gray-900 text-emerald-400 font-mono text-sm rounded-xl border border-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none shadow-inner"
+                                        spellCheck={false}
+                                    />
+                                    <div className="absolute top-4 right-4 flex gap-2">
+                                        <button
+                                            onClick={() => {
+                                                try {
+                                                    setPremiumAreasConfig(JSON.stringify(JSON.parse(premiumAreasConfig), null, 2));
+                                                } catch (_e) {
+                                                    Swal.fire('Error', 'Invalid JSON format', 'error');
+                                                }
+                                            }}
+                                            className="px-2 py-1 bg-white/10 hover:bg-white/20 text-white/50 hover:text-white text-[10px] font-bold uppercase tracking-wider rounded border border-white/10 transition-all"
+                                        >
+                                            Format
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     )}
 
