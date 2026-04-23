@@ -137,3 +137,4 @@ https://nextjs.org/telemetry
  GET / 200 in 140ms
  GET / 200 in 184ms
  GET /admin/dashboard/settings 200 in 92ms
+ ✓ Compiled in 5.2s (1954 modules)

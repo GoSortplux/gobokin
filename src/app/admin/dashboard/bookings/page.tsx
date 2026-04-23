@@ -179,7 +179,7 @@ const BookingsPage = () => {
         ref.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
         ref.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         ref.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (typeof ref.hall === 'object' && (ref.hall as Venue).name.toLowerCase().includes(searchTerm.toLowerCase()))
+        (ref.hall && typeof ref.hall === 'object' && (ref.hall as Venue).name?.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   }, [referralCodes, searchTerm, selectedVenue]);
 
@@ -1175,7 +1175,7 @@ const BookingsPage = () => {
                                             <div className="text-xs text-gray-500">{ref.phone}</div>
                                         </td>
                                         <td className="py-4 px-4 text-sm text-gray-700 font-medium">
-                                            {typeof ref.hall === 'object' ? (ref.hall as Venue).name : 'N/A'}
+                                            {(ref.hall && typeof ref.hall === 'object') ? (ref.hall as Venue).name || 'N/A' : 'N/A'}
                                         </td>
                                         <td className="py-4 px-4 text-sm font-bold text-emerald-600">
                                             {ref.discountPercentage}% OFF

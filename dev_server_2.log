@@ -25,3 +25,5 @@
  GET /admin/dashboard/settings 200 in 117ms
  GET /auth/login 200 in 124ms
  GET /admin/dashboard/settings 200 in 110ms
+ ✓ Compiled in 5.9s (1803 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/app/.next/cache/webpack/client-development/3.pack.gz_' -> '/app/.next/cache/webpack/client-development/3.pack.gz'
