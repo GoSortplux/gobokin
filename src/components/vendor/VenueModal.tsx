@@ -1044,17 +1044,17 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
       <div
         role="dialog"
         aria-modal="true"
-        className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative z-10 animate-in fade-in zoom-in-95"
+        className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col relative z-10 animate-in fade-in zoom-in-95"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={handleClose}
-          className="absolute top-6 right-6 text-gray-400 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 p-2 rounded-xl transition-all cursor-pointer"
+          className="absolute top-6 right-6 text-gray-400 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 p-2 rounded-xl transition-all cursor-pointer z-20"
           aria-label="Close modal"
         >
           <X size={20} />
         </button>
-        <div className="mb-8">
+        <div className="p-8 pb-0 flex-shrink-0">
           <h2 className="text-2xl font-black text-gray-900 tracking-tighter uppercase italic">
             {venue ? (
               <>Edit <span className="text-primary not-italic">Venue</span></>
@@ -1084,7 +1084,8 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
             </div>
           )}
         </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-grow overflow-hidden">
+          <div className="p-8 pt-6 flex-grow overflow-y-auto space-y-4">
           {!venue && currentStep === 1 && userVenues.length > 0 && (
             <div className="bg-primary/5 p-4 rounded-2xl border border-primary/10 mb-6">
               <div className="flex items-center gap-2 mb-2 text-primary">
@@ -2332,7 +2333,8 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
             </>
           )}
 
-          <div className="flex justify-end mt-8 space-x-3">
+          </div>
+          <div className="p-8 flex justify-end gap-3 mt-auto bg-white border-t border-gray-50">
             {!venue && currentStep > 1 && (
               <button
                 type="button"

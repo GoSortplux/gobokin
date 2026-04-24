@@ -277,6 +277,8 @@ const SettingsPage = () => {
         setIsSaving(`premium-${type}`);
         try {
             const endpoint = type === 'eligibility' ? '/settings/premium/eligibility' : '/settings/premium/areas';
+            // Extract _id from areas if they exist, to avoid sending them back if the backend doesn't want them
+            // or just send the config as is. The user mentioned PATCH /api/v1/settings/premium/areas { config: { ... } }
             await api.patch(endpoint, { config });
 
             Swal.fire({
@@ -1229,8 +1231,8 @@ const EligibilityModal = ({ isOpen, onClose, initialData, onSave, isSaving }: {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
-                <div className="p-8 border-b flex justify-between items-center bg-gray-50/50">
+            <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+                <div className="p-8 border-b flex justify-between items-center bg-gray-50/50 flex-shrink-0">
                     <div>
                         <h2 className="text-2xl font-black text-gray-900 uppercase italic tracking-tight">Eligibility Criteria</h2>
                         <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">Configure Scoring & Weights</p>
@@ -1240,7 +1242,7 @@ const EligibilityModal = ({ isOpen, onClose, initialData, onSave, isSaving }: {
                     </button>
                 </div>
 
-                <div className="p-8 overflow-y-auto max-h-[calc(90vh-160px)] space-y-8">
+                <div className="p-8 overflow-y-auto flex-grow space-y-8">
                     {/* Basic Criteria */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
@@ -1320,7 +1322,7 @@ const EligibilityModal = ({ isOpen, onClose, initialData, onSave, isSaving }: {
                     </div>
                 </div>
 
-                <div className="p-8 bg-gray-50/50 border-t flex gap-4">
+                <div className="p-8 bg-gray-50/50 border-t flex gap-4 flex-shrink-0">
                     <button
                         onClick={onClose}
                         className="flex-1 py-4 px-6 border border-gray-200 rounded-2xl font-bold text-gray-500 hover:bg-white transition-all uppercase tracking-widest text-xs"
@@ -1353,6 +1355,27 @@ const AreasModal = ({ isOpen, onClose, initialData, onSave, isSaving }: {
         state: '',
         areas: []
     });
+    const [countries, setCountries] = useState<{ _id: string; name: string }[]>([]);
+    const [states, setStates] = useState<{ _id: string; name: string }[]>([]);
+    const [selectedCountryId, setSelectedCountryId] = useState('');
+
+    useEffect(() => {
+        if (isOpen) {
+            api.get('/locations/countries').then(res => {
+                setCountries(res.data.data);
+            }).catch(console.error);
+        }
+    }, [isOpen]);
+
+    useEffect(() => {
+        if (selectedCountryId) {
+            api.get(`/locations/states/${selectedCountryId}`).then(res => {
+                setStates(res.data.data);
+            }).catch(console.error);
+        } else {
+            setStates([]);
+        }
+    }, [selectedCountryId]);
 
     if (!isOpen) return null;
 
@@ -1375,8 +1398,8 @@ const AreasModal = ({ isOpen, onClose, initialData, onSave, isSaving }: {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
-                <div className="p-8 border-b flex justify-between items-center bg-gray-50/50">
+            <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+                <div className="p-8 border-b flex justify-between items-center bg-gray-50/50 flex-shrink-0">
                     <div>
                         <h2 className="text-2xl font-black text-gray-900 uppercase italic tracking-tight">Premium Areas</h2>
                         <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">Configure Geographic Weights</p>
@@ -1386,9 +1409,36 @@ const AreasModal = ({ isOpen, onClose, initialData, onSave, isSaving }: {
                     </button>
                 </div>
 
-                <div className="p-8 overflow-y-auto max-h-[calc(90vh-160px)] space-y-8">
+                <div className="p-8 overflow-y-auto flex-grow space-y-8">
                     {/* City & State */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-6 rounded-3xl border border-gray-100">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-gray-50 p-6 rounded-3xl border border-gray-100">
+                        <div>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Select Country</label>
+                            <select
+                                value={selectedCountryId}
+                                onChange={(e) => setSelectedCountryId(e.target.value)}
+                                className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 outline-none transition-all"
+                            >
+                                <option value="">Select Country</option>
+                                {countries.map(c => (
+                                    <option key={c._id} value={c._id}>{c.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Target State</label>
+                            <select
+                                value={config.state}
+                                onChange={(e) => setConfig({ ...config, state: e.target.value })}
+                                className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 outline-none transition-all"
+                                disabled={!selectedCountryId}
+                            >
+                                <option value="">{selectedCountryId ? 'Select State' : 'Select Country first'}</option>
+                                {states.map(s => (
+                                    <option key={s._id} value={s.name}>{s.name}</option>
+                                ))}
+                            </select>
+                        </div>
                         <div>
                             <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Target City</label>
                             <input
@@ -1396,16 +1446,6 @@ const AreasModal = ({ isOpen, onClose, initialData, onSave, isSaving }: {
                                 value={config.city}
                                 onChange={(e) => setConfig({ ...config, city: e.target.value })}
                                 placeholder="e.g. Abuja"
-                                className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 outline-none transition-all"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Target State</label>
-                            <input
-                                type="text"
-                                value={config.state}
-                                onChange={(e) => setConfig({ ...config, state: e.target.value })}
-                                placeholder="e.g. FCT"
                                 className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 outline-none transition-all"
                             />
                         </div>
@@ -1474,7 +1514,7 @@ const AreasModal = ({ isOpen, onClose, initialData, onSave, isSaving }: {
                     </div>
                 </div>
 
-                <div className="p-8 bg-gray-50/50 border-t flex gap-4">
+                <div className="p-8 bg-gray-50/50 border-t flex gap-4 flex-shrink-0">
                     <button
                         onClick={onClose}
                         className="flex-1 py-4 px-6 border border-gray-200 rounded-2xl font-bold text-gray-500 hover:bg-white transition-all uppercase tracking-widest text-xs"
