@@ -1,5 +1,5 @@
 export const isVideo = (url: string | undefined | null) => {
-  if (!url) return false;
+  if (!url || typeof url !== 'string') return false;
   const cleanUrl = url.split('?')[0].split('#')[0];
   return /\.(mp4|webm|ogg|mov|avi)$/i.test(cleanUrl) || url.includes('/video/upload/');
 };

@@ -120,12 +120,12 @@ const FeaturedShowcase = ({ venues, interval = 12000, badge = 'Featured Venue' }
           </div>
 
           {/* Content Panel */}
-          <div className="absolute inset-0 flex flex-col justify-end md:justify-center p-6 pb-20 pr-16 md:p-8 lg:p-16 text-white max-w-4xl">
+          <div className="absolute inset-0 flex flex-col justify-end md:justify-center p-6 pb-24 pr-16 md:p-8 lg:p-12 text-white max-w-4xl">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="space-y-3 md:space-y-4 lg:space-y-6 drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]"
+              className="space-y-2.5 md:space-y-4 lg:space-y-5 drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]"
             >
               <div className="flex items-center space-x-3">
                 <span className="bg-primary px-3 py-1 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-widest flex items-center shadow-lg">
@@ -140,17 +140,17 @@ const FeaturedShowcase = ({ venues, interval = 12000, badge = 'Featured Venue' }
                 )}
               </div>
 
-              <div className="space-y-1 md:space-y-2">
-                <h3 className="text-lg sm:text-2xl md:text-3xl lg:text-5xl font-black tracking-tight leading-tight line-clamp-2 overflow-hidden text-ellipsis drop-shadow-lg">
+              <div className="space-y-1">
+                <h3 className="text-lg sm:text-2xl md:text-3xl lg:text-4xl font-black tracking-tight leading-tight line-clamp-2 overflow-hidden text-ellipsis drop-shadow-lg">
                   {currentVenue.name}
                 </h3>
-                <div className="flex items-center text-gray-200 text-[10px] sm:text-base md:text-lg font-medium">
+                <div className="flex items-center text-gray-200 text-[10px] sm:text-sm md:text-base font-medium">
                   <MapPin className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-1.5 text-primary" />
                   {currentVenue.location}
                 </div>
               </div>
 
-              <p className="text-gray-300 text-[10px] sm:text-sm md:text-lg line-clamp-2 md:line-clamp-2 max-w-xl leading-relaxed font-medium">
+              <p className="text-gray-300 text-[10px] sm:text-xs md:text-base line-clamp-1 md:line-clamp-2 max-w-xl leading-relaxed font-medium opacity-90">
                 {currentVenue.description || "Experience the perfect blend of elegance and functionality at this premier venue. Ideal for corporate events, weddings, and private celebrations."}
               </p>
 
@@ -195,10 +195,10 @@ const FeaturedShowcase = ({ venues, interval = 12000, badge = 'Featured Venue' }
                 </div>
               </div>
 
-              <div className="flex items-center space-x-4 pt-2 md:pt-4">
+              <div className="flex items-center space-x-4 pt-1 md:pt-2">
                 <Link
                   href={`/venues/${slug}`}
-                  className="bg-primary hover:bg-primary-dark text-white px-6 md:px-8 py-2.5 md:py-4 rounded-full font-bold text-xs md:text-base transition-all duration-300 flex items-center group/btn shadow-xl shadow-primary/20"
+                  className="bg-primary hover:bg-primary-dark text-white px-6 md:px-8 py-2.5 md:py-3.5 rounded-full font-bold text-xs md:text-base transition-all duration-300 flex items-center group/btn shadow-xl shadow-primary/20"
                 >
                   View Details
                   <ArrowRight className="ml-1.5 w-3.5 h-3.5 md:ml-2 md:w-4 md:h-4 group-hover/btn:translate-x-1 transition-transform" />
