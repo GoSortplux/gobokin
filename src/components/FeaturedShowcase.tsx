@@ -120,37 +120,37 @@ const FeaturedShowcase = ({ venues = [], interval = 12000, badge = 'Featured Ven
           </div>
 
           {/* Content Panel */}
-          <div className="absolute inset-0 flex flex-col justify-end md:justify-center p-6 pb-24 pr-16 md:p-8 lg:p-12 text-white max-w-4xl">
+          <div className="absolute inset-0 flex flex-col justify-end md:justify-center p-5 pb-20 pr-12 md:p-8 lg:p-12 text-white max-w-4xl">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="space-y-2.5 md:space-y-4 lg:space-y-5 drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]"
+              className="space-y-1.5 md:space-y-3 lg:space-y-4 drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]"
             >
-              <div className="flex items-center space-x-3">
-                <span className="bg-primary px-3 py-1 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-widest flex items-center shadow-lg">
-                  <Zap className="w-3 h-3 mr-1 fill-current" />
+              <div className="flex items-center space-x-2 md:space-x-3">
+                <span className="bg-primary px-2.5 py-0.5 md:px-3 md:py-1 rounded-full text-[9px] md:text-xs font-bold uppercase tracking-widest flex items-center shadow-lg">
+                  <Zap className="w-2.5 h-2.5 md:w-3 md:h-3 mr-1 fill-current" />
                   {badge}
                 </span>
                 {currentVenue.averageRating > 0 && (
-                  <div className="flex items-center bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
-                    <Star className="w-3 h-3 text-yellow-400 fill-yellow-400 mr-1.5" />
-                    <span className="text-xs md:text-sm font-bold">{currentVenue.averageRating.toFixed(1)}</span>
+                  <div className="flex items-center bg-white/10 backdrop-blur-md px-2.5 py-0.5 md:px-3 md:py-1 rounded-full border border-white/20">
+                    <Star className="w-2.5 h-2.5 md:w-3 md:h-3 text-yellow-400 fill-yellow-400 mr-1.5" />
+                    <span className="text-[10px] md:text-sm font-bold">{currentVenue.averageRating.toFixed(1)}</span>
                   </div>
                 )}
               </div>
 
-              <div className="space-y-1">
-                <h3 className="text-lg sm:text-2xl md:text-3xl lg:text-4xl font-black tracking-tight leading-tight line-clamp-2 overflow-hidden text-ellipsis drop-shadow-lg">
+              <div className="space-y-0.5 md:space-y-1">
+                <h3 className="text-base sm:text-xl md:text-2xl lg:text-3xl font-black tracking-tight leading-tight line-clamp-1 md:line-clamp-2 overflow-hidden text-ellipsis drop-shadow-lg">
                   {currentVenue.name}
                 </h3>
-                <div className="flex items-center text-gray-200 text-[10px] sm:text-sm md:text-base font-medium">
-                  <MapPin className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-1.5 text-primary" />
+                <div className="flex items-center text-gray-200 text-[9px] sm:text-xs md:text-sm font-medium">
+                  <MapPin className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 mr-1 md:mr-1.5 text-primary" />
                   {currentVenue.location}
                 </div>
               </div>
 
-              <p className="text-gray-300 text-[10px] sm:text-xs md:text-base line-clamp-1 md:line-clamp-2 max-w-xl leading-relaxed font-medium opacity-90">
+              <p className="text-gray-300 text-[9px] sm:text-[11px] md:text-sm line-clamp-1 md:line-clamp-2 max-w-xl leading-relaxed font-medium opacity-90">
                 {currentVenue.description || "Experience the perfect blend of elegance and functionality at this premier venue. Ideal for corporate events, weddings, and private celebrations."}
               </p>
 

@@ -5,7 +5,7 @@ export const isVideo = (url: string | undefined | null) => {
 };
 
 export const getMediaThumbnail = (url: string | undefined | null) => {
-  if (!url) return '/venue_default.jpg';
+  if (!url || typeof url !== 'string') return '/venue_default.jpg';
 
   // Handle Cloudinary legacy thumbnails
   if (url.includes('/video/upload/')) {

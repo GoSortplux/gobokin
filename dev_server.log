@@ -1,0 +1,16 @@
+
+> gobokin-app@0.1.0 dev
+> next dev
+
+ ⚠ Port 3000 is in use by an unknown process, using available port 3006 instead.
+   ▲ Next.js 15.5.9
+   - Local:        http://localhost:3006
+   - Network:      http://192.168.0.2:3006
+
+ ✓ Starting...
+ ✓ Ready in 3.3s
+ ○ Compiling /test-task ...
+ ✓ Compiled /test-task in 17.2s (3756 modules)
+ GET /test-task 200 in 20359ms
+ GET /test-task 200 in 208ms
+ ✓ Compiled in 4.3s (751 modules)
