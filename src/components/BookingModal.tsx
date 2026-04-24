@@ -2,7 +2,7 @@
 
 import { FC, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, ChevronDown } from 'lucide-react';
+import { X, ChevronDown, Sparkles } from 'lucide-react';
 import api from '@/services/api';
 import CustomLoader from './CustomLoader';
 import Calendar from './Calendar';
@@ -245,6 +245,8 @@ const BookingModal: FC<BookingModalProps> = ({
     if (venue && selectedDates && selectedDates.length > 0) {
       const dailyRate = venue.pricing.dailyRate || 0;
       const hourlyRate = venue.pricing.hourlyRate || 0;
+      const blockRate = venue.pricing.blockRate || 0;
+      const blockDurationHours = venue.pricing.blockDurationHours || 0;
       const numberOfDays = selectedDates.length;
       const openTime = `${(venue.openingHour || 0).toString().padStart(2, '0')}:00`;
       const closeTime = `${(venue.closingHour || 24).toString().padStart(2, '0')}:00`;
@@ -254,20 +256,27 @@ const BookingModal: FC<BookingModalProps> = ({
         selectedDates.forEach(date => {
           const times = dateTimes[date.toDateString()] || { startTime, endTime };
           if (times.startTime && times.endTime) {
-            const isFullDay = times.startTime === openTime && times.endTime === closeTime;
-            if ((isFullDay || hourlyRate <= 0) && dailyRate > 0) {
-              calculatedHallCost += dailyRate;
-            } else if (hourlyRate > 0) {
-              const [startH, startM] = times.startTime.split(':').map(Number);
-              const [endH, endM] = times.endTime.split(':').map(Number);
-              const diff = (endH + endM / 60) - (startH + startM / 60);
-              if (diff > 0) calculatedHallCost += (hourlyRate * diff);
+            const [startH, startM] = times.startTime.split(':').map(Number);
+            const [endH, endM] = times.endTime.split(':').map(Number);
+            const diff = (endH + endM / 60) - (startH + startM / 60);
+
+            if (blockRate > 0 && blockDurationHours > 0 && diff <= blockDurationHours) {
+              calculatedHallCost += blockRate;
+            } else {
+              const isFullDay = times.startTime === openTime && times.endTime === closeTime;
+              if ((isFullDay || hourlyRate <= 0) && dailyRate > 0) {
+                calculatedHallCost += dailyRate;
+              } else if (hourlyRate > 0) {
+                if (diff > 0) calculatedHallCost += (hourlyRate * diff);
+              }
             }
           }
         });
       } else {
         const isFullDay = startTime === openTime && endTime === closeTime;
-        if ((isFullDay || hourlyRate <= 0) && dailyRate > 0) {
+        if (blockRate > 0 && blockDurationHours > 0 && durationInHours <= blockDurationHours && !isFullDay) {
+          calculatedHallCost = blockRate * numberOfDays;
+        } else if ((isFullDay || hourlyRate <= 0) && dailyRate > 0) {
           calculatedHallCost = dailyRate * numberOfDays;
         } else if (hourlyRate > 0) {
           calculatedHallCost = hourlyRate * durationInHours * numberOfDays;
@@ -560,9 +569,21 @@ const BookingModal: FC<BookingModalProps> = ({
             setError(`Please select start and end times for ${date.toLocaleDateString()}.`);
             return;
           }
+
+          const [startH, startM] = times.startTime.split(':').map(Number);
+          const [endH, endM] = times.endTime.split(':').map(Number);
+          const diff = (endH + endM / 60) - (startH + startM / 60);
+
+          if (venue?.pricing.blockDurationHours && diff > venue.pricing.blockDurationHours) {
+            setError(`The selected duration for ${date.toLocaleDateString()} (${diff} hours) exceeds the allowed limit of ${venue.pricing.blockDurationHours} hours for this venue.`);
+            return;
+          }
         }
       } else if (!startTime || !endTime) {
         setError('Please select start and end times.');
+        return;
+      } else if (venue?.pricing.blockDurationHours && durationInHours > venue.pricing.blockDurationHours) {
+        setError(`The selected duration (${durationInHours} hours) exceeds the allowed limit of ${venue.pricing.blockDurationHours} hours for this venue.`);
         return;
       }
 
@@ -733,6 +754,20 @@ const BookingModal: FC<BookingModalProps> = ({
                     Select Times
                   </h3>
                   <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                    {venue?.pricing.blockRate && venue.pricing.blockDurationHours && (
+                      <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
+                         <div className="p-1.5 bg-white rounded-lg text-amber-600 shadow-sm">
+                            <Sparkles size={14} />
+                         </div>
+                         <div>
+                            <p className="text-xs font-bold text-amber-900 leading-tight">Block Rate Active</p>
+                            <p className="text-[10px] text-amber-700 font-medium mt-0.5">
+                              This venue offers a special rate of ₦{venue.pricing.blockRate.toLocaleString()} for up to {venue.pricing.blockDurationHours} hours.
+                              Selection is limited to {venue.pricing.blockDurationHours} hours.
+                            </p>
+                         </div>
+                      </div>
+                    )}
                     {!usePerDateTimes ? (
                       <div className="space-y-4">
                         {isAllFullyAvailable && (

@@ -47,6 +47,8 @@ interface VenueData {
     perHour?: number;
     dailyRate?: number;
     perDay?: number;
+    blockRate?: number;
+    blockDurationHours?: number;
   };
   facilities?: Array<{
     facility?: string | { _id: string; name: string };
@@ -139,6 +141,8 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
       location: '',
       hourlyRate: 0,
       dailyRate: 0,
+      blockRate: 0,
+      blockDurationHours: 0,
       facilities: [] as Facility[],
       suitableFor: [] as string[],
       carParkCapacity: 0,
@@ -215,6 +219,8 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
     location: '',
     hourlyRate: 0,
     dailyRate: 0,
+    blockRate: 0,
+    blockDurationHours: 0,
     facilities: [] as Facility[],
     suitableFor: [] as string[],
     carParkCapacity: 0,
@@ -374,6 +380,8 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
         location: venue.location || '',
         hourlyRate: venue.pricing?.hourlyRate || venue.pricing?.perHour || 0,
         dailyRate: venue.pricing?.dailyRate || venue.pricing?.perDay || 0,
+        blockRate: venue.pricing?.blockRate || 0,
+        blockDurationHours: venue.pricing?.blockDurationHours || 0,
         facilities: mappedFacilities as Facility[],
         suitableFor: venue.suitableFor ? venue.suitableFor.map((s) => typeof s === 'string' ? s : (s as { _id?: string; id?: string })._id || (s as { _id?: string; id?: string }).id || '') : [],
         carParkCapacity: venue.carParkCapacity || 0,
@@ -427,6 +435,8 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
             location: '',
             hourlyRate: 0,
             dailyRate: 0,
+            blockRate: 0,
+            blockDurationHours: 0,
             facilities: [],
             suitableFor: [],
             carParkCapacity: 0,
@@ -483,6 +493,8 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
         location: '',
         hourlyRate: 0,
         dailyRate: 0,
+        blockRate: 0,
+        blockDurationHours: 0,
         facilities: [],
         suitableFor: [],
         carParkCapacity: 0,
@@ -657,6 +669,8 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
         closingHour: formatTime(config.closingHour, prev.closingHour as string),
         hourlyRate: config.pricing?.hourlyRate || config.pricing?.perHour || 0,
         dailyRate: config.pricing?.dailyRate || config.pricing?.perDay || 0,
+        blockRate: config.pricing?.blockRate || 0,
+        blockDurationHours: config.pricing?.blockDurationHours || 0,
         facilities: (config.facilities || []).map((fac: {
           facility?: string | { _id: string; name: string };
           name?: string;
@@ -857,10 +871,12 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
         return;
       }
 
-      const { hourlyRate, dailyRate, facilities: _facilities, openingHour, closingHour, country, state, localGovernment, ...rest } = formData;
+      const { hourlyRate, dailyRate, blockRate, blockDurationHours, facilities: _facilities, openingHour, closingHour, country, state, localGovernment, ...rest } = formData;
       const pricing = {
         hourlyRate: Number(hourlyRate),
         dailyRate: Number(dailyRate),
+        blockRate: Number(blockRate),
+        blockDurationHours: Number(blockDurationHours),
       };
       const rulesArray = formData.rules.split('\n').filter(rule => rule.trim() !== '');
 
@@ -961,6 +977,8 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
         pricing: {
           hourlyRate: Number(formData.hourlyRate),
           dailyRate: Number(formData.dailyRate),
+          blockRate: Number(formData.blockRate),
+          blockDurationHours: Number(formData.blockDurationHours),
         },
         facilities: facilitiesPayload,
         carParkCapacity: Number(formData.carParkCapacity),
@@ -1044,17 +1062,17 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
       <div
         role="dialog"
         aria-modal="true"
-        className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative z-10 animate-in fade-in zoom-in-95"
+        className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col relative z-10 animate-in fade-in zoom-in-95"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={handleClose}
-          className="absolute top-6 right-6 text-gray-400 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 p-2 rounded-xl transition-all cursor-pointer"
+          className="absolute top-6 right-6 text-gray-400 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 p-2 rounded-xl transition-all cursor-pointer z-20"
           aria-label="Close modal"
         >
           <X size={20} />
         </button>
-        <div className="mb-8">
+        <div className="p-8 pb-0 flex-shrink-0">
           <h2 className="text-2xl font-black text-gray-900 tracking-tighter uppercase italic">
             {venue ? (
               <>Edit <span className="text-primary not-italic">Venue</span></>
@@ -1084,7 +1102,8 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
             </div>
           )}
         </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-grow overflow-hidden">
+          <div className="p-8 pt-6 flex-grow overflow-y-auto space-y-4">
           {!venue && currentStep === 1 && userVenues.length > 0 && (
             <div className="bg-primary/5 p-4 rounded-2xl border border-primary/10 mb-6">
               <div className="flex items-center gap-2 mb-2 text-primary">
@@ -1185,6 +1204,19 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
                     <input type="number" name="dailyRate" placeholder="Enter Price Per Day" value={formData.dailyRate} onChange={handleChange} className={`w-full pl-7 pr-4 py-2 border ${errors.dailyRate ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-900 placeholder-gray-500`} />
                   </div>
                   {errors.dailyRate && <p className="text-red-500 text-xs mt-1">{errors.dailyRate}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-800">Block Rate</label>
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₦</span>
+                    <input type="number" name="blockRate" placeholder="e.g. 500,000" value={formData.blockRate} onChange={handleChange} className="w-full pl-7 pr-4 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500" />
+                  </div>
+                  <p className="text-[10px] text-gray-500 mt-1 italic leading-tight">Price for a fixed block of time.</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-800">Block Duration (Hours)</label>
+                  <input type="number" name="blockDurationHours" placeholder="e.g. 6" value={formData.blockDurationHours} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500" />
+                  <p className="text-[10px] text-gray-500 mt-1 italic leading-tight">Hours included in the block rate.</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-800">Car Park Capacity</label>
@@ -1847,6 +1879,19 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
                       {errors.dailyRate && <p className="text-red-500 text-xs mt-1">{errors.dailyRate}</p>}
                     </div>
                     <div>
+                      <label className="block text-sm font-medium text-gray-800">Block Rate</label>
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₦</span>
+                        <input type="number" name="blockRate" placeholder="e.g. 500,000" value={formData.blockRate} onChange={handleChange} className="w-full pl-7 pr-4 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500" />
+                      </div>
+                      <p className="text-[10px] text-gray-500 mt-1 italic leading-tight">Price for a fixed block of time.</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-800">Block Duration (Hours)</label>
+                      <input type="number" name="blockDurationHours" placeholder="e.g. 6" value={formData.blockDurationHours} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500" />
+                      <p className="text-[10px] text-gray-500 mt-1 italic leading-tight">Hours included in the block rate.</p>
+                    </div>
+                    <div>
                       <label className="block text-sm font-medium text-gray-800">Car Park Capacity</label>
                       <input type="number" name="carParkCapacity" placeholder="Enter Car Park Capacity" value={formData.carParkCapacity} onChange={handleChange} className={`w-full px-4 py-2 border ${errors.carParkCapacity ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-900 placeholder-gray-500`} />
                       {errors.carParkCapacity && <p className="text-red-500 text-xs mt-1">{errors.carParkCapacity}</p>}
@@ -2332,7 +2377,8 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
             </>
           )}
 
-          <div className="flex justify-end mt-8 space-x-3">
+          </div>
+          <div className="p-8 flex justify-end gap-3 mt-auto bg-white border-t border-gray-50">
             {!venue && currentStep > 1 && (
               <button
                 type="button"

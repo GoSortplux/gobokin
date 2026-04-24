@@ -4,7 +4,7 @@ import withAuth from "@/components/auth/withAuth";
 import api from "@/services/api";
 import Swal from "@/utils/sweetalert";
 import LoadingSpinner from "@/components/admin/LoadingSpinner";
-import { Save, CreditCard, Clock, Shield, Info, ChevronRight, UserPlus, Contact, Plus, Trash2, Edit2, X, Phone, Mail, History, Filter, Eye } from "lucide-react";
+import { Save, CreditCard, Clock, Shield, Info, ChevronRight, UserPlus, Contact, Plus, Trash2, Edit2, X, Phone, Mail, History, Filter, Eye, Gem, MapPin, Settings2, Trash } from "lucide-react";
 import CustomLoader from "@/components/CustomLoader";
 import { ReferralSource, PlatformContact, AuditLog } from "@/types";
 
@@ -16,7 +16,35 @@ interface Settings {
     onlineBookingDeactivationTime: number;
 }
 
-type TabId = 'financial' | 'automation' | 'vendor' | 'referral' | 'contacts' | 'audit';
+interface PremiumEligibilityConfig {
+    minImages: number;
+    minimumRating: number;
+    minimumReviews: number;
+    minimumPremiumDailyRate: number;
+    scoreThreshold: number;
+    weights: {
+        premiumArea: number;
+        facilities: number;
+        suitability: number;
+        pricing: number;
+        reputation: number;
+    };
+}
+
+interface PremiumArea {
+    name: string;
+    state: string;
+    neighborhoods: string[];
+    weight: number;
+}
+
+interface PremiumAreasConfig {
+    city: string;
+    state: string;
+    areas: PremiumArea[];
+}
+
+type TabId = 'financial' | 'automation' | 'vendor' | 'premium' | 'referral' | 'contacts' | 'audit';
 
 const extractArray = <T,>(data: unknown, key?: string): T[] => {
     if (Array.isArray(data)) return data;
@@ -39,6 +67,10 @@ const SettingsPage = () => {
     const [settings, setSettings] = useState<Partial<Settings>>({});
     const [referralSources, setReferralSources] = useState<ReferralSource[]>([]);
     const [platformContacts, setPlatformContacts] = useState<PlatformContact[]>([]);
+    const [premiumEligibilityConfig, setPremiumEligibilityConfig] = useState<PremiumEligibilityConfig | null>(null);
+    const [premiumAreasConfig, setPremiumAreasConfig] = useState<PremiumAreasConfig | null>(null);
+    const [isEligibilityModalOpen, setIsEligibilityModalOpen] = useState(false);
+    const [isAreasModalOpen, setIsAreasModalOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<TabId>('financial');
@@ -51,14 +83,15 @@ const SettingsPage = () => {
     const fetchAllData = async () => {
         setLoading(true);
         try {
-            const [commissionRes, vatRes, pendingRes, reactivationRes, deactivationRes, referralRes, contactsRes] = await Promise.allSettled([
+            const [commissionRes, vatRes, pendingRes, reactivationRes, deactivationRes, referralRes, contactsRes, premiumRes] = await Promise.allSettled([
                 api.get('/settings/commission-rate'),
                 api.get('/settings/vat-rate'),
                 api.get('/settings/pending-booking-deletion-time'),
                 api.get('/settings/online-booking-reactivation-time'),
                 api.get('/settings/online-booking-deactivation-time'),
                 api.get('/settings/referral-sources'),
-                api.get('/settings/platform-contacts')
+                api.get('/settings/platform-contacts'),
+                api.get('/settings/premium')
             ]);
 
             const newSettings: Partial<Settings> = {};
@@ -86,6 +119,12 @@ const SettingsPage = () => {
                 setPlatformContacts(extractArray<PlatformContact>(contactsRes.value.data.data, 'platformContacts'));
             }
 
+            if (premiumRes.status === 'fulfilled') {
+                const premiumData = premiumRes.value.data.data;
+                setPremiumEligibilityConfig(premiumData.premiumEligibilityConfig || null);
+                setPremiumAreasConfig(premiumData.premiumAreasConfig || null);
+            }
+
             setSettings(newSettings);
         } catch (error) {
             console.error("Error fetching initial settings:", error);
@@ -106,6 +145,12 @@ const SettingsPage = () => {
         } else if (activeTab === 'contacts') {
             api.get('/settings/platform-contacts').then(res => {
                 setPlatformContacts(extractArray<PlatformContact>(res.data.data, 'platformContacts'));
+            }).catch(console.error);
+        } else if (activeTab === 'premium') {
+            api.get('/settings/premium').then(res => {
+                const premiumData = res.data.data;
+                setPremiumEligibilityConfig(premiumData.premiumEligibilityConfig || null);
+                setPremiumAreasConfig(premiumData.premiumAreasConfig || null);
             }).catch(console.error);
         }
     }, [activeTab]);
@@ -161,6 +206,7 @@ const SettingsPage = () => {
         { id: 'financial' as TabId, label: 'Financial Settings', icon: CreditCard, description: 'Manage platform fees and commissions' },
         { id: 'automation' as TabId, label: 'Booking Automation', icon: Clock, description: 'Configure automated booking behavior' },
         { id: 'vendor' as TabId, label: 'Vendor Controls', icon: Shield, description: 'Set limits and controls for venue owners' },
+        { id: 'premium' as TabId, label: 'Premium Configuration', icon: Gem, description: 'Manage premium eligibility and area settings' },
         { id: 'referral' as TabId, label: 'Referral Sources', icon: UserPlus, description: 'Manage options for tracking booking origins' },
         { id: 'contacts' as TabId, label: 'Platform Contacts', icon: Contact, description: 'Manage universal list of platform representatives' },
         { id: 'audit' as TabId, label: 'Audit Logs', icon: History, description: 'Track all administrative actions and system events' },
@@ -224,6 +270,41 @@ const SettingsPage = () => {
                 console.error("Error deleting referral source:", error);
                 Swal.fire('Error', 'Could not delete referral source.', 'error');
             }
+        }
+    };
+
+    const handleSavePremium = async (type: 'eligibility' | 'areas', config: unknown) => {
+        setIsSaving(`premium-${type}`);
+        try {
+            const endpoint = type === 'eligibility' ? '/settings/premium/eligibility' : '/settings/premium/areas';
+            // Extract _id from areas if they exist, to avoid sending them back if the backend doesn't want them
+            // or just send the config as is. The user mentioned PATCH /api/v1/settings/premium/areas { config: { ... } }
+            await api.patch(endpoint, { config });
+
+            Swal.fire({
+                title: 'Success',
+                text: `Premium ${type} configuration updated.`,
+                icon: 'success',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+            });
+
+            // Refresh data
+            const res = await api.get('/settings/premium');
+            const premiumData = res.data.data;
+            setPremiumEligibilityConfig(premiumData.premiumEligibilityConfig || null);
+            setPremiumAreasConfig(premiumData.premiumAreasConfig || null);
+
+            if (type === 'eligibility') setIsEligibilityModalOpen(false);
+            else setIsAreasModalOpen(false);
+        } catch (error) {
+            console.error(`Error updating premium ${type}:`, error);
+            Swal.fire('Error', `Could not update premium ${type}.`, 'error');
+        } finally {
+            setIsSaving(null);
         }
     };
 
@@ -406,6 +487,85 @@ const SettingsPage = () => {
                                 placeholder="e.g., 7.5"
                                 unit="%"
                             />
+                        </div>
+                    )}
+
+                    {activeTab === 'premium' && (
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
+                            <div className="mb-6 flex items-center gap-3">
+                                <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                                    <Gem size={20} />
+                                </div>
+                                <h2 className="text-xl font-bold text-gray-900">Premium Configuration</h2>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Eligibility Summary */}
+                                <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 hover:shadow-md transition-all group">
+                                    <div className="flex justify-between items-start mb-6">
+                                        <div className="p-3 bg-primary/5 rounded-2xl text-primary group-hover:scale-110 transition-transform">
+                                            <Settings2 size={24} />
+                                        </div>
+                                        <button
+                                            onClick={() => setIsEligibilityModalOpen(true)}
+                                            className="text-xs font-bold text-primary hover:text-primary-dark uppercase tracking-widest bg-primary/10 px-4 py-2 rounded-xl transition-all active:scale-95"
+                                        >
+                                            Edit Configuration
+                                        </button>
+                                    </div>
+                                    <h3 className="text-xl font-bold text-gray-900 mb-2">Eligibility Rules</h3>
+                                    <p className="text-sm text-gray-500 mb-6 leading-relaxed">Criteria for halls to attain premium status based on reviews, ratings, and pricing.</p>
+
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Min Images</span>
+                                            <span className="text-sm font-black text-gray-900">{premiumEligibilityConfig?.minImages || 0}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Min Rating</span>
+                                            <span className="text-sm font-black text-gray-900">{premiumEligibilityConfig?.minimumRating || 0}/5</span>
+                                        </div>
+                                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Score Threshold</span>
+                                            <span className="text-sm font-black text-primary">{premiumEligibilityConfig?.scoreThreshold || 0}%</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Areas Summary */}
+                                <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 hover:shadow-md transition-all group">
+                                    <div className="flex justify-between items-start mb-6">
+                                        <div className="p-3 bg-primary/5 rounded-2xl text-primary group-hover:scale-110 transition-transform">
+                                            <MapPin size={24} />
+                                        </div>
+                                        <button
+                                            onClick={() => setIsAreasModalOpen(true)}
+                                            className="text-xs font-bold text-primary hover:text-primary-dark uppercase tracking-widest bg-primary/10 px-4 py-2 rounded-xl transition-all active:scale-95"
+                                        >
+                                            Manage Areas
+                                        </button>
+                                    </div>
+                                    <h3 className="text-xl font-bold text-gray-900 mb-2">Premium Areas</h3>
+                                    <p className="text-sm text-gray-500 mb-6 leading-relaxed">Geographic targeting for {premiumAreasConfig?.city || 'unspecified cities'}.</p>
+
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Target City</span>
+                                            <span className="text-sm font-black text-gray-900">{premiumAreasConfig?.city || 'N/A'} ({premiumAreasConfig?.state || 'N/A'})</span>
+                                        </div>
+                                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Configured Areas</span>
+                                            <span className="text-sm font-black text-gray-900">{premiumAreasConfig?.areas?.length || 0} Areas</span>
+                                        </div>
+                                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Neighborhoods</span>
+                                            <span className="text-sm font-black text-primary">
+                                                {premiumAreasConfig?.areas?.reduce((acc, area) => acc + area.neighborhoods.length, 0) || 0}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     )}
 
@@ -690,6 +850,22 @@ const SettingsPage = () => {
             )}
 
             {/* Contact Modal */}
+            <EligibilityModal
+                isOpen={isEligibilityModalOpen}
+                onClose={() => setIsEligibilityModalOpen(false)}
+                initialData={premiumEligibilityConfig}
+                onSave={(config) => handleSavePremium('eligibility', config)}
+                isSaving={isSaving === 'premium-eligibility'}
+            />
+
+            <AreasModal
+                isOpen={isAreasModalOpen}
+                onClose={() => setIsAreasModalOpen(false)}
+                initialData={premiumAreasConfig}
+                onSave={(config) => handleSavePremium('areas', config)}
+                isSaving={isSaving === 'premium-areas'}
+            />
+
             {isContactModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
                     <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95">
@@ -1025,6 +1201,336 @@ const AuditLogsTab = () => {
                     </div>
                 </div>
             )}
+        </div>
+    );
+};
+
+const EligibilityModal = ({ isOpen, onClose, initialData, onSave, isSaving }: {
+    isOpen: boolean;
+    onClose: () => void;
+    initialData: PremiumEligibilityConfig | null;
+    onSave: (config: PremiumEligibilityConfig) => void;
+    isSaving: boolean;
+}) => {
+    const [config, setConfig] = useState<PremiumEligibilityConfig>(initialData || {
+        minImages: 0,
+        minimumRating: 0,
+        minimumReviews: 0,
+        minimumPremiumDailyRate: 0,
+        scoreThreshold: 0,
+        weights: {
+            premiumArea: 0,
+            facilities: 0,
+            suitability: 0,
+            pricing: 0,
+            reputation: 0
+        }
+    });
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+                <div className="p-8 border-b flex justify-between items-center bg-gray-50/50 flex-shrink-0">
+                    <div>
+                        <h2 className="text-2xl font-black text-gray-900 uppercase italic tracking-tight">Eligibility Criteria</h2>
+                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">Configure Scoring & Weights</p>
+                    </div>
+                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-2 rounded-2xl bg-white shadow-sm transition-all hover:scale-110">
+                        <X size={24} />
+                    </button>
+                </div>
+
+                <div className="p-8 overflow-y-auto flex-grow space-y-8">
+                    {/* Basic Criteria */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Minimum Images</label>
+                            <input
+                                type="number"
+                                value={config.minImages}
+                                onChange={(e) => setConfig({ ...config, minImages: parseInt(e.target.value) || 0 })}
+                                className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 outline-none transition-all"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Minimum Rating</label>
+                            <input
+                                type="number"
+                                step="0.1"
+                                max="5"
+                                value={config.minimumRating}
+                                onChange={(e) => setConfig({ ...config, minimumRating: parseFloat(e.target.value) || 0 })}
+                                className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 outline-none transition-all"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Minimum Reviews</label>
+                            <input
+                                type="number"
+                                value={config.minimumReviews}
+                                onChange={(e) => setConfig({ ...config, minimumReviews: parseInt(e.target.value) || 0 })}
+                                className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 outline-none transition-all"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Min Daily Rate (₦)</label>
+                            <input
+                                type="number"
+                                value={config.minimumPremiumDailyRate}
+                                onChange={(e) => setConfig({ ...config, minimumPremiumDailyRate: parseInt(e.target.value) || 0 })}
+                                className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 outline-none transition-all"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="pt-6 border-t border-gray-100">
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6 ml-1">Scoring Weights (%)</label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {Object.entries(config.weights).map(([key, value]) => (
+                                <div key={key}>
+                                    <label className="block text-[10px] font-bold text-gray-500 uppercase mb-2 ml-1 capitalize">{key.replace(/([A-Z])/g, ' $1')}</label>
+                                    <input
+                                        type="number"
+                                        value={value}
+                                        onChange={(e) => setConfig({
+                                            ...config,
+                                            weights: { ...config.weights, [key]: parseInt(e.target.value) || 0 }
+                                        })}
+                                        className="w-full px-5 py-3 bg-white border border-gray-200 rounded-xl text-sm font-black focus:ring-4 focus:ring-primary/10 outline-none transition-all"
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                        <div className="mt-6 p-4 bg-primary/5 rounded-2xl border border-primary/10 flex justify-between items-center">
+                            <span className="text-xs font-bold text-primary uppercase tracking-widest">Total Weight</span>
+                            <span className={`text-lg font-black ${Object.values(config.weights).reduce((a, b) => a + b, 0) === 100 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                {Object.values(config.weights).reduce((a, b) => a + b, 0)}%
+                            </span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Overall Score Threshold (%)</label>
+                        <input
+                            type="number"
+                            value={config.scoreThreshold}
+                            onChange={(e) => setConfig({ ...config, scoreThreshold: parseInt(e.target.value) || 0 })}
+                            className="w-full px-5 py-4 bg-gray-900 text-emerald-400 border-none rounded-2xl text-xl font-black focus:ring-4 focus:ring-primary/20 outline-none transition-all shadow-inner"
+                        />
+                    </div>
+                </div>
+
+                <div className="p-8 bg-gray-50/50 border-t flex gap-4 flex-shrink-0">
+                    <button
+                        onClick={onClose}
+                        className="flex-1 py-4 px-6 border border-gray-200 rounded-2xl font-bold text-gray-500 hover:bg-white transition-all uppercase tracking-widest text-xs"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={() => onSave(config)}
+                        disabled={isSaving}
+                        className="flex-[2] py-4 px-6 bg-primary text-white rounded-2xl font-black hover:bg-primary-dark transition-all uppercase tracking-widest text-xs shadow-xl shadow-primary/20 flex items-center justify-center gap-3 disabled:opacity-50"
+                    >
+                        {isSaving ? <CustomLoader size={20} className="brightness-0 invert" /> : <Save size={18} />}
+                        <span>Save Configuration</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const AreasModal = ({ isOpen, onClose, initialData, onSave, isSaving }: {
+    isOpen: boolean;
+    onClose: () => void;
+    initialData: PremiumAreasConfig | null;
+    onSave: (config: PremiumAreasConfig) => void;
+    isSaving: boolean;
+}) => {
+    const [config, setConfig] = useState<PremiumAreasConfig>(initialData || {
+        city: '',
+        state: '',
+        areas: []
+    });
+    const [countries, setCountries] = useState<{ _id: string; name: string }[]>([]);
+    const [states, setStates] = useState<{ _id: string; name: string }[]>([]);
+    const [selectedCountryId, setSelectedCountryId] = useState('');
+
+    useEffect(() => {
+        if (isOpen) {
+            api.get('/locations/countries').then(res => {
+                setCountries(res.data.data);
+            }).catch(console.error);
+        }
+    }, [isOpen]);
+
+    useEffect(() => {
+        if (selectedCountryId) {
+            api.get(`/locations/states/${selectedCountryId}`).then(res => {
+                setStates(res.data.data);
+            }).catch(console.error);
+        } else {
+            setStates([]);
+        }
+    }, [selectedCountryId]);
+
+    if (!isOpen) return null;
+
+    const addArea = () => {
+        setConfig({
+            ...config,
+            areas: [...config.areas, { name: '', state: config.state, neighborhoods: [], weight: 0 }]
+        });
+    };
+
+    const updateArea = (index: number, field: keyof PremiumArea, value: string | number | string[]) => {
+        const newAreas = [...config.areas];
+        newAreas[index] = { ...newAreas[index], [field]: value };
+        setConfig({ ...config, areas: newAreas });
+    };
+
+    const removeArea = (index: number) => {
+        setConfig({ ...config, areas: config.areas.filter((_, i) => i !== index) });
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+                <div className="p-8 border-b flex justify-between items-center bg-gray-50/50 flex-shrink-0">
+                    <div>
+                        <h2 className="text-2xl font-black text-gray-900 uppercase italic tracking-tight">Premium Areas</h2>
+                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">Configure Geographic Weights</p>
+                    </div>
+                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-2 rounded-2xl bg-white shadow-sm transition-all hover:scale-110">
+                        <X size={24} />
+                    </button>
+                </div>
+
+                <div className="p-8 overflow-y-auto flex-grow space-y-8">
+                    {/* City & State */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-gray-50 p-6 rounded-3xl border border-gray-100">
+                        <div>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Select Country</label>
+                            <select
+                                value={selectedCountryId}
+                                onChange={(e) => setSelectedCountryId(e.target.value)}
+                                className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 outline-none transition-all"
+                            >
+                                <option value="">Select Country</option>
+                                {countries.map(c => (
+                                    <option key={c._id} value={c._id}>{c.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Target State</label>
+                            <select
+                                value={config.state}
+                                onChange={(e) => setConfig({ ...config, state: e.target.value })}
+                                className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 outline-none transition-all"
+                                disabled={!selectedCountryId}
+                            >
+                                <option value="">{selectedCountryId ? 'Select State' : 'Select Country first'}</option>
+                                {states.map(s => (
+                                    <option key={s._id} value={s.name}>{s.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Target City</label>
+                            <input
+                                type="text"
+                                value={config.city}
+                                onChange={(e) => setConfig({ ...config, city: e.target.value })}
+                                placeholder="e.g. Abuja"
+                                className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 outline-none transition-all"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-6">
+                        <div className="flex justify-between items-center px-1">
+                            <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">Weighted Areas ({config.areas.length})</h3>
+                            <button
+                                onClick={addArea}
+                                className="text-xs font-bold text-primary hover:text-primary-dark uppercase tracking-widest bg-primary/10 px-4 py-2 rounded-xl transition-all flex items-center gap-2"
+                            >
+                                <Plus size={16} /> Add Area
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
+                            {config.areas.map((area, idx) => (
+                                <div key={idx} className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm hover:shadow-md transition-all">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2">Area Name</label>
+                                            <input
+                                                type="text"
+                                                value={area.name}
+                                                onChange={(e) => updateArea(idx, 'name', e.target.value)}
+                                                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold outline-none"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2">Weight</label>
+                                            <input
+                                                type="number"
+                                                value={area.weight}
+                                                onChange={(e) => updateArea(idx, 'weight', parseInt(e.target.value) || 0)}
+                                                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold outline-none"
+                                            />
+                                        </div>
+                                        <div className="flex items-end">
+                                            <button
+                                                onClick={() => removeArea(idx)}
+                                                className="w-full py-2.5 bg-rose-50 text-rose-600 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-rose-100 transition-all flex items-center justify-center gap-2"
+                                            >
+                                                <Trash size={14} /> Remove
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2">Neighborhoods (Comma separated)</label>
+                                        <input
+                                            type="text"
+                                            value={area.neighborhoods.join(', ')}
+                                            onChange={(e) => updateArea(idx, 'neighborhoods', e.target.value.split(',').map(s => s.trim()).filter(s => s !== ''))}
+                                            placeholder="e.g. Maitama, Wuse 2"
+                                            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold outline-none"
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                            {config.areas.length === 0 && (
+                                <div className="text-center py-12 border-2 border-dashed border-gray-100 rounded-[2rem]">
+                                    <p className="text-gray-400 text-sm font-medium italic">No premium areas configured yet.</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="p-8 bg-gray-50/50 border-t flex gap-4 flex-shrink-0">
+                    <button
+                        onClick={onClose}
+                        className="flex-1 py-4 px-6 border border-gray-200 rounded-2xl font-bold text-gray-500 hover:bg-white transition-all uppercase tracking-widest text-xs"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={() => onSave(config)}
+                        disabled={isSaving}
+                        className="flex-[2] py-4 px-6 bg-primary text-white rounded-2xl font-black hover:bg-primary-dark transition-all uppercase tracking-widest text-xs shadow-xl shadow-primary/20 flex items-center justify-center gap-3 disabled:opacity-50"
+                    >
+                        {isSaving ? <CustomLoader size={20} className="brightness-0 invert" /> : <Save size={18} />}
+                        <span>Update Area Settings</span>
+                    </button>
+                </div>
+            </div>
         </div>
     );
 };
