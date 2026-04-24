@@ -181,18 +181,21 @@ const BookingModal: FC<BookingModalProps> = ({
   const nextStep = () => setStep(step + 1);
   const prevStep = () => setStep(step - 1);
 
-  const generateTimeOptions = (openingHour: number, closingHour: number, disabled: number[]) => {
+  const generateTimeOptions = (openingHour: number, closingHour: number, disabled: number[], maxHour?: number) => {
     const options = [];
     for (let i = openingHour; i <= closingHour; i++) {
       const time = `${i.toString().padStart(2, '0')}:00`;
-      const isDisabled = disabled.includes(i);
+      const isBookingDisabled = disabled.includes(i);
+      const isDurationDisabled = maxHour !== undefined && i > maxHour;
+      const isDisabled = isBookingDisabled || isDurationDisabled;
+
       options.push(
         <option
           key={time}
           value={time}
           disabled={isDisabled}
           className={isDisabled ? 'text-gray-400' : ''}
-          title={isDisabled ? 'Not Available/Booked' : 'Available'}
+          title={isBookingDisabled ? 'Not Available/Booked' : (isDurationDisabled ? 'Exceeds allowed duration' : 'Available')}
         >
           {time}
         </option>
@@ -762,8 +765,7 @@ const BookingModal: FC<BookingModalProps> = ({
                          <div>
                             <p className="text-xs font-bold text-amber-900 leading-tight">Block Rate Active</p>
                             <p className="text-[10px] text-amber-700 font-medium mt-0.5">
-                              This venue offers a special rate of ₦{venue.pricing.blockRate.toLocaleString()} for up to {venue.pricing.blockDurationHours} hours.
-                              Selection is limited to {venue.pricing.blockDurationHours} hours.
+                              This venue offers a special rate of ₦{venue.pricing.blockRate.toLocaleString()} for up to {venue.pricing.blockDurationHours} hours. Selection is limited to {venue.pricing.blockDurationHours} hours.
                             </p>
                          </div>
                       </div>
@@ -792,7 +794,14 @@ const BookingModal: FC<BookingModalProps> = ({
                             required
                           >
                             <option value="">Select</option>
-                            {venue && generateTimeOptions(venue.openingHour || 0, venue.closingHour || 24, disabledHours)}
+                            {venue && generateTimeOptions(
+                              venue.openingHour || 0,
+                              venue.closingHour || 24,
+                              disabledHours,
+                              (venue.pricing.blockDurationHours && startTime)
+                                ? (parseInt(startTime.split(':')[0]) + venue.pricing.blockDurationHours)
+                                : undefined
+                            )}
                           </select>
                         </div>
                         <div>
@@ -864,7 +873,14 @@ const BookingModal: FC<BookingModalProps> = ({
                                   className="w-full px-2 py-2 border border-gray-200 rounded-md text-sm"
                                 >
                                   <option value="">End</option>
-                                  {venue && generateTimeOptions(venue.openingHour || 0, venue.closingHour || 24, dateDisabledHours)}
+                                  {venue && generateTimeOptions(
+                                    venue.openingHour || 0,
+                                    venue.closingHour || 24,
+                                    dateDisabledHours,
+                                    (venue.pricing.blockDurationHours && times.startTime)
+                                      ? (parseInt(times.startTime.split(':')[0]) + venue.pricing.blockDurationHours)
+                                      : undefined
+                                  )}
                                 </select>
                               </div>
                             </div>

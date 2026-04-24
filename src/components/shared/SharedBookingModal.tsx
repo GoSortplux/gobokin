@@ -247,18 +247,21 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
     );
   };
 
-  const generateTimeOptions = (openingHour: number, closingHour: number, disabled: number[]) => {
+  const generateTimeOptions = (openingHour: number, closingHour: number, disabled: number[], maxHour?: number) => {
     const options = [];
     for (let i = openingHour; i <= closingHour; i++) {
       const time = `${i.toString().padStart(2, '0')}:00`;
-      const isDisabled = disabled.includes(i);
+      const isBookingDisabled = disabled.includes(i);
+      const isDurationDisabled = maxHour !== undefined && i > maxHour;
+      const isDisabled = isBookingDisabled || isDurationDisabled;
+
       options.push(
         <option
           key={time}
           value={time}
           disabled={isDisabled}
           className={isDisabled ? 'text-gray-400' : ''}
-          title={isDisabled ? 'Not Available/Booked' : 'Available'}
+          title={isBookingDisabled ? 'Not Available/Booked' : (isDurationDisabled ? 'Exceeds allowed duration' : 'Available')}
         >
           {time}
         </option>
@@ -1102,8 +1105,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                      <div>
                         <p className="text-xs font-bold text-amber-900 leading-tight">Block Rate Active</p>
                         <p className="text-[10px] text-amber-700 font-medium mt-0.5">
-                           Special rate of ₦{selectedVenueObj.pricing.blockRate.toLocaleString()} for up to {selectedVenueObj.pricing.blockDurationHours} hours.
-                           Selection is limited to {selectedVenueObj.pricing.blockDurationHours} hours.
+                           This venue offers a special rate of ₦{selectedVenueObj.pricing.blockRate.toLocaleString()} for up to {selectedVenueObj.pricing.blockDurationHours} hours. Selection is limited to {selectedVenueObj.pricing.blockDurationHours} hours.
                         </p>
                      </div>
                   </div>
@@ -1169,7 +1171,14 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                         className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-1 focus:ring-primary outline-none"
                       >
                         <option value="">Select Time</option>
-                        {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, disabledHours)}
+                        {selectedVenueObj && generateTimeOptions(
+                          selectedVenueObj.openingHour || 0,
+                          selectedVenueObj.closingHour || 24,
+                          disabledHours,
+                          (selectedVenueObj.pricing.blockDurationHours && formData.startTime)
+                            ? (parseInt(formData.startTime.split(':')[0]) + selectedVenueObj.pricing.blockDurationHours)
+                            : undefined
+                        )}
                       </select>
                     </div>
                   </div>
@@ -1242,7 +1251,14 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                               className="w-full px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-1 focus:ring-primary outline-none"
                             >
                               <option value="">End</option>
-                              {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, dateDisabledHours)}
+                              {selectedVenueObj && generateTimeOptions(
+                                selectedVenueObj.openingHour || 0,
+                                selectedVenueObj.closingHour || 24,
+                                dateDisabledHours,
+                                (selectedVenueObj.pricing.blockDurationHours && times.startTime)
+                                  ? (parseInt(times.startTime.split(':')[0]) + selectedVenueObj.pricing.blockDurationHours)
+                                  : undefined
+                              )}
                             </select>
                           </div>
                         </div>
@@ -1497,8 +1513,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                      <div>
                         <p className="text-xs font-bold text-amber-900 leading-tight">Block Rate Active</p>
                         <p className="text-[10px] text-amber-700 font-medium mt-0.5">
-                           Special rate of ₦{selectedVenueObj.pricing.blockRate.toLocaleString()} for up to {selectedVenueObj.pricing.blockDurationHours} hours.
-                           Selection is limited to {selectedVenueObj.pricing.blockDurationHours} hours.
+                           This venue offers a special rate of ₦{selectedVenueObj.pricing.blockRate.toLocaleString()} for up to {selectedVenueObj.pricing.blockDurationHours} hours. Selection is limited to {selectedVenueObj.pricing.blockDurationHours} hours.
                         </p>
                      </div>
                   </div>
@@ -1602,7 +1617,14 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                         className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-1 focus:ring-primary outline-none"
                       >
                         <option value="">Select Time</option>
-                        {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, disabledHours)}
+                        {selectedVenueObj && generateTimeOptions(
+                          selectedVenueObj.openingHour || 0,
+                          selectedVenueObj.closingHour || 24,
+                          disabledHours,
+                          (selectedVenueObj.pricing.blockDurationHours && formData.startTime)
+                            ? (parseInt(formData.startTime.split(':')[0]) + selectedVenueObj.pricing.blockDurationHours)
+                            : undefined
+                        )}
                       </select>
                     </div>
                   </div>
@@ -1685,7 +1707,14 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                                 className="w-full px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-1 focus:ring-primary outline-none"
                               >
                                 <option value="">End</option>
-                                {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, getDisabledHoursForDate(parseLocalDate(dateStr)))}
+                                {selectedVenueObj && generateTimeOptions(
+                                  selectedVenueObj.openingHour || 0,
+                                  selectedVenueObj.closingHour || 24,
+                                  getDisabledHoursForDate(parseLocalDate(dateStr)),
+                                  (selectedVenueObj.pricing.blockDurationHours && times.startTime)
+                                    ? (parseInt(times.startTime.split(':')[0]) + selectedVenueObj.pricing.blockDurationHours)
+                                    : undefined
+                                )}
                               </select>
                             </div>
                           </div>
@@ -1919,8 +1948,7 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                      <div>
                         <p className="text-xs font-bold text-amber-900 leading-tight">Block Rate Active</p>
                         <p className="text-[10px] text-amber-700 font-medium mt-0.5">
-                           Special rate of ₦{selectedVenueObj.pricing.blockRate.toLocaleString()} for up to {selectedVenueObj.pricing.blockDurationHours} hours.
-                           Selection is limited to {selectedVenueObj.pricing.blockDurationHours} hours.
+                           This venue offers a special rate of ₦{selectedVenueObj.pricing.blockRate.toLocaleString()} for up to {selectedVenueObj.pricing.blockDurationHours} hours. Selection is limited to {selectedVenueObj.pricing.blockDurationHours} hours.
                         </p>
                      </div>
                   </div>
@@ -1986,7 +2014,14 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                         className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-1 focus:ring-primary outline-none"
                       >
                         <option value="">Select Time</option>
-                        {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, disabledHours)}
+                        {selectedVenueObj && generateTimeOptions(
+                          selectedVenueObj.openingHour || 0,
+                          selectedVenueObj.closingHour || 24,
+                          disabledHours,
+                          (selectedVenueObj.pricing.blockDurationHours && formData.startTime)
+                            ? (parseInt(formData.startTime.split(':')[0]) + selectedVenueObj.pricing.blockDurationHours)
+                            : undefined
+                        )}
                       </select>
                     </div>
                   </div>
@@ -2059,7 +2094,14 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
                               className="w-full px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-1 focus:ring-primary outline-none"
                             >
                               <option value="">End</option>
-                              {selectedVenueObj && generateTimeOptions(selectedVenueObj.openingHour || 0, selectedVenueObj.closingHour || 24, dateDisabledHours)}
+                            {selectedVenueObj && generateTimeOptions(
+                              selectedVenueObj.openingHour || 0,
+                              selectedVenueObj.closingHour || 24,
+                              dateDisabledHours,
+                              (selectedVenueObj.pricing.blockDurationHours && times.startTime)
+                                ? (parseInt(times.startTime.split(':')[0]) + selectedVenueObj.pricing.blockDurationHours)
+                                : undefined
+                            )}
                             </select>
                           </div>
                         </div>
