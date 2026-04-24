@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Users, Star, MapPin, ArrowRight, Zap, Wifi, Car, Wind, Utensils } from 'lucide-react';
 import { Venue } from '@/types/venue';
@@ -23,10 +23,8 @@ const FeaturedShowcase = ({ venues = [], interval = 12000, badge = 'Featured Ven
   const containerRef = useRef<HTMLDivElement>(null);
   const isVisible = useIntersectionObserver(containerRef, { threshold: 0.1 });
 
-  if (!venues || !Array.isArray(venues) || venues.length === 0) return null;
-
-  const currentVenue = venues[index];
-  const media = getReorderedMedia(currentVenue?.videos, currentVenue?.images);
+  const currentVenue = venues?.[index];
+  const media = useMemo(() => getReorderedMedia(currentVenue?.videos, currentVenue?.images), [currentVenue]);
 
   // Venue cycling effect
   useEffect(() => {
@@ -61,6 +59,8 @@ const FeaturedShowcase = ({ venues = [], interval = 12000, badge = 'Featured Ven
     setIndex((prev) => (prev - 1 + venues.length) % venues.length);
     setMediaIndex(0);
   };
+
+  if (!venues || !Array.isArray(venues) || venues.length === 0 || !currentVenue) return null;
 
   const slug = createVenueSlug(currentVenue.name, currentVenue._id, currentVenue.slug);
 

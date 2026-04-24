@@ -114,7 +114,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ hallId, initialImages = [], i
         setPreviews((prevPreviews) => [...prevPreviews, ...newPreviews]);
       }
     }
-  }, [files, isVideoFile, currentImages.length, currentVideos.length]);
+  }, [files, isVideoFile, currentImages.length, currentVideos.length, maxImages, maxVideos]);
 
   const removeFile = (index: number) => {
     setFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));

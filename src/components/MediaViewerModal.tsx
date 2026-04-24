@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-import { isVideo, getMediaThumbnail } from '@/utils/media';
+import { isVideo } from '@/utils/media';
 import MediaThumbnail from '@/components/MediaThumbnail';
 
 interface MediaViewerModalProps {

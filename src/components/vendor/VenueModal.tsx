@@ -298,7 +298,7 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
       };
       fetchInitialData();
     }
-  }, [isOpen]);
+  }, [isOpen, isSuperAdmin, venue]);
 
   useEffect(() => {
     if (formData.country) {
