@@ -1013,7 +1013,7 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
                       Generate Discount Code
                     </button>
                     <p className="text-[10px] text-center font-bold text-emerald-600 uppercase tracking-wider">
-                      Get a {venue.referralDiscountPercentage || 2}% discount when Paying for Booking
+                      Get a {venue.referralDiscountPercentage || 2}% discount when paying for walk-in booking at the venue
                     </p>
                   </div>
                 </div>
