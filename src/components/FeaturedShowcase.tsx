@@ -16,12 +16,14 @@ interface FeaturedShowcaseProps {
   badge?: string;
 }
 
-const FeaturedShowcase = ({ venues, interval = 12000, badge = 'Featured Venue' }: FeaturedShowcaseProps) => {
+const FeaturedShowcase = ({ venues = [], interval = 12000, badge = 'Featured Venue' }: FeaturedShowcaseProps) => {
   const [index, setIndex] = useState(0);
   const [mediaIndex, setMediaIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const isVisible = useIntersectionObserver(containerRef, { threshold: 0.1 });
+
+  if (!venues || !Array.isArray(venues) || venues.length === 0) return null;
 
   const currentVenue = venues[index];
   const media = getReorderedMedia(currentVenue?.videos, currentVenue?.images);
@@ -59,8 +61,6 @@ const FeaturedShowcase = ({ venues, interval = 12000, badge = 'Featured Venue' }
     setIndex((prev) => (prev - 1 + venues.length) % venues.length);
     setMediaIndex(0);
   };
-
-  if (venues.length === 0) return null;
 
   const slug = createVenueSlug(currentVenue.name, currentVenue._id, currentVenue.slug);
 
