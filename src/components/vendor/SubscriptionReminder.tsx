@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useVendor } from '@/context/VendorContext';
 import Swal from '@/utils/sweetalert';
 import { useRouter } from 'next/navigation';

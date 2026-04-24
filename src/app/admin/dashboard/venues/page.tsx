@@ -147,7 +147,7 @@ const VenueManagementContent = () => {
                 }
                 try {
                   return { featuredUntil: new Date(featuredUntil).toISOString() };
-                } catch (e) {
+                } catch (_e) {
                   Swal.showValidationMessage('Invalid date/time format');
                   return false;
                 }

@@ -143,6 +143,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => window.removeEventListener('unauthorized-access', handleUnauthorized);
   }, [logoutWithAlert]);
 
+  const fetchUserProfile = useCallback(async () => {
+    try {
+      const response = await api.get('/users/me');
+      const userData = response.data.data || response.data;
+      setUser(prev => {
+        const updated = { ...prev, ...userData };
+        localStorage.setItem('user', JSON.stringify(updated));
+        return updated;
+      });
+    } catch (error) {
+      console.error("Failed to fetch user profile", error);
+    }
+  }, []);
+
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
     const storedLastActivity = localStorage.getItem('lastActivity');
@@ -196,7 +210,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     }
     setLoading(false);
-  }, [logout, logoutWithAlert]);
+  }, [logout, logoutWithAlert, fetchUserProfile]);
 
   const login = useCallback((newToken: string, newUser: User, redirectPath?: string) => {
     setToken(newToken);
@@ -307,20 +321,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       localStorage.setItem('user', JSON.stringify(updatedUser));
       return updatedUser;
     });
-  }, []);
-
-  const fetchUserProfile = useCallback(async () => {
-    try {
-      const response = await api.get('/users/me');
-      const userData = response.data.data || response.data;
-      setUser(prev => {
-        const updated = { ...prev, ...userData };
-        localStorage.setItem('user', JSON.stringify(updated));
-        return updated;
-      });
-    } catch (error) {
-      console.error("Failed to fetch user profile", error);
-    }
   }, []);
 
   const contextValue = useMemo(() => ({
