@@ -102,7 +102,7 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
 
   const { getDateAvailability } = useBookingAvailability(venue, undefined, displayedMonth);
 
-  const isOnlineBookingEnabled = (venue?.isOnlineBookingEnabled !== false) && (venue?.bookingMode === 'online' || !venue?.bookingMode);
+  const isOnlineBookingEnabled = (venue?.isOnlineBookingEnabled !== false) && (venue?.bookingMode !== 'enquiry-only');
 
   const handleDownloadCodeImage = async (code: string) => {
     if (!discountCardRef.current) return;
