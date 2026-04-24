@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { X, Trash2, ChevronDown } from 'lucide-react';
+import { X, Trash2, ChevronDown, Sparkles } from 'lucide-react';
 import api from '@/services/api';
 import { translateError } from '@/utils/errors';
 import Swal from "@/utils/sweetalert";
@@ -805,10 +805,21 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
           setError(`Please select start and end times for ${dateStr}.`);
           return;
         }
+        const diff = parseTimeToHours(times.endTime) - parseTimeToHours(times.startTime);
+        if (selectedVenueObj?.pricing.blockDurationHours && diff > selectedVenueObj.pricing.blockDurationHours) {
+          setError(`The selected duration for ${dateStr} (${diff} hours) exceeds the allowed limit of ${selectedVenueObj.pricing.blockDurationHours} hours for this venue.`);
+          return;
+        }
       }
     } else if (!startTime || !endTime) {
       setError('Please select start and end times.');
       return;
+    } else {
+      const diff = parseTimeToHours(endTime) - parseTimeToHours(startTime);
+      if (selectedVenueObj?.pricing.blockDurationHours && diff > selectedVenueObj.pricing.blockDurationHours) {
+        setError(`The selected duration (${diff} hours) exceeds the allowed limit of ${selectedVenueObj.pricing.blockDurationHours} hours for this venue.`);
+        return;
+      }
     }
 
     if (!(await showConfirmation('recurring'))) return;
@@ -912,10 +923,21 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
           setError(`Please select start and end times for ${dateStr}.`);
           return;
         }
+        const diff = parseTimeToHours(times.endTime) - parseTimeToHours(times.startTime);
+        if (selectedVenueObj?.pricing.blockDurationHours && diff > selectedVenueObj.pricing.blockDurationHours) {
+          setError(`The selected duration for ${dateStr} (${diff} hours) exceeds the allowed limit of ${selectedVenueObj.pricing.blockDurationHours} hours for this venue.`);
+          return;
+        }
       }
     } else if (!startTime || !endTime) {
       setError('Please select start and end times.');
       return;
+    } else {
+      const diff = parseTimeToHours(endTime) - parseTimeToHours(startTime);
+      if (selectedVenueObj?.pricing.blockDurationHours && diff > selectedVenueObj.pricing.blockDurationHours) {
+        setError(`The selected duration (${diff} hours) exceeds the allowed limit of ${selectedVenueObj.pricing.blockDurationHours} hours for this venue.`);
+        return;
+      }
     }
 
     if (!(await showConfirmation('walk-in'))) return;
@@ -965,10 +987,21 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
           setError(`Please select start and end times for ${dateStr}.`);
           return;
         }
+        const diff = parseTimeToHours(times.endTime) - parseTimeToHours(times.startTime);
+        if (selectedVenueObj?.pricing.blockDurationHours && diff > selectedVenueObj.pricing.blockDurationHours) {
+          setError(`The selected duration for ${dateStr} (${diff} hours) exceeds the allowed limit of ${selectedVenueObj.pricing.blockDurationHours} hours for this venue.`);
+          return;
+        }
       }
     } else if (!startTime || !endTime) {
       setError('Please select start and end times.');
       return;
+    } else {
+      const diff = parseTimeToHours(endTime) - parseTimeToHours(startTime);
+      if (selectedVenueObj?.pricing.blockDurationHours && diff > selectedVenueObj.pricing.blockDurationHours) {
+        setError(`The selected duration (${diff} hours) exceeds the allowed limit of ${selectedVenueObj.pricing.blockDurationHours} hours for this venue.`);
+        return;
+      }
     }
 
     if (!(await showConfirmation('reservation'))) return;
@@ -1061,6 +1094,20 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
         <div>
           {activeTab === 'reservation' && (
             <form onSubmit={handleReservationSubmit} className="space-y-4">
+               {selectedVenueObj?.pricing.blockRate && selectedVenueObj.pricing.blockDurationHours && (
+                  <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3 animate-in fade-in slide-in-from-top-1">
+                     <div className="p-1.5 bg-white rounded-lg text-amber-600 shadow-sm">
+                        <Sparkles size={14} />
+                     </div>
+                     <div>
+                        <p className="text-xs font-bold text-amber-900 leading-tight">Block Rate Active</p>
+                        <p className="text-[10px] text-amber-700 font-medium mt-0.5">
+                           Special rate of ₦{selectedVenueObj.pricing.blockRate.toLocaleString()} for up to {selectedVenueObj.pricing.blockDurationHours} hours.
+                           Selection is limited to {selectedVenueObj.pricing.blockDurationHours} hours.
+                        </p>
+                     </div>
+                  </div>
+               )}
                <div>
                 <label className="block text-sm font-medium text-gray-800">Venue</label>
                 <select name="hall" value={formData.hall} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900">
@@ -1442,6 +1489,20 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
           )}
           {activeTab === 'recurring' && (
             <form onSubmit={handleRecurringSubmit} className="space-y-4">
+               {selectedVenueObj?.pricing.blockRate && selectedVenueObj.pricing.blockDurationHours && (
+                  <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3 animate-in fade-in slide-in-from-top-1">
+                     <div className="p-1.5 bg-white rounded-lg text-amber-600 shadow-sm">
+                        <Sparkles size={14} />
+                     </div>
+                     <div>
+                        <p className="text-xs font-bold text-amber-900 leading-tight">Block Rate Active</p>
+                        <p className="text-[10px] text-amber-700 font-medium mt-0.5">
+                           Special rate of ₦{selectedVenueObj.pricing.blockRate.toLocaleString()} for up to {selectedVenueObj.pricing.blockDurationHours} hours.
+                           Selection is limited to {selectedVenueObj.pricing.blockDurationHours} hours.
+                        </p>
+                     </div>
+                  </div>
+               )}
                <div>
                 <label className="block text-sm font-medium text-gray-800">Venue</label>
                 <select name="hall" value={formData.hall} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900">
@@ -1850,6 +1911,20 @@ const SharedBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSu
           )}
           {activeTab === 'walk-in' && (
             <form onSubmit={handleWalkInSubmit} className="space-y-4">
+               {selectedVenueObj?.pricing.blockRate && selectedVenueObj.pricing.blockDurationHours && (
+                  <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3 animate-in fade-in slide-in-from-top-1">
+                     <div className="p-1.5 bg-white rounded-lg text-amber-600 shadow-sm">
+                        <Sparkles size={14} />
+                     </div>
+                     <div>
+                        <p className="text-xs font-bold text-amber-900 leading-tight">Block Rate Active</p>
+                        <p className="text-[10px] text-amber-700 font-medium mt-0.5">
+                           Special rate of ₦{selectedVenueObj.pricing.blockRate.toLocaleString()} for up to {selectedVenueObj.pricing.blockDurationHours} hours.
+                           Selection is limited to {selectedVenueObj.pricing.blockDurationHours} hours.
+                        </p>
+                     </div>
+                  </div>
+               )}
                <div>
                 <label className="block text-sm font-medium text-gray-800">Venue</label>
                 <select name="hall" value={formData.hall} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900">
