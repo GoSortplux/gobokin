@@ -27,6 +27,8 @@ interface Venue {
   pricing: {
     dailyRate?: number;
     hourlyRate?: number;
+    blockRate?: number;
+    blockDurationHours?: number;
   };
   geoLocation: {
     address: string;

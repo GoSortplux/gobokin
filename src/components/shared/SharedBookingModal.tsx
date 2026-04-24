@@ -50,6 +50,8 @@ interface HallItem {
   pricing: {
     dailyRate?: number;
     hourlyRate?: number;
+    blockRate?: number;
+    blockDurationHours?: number;
   };
   recurringBookingDiscount?: {
     percentage: number;

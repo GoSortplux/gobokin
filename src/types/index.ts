@@ -249,6 +249,8 @@ export interface Venue {
   pricing: {
     dailyRate?: number;
     hourlyRate?: number;
+    blockRate?: number;
+    blockDurationHours?: number;
   };
   recurringBookingDiscount?: {
     percentage: number;
