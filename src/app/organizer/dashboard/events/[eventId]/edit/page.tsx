@@ -567,7 +567,29 @@ const EditEvent = () => {
   // Handlers
   const handleBasicChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setBasicInfo(prev => ({ ...prev, [name]: name === "capacity" ? parseInt(value) || 0 : value }));
+    if (name === "capacity") {
+      const newCapacity = parseInt(value) || 0;
+      setBasicInfo(prev => ({ ...prev, capacity: newCapacity }));
+
+      // Adjust tickets if sum exceeds new capacity
+      setTickets(prevTickets => {
+        let currentSum = prevTickets.reduce((sum, t) => sum + (t.totalQuantity || 0), 0);
+        if (currentSum <= newCapacity) return prevTickets;
+
+        const adjustedTickets = [...prevTickets];
+        for (let i = adjustedTickets.length - 1; i >= 0; i--) {
+          const ticket = adjustedTickets[i];
+          const excess = currentSum - newCapacity;
+          const reduction = Math.min(ticket.totalQuantity || 0, excess);
+          adjustedTickets[i] = { ...ticket, totalQuantity: (ticket.totalQuantity || 0) - reduction };
+          currentSum -= reduction;
+          if (currentSum <= newCapacity) break;
+        }
+        return adjustedTickets;
+      });
+    } else {
+      setBasicInfo(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const updateSpeaker = (index: number, field: keyof Speaker, value: string) => {
@@ -602,7 +624,16 @@ const EditEvent = () => {
   const updateTicket = (ticketId: string, field: string, value: any) => {
     setTickets(tickets.map(t => {
         if (t.id === ticketId) {
-            const updated = { ...t, [field]: value };
+            let newValue = value;
+            if (field === "totalQuantity") {
+                const otherTicketsSum = tickets
+                    .filter(ticket => ticket.id !== ticketId)
+                    .reduce((sum, ticket) => sum + (ticket.totalQuantity || 0), 0);
+                const maxAllowed = Math.max(0, basicInfo.capacity - otherTicketsSum);
+                newValue = Math.min(parseInt(value) || 0, maxAllowed);
+            }
+
+            const updated = { ...t, [field]: newValue };
             if (field === 'type' && value === 'FREE') {
                 return { ...updated, price: 0, earlyBirdPrice: 0, earlyBirdLimit: 0, earlyBirdExpiry: "" };
             }
@@ -1233,24 +1264,28 @@ const EditEvent = () => {
               <div className="space-y-12 animate-in fade-in duration-500">
                  <div className="flex items-center justify-between px-4">
                     <h3 className="text-3xl font-black text-gray-900 tracking-tight">Ticket Vault</h3>
-                    <button onClick={() => setTickets([...tickets, {
-                      id: Math.random().toString(),
-                      name: "",
-                      price: 0,
-                      type: "PAID",
-                      totalQuantity: 1,
-                      groupSize: 1,
-                      description: "",
-                      earlyBirdPrice: 0,
-                      earlyBirdLimit: 0,
-                      earlyBirdExpiry: "",
-                      allocationType: "GENERAL",
-                      maxPerOrder: 10,
-                      salesStart: "",
-                      salesEnd: "",
-                      isOffline: false,
-                      quantityDiscounts: []
-                    }])} className="flex items-center gap-3 bg-secondary text-white font-black px-8 py-5 rounded-3xl text-[10px] uppercase tracking-[0.2em]">
+                    <button onClick={() => {
+                      const currentTotal = tickets.reduce((sum, t) => sum + (t.totalQuantity || 0), 0);
+                      const remaining = Math.max(0, basicInfo.capacity - currentTotal);
+                      setTickets([...tickets, {
+                        id: Math.random().toString(),
+                        name: "",
+                        price: 0,
+                        type: "PAID",
+                        totalQuantity: remaining,
+                        groupSize: 1,
+                        description: "",
+                        earlyBirdPrice: 0,
+                        earlyBirdLimit: 0,
+                        earlyBirdExpiry: "",
+                        allocationType: "GENERAL",
+                        maxPerOrder: 10,
+                        salesStart: "",
+                        salesEnd: "",
+                        isOffline: false,
+                        quantityDiscounts: []
+                      }]);
+                    }} className="flex items-center gap-3 bg-secondary text-white font-black px-8 py-5 rounded-3xl text-[10px] uppercase tracking-[0.2em]">
                       <Plus size={18} /> Create Tier
                     </button>
                  </div>
@@ -1349,16 +1384,20 @@ const EditEvent = () => {
                                       </div>
                                    </div>
                                    <div className="space-y-3">
-                                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
+                                      <label htmlFor={`totalQuantity-${ticket.id}`} className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                                           <Layers size={12} className="text-secondary" />
                                           Total Inventory
                                       </label>
                                       <input
+                                         id={`totalQuantity-${ticket.id}`}
                                          type="number"
                                          className="w-full px-5 py-5 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none shadow-sm"
                                          value={ticket.totalQuantity}
                                          onChange={(e) => updateTicket(ticket.id, "totalQuantity", parseInt(e.target.value))}
                                       />
+                                   <p className="text-[9px] font-bold text-gray-400 mt-1 ml-1 uppercase">
+                                       Max: {Math.max(0, basicInfo.capacity - tickets.filter(t => t.id !== ticket.id).reduce((sum, t) => sum + (t.totalQuantity || 0), 0))}
+                                   </p>
                                    </div>
                                    <div className="space-y-3">
                                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
