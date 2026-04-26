@@ -820,9 +820,9 @@ const CreateEvent = () => {
                       quantityDiscounts: rest.quantityDiscounts
                   };
 
-                  if (rest.type !== 'FREE') {
-                      tPayload.earlyBirdPrice = rest.earlyBirdPrice || 0;
-                      tPayload.earlyBirdLimit = rest.earlyBirdLimit || 0;
+                  if (rest.type !== 'FREE' && (rest.earlyBirdLimit || 0) > 0 && (rest.earlyBirdPrice || 0) > 0) {
+                      tPayload.earlyBirdPrice = rest.earlyBirdPrice;
+                      tPayload.earlyBirdLimit = rest.earlyBirdLimit;
                       tPayload.earlyBirdExpiry = rest.earlyBirdExpiry ? new Date(rest.earlyBirdExpiry).toISOString() : undefined;
                   }
 

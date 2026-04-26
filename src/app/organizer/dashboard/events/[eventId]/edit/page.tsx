@@ -737,9 +737,9 @@ const EditEvent = () => {
         quantityDiscounts: ticket.quantityDiscounts
       };
 
-      if (ticket.type !== 'FREE') {
-          payload.earlyBirdPrice = ticket.earlyBirdPrice || 0;
-          payload.earlyBirdLimit = ticket.earlyBirdLimit || 0;
+      if (ticket.type !== 'FREE' && (ticket.earlyBirdLimit || 0) > 0 && (ticket.earlyBirdPrice || 0) > 0) {
+          payload.earlyBirdPrice = ticket.earlyBirdPrice;
+          payload.earlyBirdLimit = ticket.earlyBirdLimit;
           payload.earlyBirdExpiry = ticket.earlyBirdExpiry ? new Date(ticket.earlyBirdExpiry).toISOString() : undefined;
       }
       await api.patch(`/events/${eventId}/tickets/${ticket.id}`, payload);
@@ -864,9 +864,9 @@ const EditEvent = () => {
               quantityDiscounts: ticket.quantityDiscounts
           };
 
-          if (ticket.type !== 'FREE') {
-              payload.earlyBirdPrice = ticket.earlyBirdPrice || 0;
-              payload.earlyBirdLimit = ticket.earlyBirdLimit || 0;
+          if (ticket.type !== 'FREE' && (ticket.earlyBirdLimit || 0) > 0 && (ticket.earlyBirdPrice || 0) > 0) {
+              payload.earlyBirdPrice = ticket.earlyBirdPrice;
+              payload.earlyBirdLimit = ticket.earlyBirdLimit;
               payload.earlyBirdExpiry = ticket.earlyBirdExpiry ? new Date(ticket.earlyBirdExpiry).toISOString() : undefined;
           }
           await api.patch(`/events/${eventId}/tickets/${ticket.id}`, payload);
@@ -890,9 +890,9 @@ const EditEvent = () => {
                       quantityDiscounts: t.quantityDiscounts
                   };
 
-                  if (t.type !== 'FREE') {
-                      item.earlyBirdPrice = t.earlyBirdPrice || 0;
-                      item.earlyBirdLimit = t.earlyBirdLimit || 0;
+                  if (t.type !== 'FREE' && (t.earlyBirdLimit || 0) > 0 && (t.earlyBirdPrice || 0) > 0) {
+                      item.earlyBirdPrice = t.earlyBirdPrice;
+                      item.earlyBirdLimit = t.earlyBirdLimit;
                       item.earlyBirdExpiry = t.earlyBirdExpiry ? new Date(t.earlyBirdExpiry).toISOString() : undefined;
                   }
 
