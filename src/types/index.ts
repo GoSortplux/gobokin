@@ -470,3 +470,88 @@ export interface Ticket {
   isOffline: boolean;
   quantityDiscounts?: QuantityDiscount[];
 }
+
+export interface Event {
+  id: string;
+  _id: string;
+  title: string;
+  description: string;
+  category: string;
+  type: EventType;
+  status: string;
+  startDate: string;
+  endDate: string;
+  startTime?: string;
+  endTime?: string;
+  bannerUrl?: string;
+  location?: string;
+  capacity?: number;
+  registrationCount?: number;
+}
+
+export interface EventSummary {
+  totalEvents: number;
+  publishedEvents: number;
+  draftEvents: number;
+  upcomingEvents: number;
+  ongoingEvents: number;
+  completedEvents: number;
+  cancelledEvents: number;
+  totalRegistrations: number;
+  paidRegistrations: number;
+  checkedInGuests: number;
+  attendanceRate: number;
+  totalViews: number;
+  totalOrders: number;
+  conversionRate: number;
+  grossRevenue: number;
+  netRevenue: number;
+  totalCommission: number;
+  totalRefunded: number;
+  pendingBalance: number;
+  availableBalance: number;
+  withdrawnBalance: number;
+}
+
+export interface EventTrend {
+  date: string;
+  registrations: number;
+  revenue: number;
+  views: number;
+}
+
+export interface TopEvent {
+  eventId: string;
+  title: string;
+  status: string;
+  views: number;
+  orders: number;
+  registrations: number;
+  paidRegistrations: number;
+  checkedInGuests: number;
+  grossRevenue: number;
+  netRevenue: number;
+  attendanceRate: number;
+  conversionRate: number;
+}
+
+export interface Analytics {
+  dateRange: {
+    startDate: string;
+    endDate: string;
+  };
+  scope: string;
+  summary: EventSummary;
+  trends: EventTrend[];
+  topEvents: TopEvent[];
+  // Legacy fields for backward compatibility if any
+  views?: number;
+  orders?: number;
+  registrations?: number;
+  checkInRate?: number;
+  conversionRate?: number;
+  totalRevenue?: number;
+  avgOrderValue?: number;
+  groupRegistrations?: number;
+  ticketBreakdown?: { name: string; value: number; color: string }[];
+}
