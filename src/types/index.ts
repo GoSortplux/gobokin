@@ -506,6 +506,7 @@ export interface Ticket {
   type: TicketType;
   allocationType: 'GENERAL' | 'RESERVED';
   totalQuantity: number;
+  availableQuantity?: number;
   maxPerOrder: number;
   salesStart?: string;
   salesEnd?: string;
