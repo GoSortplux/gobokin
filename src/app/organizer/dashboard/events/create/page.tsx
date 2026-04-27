@@ -1208,10 +1208,13 @@ const CreateEvent = () => {
                                                <Users size={32} />
                                             </div>
                                          )}
-                                         <label className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                                         <label className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center cursor-pointer z-10">
                                             <Upload size={20} className="text-white" />
                                             <input type="file" className="hidden" onChange={(e) => handleSpeakerImageUpload(idx, e)} />
                                          </label>
+                                         <div className="absolute bottom-2 right-2 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center shadow-lg border-2 border-white z-20 pointer-events-none">
+                                            <Upload size={14} strokeWidth={3} />
+                                         </div>
                                       </div>
                                       <div className="flex-1 w-full space-y-4">
                                          <input

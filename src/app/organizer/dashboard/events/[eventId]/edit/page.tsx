@@ -1072,9 +1072,12 @@ const EditEvent = () => {
                                    <div className={`flex items-center gap-6 ${showPreview ? "flex-col 2xl:flex-row" : "flex-col sm:flex-row"}`}>
                                       <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-white shadow-lg border border-gray-100 group/img shrink-0">
                                          {speaker.imageUrl ? <Image src={speaker.imageUrl} alt="Speaker" fill className="object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-200"><Users size={32} /></div>}
-                                         <label className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                                         <label className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center cursor-pointer z-10">
                                             <Upload size={20} className="text-white" /><input type="file" className="hidden" onChange={(e) => handleSpeakerImageUpload(idx, e)} />
                                          </label>
+                                         <div className="absolute bottom-2 right-2 w-7 h-7 bg-primary text-white rounded-full flex items-center justify-center shadow-lg border-2 border-white z-20 pointer-events-none">
+                                            <Upload size={12} strokeWidth={3} />
+                                         </div>
                                       </div>
                                       <div className="flex-1 w-full space-y-3">
                                          <input type="text" placeholder="Full Name" className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all shadow-sm" value={speaker.name} onChange={(e) => updateSpeaker(idx, 'name', e.target.value)} />
