@@ -1189,9 +1189,9 @@ const CreateEvent = () => {
                              </button>
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          <div className={`grid gap-8 ${showPreview ? "grid-cols-1 2xl:grid-cols-2" : "grid-cols-1 md:grid-cols-2"}`}>
                              {speakers.map((speaker, idx) => (
-                                <div key={idx} className="p-8 bg-gray-50 rounded-[3rem] space-y-6 relative group/speaker">
+                                <div key={idx} className="p-8 bg-gray-50 rounded-[3rem] space-y-6 relative group/speaker transition-all duration-500 hover:bg-white hover:shadow-xl">
                                    <button
                                       onClick={() => removeSpeaker(idx)}
                                       className="absolute top-6 right-6 w-10 h-10 bg-white text-gray-300 hover:text-secondary rounded-xl flex items-center justify-center shadow-sm transition-all"
@@ -1199,8 +1199,8 @@ const CreateEvent = () => {
                                       <Trash2 size={16} />
                                    </button>
 
-                                   <div className="flex items-center gap-6">
-                                      <div className="relative w-24 h-24 rounded-[2rem] overflow-hidden bg-white shadow-lg border border-gray-100 group/img">
+                                   <div className={`flex items-center gap-6 ${showPreview ? "flex-col 2xl:flex-row" : "flex-col sm:flex-row"}`}>
+                                      <div className="relative w-24 h-24 rounded-[2rem] overflow-hidden bg-white shadow-lg border border-gray-100 group/img shrink-0">
                                          {speaker.imageUrl ? (
                                             <Image src={speaker.imageUrl} alt="Speaker" fill unoptimized={true} className="object-cover" />
                                          ) : (
@@ -1213,18 +1213,18 @@ const CreateEvent = () => {
                                             <input type="file" className="hidden" onChange={(e) => handleSpeakerImageUpload(idx, e)} />
                                          </label>
                                       </div>
-                                      <div className="flex-1 space-y-4">
+                                      <div className="flex-1 w-full space-y-4">
                                          <input
                                             type="text"
                                             placeholder="Full Name"
-                                            className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all"
+                                            className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all shadow-sm"
                                             value={speaker.name}
                                             onChange={(e) => updateSpeaker(idx, 'name', e.target.value)}
                                          />
                                          <input
                                             type="text"
                                             placeholder="Title (e.g., CEO, Speaker)"
-                                            className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all"
+                                            className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all shadow-sm"
                                             value={speaker.title}
                                             onChange={(e) => updateSpeaker(idx, 'title', e.target.value)}
                                          />
@@ -1695,9 +1695,9 @@ const CreateEvent = () => {
                     </button>
                  </div>
 
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
+                 <div className={`grid gap-8 lg:gap-10 ${showPreview ? "grid-cols-1 2xl:grid-cols-2" : "grid-cols-1 md:grid-cols-2"}`}>
                   {tickets.map((ticket, index) => (
-                      <div key={ticket.id} className="p-8 md:p-10 bg-gray-50/50 rounded-[3.5rem] border border-gray-100 space-y-10 relative group/ticket hover:bg-white hover:shadow-4xl hover:shadow-secondary/10 transition-all duration-700 animate-in zoom-in-95 duration-500">
+                      <div key={ticket.id} className="p-8 md:p-10 bg-gray-50/50 rounded-[3.5rem] border border-gray-100 space-y-10 relative group/ticket hover:bg-white hover:shadow-4xl hover:shadow-secondary/10 transition-all duration-700">
                           <div className="flex items-center justify-between">
                              <div className="flex items-center gap-5">
                                 <div className="w-14 h-14 rounded-2xl bg-white text-secondary flex items-center justify-center shadow-xl shadow-gray-200/50 border border-gray-100 group-hover/ticket:bg-secondary group-hover/ticket:text-white transition-all duration-500">
@@ -1747,7 +1747,7 @@ const CreateEvent = () => {
                                 />
                              </div>
 
-                             <div className="grid grid-cols-2 gap-8">
+                             <div className={`grid gap-8 ${showPreview ? "grid-cols-1 2xl:grid-cols-2" : "grid-cols-1 sm:grid-cols-2"}`}>
                                 <div className="space-y-3">
                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                                        <MousePointer2 size={12} className="text-secondary" />
@@ -1813,7 +1813,7 @@ const CreateEvent = () => {
 
                              <div className="pt-6 border-t border-gray-100 space-y-6">
                                 <h5 className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Early Bird Configuration (Optional)</h5>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                                <div className={`grid gap-6 ${showPreview ? "grid-cols-1 2xl:grid-cols-3" : "grid-cols-1 sm:grid-cols-3"}`}>
                                     <div className="space-y-2">
                                         <label className="text-[9px] font-bold text-gray-400 uppercase">Discount Price</label>
                                         <div className="relative">
@@ -1855,7 +1855,7 @@ const CreateEvent = () => {
                                     <Settings size={12} />
                                     Advanced Sales Configuration
                                 </h5>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div className={`grid gap-6 ${showPreview ? "grid-cols-1 2xl:grid-cols-3" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"}`}>
                                     <div className="space-y-2">
                                         <label className="text-[9px] font-bold text-gray-400 uppercase">Sales Start</label>
                                         <input
@@ -1924,7 +1924,7 @@ const CreateEvent = () => {
                                 </div>
                                 <div className="space-y-4">
                                     {ticket.quantityDiscounts?.map((discount, dIndex) => (
-                                        <div key={dIndex} className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-gray-100/50 rounded-2xl items-end">
+                                        <div key={dIndex} className={`grid gap-4 p-4 bg-gray-100/50 rounded-2xl items-end ${showPreview ? "grid-cols-1 2xl:grid-cols-3" : "grid-cols-1 sm:grid-cols-3"}`}>
                                             <div className="space-y-2">
                                                 <label className="text-[8px] font-bold text-gray-400 uppercase">Min Quantity</label>
                                                 <input

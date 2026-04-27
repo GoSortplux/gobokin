@@ -1065,18 +1065,21 @@ const EditEvent = () => {
                              </button>
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          <div className={`grid gap-8 ${showPreview ? "grid-cols-1 2xl:grid-cols-2" : "grid-cols-1 md:grid-cols-2"}`}>
                              {speakers.map((speaker, idx) => (
-                                <div key={idx} className="p-8 bg-gray-50 rounded-[3rem] space-y-6 relative group/speaker">
-                                   <button onClick={() => setSpeakers(speakers.filter((_, i) => i !== idx))} className="absolute top-6 right-6 text-gray-300 hover:text-secondary"><Trash2 size={16} /></button>
-                                   <div className="flex items-center gap-6">
-                                      <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-white shadow-lg border border-gray-100 group/img">
+                                <div key={idx} className="p-8 bg-gray-50 rounded-[3rem] space-y-6 relative group/speaker transition-all duration-500 hover:bg-white hover:shadow-xl">
+                                   <button onClick={() => setSpeakers(speakers.filter((_, i) => i !== idx))} className="absolute top-6 right-6 text-gray-300 hover:text-secondary transition-colors"><Trash2 size={16} /></button>
+                                   <div className={`flex items-center gap-6 ${showPreview ? "flex-col 2xl:flex-row" : "flex-col sm:flex-row"}`}>
+                                      <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-white shadow-lg border border-gray-100 group/img shrink-0">
                                          {speaker.imageUrl ? <Image src={speaker.imageUrl} alt="Speaker" fill className="object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-200"><Users size={32} /></div>}
                                          <label className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
                                             <Upload size={20} className="text-white" /><input type="file" className="hidden" onChange={(e) => handleSpeakerImageUpload(idx, e)} />
                                          </label>
                                       </div>
-                                      <input type="text" placeholder="Full Name" className="flex-1 p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none" value={speaker.name} onChange={(e) => updateSpeaker(idx, 'name', e.target.value)} />
+                                      <div className="flex-1 w-full space-y-3">
+                                         <input type="text" placeholder="Full Name" className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all shadow-sm" value={speaker.name} onChange={(e) => updateSpeaker(idx, 'name', e.target.value)} />
+                                         <input type="text" placeholder="Title (e.g., CEO)" className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all shadow-sm" value={speaker.title || ""} onChange={(e) => updateSpeaker(idx, 'title', e.target.value)} />
+                                      </div>
                                    </div>
                                 </div>
                              ))}
@@ -1289,7 +1292,7 @@ const EditEvent = () => {
                       <Plus size={18} /> Create Tier
                     </button>
                  </div>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                 <div className={`grid gap-8 ${showPreview ? "grid-cols-1 2xl:grid-cols-2" : "grid-cols-1 md:grid-cols-2"}`}>
                     {tickets.map((ticket, _index) => (
                         <div key={ticket.id} className="p-8 md:p-10 bg-gray-50/50 rounded-[3.5rem] border border-gray-100 space-y-10 relative group/ticket hover:bg-white hover:shadow-4xl hover:shadow-secondary/10 transition-all duration-700">
                             <div className="flex justify-between items-center">
@@ -1349,7 +1352,7 @@ const EditEvent = () => {
                                    />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-8">
+                                <div className={`grid gap-8 ${showPreview ? "grid-cols-1 2xl:grid-cols-2" : "grid-cols-1 sm:grid-cols-2"}`}>
                                    <div className="space-y-3">
                                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                                           <MousePointer2 size={12} className="text-secondary" />
@@ -1415,7 +1418,7 @@ const EditEvent = () => {
 
                                 <div className="pt-6 border-t border-gray-100 space-y-6">
                                    <h5 className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Early Bird Configuration (Optional)</h5>
-                                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                                   <div className={`grid gap-6 ${showPreview ? "grid-cols-1 2xl:grid-cols-3" : "grid-cols-1 sm:grid-cols-3"}`}>
                                        <div className="space-y-2">
                                            <label className="text-[9px] font-bold text-gray-400 uppercase">Discount Price</label>
                                            <div className="relative">
@@ -1457,7 +1460,7 @@ const EditEvent = () => {
                                        <Settings size={12} />
                                        Advanced Sales Configuration
                                    </h5>
-                                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                   <div className={`grid gap-6 ${showPreview ? "grid-cols-1 2xl:grid-cols-3" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"}`}>
                                        <div className="space-y-2">
                                            <label className="text-[9px] font-bold text-gray-400 uppercase">Sales Start</label>
                                            <input
