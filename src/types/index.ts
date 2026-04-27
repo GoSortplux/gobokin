@@ -439,6 +439,52 @@ export interface AgendaItem {
   speakerName: string;
 }
 
+export interface Session {
+  id: string;
+  eventId: string;
+  title: string;
+  startTime: string;
+  endTime: string;
+  location?: string;
+  description?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface RegistrationField {
+  name: string;
+  type: string;
+  label: string;
+  required: boolean;
+  isPerAttendee: boolean;
+}
+
+export interface Organizer {
+  id: string;
+  mongoUserId: string;
+  slug: string;
+  status: string;
+  isVerified: boolean;
+  bio?: string | null;
+  website?: string | null;
+  socialLinks?: Record<string, string> | null;
+  commissionRate: string;
+  payoutPolicy: string;
+  autoPromotionEligible: boolean;
+  maxStaff: number;
+  defaultRefundType: string;
+  defaultRefundPercentage: string;
+  defaultRefundCutoffDays: number;
+  defaultRefundPolicy?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  userProfile?: {
+    _id: string;
+    fullName: string;
+    email: string;
+  };
+}
+
 export interface StaffMember {
   id: string;
   fullName: string;
@@ -474,6 +520,7 @@ export interface Ticket {
 export interface Event {
   id: string;
   _id: string;
+  organizerId: string;
   title: string;
   description: string;
   category: string;
@@ -485,8 +532,36 @@ export interface Event {
   endTime?: string;
   bannerUrl?: string;
   location?: string;
-  capacity?: number;
+  latitude?: string;
+  longitude?: string;
+  mapLink?: string;
+  virtualLink?: string | null;
+  capacity: number;
   registrationCount?: number;
+  tags?: string[];
+  mediaUrls?: string[];
+  speakers?: Speaker[];
+  agenda?: AgendaItem[];
+  registrationFields?: RegistrationField[];
+  slug: string;
+  isPublished: boolean;
+  isPublic: boolean;
+  isFeatured: boolean;
+  isPromoted: boolean;
+  featuredUntil?: string | null;
+  refundPolicy?: string | null;
+  refundType?: string;
+  refundPercentage?: string;
+  refundCutoffDays?: number;
+  isDeleted: boolean;
+  registrationMode: RegistrationMode;
+  isGroupingEnabled: boolean;
+  enforceUniqueGroupNames: boolean;
+  createdAt: string;
+  updatedAt: string;
+  organizer?: Organizer;
+  tickets?: Ticket[];
+  sessions?: Session[];
 }
 
 export interface EventSummary {

@@ -16,7 +16,15 @@ import {
   CheckCircle2,
   AlertCircle,
   MoreVertical,
-  Plus
+  Plus,
+  Tag,
+  Shield,
+  ExternalLink,
+  Image as ImageIcon,
+  Video,
+  User,
+  Clock,
+  Globe
 } from "lucide-react";
 import Image from "next/image";
 import api from "@/services/api";
@@ -159,7 +167,7 @@ const EventDetails = () => {
       {/* Tabs & Detailed Content */}
       <div className="space-y-6">
          <div className="flex items-center gap-2 bg-white p-1.5 rounded-2xl shadow-sm border border-gray-100 w-fit overflow-x-auto no-scrollbar">
-            {["overview", "sessions", "tickets", "attendees"].map(tab => (
+            {["overview", "agenda", "speakers", "sessions", "tickets", "attendees"].map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -174,41 +182,258 @@ const EventDetails = () => {
 
          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 min-h-[400px]">
             {activeTab === "overview" && (
-              <div className="space-y-8 animate-in fade-in duration-500">
+              <div className="space-y-12 animate-in fade-in duration-500">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                   <div className="space-y-4">
-                      <h3 className="text-lg font-black text-gray-900 border-l-4 border-primary pl-4">About Event</h3>
-                      <p className="text-gray-600 leading-relaxed">{event.description}</p>
+                   <div className="space-y-6">
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-black text-gray-900 border-l-4 border-primary pl-4">About Event</h3>
+                        <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">{event.description}</p>
+                      </div>
+
+                      {event.tags && event.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-2 pt-2">
+                           {event.tags.map((tag, i) => (
+                             <span key={i} className="flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-gray-600 text-xs font-bold rounded-full border border-gray-200">
+                               <Tag size={12} />
+                               {tag}
+                             </span>
+                           ))}
+                        </div>
+                      )}
 
                       <div className="grid grid-cols-2 gap-4 pt-4">
                          <div className="p-4 bg-gray-50 rounded-2xl">
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Category</p>
+                            <p className="text-sm font-bold text-gray-700">{event.category}</p>
+                         </div>
+                         <div className="p-4 bg-gray-50 rounded-2xl">
                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Registration Mode</p>
-                            <p className="text-sm font-bold text-gray-700">{event.registrationMode.replace('_', ' ')}</p>
+                            <p className="text-sm font-bold text-gray-700">{event.registrationMode?.replace('_', ' ') || 'FULL DETAILS'}</p>
                          </div>
                          <div className="p-4 bg-gray-50 rounded-2xl">
                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Grouping</p>
                             <p className="text-sm font-bold text-gray-700">{event.isGroupingEnabled ? "Enabled" : "Disabled"}</p>
                          </div>
+                         <div className="p-4 bg-gray-50 rounded-2xl">
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Visibility</p>
+                            <p className="text-sm font-bold text-gray-700">{event.isPublic ? "Public" : "Private"}</p>
+                         </div>
                       </div>
                    </div>
 
+                   <div className="space-y-8">
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-black text-gray-900 border-l-4 border-primary pl-4">Quick Stats</h3>
+                        <div className="bg-gray-50 rounded-3xl p-6 space-y-6 border border-gray-100">
+                           <div className="flex items-center justify-between">
+                              <span className="text-sm font-bold text-gray-500">Capacity Utilization</span>
+                              <span className="text-sm font-black text-gray-900">{Math.round((analytics?.registrations || 0) / (event.capacity || 1) * 100)}%</span>
+                           </div>
+                           <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-primary rounded-full transition-all duration-1000"
+                                style={{ width: `${Math.min(100, ((analytics?.registrations || 0) / (event.capacity || 1) * 100))}%` }}
+                              ></div>
+                           </div>
+                           <p className="text-xs text-gray-400 font-medium">Currently {analytics?.registrations || 0} registered out of {event.capacity} total slots.</p>
+                        </div>
+                      </div>
+
+                      {(event.location || event.virtualLink) && (
+                        <div className="space-y-4">
+                          <h3 className="text-lg font-black text-gray-900 border-l-4 border-primary pl-4">Access Details</h3>
+                          <div className="bg-gray-50 rounded-3xl p-6 space-y-4 border border-gray-100">
+                             {event.location && (
+                               <div className="flex items-start gap-3">
+                                  <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-primary shadow-sm">
+                                    <MapPin size={16} />
+                                  </div>
+                                  <div className="flex-1">
+                                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Physical Location</p>
+                                     <p className="text-sm font-bold text-gray-700">{event.location}</p>
+                                     {event.mapLink && (
+                                       <a href={event.mapLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-2 text-xs font-bold text-primary hover:underline">
+                                         <ExternalLink size={12} />
+                                         View on Google Maps
+                                       </a>
+                                     )}
+                                  </div>
+                               </div>
+                             )}
+                             {event.virtualLink && (
+                               <div className="flex items-start gap-3">
+                                  <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-primary shadow-sm">
+                                    <Globe size={16} />
+                                  </div>
+                                  <div className="flex-1">
+                                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Virtual Link</p>
+                                     <p className="text-sm font-bold text-primary truncate max-w-xs">{event.virtualLink}</p>
+                                     <a href={event.virtualLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-2 text-xs font-bold text-primary hover:underline">
+                                       <ExternalLink size={12} />
+                                       Join Event
+                                     </a>
+                                  </div>
+                               </div>
+                             )}
+                          </div>
+                        </div>
+                      )}
+                   </div>
+                </div>
+
+                {/* Media Gallery */}
+                {event.mediaUrls && event.mediaUrls.length > 0 && (
                    <div className="space-y-4">
-                      <h3 className="text-lg font-black text-gray-900 border-l-4 border-primary pl-4">Quick Stats</h3>
-                      <div className="bg-gray-50 rounded-3xl p-6 space-y-6">
-                         <div className="flex items-center justify-between">
-                            <span className="text-sm font-bold text-gray-500">Capacity Utilization</span>
-                            <span className="text-sm font-black text-gray-900">{(analytics?.registrations || 0) / event.capacity * 100}%</span>
+                      <h3 className="text-lg font-black text-gray-900 border-l-4 border-primary pl-4">Media Gallery</h3>
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                         {event.mediaUrls.map((url, i) => (
+                           <div key={i} className="relative aspect-square rounded-2xl overflow-hidden bg-gray-50 border border-gray-100 group">
+                              {url.match(/\.(mp4|webm|ogg)$/) ? (
+                                <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                   <Video size={40} />
+                                </div>
+                              ) : (
+                                <Image src={url} alt={`Gallery ${i}`} fill className="object-cover transition-transform group-hover:scale-110" />
+                              )}
+                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                 <button className="p-2 bg-white rounded-full text-primary shadow-lg">
+                                    {url.match(/\.(mp4|webm|ogg)$/) ? <Video size={20} /> : <ImageIcon size={20} />}
+                                 </button>
+                              </div>
+                           </div>
+                         ))}
+                      </div>
+                   </div>
+                )}
+
+                {/* Refund Policy */}
+                <div className="space-y-4">
+                   <h3 className="text-lg font-black text-gray-900 border-l-4 border-primary pl-4">Refund Policy</h3>
+                   <div className="bg-gray-50 rounded-3xl p-8 border border-gray-100">
+                      <div className="flex items-center gap-4 mb-6">
+                         <div className="w-12 h-12 rounded-2xl bg-white text-secondary flex items-center justify-center shadow-sm border border-gray-100">
+                            <Shield size={24} />
                          </div>
-                         <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-primary rounded-full transition-all duration-1000"
-                              style={{ width: `${Math.min(100, ((analytics?.registrations || 0) / event.capacity * 100))}%` }}
-                            ></div>
+                         <div>
+                            <p className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Policy Type</p>
+                            <h4 className="text-xl font-black text-gray-900">{event.refundType || 'NONE'}</h4>
                          </div>
-                         <p className="text-xs text-gray-400 font-medium">Currently {analytics?.registrations || 0} registered out of {event.capacity} total slots.</p>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                         <div className="space-y-1">
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Refund Percentage</p>
+                            <p className="text-lg font-black text-primary">{event.refundPercentage || 0}%</p>
+                         </div>
+                         <div className="space-y-1">
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Cutoff Days</p>
+                            <p className="text-lg font-black text-primary">{event.refundCutoffDays || 0} Days before event</p>
+                         </div>
+                         <div className="md:col-span-3 space-y-2 mt-4 pt-4 border-t border-gray-200">
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Detailed Terms</p>
+                            <p className="text-sm text-gray-600 leading-relaxed italic">
+                               {event.refundPolicy || "No custom refund policy specified for this event."}
+                            </p>
+                         </div>
                       </div>
                    </div>
                 </div>
+              </div>
+            )}
+
+            {activeTab === "agenda" && (
+              <div className="space-y-8 animate-in fade-in duration-500">
+                 <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-black text-gray-900">Event Agenda</h3>
+                    <button className="flex items-center gap-2 text-primary font-bold text-sm bg-blue-50 px-4 py-2 rounded-xl hover:bg-blue-100 transition-colors">
+                      <Plus size={16} />
+                      Add Agenda Item
+                    </button>
+                 </div>
+
+                 <div className="space-y-6">
+                    {event.agenda && event.agenda.length > 0 ? (
+                      event.agenda.map((item, i) => (
+                        <div key={i} className="flex gap-6 group">
+                           <div className="flex flex-col items-center">
+                              <div className="w-10 h-10 rounded-xl bg-secondary text-white flex items-center justify-center font-bold text-sm z-10 shadow-lg shadow-secondary/20">
+                                 {i + 1}
+                              </div>
+                              {i !== event.agenda!.length - 1 && <div className="flex-1 w-[2px] bg-gray-100 my-1"></div>}
+                           </div>
+                           <div className="flex-1 pb-8">
+                              <div className="bg-gray-50 p-6 rounded-3xl border border-transparent group-hover:border-secondary/20 group-hover:bg-white group-hover:shadow-lg transition-all duration-300">
+                                 <div className="flex items-center justify-between mb-4">
+                                    <h4 className="font-bold text-gray-900 text-lg">{item.title}</h4>
+                                    <div className="flex items-center gap-3">
+                                       <span className="flex items-center gap-1 text-xs font-bold text-secondary bg-orange-50 px-3 py-1 rounded-lg">
+                                          <Clock size={14} />
+                                          {new Date(item.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(item.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                       </span>
+                                    </div>
+                                 </div>
+                                 <p className="text-gray-500 text-sm mb-4 leading-relaxed">{item.description}</p>
+                                 {item.speakerName && (
+                                   <div className="flex items-center gap-2 text-xs text-gray-400 font-bold uppercase tracking-widest">
+                                      <User size={12} className="text-secondary" />
+                                      Speaker: {item.speakerName}
+                                   </div>
+                                 )}
+                              </div>
+                           </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-20 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
+                         <Calendar className="mx-auto mb-4 text-gray-300" size={48} />
+                         <p className="text-gray-400 font-medium">No agenda items added to this event.</p>
+                      </div>
+                    )}
+                 </div>
+              </div>
+            )}
+
+            {activeTab === "speakers" && (
+              <div className="space-y-8 animate-in fade-in duration-500">
+                 <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-black text-gray-900">Featured Speakers</h3>
+                    <button className="flex items-center gap-2 text-primary font-bold text-sm bg-blue-50 px-4 py-2 rounded-xl hover:bg-blue-100 transition-colors">
+                      <Plus size={16} />
+                      Add Speaker
+                    </button>
+                 </div>
+
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {event.speakers && event.speakers.length > 0 ? (
+                      event.speakers.map((speaker, i) => (
+                        <div key={i} className="bg-gray-50 p-6 rounded-3xl border border-gray-100 hover:bg-white hover:shadow-xl transition-all duration-300 group">
+                           <div className="flex items-center gap-4 mb-6">
+                              <div className="relative w-20 h-20 rounded-2xl overflow-hidden shadow-md">
+                                 {speaker.imageUrl ? (
+                                   <Image src={speaker.imageUrl} alt={speaker.name} fill className="object-cover" />
+                                 ) : (
+                                   <div className="w-full h-full bg-primary/10 text-primary flex items-center justify-center">
+                                      <User size={32} />
+                                   </div>
+                                 )}
+                              </div>
+                              <div>
+                                 <h4 className="font-bold text-gray-900 text-lg leading-tight">{speaker.name}</h4>
+                                 <p className="text-xs font-bold text-primary uppercase tracking-widest mt-1">{speaker.title}</p>
+                              </div>
+                           </div>
+                           <p className="text-gray-500 text-sm leading-relaxed line-clamp-3 group-hover:line-clamp-none transition-all">
+                              {speaker.bio}
+                           </p>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="col-span-full text-center py-20 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
+                         <User className="mx-auto mb-4 text-gray-300" size={48} />
+                         <p className="text-gray-400 font-medium">No speakers listed for this event.</p>
+                      </div>
+                    )}
+                 </div>
               </div>
             )}
 
@@ -259,7 +484,7 @@ const EventDetails = () => {
             )}
 
             {activeTab === "tickets" && (
-              <div className="space-y-6 animate-in fade-in duration-500">
+              <div className="space-y-8 animate-in fade-in duration-500">
                  <div className="flex items-center justify-between">
                     <h3 className="text-lg font-black text-gray-900">Available Tickets</h3>
                     <button className="flex items-center gap-2 text-primary font-bold text-sm bg-blue-50 px-4 py-2 rounded-xl hover:bg-blue-100 transition-colors">
@@ -268,39 +493,102 @@ const EventDetails = () => {
                     </button>
                  </div>
 
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {event.tickets && event.tickets.length > 0 ? (
                       event.tickets.map((ticket, i) => (
-                        <div key={i} className="p-6 rounded-3xl border-2 border-gray-50 hover:border-primary/20 transition-all group">
-                           <div className="flex items-center justify-between mb-4">
-                              <div className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${ticket.type === 'FREE' ? 'bg-gray-100 text-gray-600' : 'bg-emerald-100 text-emerald-700'}`}>
-                                 {ticket.type}
+                        <div key={i} className="p-8 rounded-[2.5rem] border-2 border-gray-50 hover:border-primary/20 hover:bg-white hover:shadow-2xl transition-all duration-500 group relative overflow-hidden">
+                           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+
+                           <div className="flex items-center justify-between mb-6 relative z-10">
+                              <div className="flex items-center gap-3">
+                                 <div className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${ticket.type === 'FREE' ? 'bg-gray-100 text-gray-600' : 'bg-emerald-100 text-emerald-700'}`}>
+                                    {ticket.type}
+                                 </div>
+                                 {ticket.isOffline && (
+                                   <div className="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest bg-amber-100 text-amber-700">
+                                      OFFLINE
+                                   </div>
+                                 )}
                               </div>
-                              <button className="text-gray-400 hover:text-primary">
-                                 <MoreVertical size={18} />
+                              <button className="text-gray-400 hover:text-primary transition-colors">
+                                 <MoreVertical size={20} />
                               </button>
                            </div>
-                           <h4 className="font-bold text-gray-900 text-xl mb-1">{ticket.name}</h4>
-                           <p className="text-3xl font-black text-gray-900 mb-6">
-                             {ticket.price > 0 ? `₦${ticket.price.toLocaleString()}` : "Free"}
-                           </p>
 
-                           <div className="space-y-3 pt-6 border-t border-gray-50">
-                              <div className="flex items-center justify-between text-xs font-bold text-gray-400 uppercase tracking-widest">
-                                 <span>Sales Progress</span>
-                                 <span>{ticket.totalQuantity - ticket.availableQuantity} / {ticket.totalQuantity}</span>
+                           <h4 className="font-black text-gray-900 text-2xl mb-2 relative z-10">{ticket.name}</h4>
+                           <p className="text-gray-500 text-sm mb-6 line-clamp-2">{ticket.description || "No description provided."}</p>
+
+                           <div className="flex items-baseline gap-1 mb-8 relative z-10">
+                              <p className="text-4xl font-black text-gray-900">
+                                {ticket.price > 0 ? `₦${ticket.price.toLocaleString()}` : "Free"}
+                              </p>
+                              {ticket.price > 0 && <span className="text-xs font-bold text-gray-400 uppercase">/ pax</span>}
+                           </div>
+
+                           <div className="space-y-6 pt-6 border-t border-gray-100 relative z-10">
+                              <div className="grid grid-cols-2 gap-4">
+                                 <div className="space-y-1">
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Min Group Size</p>
+                                    <p className="text-sm font-bold text-gray-700">{ticket.groupSize || 1} Person(s)</p>
+                                 </div>
+                                 <div className="space-y-1">
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Max Per Order</p>
+                                    <p className="text-sm font-bold text-gray-700">{ticket.maxPerOrder || 10}</p>
+                                 </div>
                               </div>
-                              <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                                 <div
-                                   className="h-full bg-emerald-500 rounded-full"
-                                   style={{ width: `${((ticket.totalQuantity - ticket.availableQuantity) / ticket.totalQuantity) * 100}%` }}
-                                 ></div>
+
+                              {(ticket.salesStart || ticket.salesEnd) && (
+                                <div className="space-y-3 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                   <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                      <Clock size={12} className="text-primary" />
+                                      Sales Period
+                                   </div>
+                                   <div className="flex flex-col gap-1">
+                                      <p className="text-[11px] font-bold text-gray-600">
+                                         Start: {ticket.salesStart ? new Date(ticket.salesStart).toLocaleString() : 'Immediate'}
+                                      </p>
+                                      <p className="text-[11px] font-bold text-gray-600">
+                                         End: {ticket.salesEnd ? new Date(ticket.salesEnd).toLocaleString() : 'Event Start'}
+                                      </p>
+                                   </div>
+                                </div>
+                              )}
+
+                              {ticket.earlyBirdPrice && (
+                                <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
+                                   <div className="flex items-center justify-between mb-2">
+                                      <div className="flex items-center gap-2 text-[10px] font-black text-emerald-700 uppercase tracking-widest">
+                                         <TrendingUp size={12} />
+                                         Early Bird Active
+                                      </div>
+                                      <span className="text-[11px] font-black text-emerald-700">₦{ticket.earlyBirdPrice.toLocaleString()}</span>
+                                   </div>
+                                   <p className="text-[10px] text-emerald-600 font-medium">
+                                      Ends {ticket.earlyBirdExpiry ? new Date(ticket.earlyBirdExpiry).toLocaleDateString() : 'when limit reached'} • {ticket.earlyBirdLimit} slots total
+                                   </p>
+                                </div>
+                              )}
+
+                              <div className="space-y-3">
+                                 <div className="flex items-center justify-between text-xs font-bold text-gray-400 uppercase tracking-widest">
+                                    <span>Sales Progress</span>
+                                    <span className="text-gray-900 font-black">{ticket.totalQuantity - ticket.availableQuantity} / {ticket.totalQuantity} Sold</span>
+                                 </div>
+                                 <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+                                    <div
+                                      className="h-full bg-emerald-500 rounded-full transition-all duration-1000"
+                                      style={{ width: `${Math.min(100, ((ticket.totalQuantity - ticket.availableQuantity) / (ticket.totalQuantity || 1)) * 100)}%` }}
+                                    ></div>
+                                 </div>
                               </div>
                            </div>
                         </div>
                       ))
                     ) : (
-                      <p className="text-center py-20 text-gray-400 font-medium md:col-span-2">No ticket types created yet.</p>
+                      <div className="col-span-full text-center py-20 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
+                         <Ticket className="mx-auto mb-4 text-gray-300" size={48} />
+                         <p className="text-gray-400 font-medium">No ticket types created yet for this event.</p>
+                      </div>
                     )}
                  </div>
               </div>
