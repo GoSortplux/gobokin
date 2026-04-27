@@ -66,14 +66,14 @@ const AdminSidebar = () => {
       icon: <DollarSign size={24} />,
     },
     {
-      href: "/admin/dashboard/organizer-applications",
-      label: "Organizer Applications",
-      icon: <Ticket size={24} />,
-    },
-    {
       href: "/admin/dashboard/settings",
       label: "Settings",
       icon: <Settings size={24} />,
+    },
+    {
+      href: "/admin/events/dashboard",
+      label: "Switch to Event Admin",
+      icon: <Ticket size={24} />,
     },
   ];
 

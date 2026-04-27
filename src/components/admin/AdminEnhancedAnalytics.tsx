@@ -154,9 +154,9 @@ const formatDateRange = (start: Date | undefined, end: Date | undefined) => {
     return `${formatDate(start, "MMM d, yyyy")} - ${formatDate(end, "MMM d, yyyy")}`;
 };
 
-const AdminEnhancedAnalytics = () => {
+const AdminEnhancedAnalytics = ({ defaultView = 'venues' }: { defaultView?: 'venues' | 'events' }) => {
   const { user, fetchUserProfile } = useAuth();
-  const [activeView, setActiveView] = useState<'venues' | 'events'>('venues');
+  const [activeView, setActiveView] = useState<'venues' | 'events'>(defaultView);
   const [venueData, setVenueData] = useState<AdminAnalyticsData | null>(null);
   const [eventAnalytics, setEventAnalytics] = useState<Analytics | null>(null);
   const [loading, setLoading] = useState<boolean>(true);

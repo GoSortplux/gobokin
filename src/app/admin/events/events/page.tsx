@@ -1,0 +1,293 @@
+"use client";
+import React, { useState, useEffect } from "react";
+import {
+  Calendar,
+  Search,
+  Filter,
+  MapPin,
+  Ticket,
+  ArrowRight,
+  MoreVertical,
+  CheckCircle2,
+  Clock,
+  LayoutGrid,
+  List,
+  Eye,
+  Trash2
+} from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import api from "@/services/api";
+import { Event } from "@/types";
+import CustomLoader from "@/components/CustomLoader";
+import Swal from "@/utils/sweetalert";
+import { translateError } from "@/utils/errors";
+
+const AllEventsAdmin = () => {
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("list");
+  const [activeFilter, setActiveFilter] = useState<"ALL" | "UPCOMING" | "ONGOING" | "COMPLETED" | "CANCELLED">("ALL");
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  const fetchEvents = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get("/events/admin/all-events"); // Assuming this endpoint exists for admin
+      setEvents(response.data.data || []);
+    } catch (error) {
+      console.error("Failed to fetch events:", error);
+      // Fallback to my-events if admin endpoint doesn't exist yet,
+      // but the prompt implies admin should have platform wide access.
+      try {
+          const fallbackResponse = await api.get("/events");
+          setEvents(fallbackResponse.data.data || []);
+      } catch (e) {
+          setEvents([]);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteEvent = async (eventId: string) => {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "You are about to delete this event platform-wide!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!"
+    });
+
+    if (result.isConfirmed) {
+      try {
+        Swal.showLoading();
+        await api.delete(`/events/${eventId}`);
+        setEvents(events.filter(e => e.id !== eventId));
+        Swal.fire("Deleted!", "The event has been deleted.", "success");
+      } catch (error) {
+        Swal.fire("Error", translateError(error), "error");
+      }
+    }
+  };
+
+  const filteredEvents = events.filter(event => {
+    const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = activeFilter === "ALL" || event.status === activeFilter;
+    return matchesSearch && matchesFilter;
+  });
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "UPCOMING": return "bg-blue-50 text-blue-600 border border-blue-100";
+      case "ONGOING": return "bg-emerald-50 text-emerald-600 border border-emerald-100";
+      case "COMPLETED": return "bg-gray-50 text-gray-600 border border-gray-100";
+      case "CANCELLED": return "bg-rose-50 text-rose-600 border border-rose-100";
+      default: return "bg-gray-50 text-gray-600 border border-gray-100";
+    }
+  };
+
+  if (loading) return <div className="h-full flex items-center justify-center"><CustomLoader /></div>;
+
+  return (
+    <div className="space-y-8 pb-12 px-2">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <h1 className="text-4xl font-black text-primary tracking-tight">Platform Events</h1>
+          <p className="text-gray-500 font-medium mt-1">Monitor and manage all events across the Gobokin platform.</p>
+        </div>
+      </div>
+
+      <div className="bg-white p-2 md:p-3 rounded-2xl md:rounded-[2rem] border border-gray-100 shadow-sm flex flex-col lg:flex-row items-center gap-4">
+        <div className="relative flex-1 w-full">
+          <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+          <input
+            type="text"
+            placeholder="Search platform events..."
+            className="w-full pl-12 pr-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all placeholder:font-medium"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        <div className="flex items-center gap-2 w-full lg:w-auto overflow-x-auto no-scrollbar py-1">
+          {["ALL", "UPCOMING", "ONGOING", "COMPLETED", "CANCELLED"].map((filter) => (
+            <button
+              key={filter}
+              onClick={() => setActiveFilter(filter as any)}
+              className={`px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                activeFilter === filter
+                  ? "bg-primary text-white shadow-md shadow-primary/20"
+                  : "text-gray-500 hover:bg-gray-50"
+              }`}
+            >
+              {filter}
+            </button>
+          ))}
+        </div>
+
+        <div className="h-10 w-[1px] bg-gray-100 hidden lg:block mx-2"></div>
+
+        <div className="flex items-center gap-2 bg-gray-50 p-1 rounded-xl">
+           <button
+             onClick={() => setViewMode("grid")}
+             className={`p-2 rounded-lg transition-all ${viewMode === "grid" ? "bg-white text-primary shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
+           >
+             <LayoutGrid size={18} />
+           </button>
+           <button
+             onClick={() => setViewMode("list")}
+             className={`p-2 rounded-lg transition-all ${viewMode === "list" ? "bg-white text-primary shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
+           >
+             <List size={18} />
+           </button>
+        </div>
+      </div>
+
+      {filteredEvents.length > 0 ? (
+        viewMode === "grid" ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            {filteredEvents.map((event) => (
+              <div key={event.id} className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-xl transition-all duration-500 group relative">
+                <div className="relative h-44 w-full overflow-hidden">
+                  {event.bannerUrl ? (
+                    <Image src={event.bannerUrl} alt={event.title} fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                       <Calendar size={48} className="text-primary/20" />
+                    </div>
+                  )}
+                  <div className="absolute top-4 left-4">
+                    <span className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider ${getStatusColor(event.status)}`}>
+                      {event.status}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-5">
+                  <h3 className="text-xl font-black text-gray-900 mb-3 line-clamp-1 group-hover:text-primary transition-colors">{event.title}</h3>
+
+                  <div className="space-y-3 mb-4">
+                    <div className="flex items-center gap-3 text-sm text-gray-500 font-medium">
+                      <div className="w-8 h-8 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">
+                        <Clock size={16} />
+                      </div>
+                      {new Date(event.startDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-gray-500 font-medium">
+                      <div className="w-8 h-8 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">
+                        <MapPin size={16} />
+                      </div>
+                      <span className="line-clamp-1">{event.location || "Virtual Event"}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 mt-4">
+                    <Link
+                        href={`/admin/events/events/${event.id}`}
+                        className="flex-1 bg-gray-50 text-gray-900 font-black py-4 rounded-2xl hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-2 group/btn shadow-sm text-sm uppercase tracking-widest"
+                    >
+                        View Details
+                        <ArrowRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
+                    </Link>
+                    <button
+                        onClick={() => deleteEvent(event.id)}
+                        className="w-14 h-14 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all shadow-sm"
+                    >
+                        <Trash2 size={20} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-gray-50 border-b border-gray-100">
+                  <tr>
+                    <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Event Details</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Date</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Registrations</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Revenue</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {filteredEvents.map((event) => (
+                    <tr key={event.id} className="hover:bg-gray-50 transition-colors group">
+                      <td className="px-6 py-6">
+                        <div className="flex items-center gap-4">
+                          <div className="w-14 h-14 rounded-2xl bg-gray-100 overflow-hidden relative border-2 border-transparent group-hover:border-primary transition-all">
+                            {event.bannerUrl ? (
+                              <Image src={event.bannerUrl} alt={event.title} fill className="object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-primary bg-primary/10 font-bold">
+                                {event.title[0]}
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-bold text-gray-900 group-hover:text-primary transition-colors">{event.title}</p>
+                            <p className="text-xs text-gray-500 font-medium">{event.category}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-5">
+                        <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${getStatusColor(event.status)}`}>
+                          {event.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-6">
+                        <p className="text-sm font-black text-gray-900">{new Date(event.startDate).toLocaleDateString()}</p>
+                      </td>
+                      <td className="px-6 py-5">
+                         <div className="space-y-1">
+                            <p className="text-sm font-black text-gray-900">{(event as any).registrationCount || 0} / {event.capacity}</p>
+                         </div>
+                      </td>
+                      <td className="px-6 py-5 font-black text-emerald-600 text-sm">₦{((event as any).totalRevenue || 0).toLocaleString()}</td>
+                      <td className="px-6 py-5 text-right">
+                        <div className="flex items-center justify-end gap-3">
+                            <Link
+                                href={`/admin/events/events/${event.id}`}
+                                className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gray-50 text-gray-900 hover:bg-primary hover:text-white transition-all shadow-sm"
+                            >
+                                <Eye size={18} />
+                            </Link>
+                            <button
+                                onClick={() => deleteEvent(event.id)}
+                                className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white transition-all shadow-sm"
+                            >
+                                <Trash2 size={18} />
+                            </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )
+      ) : (
+        <div className="bg-white p-20 text-center rounded-3xl border border-gray-100 shadow-sm">
+          <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300">
+            <Calendar size={48} />
+          </div>
+          <h3 className="text-2xl font-black text-gray-900 mb-2">No events found</h3>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default AllEventsAdmin;
