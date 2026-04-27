@@ -7,11 +7,9 @@ import {
   Filter,
   MapPin,
   Ticket,
-  Users,
   ArrowRight,
   PlusCircle,
   MoreVertical,
-  Layers,
   CheckCircle2,
   Clock,
   LayoutGrid,
@@ -161,7 +159,7 @@ const MyEvents = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {filteredEvents.map((event) => (
               <div key={event.id} className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-xl transition-all duration-500 group relative">
-                <div className="relative h-56 w-full overflow-hidden">
+                <div className="relative h-44 w-full overflow-hidden">
                   {event.bannerUrl ? (
                     <Image src={event.bannerUrl} alt={event.title} fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
                   ) : (
@@ -175,26 +173,16 @@ const MyEvents = () => {
                     </span>
                   </div>
                   <div className="absolute top-4 right-4 flex items-center gap-2">
-                    <button
-                        onClick={() => deleteEvent(event.id)}
-                        className="w-10 h-10 bg-rose-500/20 backdrop-blur-md rounded-xl text-white flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all"
-                    >
-                      <Trash2 size={20} />
-                    </button>
                     <button className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl text-white flex items-center justify-center hover:bg-white hover:text-primary transition-all">
                       <MoreVertical size={20} />
                     </button>
                   </div>
                 </div>
 
-                <div className="p-6">
-                  <div className="flex items-center gap-2 text-xs font-bold text-primary uppercase tracking-widest mb-2">
-                    <Layers size={14} />
-                    {event.category}
-                  </div>
-                  <h3 className="text-xl font-black text-gray-900 mb-4 line-clamp-1 group-hover:text-primary transition-colors">{event.title}</h3>
+                <div className="p-5">
+                  <h3 className="text-xl font-black text-gray-900 mb-3 line-clamp-1 group-hover:text-primary transition-colors">{event.title}</h3>
 
-                  <div className="space-y-3 mb-6">
+                  <div className="space-y-3 mb-4">
                     <div className="flex items-center gap-3 text-sm text-gray-500 font-medium">
                       <div className="w-8 h-8 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">
                         <Clock size={16} />
@@ -209,21 +197,7 @@ const MyEvents = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 pt-6 border-t border-gray-50">
-                    <div className="space-y-1">
-                      <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Registrations</p>
-                      <p className="text-xl font-black text-gray-900 flex items-center gap-2">
-                        <Users size={16} className="text-primary" />
-                        {(event as any).registrationCount || 0}
-                      </p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Revenue</p>
-                      <p className="text-xl font-black text-emerald-600">₦{((event as any).totalRevenue || 0).toLocaleString()}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 mt-6">
+                  <div className="flex items-center gap-3 mt-4">
                     <Link
                         href={`/organizer/dashboard/events/${event.id}`}
                         className="flex-1 bg-gray-50 text-gray-900 font-black py-4 rounded-2xl hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-2 group/btn shadow-sm text-sm uppercase tracking-widest"
