@@ -1,0 +1,54 @@
+
+> gobokin-app@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.5.9
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.2:3000
+
+ ✓ Starting...
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+ ✓ Ready in 2.4s
+ ○ Compiling /organizer/dashboard/events/create ...
+ ✓ Compiled /organizer/dashboard/events/create in 15.2s (1863 modules)
+ GET /organizer/dashboard/events/create 200 in 16974ms
+ ○ Compiling /auth/login ...
+ ✓ Compiled /auth/login in 3.3s (1849 modules)
+ GET /auth/login 200 in 3581ms
+ GET /auth/login 200 in 111ms
+ GET /organizer/dashboard/events/create 200 in 599ms
+ GET /auth/login 200 in 152ms
+ GET /organizer/dashboard/events/create 200 in 250ms
+ ○ Compiling / ...
+ ✓ Compiled / in 6.7s (3821 modules)
+ GET / 200 in 6997ms
+ GET / 200 in 7018ms
+ GET /auth/login 200 in 179ms
+ GET /auth/login 200 in 159ms
+ GET /auth/login 200 in 185ms
+ GET /organizer/dashboard/events/create 200 in 845ms
+ GET / 200 in 93ms
+ GET /auth/login 200 in 154ms
+ GET /auth/login 200 in 136ms
+ GET /auth/login 200 in 130ms
+ GET /organizer/dashboard/events/create 200 in 113ms
+ GET / 200 in 54ms
+ GET /auth/login 200 in 120ms
+ GET /auth/login 200 in 145ms
+ GET /auth/login 200 in 163ms
+ GET /organizer/dashboard/events/create 200 in 125ms
+ GET / 200 in 53ms
+ GET /organizer/dashboard/events/create 200 in 154ms
+ GET / 200 in 90ms
+ GET / 200 in 97ms
+ GET /organizer/dashboard/events/create 200 in 148ms
+ GET / 200 in 93ms
+ GET / 200 in 96ms
+ GET /organizer/dashboard/events/create 200 in 136ms
+ GET / 200 in 64ms
+ GET /organizer/dashboard/events/create 200 in 152ms
+ GET /organizer/dashboard/events/create 200 in 158ms

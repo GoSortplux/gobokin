@@ -425,6 +425,7 @@ export type TicketType = 'FREE' | 'PAID';
 export type RegistrationMode = 'FULL_DETAILS' | 'BASIC_QUANTITY';
 
 export interface Speaker {
+  id?: string;
   name: string;
   title: string;
   bio: string;
@@ -447,6 +448,11 @@ export interface Session {
   endTime: string;
   location?: string;
   description?: string;
+  room?: string;
+  stage?: string;
+  sessionType?: string;
+  speakerIds?: string[];
+  speakerNames?: string[];
   createdAt?: string;
   updatedAt?: string;
 }
@@ -555,6 +561,7 @@ export interface Event {
   refundPercentage?: string;
   refundCutoffDays?: number;
   isDeleted: boolean;
+  agendaEnabled?: boolean;
   registrationMode: RegistrationMode;
   isGroupingEnabled: boolean;
   enforceUniqueGroupNames: boolean;
