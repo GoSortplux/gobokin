@@ -70,11 +70,6 @@ const AdminSidebar = () => {
       label: "Settings",
       icon: <Settings size={24} />,
     },
-    {
-      href: "/admin/events/dashboard",
-      label: "Switch to Event Admin",
-      icon: <Ticket size={24} />,
-    },
   ];
 
   return (

@@ -276,23 +276,6 @@ const AdminEnhancedAnalytics = ({ defaultView = 'venues' }: { defaultView?: 'ven
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <div className="bg-white p-1 rounded-2xl shadow-sm border border-gray-100 flex items-center">
-            <button
-                onClick={() => setActiveView('venues')}
-                className={`px-6 py-2.5 rounded-xl text-sm font-black transition-all flex items-center gap-2 ${activeView === 'venues' ? 'bg-primary text-white shadow-lg shadow-blue-200' : 'text-gray-400 hover:text-gray-600'}`}
-            >
-                <LayoutDashboard size={18} />
-                Venues
-            </button>
-            <button
-                onClick={() => setActiveView('events')}
-                className={`px-6 py-2.5 rounded-xl text-sm font-black transition-all flex items-center gap-2 ${activeView === 'events' ? 'bg-primary text-white shadow-lg shadow-blue-200' : 'text-gray-400 hover:text-gray-600'}`}
-            >
-                <Ticket size={18} />
-                Events
-            </button>
-          </div>
-
           <div className="p-1.5 bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-wrap items-center gap-2">
             {activeView === 'venues' && (
                 <select

@@ -54,6 +54,12 @@ const AdminEventSidebar = () => {
       id: "admin-event-nav-orders",
     },
     {
+      href: "/admin/events/staff",
+      label: "Staff Pool",
+      icon: <Users size={24} />,
+      id: "admin-event-nav-staff",
+    },
+    {
       href: "/admin/events/organizer-applications",
       label: "Organizer Applications",
       icon: <Briefcase size={24} />,
@@ -147,18 +153,6 @@ const AdminEventSidebar = () => {
         </div>
 
         <nav className="flex-1 flex flex-col px-3 space-y-2 overflow-y-auto no-scrollbar">
-          <Link
-            href="/admin/dashboard"
-            className={`flex items-center ${isExpanded ? "px-4" : "justify-center"} h-12 rounded-2xl transition-all duration-300 bg-emerald-500 text-white shadow-lg shadow-emerald-100 mb-4 group relative`}
-          >
-            <div className="flex-shrink-0 transform group-hover:scale-110 transition-transform duration-200">
-              <ArrowLeftRight size={20} />
-            </div>
-            {(isExpanded || isSidebarOpen) && (
-              <span className="ml-4 text-xs font-black whitespace-nowrap uppercase tracking-widest">Venue Admin</span>
-            )}
-          </Link>
-
           {navLinks.map((link) => (
             <Link
               key={link.href}

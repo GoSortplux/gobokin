@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import { Search, User as UserIcon, Building, Calendar, Users, Shield, ChevronDown, LogOut, LayoutDashboard, Menu, X, Wallet } from "lucide-react";
+import { Search, User as UserIcon, Building, Calendar, Users, Shield, ChevronDown, LogOut, LayoutDashboard, Menu, X, Wallet, Ticket } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import useOnClickOutside from "@/hooks/useOnClickOutside";
@@ -277,6 +277,34 @@ const AdminHeader = () => {
                   <LayoutDashboard size={18} className="mr-3 text-primary" />
                   Dashboard
                 </button>
+
+                {user.role?.includes('super-admin') && (
+                  <>
+                    <div className="my-1 border-t border-gray-50" />
+                    <p className="px-4 py-1.5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Administration</p>
+                    <button
+                      onClick={() => {
+                        setUserDropdownOpen(false);
+                        router.push("/admin/dashboard");
+                      }}
+                      className="flex items-center w-full px-4 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
+                    >
+                      <Building size={16} className="mr-3 text-primary" />
+                      Venue Admin
+                    </button>
+                    <button
+                      onClick={() => {
+                        setUserDropdownOpen(false);
+                        router.push("/admin/events/dashboard");
+                      }}
+                      className="flex items-center w-full px-4 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
+                    >
+                      <Ticket size={16} className="mr-3 text-primary" />
+                      Event Admin
+                    </button>
+                    <div className="my-1 border-t border-gray-50" />
+                  </>
+                )}
 
                 {user.role && user.role.length > 1 && (
                   <div className="relative">
