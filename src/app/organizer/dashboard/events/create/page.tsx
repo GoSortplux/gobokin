@@ -1151,7 +1151,7 @@ const CreateEvent = () => {
                     {currentStep}
                  </div>
                  <div>
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Current Milestone</p>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Current Step</p>
                     <span className="text-base font-black text-gray-900 leading-none">{steps[currentStep-1].title}</span>
                  </div>
               </div>
@@ -2292,14 +2292,14 @@ const CreateEvent = () => {
                }`}
              >
                <ArrowLeft size={16} />
-               Retract
+               Back
              </button>
 
              <div className="flex items-center gap-8">
                  <div className="hidden sm:flex flex-col items-end">
-                    <p className="text-[9px] font-black text-gray-300 uppercase tracking-[0.4em] mb-1">Upcoming Sequence</p>
+                    <p className="text-[9px] font-black text-gray-300 uppercase tracking-[0.4em] mb-1">Next Up</p>
                     <span className="text-xs font-black text-gray-900 uppercase tracking-widest">
-                        {currentStep < 3 ? (currentStep === 1 && subStep < 5 ? 'Creation Phase' : steps[currentStep].title) : 'Mission Completion'}
+                        {currentStep < 3 ? (currentStep === 1 && subStep < 5 ? 'Details' : steps[currentStep].title) : 'Finish'}
                     </span>
                  </div>
                  {currentStep === 1 && (
@@ -2319,7 +2319,7 @@ const CreateEvent = () => {
                       disabled={loading}
                       className="flex items-center gap-4 bg-primary text-white font-black px-14 py-6 rounded-[2.5rem] hover:bg-opacity-90 transition-all shadow-3xl shadow-primary/30 uppercase tracking-[0.3em] text-[11px] group active:scale-95"
                     >
-                      {loading ? "Saving..." : subStep < 4 ? "Next Phase" : subStep === 4 ? "Create Event & Add Visuals" : "Continue to Ticketing"}
+                      {loading ? "Saving..." : subStep < 4 ? "Next" : subStep === 4 ? "Create Event & Add Visuals" : "Continue to Ticketing"}
                       <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform duration-500" />
                     </button>
                  )}
