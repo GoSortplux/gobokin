@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
@@ -50,6 +50,8 @@ const steps = [
   { id: 2, title: "Ticketing", icon: Ticket },
   { id: 3, title: "Schedule", icon: Calendar },
 ];
+
+const AUTOSAVE_KEY = "gobokin_event_creation_draft";
 
 interface LivePreviewProps {
   basicInfo: {
@@ -346,6 +348,7 @@ const CreateEvent = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [subStep, setSubStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [isAutosaving, setIsAutosaving] = useState(false);
   const [eventId, setEventId] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(true);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
@@ -433,6 +436,212 @@ const CreateEvent = () => {
       { name: "email", label: "Email Address", type: "text", required: true, isPerAttendee: true },
     ] as { name: string; label: string; type: string; required: boolean; isPerAttendee: boolean }[],
   });
+
+  // Persistence Logic
+  const getFormState = useCallback(() => {
+    return {
+      basicInfo,
+      mediaInfo,
+      speakers,
+      agenda,
+      sessions,
+      tickets,
+      registration,
+      currentStep,
+      subStep,
+      eventId,
+    };
+  }, [basicInfo, mediaInfo, speakers, agenda, sessions, tickets, registration, currentStep, subStep, eventId]);
+
+  const saveToLocalStorage = useCallback(() => {
+    const state = getFormState();
+    localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(state));
+  }, [getFormState]);
+
+  const clearDraft = useCallback(() => {
+    localStorage.removeItem(AUTOSAVE_KEY);
+  }, []);
+
+  const validateForAutosave = useCallback(() => {
+    return basicInfo.title && basicInfo.title.trim() !== "";
+  }, [basicInfo.title]);
+
+  // Ref for debouncing
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const saveToBackend = useCallback(async () => {
+    if (!eventId || isAutosaving || !validateForAutosave()) return;
+
+    setIsAutosaving(true);
+    try {
+      // 1. Save Base Info
+      const basePayload: Record<string, unknown> = {
+        title: basicInfo.title,
+        description: basicInfo.description,
+        slug: basicInfo.slug || undefined,
+        isPublic: basicInfo.isPublic,
+        type: basicInfo.type,
+        startDate: basicInfo.startDate ? new Date(basicInfo.startDate).toISOString() : undefined,
+        endDate: basicInfo.endDate ? new Date(basicInfo.endDate).toISOString() : undefined,
+        location: basicInfo.type === 'ONLINE' ? 'Virtual' : (basicInfo.location || 'Virtual'),
+        virtualLink: basicInfo.virtualLink || undefined,
+        capacity: basicInfo.capacity,
+        category: basicInfo.category,
+        tags: basicInfo.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== ""),
+        registrationMode: registration.mode,
+        isGroupingEnabled: registration.isGroupingEnabled,
+        enforceUniqueGroupNames: registration.enforceUniqueGroupNames,
+        registrationFields: registration.fields.map(f => ({
+          name: f.name || f.label.toLowerCase().replace(/\s+/g, '-'),
+          label: f.label,
+          type: f.type,
+          required: f.required,
+          isPerAttendee: f.isPerAttendee
+        })),
+        bannerUrl: mediaInfo.bannerUrl || undefined,
+        mediaUrls: mediaInfo.mediaUrls,
+      };
+
+      if (speakers.length > 0) {
+        basePayload.speakers = speakers.map(s => ({
+          name: s.name,
+          title: s.title,
+          bio: s.bio,
+          imageUrl: s.imageUrl
+        }));
+      }
+
+      if (agenda.length > 0) {
+        basePayload.agenda = agenda.map(a => ({
+          title: a.title,
+          description: a.description,
+          startTime: a.startTime ? new Date(a.startTime).toISOString() : undefined,
+          endTime: a.endTime ? new Date(a.endTime).toISOString() : undefined,
+          speakerName: a.speakerName
+        }));
+      }
+
+      const { isFeatured: _isFeatured, status: _status, ...patchPayload } = basePayload as Record<string, unknown>;
+      // Ensure status is DRAFT if we're autosaving
+      (patchPayload as any).status = "DRAFT";
+
+      await api.patch(`/events/${eventId}`, patchPayload);
+
+      // 2. Save Tickets (if in step 2)
+      if (currentStep === 2) {
+          const emptyTicket = tickets.find(t => !t.name || t.name.trim() === "");
+          if (!emptyTicket) {
+              const ticketPayload = {
+                  tickets: tickets.map(({ id: _, ...rest }) => {
+                      const tPayload: any = {
+                          name: rest.name,
+                          description: rest.description,
+                          type: rest.type,
+                          price: rest.type === 'FREE' ? 0 : rest.price,
+                          totalQuantity: Math.max(1, rest.totalQuantity || 1),
+                          groupSize: rest.groupSize,
+                          allocationType: rest.allocationType,
+                          maxPerOrder: rest.maxPerOrder,
+                          salesStart: rest.salesStart ? new Date(rest.salesStart).toISOString() : undefined,
+                          salesEnd: rest.salesEnd ? new Date(rest.salesEnd).toISOString() : undefined,
+                          isOffline: rest.isOffline,
+                          quantityDiscounts: rest.quantityDiscounts
+                      };
+
+                      if (rest.type !== 'FREE' && (rest.earlyBirdLimit || 0) > 0 && (rest.earlyBirdPrice || 0) > 0) {
+                          tPayload.earlyBirdPrice = rest.earlyBirdPrice;
+                          tPayload.earlyBirdLimit = rest.earlyBirdLimit;
+                          tPayload.earlyBirdExpiry = rest.earlyBirdExpiry ? new Date(rest.earlyBirdExpiry).toISOString() : undefined;
+                      }
+                      return tPayload;
+                  })
+              };
+              await api.post(`/events/${eventId}/tickets`, ticketPayload);
+          }
+      }
+
+      // 3. Save Sessions (if in step 3)
+      if (currentStep === 3) {
+          const sessionPayload = {
+              sessions: sessions.map(({ id: _, ...rest }) => ({
+                  title: rest.title,
+                  startTime: rest.startTime ? new Date(rest.startTime).toISOString() : undefined,
+                  endTime: rest.endTime ? new Date(rest.endTime).toISOString() : undefined,
+                  location: rest.location || (basicInfo.type === 'ONLINE' ? 'Virtual' : (basicInfo.location || 'Virtual'))
+              }))
+          };
+          await api.post(`/events/${eventId}/sessions`, sessionPayload);
+      }
+
+      console.log("Autosave to backend successful");
+    } catch (error) {
+      console.error("Autosave to backend failed", error);
+    } finally {
+      setIsAutosaving(false);
+    }
+  }, [eventId, basicInfo, mediaInfo, speakers, agenda, registration, tickets, sessions, currentStep, isAutosaving, validateForAutosave]);
+
+  const handleBlur = useCallback(() => {
+    saveToLocalStorage();
+
+    // Debounce backend save
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(() => {
+      saveToBackend();
+    }, 1000); // 1s debounce
+  }, [saveToLocalStorage, saveToBackend]);
+
+  // Autosave interval
+  useEffect(() => {
+    const interval = setInterval(() => {
+      saveToLocalStorage();
+      saveToBackend();
+    }, 10000); // Every 10 seconds
+
+    return () => clearInterval(interval);
+  }, [saveToLocalStorage]); // Removing saveToBackend from deps to prevent reset on every state change
+
+  // Load draft on mount
+  useEffect(() => {
+    const savedDraft = localStorage.getItem(AUTOSAVE_KEY);
+    if (savedDraft) {
+      try {
+        const draft = JSON.parse(savedDraft);
+        Swal.fire({
+          title: "Resume Draft?",
+          text: "We found a previously saved draft. Would you like to continue where you left off?",
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonText: "Yes, Resume",
+          cancelButtonText: "No, Start Fresh",
+          confirmButtonColor: "#295FA7",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            if (draft.basicInfo) setBasicInfo(draft.basicInfo);
+            if (draft.mediaInfo) setMediaInfo(draft.mediaInfo);
+            if (draft.speakers) setSpeakers(draft.speakers);
+            if (draft.agenda) setAgenda(draft.agenda);
+            if (draft.sessions) setSessions(draft.sessions);
+            if (draft.tickets) setTickets(draft.tickets);
+            if (draft.registration) setRegistration(draft.registration);
+            if (draft.currentStep) setCurrentStep(draft.currentStep);
+            if (draft.subStep) setSubStep(draft.subStep);
+            if (draft.eventId) setEventId(draft.eventId);
+
+            Swal.toast.fire({
+              icon: "success",
+              title: "Draft resumed successfully",
+            });
+          } else {
+            clearDraft();
+          }
+        });
+      } catch (e) {
+        console.error("Failed to load draft", e);
+        clearDraft();
+      }
+    }
+  }, []);
 
   // Media Upload State
   const [isUploading, setIsUploading] = useState(false);
@@ -866,6 +1075,7 @@ const CreateEvent = () => {
               icon: "success",
               confirmButtonColor: "#295FA7",
           });
+          clearDraft();
           router.push(`/organizer/dashboard/events/${eventId}`);
       } catch (_error) {
           console.error("Failed to create sessions:", _error);
@@ -995,7 +1205,7 @@ const CreateEvent = () => {
                                   placeholder="e.g., Annual Tech Summit 2024"
                                   className="w-full p-5 sm:p-6 bg-white border border-gray-300 rounded-[1.5rem] sm:rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
                                   value={basicInfo.title || ""}
-                                  onChange={handleBasicChange}
+                                  onBlur={handleBlur} onChange={handleBasicChange}
                                 />
                              </div>
                              <div className="space-y-3">
@@ -1006,7 +1216,7 @@ const CreateEvent = () => {
                                   placeholder="e.g., tech-summit-2024"
                                   className="w-full p-5 sm:p-6 bg-white border border-gray-300 rounded-[1.5rem] sm:rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
                                   value={basicInfo.slug || ""}
-                                  onChange={handleBasicChange}
+                                  onBlur={handleBlur} onChange={handleBasicChange}
                                 />
                              </div>
                              <div className="space-y-3">
@@ -1017,7 +1227,7 @@ const CreateEvent = () => {
                                       name="category"
                                       className="w-full pl-14 pr-12 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none appearance-none shadow-sm cursor-pointer"
                                       value={basicInfo.category || ""}
-                                      onChange={handleBasicChange}
+                                      onBlur={handleBlur} onChange={handleBasicChange}
                                    >
                                       <option value="">Select a category</option>
                                       {categories.map((cat, idx) => (
@@ -1037,7 +1247,7 @@ const CreateEvent = () => {
                                       placeholder="Comma separated tags"
                                       className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
                                       value={basicInfo.tags || ""}
-                                      onChange={handleBasicChange}
+                                      onBlur={handleBlur} onChange={handleBasicChange}
                                    />
                                 </div>
                              </div>
@@ -1065,7 +1275,7 @@ const CreateEvent = () => {
                                       name="startDate"
                                          className="w-full pl-12 sm:pl-14 pr-4 sm:pr-6 py-5 sm:py-6 bg-white border border-gray-300 rounded-[1.5rem] sm:rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
                                       value={basicInfo.startDate}
-                                      onChange={handleBasicChange}
+                                      onBlur={handleBlur} onChange={handleBasicChange}
                                    />
                                 </div>
                              </div>
@@ -1078,7 +1288,7 @@ const CreateEvent = () => {
                                       name="endDate"
                                          className="w-full pl-12 sm:pl-14 pr-4 sm:pr-6 py-5 sm:py-6 bg-white border border-gray-300 rounded-[1.5rem] sm:rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
                                       value={basicInfo.endDate}
-                                      onChange={handleBasicChange}
+                                      onBlur={handleBlur} onChange={handleBasicChange}
                                    />
                                 </div>
                              </div>
@@ -1127,7 +1337,7 @@ const CreateEvent = () => {
                                          placeholder="Street address, City, State"
                                          className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
                                          value={basicInfo.location || ""}
-                                         onChange={handleBasicChange}
+                                         onBlur={handleBlur} onChange={handleBasicChange}
                                       />
                                    </div>
                                 </div>
@@ -1143,7 +1353,7 @@ const CreateEvent = () => {
                                          placeholder="https://zoom.us/j/..."
                                          className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
                                          value={basicInfo.virtualLink || ""}
-                                         onChange={handleBasicChange}
+                                         onBlur={handleBlur} onChange={handleBasicChange}
                                       />
                                    </div>
                                 </div>
@@ -1157,7 +1367,7 @@ const CreateEvent = () => {
                                       name="capacity"
                                       className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
                                       value={basicInfo.capacity}
-                                      onChange={handleBasicChange}
+                                      onBlur={handleBlur} onChange={handleBasicChange}
                                    />
                                 </div>
                              </div>
@@ -1210,7 +1420,7 @@ const CreateEvent = () => {
                                          )}
                                          <label className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center cursor-pointer z-10">
                                             <Upload size={20} className="text-white" />
-                                            <input type="file" className="hidden" onChange={(e) => handleSpeakerImageUpload(idx, e)} />
+                                            <input type="file" className="hidden" onBlur={handleBlur} onChange={(e) => handleSpeakerImageUpload(idx, e)} />
                                          </label>
                                          <div className="absolute bottom-2 right-2 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center shadow-lg border-2 border-white z-20 pointer-events-none">
                                             <Upload size={14} strokeWidth={3} />
@@ -1222,14 +1432,14 @@ const CreateEvent = () => {
                                             placeholder="Full Name"
                                             className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all shadow-sm"
                                             value={speaker.name}
-                                            onChange={(e) => updateSpeaker(idx, 'name', e.target.value)}
+                                            onBlur={handleBlur} onChange={(e) => updateSpeaker(idx, 'name', e.target.value)}
                                          />
                                          <input
                                             type="text"
                                             placeholder="Title (e.g., CEO, Speaker)"
                                             className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all shadow-sm"
                                             value={speaker.title}
-                                            onChange={(e) => updateSpeaker(idx, 'title', e.target.value)}
+                                            onBlur={handleBlur} onChange={(e) => updateSpeaker(idx, 'title', e.target.value)}
                                          />
                                       </div>
                                    </div>
@@ -1238,7 +1448,7 @@ const CreateEvent = () => {
                                       rows={3}
                                       className="w-full p-6 bg-white border border-gray-200 rounded-[1.5rem] text-sm font-bold outline-none focus:border-primary transition-all"
                                       value={speaker.bio}
-                                      onChange={(e) => updateSpeaker(idx, 'bio', e.target.value)}
+                                      onBlur={handleBlur} onChange={(e) => updateSpeaker(idx, 'bio', e.target.value)}
                                    />
                                 </div>
                              ))}
@@ -1277,7 +1487,7 @@ const CreateEvent = () => {
                                             placeholder="Opening Keynote"
                                             className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all"
                                             value={item.title}
-                                            onChange={(e) => updateAgendaItem(idx, 'title', e.target.value)}
+                                            onBlur={handleBlur} onChange={(e) => updateAgendaItem(idx, 'title', e.target.value)}
                                          />
                                       </div>
                                       <div className="space-y-3">
@@ -1285,7 +1495,7 @@ const CreateEvent = () => {
                                          <select
                                             className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all appearance-none"
                                             value={item.speakerName}
-                                            onChange={(e) => updateAgendaItem(idx, 'speakerName', e.target.value)}
+                                            onBlur={handleBlur} onChange={(e) => updateAgendaItem(idx, 'speakerName', e.target.value)}
                                          >
                                             <option value="">No Speaker</option>
                                             {speakers.filter(s => s.name).map((s, i) => (
@@ -1309,7 +1519,7 @@ const CreateEvent = () => {
                                             value={item.startTime}
                                             min={basicInfo.startDate}
                                             max={basicInfo.endDate}
-                                            onChange={(e) => updateAgendaItem(idx, 'startTime', e.target.value)}
+                                            onBlur={handleBlur} onChange={(e) => updateAgendaItem(idx, 'startTime', e.target.value)}
                                          />
                                       </div>
                                       <div className="space-y-3">
@@ -1320,7 +1530,7 @@ const CreateEvent = () => {
                                             value={item.endTime}
                                             min={item.startTime || basicInfo.startDate}
                                             max={basicInfo.endDate}
-                                            onChange={(e) => updateAgendaItem(idx, 'endTime', e.target.value)}
+                                            onBlur={handleBlur} onChange={(e) => updateAgendaItem(idx, 'endTime', e.target.value)}
                                          />
                                       </div>
                                       <div className="md:col-span-2 space-y-3">
@@ -1330,7 +1540,7 @@ const CreateEvent = () => {
                                             placeholder="Short summary of the session..."
                                             className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all"
                                             value={item.description}
-                                            onChange={(e) => updateAgendaItem(idx, 'description', e.target.value)}
+                                            onBlur={handleBlur} onChange={(e) => updateAgendaItem(idx, 'description', e.target.value)}
                                          />
                                       </div>
                                    </div>
@@ -1395,7 +1605,7 @@ const CreateEvent = () => {
                                    <select
                                       className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-xs font-bold outline-none focus:border-primary appearance-none"
                                       value={registration.mode}
-                                      onChange={(e) => setRegistration(prev => ({ ...prev, mode: e.target.value as RegistrationMode }))}
+                                      onBlur={handleBlur} onChange={(e) => setRegistration(prev => ({ ...prev, mode: e.target.value as RegistrationMode }))}
                                    >
                                       <option value="FULL_DETAILS">Full Details (Each Guest)</option>
                                       <option value="BASIC_QUANTITY">Basic Quantity (Buyer Only)</option>
@@ -1464,7 +1674,7 @@ const CreateEvent = () => {
                                          placeholder="e.g., T-Shirt Size"
                                          className="w-full p-5 bg-white border border-gray-300 rounded-2xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
                                          value={field.label}
-                                         onChange={(e) => updateField(idx, "label", e.target.value)}
+                                         onBlur={handleBlur} onChange={(e) => updateField(idx, "label", e.target.value)}
                                          disabled={idx < 2}
                                       />
                                    </div>
@@ -1474,7 +1684,7 @@ const CreateEvent = () => {
                                          <select
                                             className="w-full p-5 bg-white border border-gray-300 rounded-2xl text-sm font-bold appearance-none outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all shadow-sm"
                                             value={field.type}
-                                            onChange={(e) => updateField(idx, "type", e.target.value)}
+                                            onBlur={handleBlur} onChange={(e) => updateField(idx, "type", e.target.value)}
                                             disabled={idx < 2}
                                          >
                                             <option value="text">Standard Text</option>
@@ -1490,7 +1700,7 @@ const CreateEvent = () => {
                                          <input
                                             type="checkbox"
                                             checked={field.required}
-                                            onChange={(e) => updateField(idx, "required", e.target.checked)}
+                                            onBlur={handleBlur} onChange={(e) => updateField(idx, "required", e.target.checked)}
                                             className="w-6 h-6 rounded-lg border-gray-200 text-primary cursor-pointer shadow-sm transition-all"
                                             disabled={idx < 2}
                                          />
@@ -1500,7 +1710,7 @@ const CreateEvent = () => {
                                          <input
                                             type="checkbox"
                                             checked={field.isPerAttendee}
-                                            onChange={(e) => updateField(idx, "isPerAttendee", e.target.checked)}
+                                            onBlur={handleBlur} onChange={(e) => updateField(idx, "isPerAttendee", e.target.checked)}
                                             className="w-6 h-6 rounded-lg border-gray-200 text-primary cursor-pointer shadow-sm transition-all"
                                             disabled={idx < 2}
                                          />
@@ -1541,7 +1751,7 @@ const CreateEvent = () => {
                             placeholder="Describe your event in detail. What should attendees expect?"
                             className="w-full p-8 bg-white border border-gray-300 rounded-[2.5rem] text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 min-h-[400px] shadow-sm"
                             value={basicInfo.description || ""}
-                            onChange={handleBasicChange}
+                            onBlur={handleBlur} onChange={handleBasicChange}
                           />
                        </div>
                     </div>
@@ -1632,7 +1842,7 @@ const CreateEvent = () => {
                                           placeholder="https://..."
                                           className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
                                           value={mediaInfo.bannerUrl || ""}
-                                          onChange={handleMediaChange}
+                                          onBlur={handleBlur} onChange={handleMediaChange}
                                         />
                                     </div>
                                 </div>
@@ -1661,7 +1871,7 @@ const CreateEvent = () => {
                                         <label className="w-24 h-24 rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-300 hover:border-primary hover:text-primary cursor-pointer transition-all">
                                             <Plus size={24} />
                                             <span className="text-[8px] font-black uppercase tracking-widest mt-1">Add</span>
-                                            <input type="file" multiple className="hidden" onChange={handleMediaUrlUpload} accept="image/*,video/*" />
+                                            <input type="file" multiple className="hidden" onBlur={handleBlur} onChange={handleMediaUrlUpload} accept="image/*,video/*" />
                                         </label>
                                     </div>
                                 </div>
@@ -1732,7 +1942,7 @@ const CreateEvent = () => {
                                    placeholder="e.g., VIP Early Bird"
                                    className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none transition-all shadow-sm"
                                    value={ticket.name}
-                                   onChange={(e) => updateTicket(ticket.id, "name", e.target.value)}
+                                   onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id, "name", e.target.value)}
                                 />
                              </div>
 
@@ -1746,7 +1956,7 @@ const CreateEvent = () => {
                                    placeholder="What's included in this tier? (e.g., Free drinks, Front row seating)"
                                    className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none transition-all shadow-sm resize-none"
                                    value={ticket.description}
-                                   onChange={(e) => updateTicket(ticket.id, "description", e.target.value)}
+                                   onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id, "description", e.target.value)}
                                 />
                              </div>
 
@@ -1760,7 +1970,7 @@ const CreateEvent = () => {
                                        <select
                                           className="w-full pl-5 pr-10 py-5 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none appearance-none shadow-sm"
                                           value={ticket.type}
-                                          onChange={(e) => updateTicket(ticket.id, "type", e.target.value as TicketType)}
+                                          onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id, "type", e.target.value as TicketType)}
                                        >
                                           <option value="FREE">Complimentary</option>
                                           <option value="PAID">Premium Access</option>
@@ -1780,7 +1990,7 @@ const CreateEvent = () => {
                                           disabled={ticket.type === "FREE"}
                                           className="w-full pl-10 pr-5 py-5 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 disabled:bg-gray-100 disabled:opacity-50 outline-none shadow-sm"
                                           value={ticket.price}
-                                          onChange={(e) => updateTicket(ticket.id, "price", parseFloat(e.target.value))}
+                                          onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id, "price", parseFloat(e.target.value))}
                                        />
                                    </div>
                                 </div>
@@ -1794,7 +2004,7 @@ const CreateEvent = () => {
                                       type="number"
                                       className="w-full px-5 py-5 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none shadow-sm"
                                       value={ticket.totalQuantity}
-                                      onChange={(e) => updateTicket(ticket.id, "totalQuantity", parseInt(e.target.value))}
+                                      onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id, "totalQuantity", parseInt(e.target.value))}
                                    />
                                    <p className="text-[9px] font-bold text-gray-400 mt-1 ml-1 uppercase">
                                        Max: {Math.max(0, basicInfo.capacity - tickets.filter(t => t.id !== ticket.id).reduce((sum, t) => sum + (t.totalQuantity || 0), 0))}
@@ -1809,7 +2019,7 @@ const CreateEvent = () => {
                                       type="number"
                                       className="w-full px-5 py-5 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none shadow-sm"
                                       value={ticket.groupSize}
-                                      onChange={(e) => updateTicket(ticket.id, "groupSize", parseInt(e.target.value))}
+                                      onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id, "groupSize", parseInt(e.target.value))}
                                    />
                                 </div>
                              </div>
@@ -1826,7 +2036,7 @@ const CreateEvent = () => {
                                                 disabled={ticket.type === "FREE"}
                                                 className="w-full pl-8 pr-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none disabled:bg-gray-100 disabled:opacity-50"
                                                 value={ticket.earlyBirdPrice}
-                                                onChange={(e) => updateTicket(ticket.id, "earlyBirdPrice", parseFloat(e.target.value))}
+                                                onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id, "earlyBirdPrice", parseFloat(e.target.value))}
                                             />
                                         </div>
                                     </div>
@@ -1837,7 +2047,7 @@ const CreateEvent = () => {
                                             disabled={ticket.type === "FREE"}
                                             className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none disabled:bg-gray-100 disabled:opacity-50"
                                             value={ticket.earlyBirdLimit}
-                                            onChange={(e) => updateTicket(ticket.id, "earlyBirdLimit", parseInt(e.target.value))}
+                                            onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id, "earlyBirdLimit", parseInt(e.target.value))}
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -1847,7 +2057,7 @@ const CreateEvent = () => {
                                             disabled={ticket.type === "FREE"}
                                             className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none disabled:bg-gray-100 disabled:opacity-50"
                                             value={ticket.earlyBirdExpiry}
-                                            onChange={(e) => updateTicket(ticket.id, "earlyBirdExpiry", e.target.value)}
+                                            onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id, "earlyBirdExpiry", e.target.value)}
                                         />
                                     </div>
                                 </div>
@@ -1865,7 +2075,7 @@ const CreateEvent = () => {
                                             type="datetime-local"
                                             className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-[10px] font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
                                             value={ticket.salesStart}
-                                            onChange={(e) => updateTicket(ticket.id, "salesStart", e.target.value)}
+                                            onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id, "salesStart", e.target.value)}
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -1874,7 +2084,7 @@ const CreateEvent = () => {
                                             type="datetime-local"
                                             className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-[10px] font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
                                             value={ticket.salesEnd}
-                                            onChange={(e) => updateTicket(ticket.id, "salesEnd", e.target.value)}
+                                            onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id, "salesEnd", e.target.value)}
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -1882,7 +2092,7 @@ const CreateEvent = () => {
                                         <select
                                             className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
                                             value={ticket.allocationType}
-                                            onChange={(e) => updateTicket(ticket.id, "allocationType", e.target.value as "GENERAL" | "RESERVED")}
+                                            onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id, "allocationType", e.target.value as "GENERAL" | "RESERVED")}
                                         >
                                             <option value="GENERAL">General</option>
                                             <option value="RESERVED">Reserved</option>
@@ -1894,7 +2104,7 @@ const CreateEvent = () => {
                                             type="number"
                                             className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
                                             value={ticket.maxPerOrder}
-                                            onChange={(e) => updateTicket(ticket.id, "maxPerOrder", parseInt(e.target.value))}
+                                            onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id, "maxPerOrder", parseInt(e.target.value))}
                                         />
                                     </div>
                                     <div className="flex items-center gap-3 pt-6">
@@ -1903,7 +2113,7 @@ const CreateEvent = () => {
                                             id={`isOffline-${ticket.id}`}
                                             className="w-4 h-4 rounded text-secondary focus:ring-secondary border-gray-300"
                                             checked={ticket.isOffline}
-                                            onChange={(e) => updateTicket(ticket.id, "isOffline", e.target.checked)}
+                                            onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id, "isOffline", e.target.checked)}
                                         />
                                         <label htmlFor={`isOffline-${ticket.id}`} className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
                                             Offline Ticket
@@ -1934,7 +2144,7 @@ const CreateEvent = () => {
                                                     type="number"
                                                     className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold outline-none"
                                                     value={discount.minQuantity}
-                                                    onChange={(e) => updateQuantityDiscount(ticket.id, dIndex, "minQuantity", parseInt(e.target.value))}
+                                                    onBlur={handleBlur} onChange={(e) => updateQuantityDiscount(ticket.id, dIndex, "minQuantity", parseInt(e.target.value))}
                                                 />
                                             </div>
                                             <div className="space-y-2">
@@ -1945,7 +2155,7 @@ const CreateEvent = () => {
                                                         type="number"
                                                         className="w-full pl-6 pr-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold outline-none"
                                                         value={discount.price}
-                                                        onChange={(e) => updateQuantityDiscount(ticket.id, dIndex, "price", parseFloat(e.target.value))}
+                                                        onBlur={handleBlur} onChange={(e) => updateQuantityDiscount(ticket.id, dIndex, "price", parseFloat(e.target.value))}
                                                     />
                                                 </div>
                                             </div>
@@ -2026,7 +2236,7 @@ const CreateEvent = () => {
                                    placeholder="e.g., Welcome Keynote: Future of Gobokin"
                                    className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
                                    value={session.title}
-                                   onChange={(e) => updateSession(session.id, "title", e.target.value)}
+                                   onBlur={handleBlur} onChange={(e) => updateSession(session.id, "title", e.target.value)}
                                    />
                                 </div>
                                 <div className="space-y-3">
@@ -2040,7 +2250,7 @@ const CreateEvent = () => {
                                    value={session.startTime}
                                    min={basicInfo.startDate}
                                    max={basicInfo.endDate}
-                                   onChange={(e) => updateSession(session.id, "startTime", e.target.value)}
+                                   onBlur={handleBlur} onChange={(e) => updateSession(session.id, "startTime", e.target.value)}
                                    />
                                 </div>
                                 <div className="space-y-3">
@@ -2054,7 +2264,7 @@ const CreateEvent = () => {
                                    value={session.endTime}
                                    min={session.startTime || basicInfo.startDate}
                                    max={basicInfo.endDate}
-                                   onChange={(e) => updateSession(session.id, "endTime", e.target.value)}
+                                   onBlur={handleBlur} onChange={(e) => updateSession(session.id, "endTime", e.target.value)}
                                    />
                                 </div>
                              </div>
