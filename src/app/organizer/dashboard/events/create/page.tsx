@@ -73,7 +73,6 @@ interface LivePreviewProps {
     seoDescription: string;
   };
   speakers: Speaker[];
-  agenda: AgendaItem[];
   agendaEnabled: boolean;
   sessions: {
     title: string;
@@ -87,8 +86,16 @@ interface LivePreviewProps {
   }[];
 }
 
-const LivePreview = ({ basicInfo, mediaInfo, speakers, agenda, sessions, tickets, agendaEnabled }: LivePreviewProps) => {
+const LivePreview = ({ basicInfo, mediaInfo, speakers, sessions, tickets, agendaEnabled }: LivePreviewProps) => {
   const [activeTab, setActiveTab] = useState("overview");
+
+  useEffect(() => {
+    if (!agendaEnabled && activeTab === "schedule") {
+      setActiveTab("overview");
+    }
+  }, [agendaEnabled, activeTab]);
+
+  const tabs = ["overview", ...(agendaEnabled ? ["schedule"] : []), "speakers", "tickets"];
 
   return (
     <div className="sticky top-8 bg-white rounded-[2.5rem] border border-gray-100 shadow-2xl shadow-gray-200/50 overflow-hidden h-[calc(100vh-4rem)] overflow-y-auto no-scrollbar transition-all duration-500 hover:shadow-gray-300/50">
@@ -182,7 +189,7 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, agenda, sessions, tickets
         {/* Tabs */}
         <div className="space-y-6">
            <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-gray-50 rounded-2xl border border-gray-100 w-fit">
-              {["overview", agendaEnabled ? "agenda" : null, "speakers", "schedule", "tickets"].filter(Boolean).map(tab => (
+              {tabs.map(tab => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -236,42 +243,6 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, agenda, sessions, tickets
                 </div>
               )}
 
-              {activeTab === "agenda" && (
-                <div className="space-y-6 animate-in fade-in duration-500">
-                  {sessions.length === 0 ? (
-                      <p className="text-[10px] font-bold text-gray-300 uppercase tracking-widest text-center py-10">No agenda items added yet</p>
-                  ) : (
-                    sessions.map((item, i) => (
-                        <div key={i} className="flex gap-4 group">
-                        <div className="flex flex-col items-center">
-                            <div className="w-8 h-8 rounded-lg bg-secondary text-white flex items-center justify-center font-black text-[10px] flex-shrink-0 shadow-lg shadow-secondary/20">
-                            {i + 1}
-                            </div>
-                            {i !== sessions.length - 1 && <div className="flex-1 w-[1px] bg-gray-100 my-2"></div>}
-                        </div>
-                        <div className="space-y-1.5 min-w-0 pt-0.5">
-                            <p className="text-[11px] font-black text-gray-900 truncate tracking-tight">{item.title || "Untitled Agenda"}</p>
-                            <div className="flex flex-wrap items-center gap-3">
-                                <div className="flex items-center gap-1.5">
-                                    <Clock size={10} className="text-secondary" />
-                                    <p className="text-[8px] text-gray-400 font-bold uppercase tracking-widest">
-                                    {item.startTime ? new Date(item.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
-                                    </p>
-                                </div>
-                                {(item.speakerNames && item.speakerNames.length > 0) && (
-                                    <div className="flex items-center gap-1.5">
-                                        <User size={10} className="text-secondary" />
-                                        <p className="text-[8px] text-gray-400 font-bold uppercase tracking-widest">{item.speakerNames.join(", ")}</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                        </div>
-                    ))
-                  )}
-                </div>
-              )}
-
               {activeTab === "speakers" && (
                   <div className="grid grid-cols-1 gap-6 animate-in fade-in duration-500">
                       {speakers.length === 0 ? (
@@ -300,25 +271,37 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, agenda, sessions, tickets
 
               {activeTab === "schedule" && (
                 <div className="space-y-6 animate-in fade-in duration-500">
-                  {sessions.map((session, i) => (
-                    <div key={i} className="flex gap-4 group">
-                      <div className="flex flex-col items-center">
-                        <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center font-black text-xs flex-shrink-0 shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
-                          {i + 1}
+                  {sessions.length === 0 ? (
+                      <p className="text-[10px] font-bold text-gray-300 uppercase tracking-widest text-center py-10">No sessions added yet</p>
+                  ) : (
+                    sessions.map((item, i) => (
+                        <div key={i} className="flex gap-4 group">
+                        <div className="flex flex-col items-center">
+                            <div className="w-8 h-8 rounded-lg bg-secondary text-white flex items-center justify-center font-black text-[10px] flex-shrink-0 shadow-lg shadow-secondary/20">
+                            {i + 1}
+                            </div>
+                            {i !== sessions.length - 1 && <div className="flex-1 w-[1px] bg-gray-100 my-2"></div>}
                         </div>
-                        {i !== sessions.length - 1 && <div className="flex-1 w-[1px] bg-gray-100 my-2"></div>}
-                      </div>
-                      <div className="space-y-1.5 min-w-0 pt-1">
-                        <p className="text-[11px] font-black text-gray-900 truncate tracking-tight">{session.title || "Untitled Session"}</p>
-                        <div className="flex items-center gap-2">
-                            <Clock size={10} className="text-primary" />
-                            <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">
-                            {session.startTime ? new Date(session.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
-                            </p>
+                        <div className="space-y-1.5 min-w-0 pt-0.5">
+                            <p className="text-[11px] font-black text-gray-900 truncate tracking-tight">{item.title || "Untitled Session"}</p>
+                            <div className="flex flex-wrap items-center gap-3">
+                                <div className="flex items-center gap-1.5">
+                                    <Clock size={10} className="text-secondary" />
+                                    <p className="text-[8px] text-gray-400 font-bold uppercase tracking-widest">
+                                    {item.startTime ? new Date(item.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                                    </p>
+                                </div>
+                                {(item.speakerNames && item.speakerNames.length > 0) && (
+                                    <div className="flex items-center gap-1.5">
+                                        <User size={10} className="text-secondary" />
+                                        <p className="text-[8px] text-gray-400 font-bold uppercase tracking-widest">{item.speakerNames.join(", ")}</p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                      </div>
-                    </div>
-                  ))}
+                        </div>
+                    ))
+                  )}
                 </div>
               )}
 
@@ -400,7 +383,6 @@ const CreateEvent = () => {
   });
 
   const [speakers, setSpeakers] = useState<Speaker[]>([]);
-  const [agenda, setAgenda] = useState<AgendaItem[]>([]);
 
   const [sessions, setSessions] = useState([{
     id: "1",
@@ -451,7 +433,6 @@ const CreateEvent = () => {
       basicInfo,
       mediaInfo,
       speakers,
-      agenda,
       sessions,
       tickets,
       registration,
@@ -459,7 +440,7 @@ const CreateEvent = () => {
       subStep,
       eventId,
     };
-  }, [basicInfo, mediaInfo, speakers, agenda, sessions, tickets, registration, currentStep, subStep, eventId]);
+  }, [basicInfo, mediaInfo, speakers, sessions, tickets, registration, currentStep, subStep, eventId]);
 
   const saveToLocalStorage = useCallback(() => {
     const state = getFormState();
@@ -495,7 +476,7 @@ const CreateEvent = () => {
         virtualLink: basicInfo.virtualLink || undefined,
         capacity: basicInfo.capacity,
         category: basicInfo.category,
-        tags: basicInfo.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== ""),
+        tags: (basicInfo.tags || "").split(',').map(tag => tag.trim()).filter(tag => tag !== ""),
         agendaEnabled: basicInfo.agendaEnabled,
         registrationMode: registration.mode,
         isGroupingEnabled: registration.isGroupingEnabled,
@@ -517,16 +498,6 @@ const CreateEvent = () => {
           title: s.title,
           bio: s.bio,
           imageUrl: s.imageUrl
-        }));
-      }
-
-      if (agenda.length > 0) {
-        basePayload.agenda = agenda.map(a => ({
-          title: a.title,
-          description: a.description,
-          startTime: a.startTime ? new Date(a.startTime).toISOString() : undefined,
-          endTime: a.endTime ? new Date(a.endTime).toISOString() : undefined,
-          speakerName: a.speakerName
         }));
       }
 
@@ -601,7 +572,7 @@ const CreateEvent = () => {
     } finally {
       setIsAutosaving(false);
     }
-  }, [eventId, basicInfo, mediaInfo, speakers, agenda, registration, tickets, sessions, currentStep, isAutosaving, validateForAutosave]);
+  }, [eventId, basicInfo, mediaInfo, speakers, registration, tickets, sessions, currentStep, isAutosaving, validateForAutosave]);
 
   const handleBlur = useCallback(() => {
     saveToLocalStorage();
@@ -642,7 +613,6 @@ const CreateEvent = () => {
             if (draft.basicInfo) setBasicInfo(draft.basicInfo);
             if (draft.mediaInfo) setMediaInfo(draft.mediaInfo);
             if (draft.speakers) setSpeakers(draft.speakers);
-            if (draft.agenda) setAgenda(draft.agenda);
             if (draft.sessions) setSessions(draft.sessions);
             if (draft.tickets) setTickets(draft.tickets);
             if (draft.registration) setRegistration(draft.registration);
@@ -779,20 +749,6 @@ const CreateEvent = () => {
     } catch (_error) {
       Swal.fire('Error', 'Upload failed', 'error');
     }
-  };
-
-  const addAgendaItem = () => {
-    setAgenda([...agenda, { title: "", description: "", startTime: "", endTime: "", speakerName: "" }]);
-  };
-
-  const updateAgendaItem = (index: number, field: keyof AgendaItem, value: string) => {
-    const newAgenda = [...agenda];
-    newAgenda[index] = { ...newAgenda[index], [field]: value };
-    setAgenda(newAgenda);
-  };
-
-  const removeAgendaItem = (index: number) => {
-    setAgenda(agenda.filter((_, i) => i !== index));
   };
 
   const handleMediaUrlUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -979,7 +935,7 @@ const CreateEvent = () => {
         virtualLink: basicInfo.virtualLink || undefined,
         capacity: basicInfo.capacity,
         category: basicInfo.category,
-        tags: basicInfo.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== ""),
+        tags: (basicInfo.tags || "").split(',').map(tag => tag.trim()).filter(tag => tag !== ""),
         agendaEnabled: basicInfo.agendaEnabled,
         registrationMode: registration.mode,
         isGroupingEnabled: registration.isGroupingEnabled,
@@ -999,16 +955,6 @@ const CreateEvent = () => {
           title: s.title,
           bio: s.bio,
           imageUrl: s.imageUrl
-        }));
-      }
-
-      if (agenda.length > 0) {
-        payload.agenda = agenda.map(a => ({
-          title: a.title,
-          description: a.description,
-          startTime: a.startTime ? new Date(a.startTime).toISOString() : undefined,
-          endTime: a.endTime ? new Date(a.endTime).toISOString() : undefined,
-          speakerName: a.speakerName
         }));
       }
 
@@ -2454,7 +2400,6 @@ const CreateEvent = () => {
               basicInfo={basicInfo}
               mediaInfo={mediaInfo}
               speakers={speakers}
-              agenda={agenda}
               sessions={sessions}
               tickets={tickets}
               agendaEnabled={basicInfo.agendaEnabled}
@@ -2480,7 +2425,6 @@ const CreateEvent = () => {
               basicInfo={basicInfo}
               mediaInfo={mediaInfo}
               speakers={speakers}
-              agenda={agenda}
               sessions={sessions}
               tickets={tickets}
               agendaEnabled={basicInfo.agendaEnabled}

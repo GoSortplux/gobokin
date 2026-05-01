@@ -64,10 +64,11 @@ interface LivePreviewProps {
     seoDescription: string;
   };
   speakers: Speaker[];
-  agenda: AgendaItem[];
+  agendaEnabled: boolean;
   sessions: {
     title: string;
     startTime: string;
+    speakerNames?: string[];
   }[];
   tickets: {
     name: string;
@@ -76,8 +77,16 @@ interface LivePreviewProps {
   }[];
 }
 
-const LivePreview = ({ basicInfo, mediaInfo, speakers, agenda, sessions, tickets }: LivePreviewProps) => {
+const LivePreview = ({ basicInfo, mediaInfo, speakers, sessions, tickets, agendaEnabled }: LivePreviewProps) => {
   const [activeTab, setActiveTab] = useState("overview");
+
+  useEffect(() => {
+    if (!agendaEnabled && activeTab === "schedule") {
+      setActiveTab("overview");
+    }
+  }, [agendaEnabled, activeTab]);
+
+  const tabs = ["overview", ...(agendaEnabled ? ["schedule"] : []), "speakers", "tickets"];
 
   return (
     <div className="sticky top-8 bg-white rounded-[2.5rem] border border-gray-100 shadow-2xl shadow-gray-200/50 overflow-hidden h-[calc(100vh-4rem)] overflow-y-auto no-scrollbar transition-all duration-500 hover:shadow-gray-300/50">
@@ -171,7 +180,7 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, agenda, sessions, tickets
         {/* Tabs */}
         <div className="space-y-6">
            <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-gray-50 rounded-2xl border border-gray-100 w-fit">
-              {["overview", "agenda", "speakers", "schedule", "tickets"].map(tab => (
+              {tabs.map(tab => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -225,42 +234,6 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, agenda, sessions, tickets
                 </div>
               )}
 
-              {activeTab === "agenda" && (
-                <div className="space-y-6 animate-in fade-in duration-500">
-                  {agenda.length === 0 ? (
-                      <p className="text-[10px] font-bold text-gray-300 uppercase tracking-widest text-center py-10">No agenda items added yet</p>
-                  ) : (
-                    agenda.map((item, i) => (
-                        <div key={i} className="flex gap-4 group">
-                        <div className="flex flex-col items-center">
-                            <div className="w-8 h-8 rounded-lg bg-secondary text-white flex items-center justify-center font-black text-[10px] flex-shrink-0 shadow-lg shadow-secondary/20">
-                            {i + 1}
-                            </div>
-                            {i !== agenda.length - 1 && <div className="flex-1 w-[1px] bg-gray-100 my-2"></div>}
-                        </div>
-                        <div className="space-y-1.5 min-w-0 pt-0.5">
-                            <p className="text-[11px] font-black text-gray-900 truncate tracking-tight">{item.title || "Untitled Agenda"}</p>
-                            <div className="flex flex-wrap items-center gap-3">
-                                <div className="flex items-center gap-1.5">
-                                    <Clock size={10} className="text-secondary" />
-                                    <p className="text-[8px] text-gray-400 font-bold uppercase tracking-widest">
-                                    {item.startTime ? new Date(item.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
-                                    </p>
-                                </div>
-                                {item.speakerName && (
-                                    <div className="flex items-center gap-1.5">
-                                        <User size={10} className="text-secondary" />
-                                        <p className="text-[8px] text-gray-400 font-bold uppercase tracking-widest">{item.speakerName}</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                        </div>
-                    ))
-                  )}
-                </div>
-              )}
-
               {activeTab === "speakers" && (
                   <div className="grid grid-cols-1 gap-6 animate-in fade-in duration-500">
                       {speakers.length === 0 ? (
@@ -289,25 +262,37 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, agenda, sessions, tickets
 
               {activeTab === "schedule" && (
                 <div className="space-y-6 animate-in fade-in duration-500">
-                  {sessions.map((session, i) => (
-                    <div key={i} className="flex gap-4 group">
-                      <div className="flex flex-col items-center">
-                        <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center font-black text-xs flex-shrink-0 shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
-                          {i + 1}
+                  {sessions.length === 0 ? (
+                      <p className="text-[10px] font-bold text-gray-300 uppercase tracking-widest text-center py-10">No sessions added yet</p>
+                  ) : (
+                    sessions.map((item, i) => (
+                        <div key={i} className="flex gap-4 group">
+                        <div className="flex flex-col items-center">
+                            <div className="w-8 h-8 rounded-lg bg-secondary text-white flex items-center justify-center font-black text-[10px] flex-shrink-0 shadow-lg shadow-secondary/20">
+                            {i + 1}
+                            </div>
+                            {i !== sessions.length - 1 && <div className="flex-1 w-[1px] bg-gray-100 my-2"></div>}
                         </div>
-                        {i !== sessions.length - 1 && <div className="flex-1 w-[1px] bg-gray-100 my-2"></div>}
-                      </div>
-                      <div className="space-y-1.5 min-w-0 pt-1">
-                        <p className="text-[11px] font-black text-gray-900 truncate tracking-tight">{session.title || "Untitled Session"}</p>
-                        <div className="flex items-center gap-2">
-                            <Clock size={10} className="text-primary" />
-                            <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">
-                            {session.startTime ? new Date(session.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
-                            </p>
+                        <div className="space-y-1.5 min-w-0 pt-0.5">
+                            <p className="text-[11px] font-black text-gray-900 truncate tracking-tight">{item.title || "Untitled Session"}</p>
+                            <div className="flex flex-wrap items-center gap-3">
+                                <div className="flex items-center gap-1.5">
+                                    <Clock size={10} className="text-secondary" />
+                                    <p className="text-[8px] text-gray-400 font-bold uppercase tracking-widest">
+                                    {item.startTime ? new Date(item.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                                    </p>
+                                </div>
+                                {item.speakerNames && item.speakerNames.length > 0 && (
+                                    <div className="flex items-center gap-1.5">
+                                        <User size={10} className="text-secondary" />
+                                        <p className="text-[8px] text-gray-400 font-bold uppercase tracking-widest">{item.speakerNames.join(', ')}</p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                      </div>
-                    </div>
-                  ))}
+                        </div>
+                    ))
+                  )}
                 </div>
               )}
 
@@ -372,7 +357,6 @@ const EditEvent = () => {
   });
 
   const [speakers, setSpeakers] = useState<Speaker[]>([]);
-  const [agenda, setAgenda] = useState<AgendaItem[]>([]);
 
   const [sessions, setSessions] = useState<{
     id: string;
@@ -381,6 +365,11 @@ const EditEvent = () => {
     startTime: string;
     endTime: string;
     location: string;
+    room?: string;
+    stage?: string;
+    sessionType?: string;
+    speakerIds?: string[];
+    speakerNames?: string[];
   }[]>([]);
 
   const [tickets, setTickets] = useState<{
@@ -452,14 +441,18 @@ const EditEvent = () => {
           socialImage: event.socialImage || "",
         });
 
-        setSpeakers(event.speakers || []);
-        setAgenda((event.agenda || []).map((a: AgendaItem) => ({ ...a, startTime: formatDate(a.startTime || ""), endTime: formatDate(a.endTime || "") })));
+        setSpeakers((event.speakers || []).map((s: any) => ({
+          ...s,
+          id: s.id || s._id
+        })));
 
-        setSessions((event.sessions || []).map((s: { id?: string; _id?: string; title: string; description: string; startTime: string; endTime: string; location: string }) => ({
+        setSessions((event.sessions || []).map((s: any) => ({
           ...s,
           id: s.id || s._id || Math.random().toString(),
           startTime: formatDate(s.startTime),
-          endTime: formatDate(s.endTime)
+          endTime: formatDate(s.endTime),
+          speakerIds: s.speakerIds || [],
+          speakerNames: s.speakerNames || []
         })));
 
         setTickets((event.tickets || []).map((t: any) => ({
@@ -611,13 +604,7 @@ const EditEvent = () => {
     }
   };
 
-  const updateAgendaItem = (index: number, field: keyof AgendaItem, value: string) => {
-    const newAgenda = [...agenda];
-    newAgenda[index] = { ...newAgenda[index], [field]: value };
-    setAgenda(newAgenda);
-  };
-
-  const updateSession = (sessionId: string, field: string, value: string) => {
+  const updateSession = (sessionId: string, field: string, value: any) => {
     setSessions(sessions.map(s => s.id === sessionId ? { ...s, [field]: value } : s));
   };
 
@@ -787,9 +774,15 @@ const EditEvent = () => {
       Swal.showLoading();
       const payload = {
         title: session.title,
+        description: session.description,
         startTime: session.startTime ? new Date(session.startTime).toISOString() : undefined,
         endTime: session.endTime ? new Date(session.endTime).toISOString() : undefined,
         location: session.location,
+        room: session.room,
+        stage: session.stage,
+        sessionType: session.sessionType,
+        speakerIds: session.speakerIds,
+        speakerNames: session.speakerNames
       };
       await api.patch(`/events/${eventId}/sessions/${session.id}`, payload);
       Swal.fire("Updated!", "Session updated successfully.", "success");
@@ -805,6 +798,16 @@ const EditEvent = () => {
     if (emptyTicket) {
         Swal.fire("Validation Error", "All ticket tiers must have a public name.", "error");
         return;
+    }
+
+    // Validate Sessions if agenda is enabled
+    if (basicInfo.agendaEnabled) {
+        const activeSessions = sessions.filter(s => s.title?.trim());
+        if (activeSessions.length === 0) {
+            Swal.fire("Validation Error", "With Agenda enabled, you must define at least one session.", "error");
+            setCurrentStep(3);
+            return;
+        }
     }
 
     setSaving(true);
@@ -823,15 +826,9 @@ const EditEvent = () => {
         virtualLink: basicInfo.virtualLink,
         capacity: basicInfo.capacity,
         category: basicInfo.category,
+        agendaEnabled: basicInfo.agendaEnabled,
         tags: basicInfo.tags.split(',').map(t => t.trim()).filter(t => t),
         speakers: speakers.map(s => ({ name: s.name, title: s.title, bio: s.bio, imageUrl: s.imageUrl })),
-        agenda: agenda.map(a => ({
-          title: a.title,
-          description: a.description,
-          startTime: a.startTime ? new Date(a.startTime).toISOString() : undefined,
-          endTime: a.endTime ? new Date(a.endTime).toISOString() : undefined,
-          speakerName: a.speakerName
-        })),
         registrationMode: registration.mode,
         isGroupingEnabled: registration.isGroupingEnabled,
         enforceUniqueGroupNames: registration.enforceUniqueGroupNames,
@@ -909,23 +906,38 @@ const EditEvent = () => {
       for (const session of existingSessions) {
           const payload = {
               title: session.title,
+              description: session.description,
               startTime: session.startTime ? new Date(session.startTime).toISOString() : undefined,
               endTime: session.endTime ? new Date(session.endTime).toISOString() : undefined,
               location: session.location,
+              room: session.room,
+              stage: session.stage,
+              sessionType: session.sessionType,
+              speakerIds: session.speakerIds,
+              speakerNames: session.speakerNames
           };
           await api.patch(`/events/${eventId}/sessions/${session.id}`, payload);
       }
 
       if (newSessions.length > 0) {
-          const sessionPayload = {
-              sessions: newSessions.map(s => ({
-                  title: s.title,
-                  startTime: s.startTime ? new Date(s.startTime).toISOString() : undefined,
-                  endTime: s.endTime ? new Date(s.endTime).toISOString() : undefined,
-                  location: s.location,
-              }))
-          };
-          await api.post(`/events/${eventId}/sessions`, sessionPayload);
+          const filteredNewSessions = newSessions.filter(s => s.title?.trim());
+          if (filteredNewSessions.length > 0) {
+              const sessionPayload = {
+                  sessions: filteredNewSessions.map(s => ({
+                      title: s.title,
+                      description: s.description,
+                      startTime: s.startTime ? new Date(s.startTime).toISOString() : undefined,
+                      endTime: s.endTime ? new Date(s.endTime).toISOString() : undefined,
+                      location: s.location,
+                      room: s.room,
+                      stage: s.stage,
+                      sessionType: s.sessionType,
+                      speakerIds: s.speakerIds,
+                      speakerNames: s.speakerNames
+                  }))
+              };
+              await api.post(`/events/${eventId}/sessions`, sessionPayload);
+          }
       }
 
       Swal.fire("Success", "Event updated successfully", "success");
@@ -1089,86 +1101,44 @@ const EditEvent = () => {
                           </div>
 
                           <div className="pt-10 border-t border-gray-100">
-                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-10">
-                                <div>
-                                   <h3 className="text-2xl font-black text-gray-900 tracking-tight">Event Agenda</h3>
-                                   <p className="text-sm text-gray-400 font-medium">Outline the flow of your event.</p>
+                             <div className="bg-gray-50/50 rounded-[3rem] p-10 border border-gray-100 flex flex-col md:flex-row items-center justify-between gap-10">
+                                <div className="flex items-center gap-8">
+                                   <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center shadow-2xl transition-all duration-500 ${basicInfo.agendaEnabled ? 'bg-primary text-white scale-110 shadow-primary/30' : 'bg-white text-gray-300'}`}>
+                                      <Calendar size={32} strokeWidth={2.5} />
+                                   </div>
+                                   <div className="space-y-2">
+                                      <div className="flex items-center gap-3">
+                                         <h3 className="text-2xl font-black text-gray-900 tracking-tight leading-none">Enable Event Agenda</h3>
+                                         <span className={`px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${basicInfo.agendaEnabled ? 'bg-primary/5 text-primary border-primary/10' : 'bg-gray-100 text-gray-400 border-gray-200'}`}>
+                                            {basicInfo.agendaEnabled ? 'Active' : 'Disabled'}
+                                         </span>
+                                      </div>
+                                      <p className="text-sm text-gray-400 font-medium max-w-md">Allow timeline, session pages, and speaker scheduling for this event.</p>
+                                   </div>
                                 </div>
-                                <button onClick={() => setAgenda([...agenda, { title: "", description: "", startTime: "", endTime: "", speakerName: "" }])} className="flex items-center gap-3 bg-secondary text-white font-black px-8 py-5 rounded-3xl text-[10px] uppercase tracking-[0.2em]">
-                                  <Plus size={18} /> Add Agenda Item
+                                <button
+                                   onClick={() => setBasicInfo(prev => ({ ...prev, agendaEnabled: !prev.agendaEnabled }))}
+                                   className={`relative w-24 h-12 rounded-full transition-all duration-500 p-1.5 flex items-center shadow-inner ${basicInfo.agendaEnabled ? 'bg-primary' : 'bg-gray-200'}`}
+                                >
+                                   <div className={`w-9 h-9 bg-white rounded-full shadow-xl transition-all duration-500 transform flex items-center justify-center ${basicInfo.agendaEnabled ? 'translate-x-12' : 'translate-x-0'}`}>
+                                      <div className={`w-2 h-2 rounded-full ${basicInfo.agendaEnabled ? 'bg-primary animate-pulse' : 'bg-gray-200'}`} />
+                                   </div>
                                 </button>
                              </div>
-                             <div className="space-y-6">
-                                {agenda.map((item, idx) => (
-                                    <div key={idx} className="p-8 bg-gray-50 rounded-[3rem] border border-gray-100 hover:bg-white transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50 group/agenda">
-                                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                          <div className="md:col-span-2 space-y-3">
-                                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Title</label>
-                                             <input
-                                                type="text"
-                                                placeholder="Opening Keynote"
-                                                className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all"
-                                                value={item.title}
-                                                onChange={(e) => updateAgendaItem(idx, 'title', e.target.value)}
-                                             />
-                                          </div>
-                                          <div className="space-y-3">
-                                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Speaker</label>
-                                             <select
-                                                className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all appearance-none"
-                                                value={item.speakerName}
-                                                onChange={(e) => updateAgendaItem(idx, 'speakerName', e.target.value)}
-                                             >
-                                                <option value="">No Speaker</option>
-                                                {speakers.filter(s => s.name).map((s, i) => (
-                                                   <option key={i} value={s.name}>{s.name}</option>
-                                                ))}
-                                             </select>
-                                          </div>
-                                          <div className="flex items-end justify-end">
-                                             <button
-                                                onClick={() => setAgenda(agenda.filter((_, i) => i !== idx))}
-                                                className="w-14 h-14 bg-white text-gray-300 hover:text-secondary rounded-2xl flex items-center justify-center shadow-sm hover:shadow-xl transition-all border border-gray-100"
-                                             >
-                                                <Trash2 size={20} />
-                                             </button>
-                                          </div>
-                                          <div className="space-y-3">
-                                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Start Time</label>
-                                             <input
-                                                type="datetime-local"
-                                                className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all"
-                                                value={item.startTime}
-                                                min={basicInfo.startDate}
-                                                max={basicInfo.endDate}
-                                                onChange={(e) => updateAgendaItem(idx, 'startTime', e.target.value)}
-                                             />
-                                          </div>
-                                          <div className="space-y-3">
-                                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">End Time</label>
-                                             <input
-                                                type="datetime-local"
-                                                className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all"
-                                                value={item.endTime}
-                                                min={item.startTime || basicInfo.startDate}
-                                                max={basicInfo.endDate}
-                                                onChange={(e) => updateAgendaItem(idx, 'endTime', e.target.value)}
-                                             />
-                                          </div>
-                                          <div className="md:col-span-2 space-y-3">
-                                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Description</label>
-                                             <textarea
-                                                rows={1}
-                                                placeholder="Short summary of the session..."
-                                                className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all"
-                                                value={item.description}
-                                                onChange={(e) => updateAgendaItem(idx, 'description', e.target.value)}
-                                             />
-                                          </div>
-                                       </div>
-                                    </div>
-                                ))}
-                             </div>
+
+                             {basicInfo.agendaEnabled && (
+                                <div className="mt-8 p-6 bg-primary/5 rounded-[2rem] border border-primary/10 flex items-start gap-4 animate-in slide-in-from-top-4 duration-500">
+                                   <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-primary shadow-sm shrink-0">
+                                      <Info size={18} />
+                                   </div>
+                                   <div className="space-y-1">
+                                      <p className="text-xs font-black text-primary uppercase tracking-widest">Agenda Policy</p>
+                                      <p className="text-xs text-primary/70 font-medium leading-relaxed">
+                                         With Agenda enabled, you must define at least one session in Step 3. You will be able to assign speakers to sessions and set a detailed timeline for your attendees.
+                                      </p>
+                                   </div>
+                                </div>
+                             )}
                           </div>
                        </div>
                     </div>
@@ -1579,35 +1549,172 @@ const EditEvent = () => {
             {/* STEP 3: SCHEDULE */}
             {currentStep === 3 && (
               <div className="space-y-12 animate-in fade-in duration-500">
-                 <div className="flex items-center justify-between px-4">
-                    <h3 className="text-3xl font-black text-gray-900 tracking-tight">Event Timeline</h3>
-                    <button onClick={() => setSessions([...sessions, { id: Math.random().toString(), title: "", description: "", startTime: "", endTime: "", location: "" }])} className="flex items-center gap-3 bg-primary text-white font-black px-8 py-5 rounded-3xl text-[10px] uppercase tracking-[0.2em]">
-                      <Plus size={18} /> Add Session
-                    </button>
+                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-4">
+                    <div>
+                        <h3 className="text-3xl font-black text-gray-900 tracking-tight">Event Timeline</h3>
+                        <p className="text-sm text-gray-400 font-medium mt-1">
+                            {!basicInfo.agendaEnabled
+                                ? "Agenda is currently disabled. Enable it in Step 1 to author sessions."
+                                : "Define sessions, assign speakers, and set the schedule."}
+                        </p>
+                    </div>
+                    {basicInfo.agendaEnabled && (
+                        <button onClick={() => setSessions([...sessions, { id: Math.random().toString(), title: "", description: "", startTime: "", endTime: "", location: "", speakerIds: [], speakerNames: [] }])} className="flex items-center gap-3 bg-primary text-white font-black px-8 py-5 rounded-3xl text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-primary/20">
+                            <Plus size={18} /> Add Session
+                        </button>
+                    )}
                  </div>
-                 <div className="space-y-6">
-                    {sessions.map((session, index) => (
-                        <div key={session.id} className="p-8 bg-gray-50 rounded-[3rem] border border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-6 relative">
-                            <div className="md:col-span-2 flex justify-between items-center mb-2">
-                                <div className="flex items-center gap-4">
-                                    <h4 className="font-black text-gray-900 uppercase tracking-[0.3em] text-[10px]">Session #{index+1}</h4>
-                                    {session.id.length >= 10 && (
-                                        <button
-                                            onClick={() => handleUpdateSession(session)}
-                                            className="text-[8px] font-black text-primary bg-primary/5 px-2 py-1 rounded-lg uppercase tracking-widest border border-primary/10 hover:bg-primary hover:text-white transition-all"
-                                        >
-                                            Update Session
-                                        </button>
-                                    )}
-                                </div>
-                                <button onClick={() => deleteSession(session.id)} className="text-gray-300 hover:text-secondary"><Trash2 size={18} /></button>
-                            </div>
-                            <input type="text" placeholder="Session Title" className="md:col-span-2 p-4 bg-white border border-gray-300 rounded-2xl text-sm font-bold outline-none" value={session.title} onChange={(e) => updateSession(session.id, "title", e.target.value)} />
-                            <input type="datetime-local" className="p-4 bg-white border border-gray-300 rounded-2xl text-sm font-bold outline-none" value={session.startTime} min={basicInfo.startDate} max={basicInfo.endDate} onChange={(e) => updateSession(session.id, "startTime", e.target.value)} />
-                            <input type="datetime-local" className="p-4 bg-white border border-gray-300 rounded-2xl text-sm font-bold outline-none" value={session.endTime} min={session.startTime || basicInfo.startDate} max={basicInfo.endDate} onChange={(e) => updateSession(session.id, "endTime", e.target.value)} />
+
+                 {!basicInfo.agendaEnabled ? (
+                    <div className="py-20 bg-gray-50/50 rounded-[3rem] border border-gray-100 flex flex-col items-center justify-center text-center px-10">
+                        <div className="w-20 h-20 bg-white rounded-[2rem] flex items-center justify-center text-gray-200 shadow-sm mb-6">
+                            <Calendar size={32} />
                         </div>
-                    ))}
-                 </div>
+                        <h4 className="text-xl font-black text-gray-900 mb-2">Sessions are Disabled</h4>
+                        <p className="text-sm text-gray-400 font-medium max-w-sm mb-8">You chose not to include an agenda for this event. You can skip this step or go back to Step 1 to enable it.</p>
+                        <button onClick={() => setCurrentStep(1)} className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline">Enable Agenda in Step 1</button>
+                    </div>
+                 ) : (
+                    <div className="space-y-8">
+                        {sessions.map((session, index) => (
+                            <div key={session.id} className="p-10 bg-gray-50/50 rounded-[3.5rem] border border-gray-100 group/session hover:bg-white hover:shadow-4xl transition-all duration-700 relative">
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 border-b border-gray-100 pb-8">
+                                    <div className="flex items-center gap-5">
+                                        <div className="w-14 h-14 rounded-2xl bg-white text-primary flex items-center justify-center shadow-xl shadow-gray-200/50 border border-gray-100 group-hover/session:bg-primary group-hover/session:text-white transition-all duration-500 font-black">
+                                            {index + 1}
+                                        </div>
+                                        <div>
+                                            <h4 className="font-black text-gray-900 uppercase tracking-[0.3em] text-[10px]">Session Tracking</h4>
+                                            <p className="text-sm font-black text-gray-400 mt-1">{session.title || 'Untitled Session'}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        {session.id.length >= 10 && (
+                                            <button
+                                                onClick={() => handleUpdateSession(session)}
+                                                className="text-[8px] font-black text-primary bg-primary/5 px-2 py-1 rounded-lg uppercase tracking-widest border border-primary/10 hover:bg-primary hover:text-white transition-all"
+                                            >
+                                                Update
+                                            </button>
+                                        )}
+                                        <button onClick={() => deleteSession(session.id)} className="w-10 h-10 flex items-center justify-center text-gray-300 hover:text-secondary bg-white rounded-xl shadow-sm hover:shadow-lg transition-all border border-gray-100">
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                    <div className="md:col-span-2 lg:col-span-3 space-y-3">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Session Title</label>
+                                        <input type="text" placeholder="e.g., Opening Keynote" className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold outline-none focus:border-primary transition-all shadow-sm" value={session.title} onChange={(e) => updateSession(session.id, "title", e.target.value)} />
+                                    </div>
+
+                                    <div className="md:col-span-2 lg:col-span-3 space-y-3">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Detailed Description</label>
+                                        <textarea rows={3} placeholder="What will happen during this session?" className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold outline-none focus:border-primary transition-all shadow-sm resize-none" value={session.description} onChange={(e) => updateSession(session.id, "description", e.target.value)} />
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Commences</label>
+                                        <input type="datetime-local" className="w-full p-5 bg-white border border-gray-300 rounded-2xl text-xs font-bold outline-none focus:border-primary transition-all" value={session.startTime} min={basicInfo.startDate} max={basicInfo.endDate} onChange={(e) => updateSession(session.id, "startTime", e.target.value)} />
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Concludes</label>
+                                        <input type="datetime-local" className="w-full p-5 bg-white border border-gray-300 rounded-2xl text-xs font-bold outline-none focus:border-primary transition-all" value={session.endTime} min={session.startTime || basicInfo.startDate} max={basicInfo.endDate} onChange={(e) => updateSession(session.id, "endTime", e.target.value)} />
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Primary Location</label>
+                                        <input type="text" placeholder="e.g., Main Hall" className="w-full p-5 bg-white border border-gray-300 rounded-2xl text-xs font-bold outline-none focus:border-primary transition-all" value={session.location} onChange={(e) => updateSession(session.id, "location", e.target.value)} />
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Specific Room</label>
+                                        <input type="text" placeholder="e.g., Suite 402" className="w-full p-5 bg-white border border-gray-300 rounded-2xl text-xs font-bold outline-none focus:border-primary transition-all" value={session.room || ""} onChange={(e) => updateSession(session.id, "room", e.target.value)} />
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Designated Stage</label>
+                                        <input type="text" placeholder="e.g., Alpha Stage" className="w-full p-5 bg-white border border-gray-300 rounded-2xl text-xs font-bold outline-none focus:border-primary transition-all" value={session.stage || ""} onChange={(e) => updateSession(session.id, "stage", e.target.value)} />
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Session Type</label>
+                                        <div className="relative">
+                                            <select className="w-full p-5 bg-white border border-gray-300 rounded-2xl text-xs font-bold outline-none focus:border-primary transition-all appearance-none" value={session.sessionType || ""} onChange={(e) => updateSession(session.id, "sessionType", e.target.value)}>
+                                                <option value="">Unspecified</option>
+                                                <option value="keynote">Keynote</option>
+                                                <option value="workshop">Workshop</option>
+                                                <option value="panel">Panel Discussion</option>
+                                                <option value="networking">Networking</option>
+                                                <option value="break">Break/Meal</option>
+                                            </select>
+                                            <ChevronDown size={14} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                        </div>
+                                    </div>
+
+                                    <div className="md:col-span-2 lg:col-span-3 space-y-5 pt-4">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Assigned Speakers</label>
+                                        <div className="flex flex-wrap gap-3">
+                                            {speakers.filter(s => s.name).map((speaker, sIdx) => {
+                                                const isAssigned = session.speakerNames?.includes(speaker.name);
+                                                return (
+                                                    <button
+                                                        key={sIdx}
+                                                        onClick={() => {
+                                                            const currentIds = session.speakerIds || [];
+                                                            const currentNames = session.speakerNames || [];
+                                                            let nextIds, nextNames;
+
+                                                            if (isAssigned) {
+                                                                nextIds = currentIds.filter(id => id !== (speaker as any).id);
+                                                                nextNames = currentNames.filter(name => name !== speaker.name);
+                                                            } else {
+                                                                nextIds = [...currentIds];
+                                                                if ((speaker as any).id) nextIds.push((speaker as any).id);
+                                                                nextNames = [...currentNames, speaker.name];
+                                                            }
+
+                                                            const updatedSessions = [...sessions];
+                                                            updatedSessions[index] = {
+                                                                ...session,
+                                                                speakerIds: nextIds,
+                                                                speakerNames: nextNames
+                                                            };
+                                                            setSessions(updatedSessions);
+                                                        }}
+                                                        className={`flex items-center gap-3 px-5 py-3 rounded-2xl border transition-all duration-300 ${
+                                                            isAssigned
+                                                            ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20'
+                                                            : 'bg-white border-gray-200 text-gray-500 hover:border-primary hover:text-primary'
+                                                        }`}
+                                                    >
+                                                        <div className="w-6 h-6 rounded-lg overflow-hidden bg-gray-100 shrink-0">
+                                                            {speaker.imageUrl && <Image src={speaker.imageUrl} alt={speaker.name} width={24} height={24} className="object-cover" />}
+                                                        </div>
+                                                        <span className="text-[10px] font-black uppercase tracking-widest">{speaker.name}</span>
+                                                        {isAssigned && <ShieldCheck size={12} strokeWidth={3} />}
+                                                    </button>
+                                                );
+                                            })}
+                                            {speakers.filter(s => s.name).length === 0 && (
+                                                <p className="text-[10px] text-gray-400 italic">No speakers defined in Step 1.</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+
+                        {sessions.length === 0 && (
+                            <div className="py-20 bg-gray-50/50 rounded-[3rem] border border-gray-100 flex flex-col items-center justify-center text-center px-10">
+                                <p className="text-xs font-black text-gray-400 uppercase tracking-widest">No sessions defined yet.</p>
+                                <button onClick={() => setSessions([{ id: Math.random().toString(), title: "", description: "", startTime: "", endTime: "", location: "", speakerIds: [], speakerNames: [] }])} className="mt-4 text-[10px] font-black text-primary uppercase tracking-widest hover:underline">Add Your First Session</button>
+                            </div>
+                        )}
+                    </div>
+                 )}
               </div>
             )}
           </div>
@@ -1654,7 +1761,7 @@ const EditEvent = () => {
         {/* Live Preview (Desktop) */}
         {showPreview && (
           <div className="hidden lg:block w-[400px] xl:w-[480px] shrink-0">
-            <LivePreview basicInfo={basicInfo} mediaInfo={mediaInfo} speakers={speakers} agenda={agenda} sessions={sessions} tickets={tickets} />
+            <LivePreview basicInfo={basicInfo} mediaInfo={mediaInfo} speakers={speakers} agendaEnabled={basicInfo.agendaEnabled} sessions={sessions} tickets={tickets} />
           </div>
         )}
       </div>
@@ -1666,7 +1773,7 @@ const EditEvent = () => {
             <button onClick={() => setIsPreviewModalOpen(false)}><XCircle size={24} /></button>
           </div>
           <div className="flex-1 overflow-y-auto">
-            <LivePreview basicInfo={basicInfo} mediaInfo={mediaInfo} speakers={speakers} agenda={agenda} sessions={sessions} tickets={tickets} />
+            <LivePreview basicInfo={basicInfo} mediaInfo={mediaInfo} speakers={speakers} agendaEnabled={basicInfo.agendaEnabled} sessions={sessions} tickets={tickets} />
           </div>
         </div>
       )}
