@@ -25,14 +25,19 @@ import {
   User,
   Clock,
   Globe,
-  Download
+  Download,
+  UserPlus,
+  ShieldCheck,
+  Mail,
+  Trash2
 } from "lucide-react";
 import Image from "next/image";
 import api from "@/services/api";
-import { Event, Analytics } from "@/types";
+import { Event, Analytics, StaffMember } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
+import AssignStaffModal from "@/components/organizer/AssignStaffModal";
 
 const EventDetails = () => {
   const { eventId } = useParams();
@@ -43,6 +48,7 @@ const EventDetails = () => {
   const [loading, setLoading] = useState(true);
   const [attendeesLoading, setAttendeesLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
+  const [isStaffModalOpen, setIsStaffModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchEventData = async () => {
@@ -86,6 +92,40 @@ const EventDetails = () => {
       fetchAttendees();
     }
   }, [activeTab, eventId]);
+
+  const handleAssignStaff = async (staffId: string) => {
+    try {
+      await api.post(`/events/${eventId}/staff`, { staffId });
+      Swal.fire('Assigned!', 'Staff member has been assigned to this event.', 'success');
+      const eventRes = await api.get(`/events/${eventId}`);
+      setEvent(eventRes.data.data);
+    } catch (error) {
+      Swal.fire('Error', translateError(error), 'error');
+    }
+  };
+
+  const handleUnassignStaff = async (staffId: string) => {
+    const result = await Swal.fire({
+      title: 'Unassign Staff?',
+      text: 'This staff member will no longer have access to this specific event.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, unassign',
+      confirmButtonColor: '#ef4444',
+    });
+
+    if (result.isConfirmed) {
+      try {
+        Swal.showLoading();
+        await api.delete(`/events/${eventId}/staff/${staffId}`);
+        Swal.fire('Unassigned!', 'Staff member has been unassigned from this event.', 'success');
+        const eventRes = await api.get(`/events/${eventId}`);
+        setEvent(eventRes.data.data);
+      } catch (error) {
+        Swal.fire('Error', translateError(error), 'error');
+      }
+    }
+  };
 
   const handleBroadcast = async () => {
     const { value: message, isConfirmed } = await Swal.fire({
@@ -193,7 +233,7 @@ const EventDetails = () => {
       {/* Tabs & Detailed Content */}
       <div className="space-y-6">
          <div className="flex items-center gap-2 bg-white p-1.5 rounded-2xl shadow-sm border border-gray-100 w-fit overflow-x-auto no-scrollbar">
-            {["overview", "schedule", "tickets", "attendees"].map(tab => (
+            {["overview", "schedule", "tickets", "attendees", "staff"].map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -774,6 +814,86 @@ const EventDetails = () => {
                       </div>
                    </div>
                  )}
+              </div>
+            )}
+
+      <AssignStaffModal
+        isOpen={isStaffModalOpen}
+        onClose={() => setIsStaffModalOpen(false)}
+        onAssign={handleAssignStaff}
+        assignedStaffIds={event.staff?.map(s => s.id) || []}
+      />
+
+            {activeTab === "staff" && (
+              <div className="space-y-8 animate-in fade-in duration-500">
+                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                       <h3 className="text-lg font-black text-gray-900">Assigned Staff</h3>
+                       <p className="text-xs text-gray-500 font-medium mt-1">Manage staff members who have access to this event.</p>
+                    </div>
+                    <button
+                      onClick={() => setIsStaffModalOpen(true)}
+                      className="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-xs rounded-xl shadow-lg shadow-primary/20 hover:opacity-90 transition-all"
+                    >
+                       <UserPlus size={14} />
+                       Assign Staff
+                    </button>
+                 </div>
+
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {event.staff && event.staff.length > 0 ? (
+                      event.staff.map((member) => (
+                        <div key={member.id} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 group relative overflow-hidden">
+                           <div className="flex items-center gap-4 mb-6">
+                              <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-black text-lg">
+                                 {member.fullName?.[0] || <Users size={24} />}
+                              </div>
+                              <div>
+                                 <h4 className="font-bold text-gray-900">{member.fullName || member.email.split('@')[0]}</h4>
+                                 <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest ${
+                                   member.role === 'MANAGER' ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-gray-50 text-gray-500 border border-gray-100'
+                                 }`}>
+                                    {member.role}
+                                 </span>
+                              </div>
+                           </div>
+
+                           <div className="space-y-3 pt-4 border-t border-gray-50">
+                              <div className="flex items-center gap-3 text-xs text-gray-500 font-medium">
+                                 <Mail size={14} className="text-primary" />
+                                 {member.email}
+                              </div>
+                              <div className="flex items-center gap-3 text-xs text-gray-500 font-medium">
+                                 <ShieldCheck size={14} className="text-emerald-500" />
+                                 {member.canRegisterGuests ? "Can Register Guests" : "Check-in Access Only"}
+                              </div>
+                           </div>
+
+                           <button
+                             onClick={() => handleUnassignStaff(member.id)}
+                             className="absolute top-4 right-4 p-2 text-gray-300 hover:text-rose-600 transition-colors bg-gray-50 hover:bg-rose-50 rounded-xl"
+                           >
+                              <Trash2 size={16} />
+                           </button>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="col-span-full py-20 text-center bg-gray-50 rounded-[2.5rem] border-2 border-dashed border-gray-200">
+                         <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300 shadow-sm">
+                            <Users size={32} />
+                         </div>
+                         <h4 className="text-lg font-bold text-gray-900">No staff assigned</h4>
+                         <p className="text-gray-500 text-sm max-w-xs mx-auto mb-6">Assign staff members from your pool to help manage this event.</p>
+                         <button
+                           onClick={() => setIsStaffModalOpen(true)}
+                           className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white font-bold text-sm rounded-xl shadow-lg shadow-primary/20 hover:opacity-90 transition-all"
+                         >
+                            <UserPlus size={18} />
+                            Assign Now
+                         </button>
+                      </div>
+                    )}
+                 </div>
               </div>
             )}
          </div>

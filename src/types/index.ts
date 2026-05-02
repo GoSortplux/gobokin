@@ -570,6 +570,7 @@ export interface Event {
   organizer?: Organizer;
   tickets?: Ticket[];
   sessions?: Session[];
+  staff?: StaffMember[];
 }
 
 export interface EventSummary {
