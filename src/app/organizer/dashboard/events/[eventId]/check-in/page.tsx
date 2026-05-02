@@ -30,6 +30,7 @@ const CheckInInterface = () => {
   const [searchResult, setSearchResult] = useState<any>(null);
   const [searching, setSearching] = useState(false);
   const [checkingIn, setCheckingIn] = useState(false);
+  const [selectedSessionId, setSelectedSessionId] = useState<string>("");
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -54,7 +55,7 @@ const CheckInInterface = () => {
     setSearching(true);
     setSearchResult(null);
     try {
-      const response = await api.get(`/events/check-in/lookup?eventId=${eventId}&ticketNumber=${searchTerm}`);
+      const response = await api.get(`/events/check-in/lookup?ticketNumber=${searchTerm}`);
       setSearchResult(response.data.data);
     } catch (error) {
       console.error("Lookup failed:", error);
@@ -64,18 +65,20 @@ const CheckInInterface = () => {
     }
   };
 
-  const handleConfirmCheckIn = async (registrationId: string) => {
+  const handleConfirmCheckIn = async () => {
+    if (!searchResult?.ticketNumber) return;
+
     setCheckingIn(true);
     try {
       Swal.showLoading();
       await api.post("/events/check-in", {
-        registrationId,
-        eventId
+        ticketNumber: searchResult.ticketNumber,
+        sessionId: selectedSessionId || undefined
       });
 
       await Swal.fire({
         title: "Check-in Successful!",
-        text: `${searchResult?.attendeeData?.['full-name'] || 'Guest'} has been checked in.`,
+        text: `${searchResult?.attendeeData?.fullName || searchResult?.attendeeData?.['full-name'] || 'Guest'} has been checked in.`,
         icon: "success",
         timer: 2000,
         showConfirmButton: false
@@ -156,16 +159,36 @@ const CheckInInterface = () => {
              <div className="p-8 space-y-6">
                 <div className="flex items-center gap-6">
                    <div className="w-20 h-20 bg-primary/10 text-primary rounded-[2rem] flex items-center justify-center font-black text-3xl">
-                      {searchResult.attendeeData?.['full-name']?.[0] || <User />}
+                      {(searchResult.attendeeData?.fullName || searchResult.attendeeData?.['full-name'] || 'G')[0]}
                    </div>
                    <div className="flex-1">
-                      <h3 className="text-2xl font-black text-gray-900 leading-tight mb-1">{searchResult.attendeeData?.['full-name'] || "N/A"}</h3>
+                      <h3 className="text-2xl font-black text-gray-900 leading-tight mb-1">
+                        {searchResult.attendeeData?.fullName || searchResult.attendeeData?.['full-name'] || "N/A"}
+                      </h3>
                       <p className="text-gray-500 font-bold flex items-center gap-2">
                         <Ticket size={16} className="text-primary" />
                         {searchResult.ticketNumber}
                       </p>
                    </div>
                 </div>
+
+                {event.sessions && event.sessions.length > 0 && (
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Select Session (Optional)</label>
+                    <select
+                      value={selectedSessionId}
+                      onChange={(e) => setSelectedSessionId(e.target.value)}
+                      className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold focus:bg-white focus:border-primary transition-all outline-none appearance-none cursor-pointer"
+                    >
+                      <option value="">Full Event Check-in</option>
+                      {event.sessions.map((session: any) => (
+                        <option key={session.id} value={session.id}>
+                          {session.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-2 gap-4">
                    <div className="p-4 bg-gray-50 rounded-2xl">
@@ -193,7 +216,7 @@ const CheckInInterface = () => {
                   </div>
                 ) : (
                   <button
-                    onClick={() => handleConfirmCheckIn(searchResult.id)}
+                    onClick={handleConfirmCheckIn}
                     disabled={checkingIn}
                     className="w-full bg-emerald-600 text-white font-black py-6 rounded-[2rem] hover:bg-opacity-90 transition-all shadow-xl shadow-emerald-900/10 flex items-center justify-center gap-3 text-lg disabled:opacity-50"
                   >
