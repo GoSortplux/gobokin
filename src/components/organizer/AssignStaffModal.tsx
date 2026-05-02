@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Users, Mail, ShieldCheck, Search, CheckCircle2 } from 'lucide-react';
+import { X, Users, Mail, Search, CheckCircle2 } from 'lucide-react';
 import { StaffMember } from '@/types';
 import api from '@/services/api';
 import CustomLoader from '@/components/CustomLoader';

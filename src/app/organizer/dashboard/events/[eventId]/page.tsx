@@ -33,7 +33,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import api from "@/services/api";
-import { Event, Analytics, StaffMember } from "@/types";
+import { Event, Analytics } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
@@ -82,7 +82,7 @@ const EventDetails = () => {
           try {
              const response = await api.get(`/events/orders/all?eventId=${eventId}`);
              setAttendees(response.data.data || []);
-          } catch (e) {
+          } catch (_e) {
              setAttendees([]);
           }
         } finally {
