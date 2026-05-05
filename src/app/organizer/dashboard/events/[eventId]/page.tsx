@@ -13,6 +13,7 @@ import {
   Share2,
   Radio,
   Eye,
+  EyeOff,
   CheckCircle2,
   AlertCircle,
   MoreVertical,
@@ -45,11 +46,12 @@ const EventDetails = () => {
   const [event, setEvent] = useState<Event | null>(null);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [staff, setStaff] = useState<StaffMember[]>([]);
-  const [attendees, setAttendees] = useState<any[]>([]);
+  const [attendees, setAttendees] = useState<{ id?: string; attendeeName?: string; attendeeEmail?: string; ticketName?: string; ticketNumber?: string; status?: string; checkInStatus?: boolean; createdAt: string; attendeeData?: Record<string, string> }[]>([]);;
   const [loading, setLoading] = useState(true);
   const [attendeesLoading, setAttendeesLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [isStaffModalOpen, setIsStaffModalOpen] = useState(false);
+  const [isActionLoading, setIsActionLoading] = useState(false);
 
   useEffect(() => {
     const fetchEventData = async () => {
@@ -77,7 +79,7 @@ const EventDetails = () => {
         try {
           const response = await api.get(`/events/${eventId}/staff`);
           // Extract nested staff data from the assignment objects
-          const staffMembers = (response.data.data || []).map((item: any) => item.staff).filter(Boolean);
+          const staffMembers = (response.data.data || []).map((item: { staff: StaffMember }) => item.staff).filter(Boolean);
           setStaff(staffMembers);
         } catch (error) {
           console.error("Failed to fetch staff:", error);
@@ -115,7 +117,7 @@ const EventDetails = () => {
       await api.post(`/events/${eventId}/staff`, { staffId });
       Swal.fire('Assigned!', 'Staff member has been assigned to this event.', 'success');
       const response = await api.get(`/events/${eventId}/staff`);
-      const staffMembers = (response.data.data || []).map((item: any) => item.staff).filter(Boolean);
+      const staffMembers = (response.data.data || []).map((item: { staff: StaffMember }) => item.staff).filter(Boolean);
       setStaff(staffMembers);
     } catch (error) {
       Swal.fire('Error', translateError(error), 'error');
@@ -138,7 +140,7 @@ const EventDetails = () => {
         await api.delete(`/events/${eventId}/staff/${staffId}`);
         Swal.fire('Unassigned!', 'Staff member has been unassigned from this event.', 'success');
         const response = await api.get(`/events/${eventId}/staff`);
-        const staffMembers = (response.data.data || []).map((item: any) => item.staff).filter(Boolean);
+        const staffMembers = (response.data.data || []).map((item: { staff: StaffMember }) => item.staff).filter(Boolean);
         setStaff(staffMembers);
       } catch (error) {
         Swal.fire('Error', translateError(error), 'error');
@@ -168,6 +170,60 @@ const EventDetails = () => {
     }
   };
 
+  const handlePublish = async () => {
+    const result = await Swal.fire({
+      title: 'Publish Event?',
+      text: 'This will make your event visible to the public and allow ticket sales.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Publish Now',
+      confirmButtonColor: '#10b981',
+    });
+
+    if (result.isConfirmed) {
+      try {
+        setIsActionLoading(true);
+        Swal.showLoading();
+        await api.post(`/events/${eventId}/publish`);
+        Swal.fire('Published!', 'Your event is now live.', 'success');
+        // Refresh event data
+        const eventRes = await api.get(`/events/${eventId}`);
+        setEvent(eventRes.data.data);
+      } catch (error) {
+        Swal.fire('Error', translateError(error), 'error');
+      } finally {
+        setIsActionLoading(false);
+      }
+    }
+  };
+
+  const handleUnpublish = async () => {
+    const result = await Swal.fire({
+      title: 'Unpublish Event?',
+      text: 'This will hide your event from the public and suspend ticket sales.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Unpublish',
+      confirmButtonColor: '#f59e0b',
+    });
+
+    if (result.isConfirmed) {
+      try {
+        setIsActionLoading(true);
+        Swal.showLoading();
+        await api.post(`/events/${eventId}/unpublish`);
+        Swal.fire('Unpublished!', 'Your event has been moved to drafts.', 'success');
+        // Refresh event data
+        const eventRes = await api.get(`/events/${eventId}`);
+        setEvent(eventRes.data.data);
+      } catch (error) {
+        Swal.fire('Error', translateError(error), 'error');
+      } finally {
+        setIsActionLoading(false);
+      }
+    }
+  };
+
   if (loading) return <div className="h-full flex items-center justify-center"><CustomLoader /></div>;
   if (!event) return <div className="p-20 text-center"><AlertCircle className="mx-auto mb-4 text-red-500" size={48} /><h3 className="text-xl font-bold">Event not found</h3></div>;
 
@@ -183,6 +239,29 @@ const EventDetails = () => {
           <button onClick={() => {}} className="p-2.5 text-gray-400 hover:text-primary hover:bg-blue-50 rounded-xl transition-all">
             <Share2 size={20} />
           </button>
+
+          {event.status === 'DRAFT' ? (
+            <button
+              onClick={handlePublish}
+              disabled={isActionLoading}
+              className="flex items-center gap-2 bg-emerald-50 text-emerald-600 font-bold px-5 py-2.5 rounded-xl hover:bg-emerald-600 hover:text-white transition-all border border-emerald-100"
+            >
+              <CheckCircle2 size={18} />
+              Publish
+            </button>
+          ) : (
+            (event.status === 'UPCOMING' || event.status === 'ONGOING') && (
+              <button
+                onClick={handleUnpublish}
+                disabled={isActionLoading}
+                className="flex items-center gap-2 bg-amber-50 text-amber-600 font-bold px-5 py-2.5 rounded-xl hover:bg-amber-600 hover:text-white transition-all border border-amber-100"
+              >
+                <EyeOff size={18} />
+                Unpublish
+              </button>
+            )
+          )}
+
           <button onClick={handleBroadcast} className="flex items-center gap-2 bg-blue-50 text-primary font-bold px-5 py-2.5 rounded-xl hover:bg-blue-100 transition-all border border-blue-100">
             <Radio size={18} />
             Broadcast

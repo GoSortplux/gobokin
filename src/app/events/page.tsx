@@ -6,23 +6,14 @@ import {
   Search,
   Filter,
   MapPin,
-  Ticket,
   ArrowRight,
   PlusCircle,
-  Layers,
-  Clock,
   LayoutGrid,
-  List,
   ChevronRight,
   TrendingUp,
-  Star,
   CheckCircle2,
   X,
-  Navigation,
-  Globe,
   Map as MapIcon,
-  Maximize2,
-  ChevronDown,
   Sparkles,
   Zap,
   MapPinned
@@ -30,9 +21,6 @@ import {
 import Image from "next/image";
 import api from "@/services/api";
 import { Event } from "@/types";
-import CustomLoader from "@/components/CustomLoader";
-import Swal from "@/utils/sweetalert";
-import { translateError } from "@/utils/errors";
 
 interface DiscoveryData {
   featured: Event[];
@@ -50,7 +38,6 @@ const EventDiscovery = () => {
   });
   const [searchResults, setSearchResults] = useState<Event[]>([]);
   const [pagination, setPagination] = useState({ page: 1, limit: 12, total: 0, pages: 1 });
-  const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -82,8 +69,7 @@ const EventDiscovery = () => {
 
   const fetchDiscoveryEvents = useCallback(async () => {
     try {
-      setLoading(true);
-      const params: any = {};
+      const params: Record<string, number | undefined> = {};
       if (coords) {
         params.lat = coords.lat;
         params.lng = coords.lng;
@@ -101,8 +87,6 @@ const EventDiscovery = () => {
       }
     } catch (error) {
       console.error("Failed to fetch discovery events:", error);
-    } finally {
-      setLoading(false);
     }
   }, [coords]);
 
@@ -110,12 +94,12 @@ const EventDiscovery = () => {
     fetchDiscoveryEvents();
   }, [fetchDiscoveryEvents]);
 
-  const handleSearch = async (page = 1, append = false) => {
+  const handleSearch = useCallback(async (page = 1, append = false) => {
     try {
       if (page === 1) setSearching(true);
       else setLoadingMore(true);
 
-      const params: any = {
+      const params: Record<string, string | number | boolean | undefined> = {
         page,
         limit: pagination.limit,
       };
@@ -146,7 +130,7 @@ const EventDiscovery = () => {
       setSearching(false);
       setLoadingMore(false);
     }
-  };
+  }, [searchTerm, locationTerm, activeCategory, eventType, pagination.limit]);
 
   useEffect(() => {
     if (searchTerm || locationTerm || activeCategory !== "All" || eventType !== "All") {
@@ -157,7 +141,7 @@ const EventDiscovery = () => {
     } else {
       setSearchResults([]);
     }
-  }, [searchTerm, locationTerm, activeCategory, eventType]);
+  }, [searchTerm, locationTerm, activeCategory, eventType, handleSearch]);
 
   const loadMore = () => {
     if (pagination.page < pagination.pages) {
@@ -444,7 +428,7 @@ const EventDiscovery = () => {
                         </div>
                         <h3 className="text-3xl font-black text-gray-900 mb-4 tracking-tighter">No events discovered</h3>
                         <p className="text-gray-500 font-bold max-w-md mx-auto mb-10 text-lg">
-                          We couldn't find any events matching your criteria. Try widening your search radius or changing categories.
+                          We couldn&apos;t find any events matching your criteria. Try widening your search radius or changing categories.
                         </p>
                         <button
                           onClick={() => {

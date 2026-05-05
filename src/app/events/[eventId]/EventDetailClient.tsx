@@ -7,17 +7,13 @@ import {
   MapPin,
   Ticket,
   Users,
-  ArrowLeft,
   ArrowRight,
   CheckCircle2,
   ShieldCheck,
-  Zap,
   Tag,
   Share2,
   Clock,
-  Layers,
   ChevronRight,
-  Info,
   Download,
   CalendarPlus,
   Heart,
@@ -207,7 +203,7 @@ const EventDetailClient = () => {
                       <div className="pt-10 border-t border-gray-50 space-y-6">
                          <h3 className="text-xl font-black text-gray-900 tracking-tight flex items-center gap-3">
                             <MapPin size={24} className="text-primary" />
-                            Where it's happening
+                            Where it&apos;s happening
                          </h3>
                          <div className="bg-gray-50 p-8 rounded-[2.5rem] border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-6">
                             <div className="space-y-1">

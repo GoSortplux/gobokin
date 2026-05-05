@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
 import {
   ArrowLeft,
   Calendar,
@@ -13,15 +12,9 @@ import {
   CheckCircle2,
   AlertCircle,
   Tag,
-  Shield,
-  ExternalLink,
-  Image as ImageIcon,
-  Video,
-  User,
-  Clock,
   Globe,
   Trash2,
-  Settings
+  EyeOff
 } from "lucide-react";
 import Image from "next/image";
 import api from "@/services/api";
@@ -35,16 +28,17 @@ const AdminEventDetails = () => {
   const router = useRouter();
   const [event, setEvent] = useState<Event | null>(null);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
-  const [attendees, setAttendees] = useState<any[]>([]);
+  const [attendees, setAttendees] = useState<{ id?: string; attendeeName?: string; attendeeEmail?: string; ticketName?: string; ticketNumber?: string; status?: string; checkInStatus?: boolean; createdAt: string; attendeeData?: Record<string, string> }[]>([]);;
   const [loading, setLoading] = useState(true);
   const [attendeesLoading, setAttendeesLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
+  const [isActionLoading, setIsActionLoading] = useState(false);
 
   useEffect(() => {
     const fetchEventData = async () => {
       try {
         setLoading(true);
-        const [eventRes, analyticsRes] = await Promise.all([
+        const [eventRes, analyticsRes]: [{ data: { data: Event } }, { data: { data: Analytics } }] = await Promise.all([
           api.get(`/events/${eventId}`),
           api.get(`/events/${eventId}/analytics`)
         ]);
@@ -56,7 +50,7 @@ const AdminEventDetails = () => {
         try {
             const eventRes = await api.get(`/events/${eventId}`);
             setEvent(eventRes.data.data);
-        } catch (e) {
+        } catch (_e) {
             Swal.fire("Error", translateError(error), "error");
         }
       } finally {
@@ -83,6 +77,60 @@ const AdminEventDetails = () => {
       fetchAttendees();
     }
   }, [activeTab, eventId]);
+
+  const handlePublish = async () => {
+    if (!event) return;
+    const result = await Swal.fire({
+      title: 'Publish Event Platform-wide?',
+      text: 'This will make the event visible to all users and allow ticket sales.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Publish',
+      confirmButtonColor: '#10b981',
+    });
+
+    if (result.isConfirmed) {
+      try {
+        setIsActionLoading(true);
+        Swal.showLoading();
+        await api.post(`/events/${eventId}/publish`);
+        Swal.fire('Published!', 'The event is now live platform-wide.', 'success');
+        const eventRes = await api.get(`/events/${eventId}`);
+        setEvent(eventRes.data.data);
+      } catch (error) {
+        Swal.fire('Error', translateError(error), 'error');
+      } finally {
+        setIsActionLoading(false);
+      }
+    }
+  };
+
+  const handleUnpublish = async () => {
+    if (!event) return;
+    const result = await Swal.fire({
+      title: 'Unpublish Event?',
+      text: 'This will hide the event from the public.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Unpublish',
+      confirmButtonColor: '#f59e0b',
+    });
+
+    if (result.isConfirmed) {
+      try {
+        setIsActionLoading(true);
+        Swal.showLoading();
+        await api.post(`/events/${eventId}/unpublish`);
+        Swal.fire('Unpublished!', 'The event has been moved to drafts.', 'success');
+        const eventRes = await api.get(`/events/${eventId}`);
+        setEvent(eventRes.data.data);
+      } catch (error) {
+        Swal.fire('Error', translateError(error), 'error');
+      } finally {
+        setIsActionLoading(false);
+      }
+    }
+  };
 
   const deleteEvent = async () => {
     if (!event) return;
@@ -120,6 +168,27 @@ const AdminEventDetails = () => {
           Back to Platform Events
         </button>
         <div className="flex items-center gap-3">
+          {event.status === 'DRAFT' ? (
+            <button
+              onClick={handlePublish}
+              disabled={isActionLoading}
+              className="flex items-center gap-2 bg-emerald-50 text-emerald-600 font-bold px-5 py-2.5 rounded-xl hover:bg-emerald-600 hover:text-white transition-all border border-emerald-100"
+            >
+              <CheckCircle2 size={18} />
+              Publish Event
+            </button>
+          ) : (
+            (event.status === 'UPCOMING' || event.status === 'ONGOING') && (
+              <button
+                onClick={handleUnpublish}
+                disabled={isActionLoading}
+                className="flex items-center gap-2 bg-amber-50 text-amber-600 font-bold px-5 py-2.5 rounded-xl hover:bg-amber-600 hover:text-white transition-all border border-amber-100"
+              >
+                <EyeOff size={18} />
+                Unpublish Event
+              </button>
+            )
+          )}
           <button
             onClick={deleteEvent}
             className="flex items-center gap-2 bg-rose-50 text-rose-600 font-bold px-5 py-2.5 rounded-xl hover:bg-rose-600 hover:text-white transition-all border border-rose-100"
@@ -401,7 +470,7 @@ const AdminEventDetails = () => {
                             </thead>
                             <tbody className="divide-y divide-gray-50">
                                {attendees.length > 0 ? (
-                                 attendees.map((attendee, idx) => (
+                                 attendees.map((attendee: { id?: string; attendeeName?: string; attendeeEmail?: string; ticketName?: string; ticketNumber?: string; status?: string; checkInStatus?: boolean; createdAt: string; attendeeData?: Record<string, string> }, idx: number) => (
                                    <tr key={attendee.id || idx} className="hover:bg-gray-50/50 transition-colors">
                                       <td className="px-6 py-6">
                                          <p className="text-sm font-bold text-gray-900">{attendee.attendeeName || attendee.attendeeData?.['full-name'] || "Guest"}</p>
