@@ -44,6 +44,7 @@ const EventDetails = () => {
   const router = useRouter();
   const [event, setEvent] = useState<Event | null>(null);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
+  const [staff, setStaff] = useState<StaffMember[]>([]);
   const [attendees, setAttendees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [attendeesLoading, setAttendeesLoading] = useState(false);
@@ -54,12 +55,14 @@ const EventDetails = () => {
     const fetchEventData = async () => {
       try {
         setLoading(true);
-        const [eventRes, analyticsRes] = await Promise.all([
+        const [eventRes, analyticsRes, staffRes] = await Promise.all([
           api.get(`/events/${eventId}`),
-          api.get(`/events/${eventId}/analytics`)
+          api.get(`/events/${eventId}/analytics`),
+          api.get(`/events/${eventId}/staff`)
         ]);
         setEvent(eventRes.data.data);
         setAnalytics(analyticsRes.data.data);
+        setStaff(staffRes.data.data || []);
       } catch (error) {
         console.error("Failed to fetch event data:", error);
         Swal.fire("Error", translateError(error), "error");
@@ -97,8 +100,8 @@ const EventDetails = () => {
     try {
       await api.post(`/events/${eventId}/staff`, { staffId });
       Swal.fire('Assigned!', 'Staff member has been assigned to this event.', 'success');
-      const eventRes = await api.get(`/events/${eventId}`);
-      setEvent(eventRes.data.data);
+      const staffRes = await api.get(`/events/${eventId}/staff`);
+      setStaff(staffRes.data.data || []);
     } catch (error) {
       Swal.fire('Error', translateError(error), 'error');
     }
@@ -119,8 +122,8 @@ const EventDetails = () => {
         Swal.showLoading();
         await api.delete(`/events/${eventId}/staff/${staffId}`);
         Swal.fire('Unassigned!', 'Staff member has been unassigned from this event.', 'success');
-        const eventRes = await api.get(`/events/${eventId}`);
-        setEvent(eventRes.data.data);
+        const staffRes = await api.get(`/events/${eventId}/staff`);
+        setStaff(staffRes.data.data || []);
       } catch (error) {
         Swal.fire('Error', translateError(error), 'error');
       }
@@ -821,7 +824,7 @@ const EventDetails = () => {
         isOpen={isStaffModalOpen}
         onClose={() => setIsStaffModalOpen(false)}
         onAssign={handleAssignStaff}
-        assignedStaffIds={event.staff?.map(s => s.id) || []}
+        assignedStaffIds={staff.map(s => s.id)}
       />
 
             {activeTab === "staff" && (
@@ -841,8 +844,8 @@ const EventDetails = () => {
                  </div>
 
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {event.staff && event.staff.length > 0 ? (
-                      event.staff.map((member) => (
+                    {staff.length > 0 ? (
+                      staff.map((member) => (
                         <div key={member.id} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 group relative overflow-hidden">
                            <div className="flex items-center gap-4 mb-6">
                               <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-black text-lg">
