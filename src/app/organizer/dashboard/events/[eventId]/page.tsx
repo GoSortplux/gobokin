@@ -33,7 +33,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import api from "@/services/api";
-import { Event, Analytics } from "@/types";
+import { Event, Analytics, StaffMember } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
@@ -55,14 +55,12 @@ const EventDetails = () => {
     const fetchEventData = async () => {
       try {
         setLoading(true);
-        const [eventRes, analyticsRes, staffRes] = await Promise.all([
+        const [eventRes, analyticsRes] = await Promise.all([
           api.get(`/events/${eventId}`),
-          api.get(`/events/${eventId}/analytics`),
-          api.get(`/events/${eventId}/staff`)
+          api.get(`/events/${eventId}/analytics`)
         ]);
         setEvent(eventRes.data.data);
         setAnalytics(analyticsRes.data.data);
-        setStaff(staffRes.data.data || []);
       } catch (error) {
         console.error("Failed to fetch event data:", error);
         Swal.fire("Error", translateError(error), "error");
@@ -72,6 +70,20 @@ const EventDetails = () => {
     };
     fetchEventData();
   }, [eventId]);
+
+  useEffect(() => {
+    if (activeTab === "staff" && eventId) {
+      const fetchStaff = async () => {
+        try {
+          const response = await api.get(`/events/${eventId}/staff`);
+          setStaff(response.data.data || []);
+        } catch (error) {
+          console.error("Failed to fetch staff:", error);
+        }
+      };
+      fetchStaff();
+    }
+  }, [activeTab, eventId]);
 
   useEffect(() => {
     if (activeTab === "attendees" && eventId) {
