@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   Calendar,
@@ -16,7 +16,16 @@ import {
   ChevronRight,
   TrendingUp,
   Star,
-  CheckCircle2
+  CheckCircle2,
+  X,
+  Navigation,
+  Globe,
+  Map as MapIcon,
+  Maximize2,
+  ChevronDown,
+  Sparkles,
+  Zap,
+  MapPinned
 } from "lucide-react";
 import Image from "next/image";
 import api from "@/services/api";
@@ -28,94 +37,198 @@ import { translateError } from "@/utils/errors";
 interface DiscoveryData {
   featured: Event[];
   upcoming: Event[];
+  nearby: Event[];
   byCategory: Record<string, Event[]>;
 }
 
 const EventDiscovery = () => {
-  const [discoveryData, setDiscoveryData] = useState<DiscoveryData>({ featured: [], upcoming: [], byCategory: {} });
+  const [discoveryData, setDiscoveryData] = useState<DiscoveryData>({
+    featured: [],
+    upcoming: [],
+    nearby: [],
+    byCategory: {}
+  });
+  const [searchResults, setSearchResults] = useState<Event[]>([]);
+  const [pagination, setPagination] = useState({ page: 1, limit: 12, total: 0, pages: 1 });
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [activeCategory, setActiveCategory] = useState("All");
+  const [searching, setSearching] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
 
+  // Filters
+  const [searchTerm, setSearchTerm] = useState("");
+  const [locationTerm, setLocationTerm] = useState("");
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [eventType, setEventType] = useState<string>("All");
+  const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+
+  // Geolocation
   useEffect(() => {
-    fetchDiscoveryEvents();
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setCoords({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        (error) => {
+          console.error("Geolocation error:", error);
+        }
+      );
+    }
   }, []);
 
-  const fetchDiscoveryEvents = async () => {
+  const fetchDiscoveryEvents = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await api.get("/events/discovery");
+      const params: any = {};
+      if (coords) {
+        params.lat = coords.lat;
+        params.lng = coords.lng;
+      }
+
+      const response = await api.get("/events/discovery", { params });
       const data = response.data.data;
-      // The API returns { featured: [], upcoming: [], byCategory: {} } in data
       if (data) {
         setDiscoveryData({
           featured: data.featured || [],
           upcoming: data.upcoming || [],
+          nearby: data.nearby || [], // Assuming the API might return nearby
           byCategory: data.byCategory || {}
         });
       }
     } catch (error) {
       console.error("Failed to fetch discovery events:", error);
-      Swal.fire("Error", translateError(error), "error");
     } finally {
       setLoading(false);
     }
+  }, [coords]);
+
+  useEffect(() => {
+    fetchDiscoveryEvents();
+  }, [fetchDiscoveryEvents]);
+
+  const handleSearch = async (page = 1, append = false) => {
+    try {
+      if (page === 1) setSearching(true);
+      else setLoadingMore(true);
+
+      const params: any = {
+        page,
+        limit: pagination.limit,
+      };
+
+      const queryParts = [];
+      if (searchTerm) queryParts.push(searchTerm);
+      if (locationTerm) queryParts.push(locationTerm);
+
+      if (queryParts.length > 0) {
+        params.search = queryParts.join(" ");
+      }
+
+      if (activeCategory !== "All") params.category = activeCategory;
+      if (eventType !== "All") params.type = eventType;
+
+      const response = await api.get("/events", { params });
+      const { data, pagination: pagin } = response.data;
+
+      if (append) {
+        setSearchResults(prev => [...prev, ...data]);
+      } else {
+        setSearchResults(data);
+      }
+      setPagination(pagin);
+    } catch (error) {
+      console.error("Search failed:", error);
+    } finally {
+      setSearching(false);
+      setLoadingMore(false);
+    }
   };
 
-  const categories = ["All", ...Object.keys(discoveryData?.byCategory || {})];
+  useEffect(() => {
+    if (searchTerm || locationTerm || activeCategory !== "All" || eventType !== "All") {
+      const delayDebounceFn = setTimeout(() => {
+        handleSearch(1);
+      }, 500);
+      return () => clearTimeout(delayDebounceFn);
+    } else {
+      setSearchResults([]);
+    }
+  }, [searchTerm, locationTerm, activeCategory, eventType]);
 
-  if (loading) return <div className="min-h-screen pt-32 flex items-center justify-center"><CustomLoader /></div>;
+  const loadMore = () => {
+    if (pagination.page < pagination.pages) {
+      handleSearch(pagination.page + 1, true);
+    }
+  };
+
+  const isSearching = searchTerm || locationTerm || activeCategory !== "All" || eventType !== "All";
 
   const renderEventCard = (event: Event, variant: 'featured' | 'standard' = 'standard') => (
     <Link
       key={event.id}
       href={`/events/${event.id}`}
-      className={`bg-white border border-gray-100 shadow-sm overflow-hidden hover:shadow-2xl hover:shadow-blue-900/10 transition-all duration-500 group ${
-        variant === 'featured' ? 'rounded-[3rem]' : 'rounded-[2.5rem]'
+      className={`bg-white border border-gray-100 shadow-sm overflow-hidden hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 group relative ${
+        variant === 'featured' ? 'rounded-[2rem] lg:rounded-[3rem]' : 'rounded-[2rem]'
       }`}
     >
-      <div className={`relative w-full overflow-hidden ${variant === 'featured' ? 'h-72' : 'h-64'}`}>
+      <div className={`relative w-full overflow-hidden ${variant === 'featured' ? 'h-80' : 'h-64'}`}>
         {event.bannerUrl ? (
-          <Image src={event.bannerUrl} alt={event.title} fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
+          <Image src={event.bannerUrl} alt={event.title} fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
              <Calendar size={48} className="text-primary/20" />
           </div>
         )}
-        <div className="absolute top-5 left-5">
-          <span className="px-4 py-2 rounded-2xl bg-white/90 backdrop-blur-md shadow-sm text-[10px] font-black uppercase tracking-widest text-primary">
-            {event.category}
-          </span>
-        </div>
-        {event.isFeatured && (
-          <div className="absolute top-5 right-5">
-            <div className="w-10 h-10 bg-amber-400 text-white rounded-2xl flex items-center justify-center shadow-lg">
-              <Star size={18} />
-            </div>
+
+        {/* Overlay Badges */}
+        <div className="absolute inset-x-0 top-0 p-5 flex items-start justify-between">
+          <div className="flex flex-col gap-2">
+            <span className="px-4 py-2 rounded-2xl bg-white/95 backdrop-blur-md shadow-sm text-[10px] font-black uppercase tracking-widest text-primary w-fit">
+              {event.category}
+            </span>
           </div>
-        )}
+          {event.isFeatured && (
+            <div className="w-10 h-10 bg-amber-400 text-white rounded-2xl flex items-center justify-center shadow-lg">
+              <Sparkles size={18} className="fill-current" />
+            </div>
+          )}
+        </div>
+
+        {/* Date Overlay */}
+        <div className="absolute bottom-5 left-5">
+           <div className="bg-white/95 backdrop-blur-md px-4 py-2.5 rounded-2xl shadow-sm flex items-center gap-3">
+              <div className="flex flex-col items-center leading-none">
+                 <span className="text-[10px] font-black text-primary uppercase">{new Date(event.startDate).toLocaleDateString(undefined, { month: 'short' })}</span>
+                 <span className="text-xl font-black text-gray-900">{new Date(event.startDate).toLocaleDateString(undefined, { day: 'numeric' })}</span>
+              </div>
+              <div className="w-px h-6 bg-gray-200"></div>
+              <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                 {new Date(event.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </div>
+           </div>
+        </div>
       </div>
 
-      <div className="p-6">
-        <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
-          <Clock size={14} className="text-primary" />
-          {new Date(event.startDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })} • {new Date(event.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-        </div>
-        <h3 className={`font-black text-gray-900 mb-4 line-clamp-1 group-hover:text-primary transition-colors ${variant === 'featured' ? 'text-2xl' : 'text-xl'}`}>{event.title}</h3>
+      <div className="p-6 lg:p-8">
+        <h3 className={`font-black text-gray-900 mb-3 line-clamp-2 group-hover:text-primary transition-colors leading-tight ${variant === 'featured' ? 'text-2xl' : 'text-xl'}`}>{event.title}</h3>
 
         <div className="flex items-center gap-2 text-sm text-gray-500 font-medium mb-6">
-          <MapPin size={16} className="text-gray-400" />
+          <MapPin size={16} className="text-primary/60 flex-shrink-0" />
           <span className="line-clamp-1">{event.location || "Virtual Event"}</span>
         </div>
 
         <div className="flex items-center justify-between pt-6 border-t border-gray-50">
           <div className="space-y-0.5">
             <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Starts from</p>
-            <p className="text-lg font-black text-gray-900">
+            <p className="text-2xl font-black text-gray-900">
               {event.tickets?.[0]?.price > 0 ? `₦${event.tickets[0].price.toLocaleString()}` : "Free"}
             </p>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/20 group-hover:translate-x-1 transition-transform">
+          <div className="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center shadow-xl shadow-primary/20 group-hover:scale-110 transition-all">
             <ArrowRight size={20} />
           </div>
         </div>
@@ -123,145 +236,397 @@ const EventDiscovery = () => {
     </Link>
   );
 
+  const FilterSidebar = () => (
+    <aside className="hidden lg:block w-72 space-y-8 flex-shrink-0">
+      <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm space-y-8 sticky top-32">
+        <div className="flex items-center justify-between">
+           <h4 className="font-black text-gray-900 uppercase tracking-tighter text-lg flex items-center gap-2">
+             <Filter size={20} className="text-primary" />
+             Filters
+           </h4>
+           {isSearching && (
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setLocationTerm("");
+                  setActiveCategory("All");
+                  setEventType("All");
+                }}
+                className="text-[10px] font-black text-primary hover:underline uppercase tracking-widest"
+              >
+                Reset
+              </button>
+           )}
+        </div>
+
+        {/* Category Filter */}
+        <div className="space-y-4">
+           <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Category</label>
+           <div className="flex flex-col gap-2">
+              {["All", ...Object.keys(discoveryData?.byCategory || {})].map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
+                  className={`flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-bold transition-all ${
+                    activeCategory === cat ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  {cat}
+                  {activeCategory === cat && <CheckCircle2 size={16} />}
+                </button>
+              ))}
+           </div>
+        </div>
+
+        {/* Event Type Filter */}
+        <div className="space-y-4">
+           <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Event Type</label>
+           <div className="grid grid-cols-1 gap-2">
+              {["All", "PHYSICAL", "ONLINE", "HYBRID"].map(type => (
+                <button
+                  key={type}
+                  onClick={() => setEventType(type)}
+                  className={`flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-bold transition-all ${
+                    eventType === type ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  <span className="capitalize">{type.toLowerCase()}</span>
+                  {eventType === type && <CheckCircle2 size={16} />}
+                </button>
+              ))}
+           </div>
+        </div>
+
+        {/* View Toggle */}
+        <div className="pt-4 border-t border-gray-100">
+           <div className="flex bg-gray-50 p-1.5 rounded-2xl">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-all text-xs font-bold ${viewMode === 'grid' ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                <LayoutGrid size={16} />
+                Grid
+              </button>
+              <button
+                onClick={() => setViewMode('map')}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-all text-xs font-bold ${viewMode === 'map' ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                <MapIcon size={16} />
+                Map
+              </button>
+           </div>
+        </div>
+      </div>
+    </aside>
+  );
+
   return (
     <div className="min-h-screen bg-gray-50 pt-24 pb-20">
-      {/* Hero Section */}
+      {/* Hero Section - Luma Best Style */}
       <section className="container mx-auto px-4 mb-16">
-        <div className="bg-primary rounded-[3rem] p-8 lg:p-16 text-white relative overflow-hidden shadow-2xl shadow-primary/20">
-          <div className="relative z-10 max-w-2xl">
-            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest mb-6">
+        <div className="bg-primary rounded-[3rem] p-8 lg:p-20 text-white relative overflow-hidden shadow-2xl shadow-primary/20">
+          <div className="relative z-10 max-w-4xl">
+            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest mb-8">
               <TrendingUp size={14} />
-              Trending Events in your area
+              Featured Events in your area
             </div>
-            <h1 className="text-4xl lg:text-6xl font-black mb-6 leading-tight">Discover Unforgettable Experiences</h1>
-            <p className="text-blue-100 text-lg mb-8 font-medium">Join thousands of people discovering local workshops, conferences, and festivals near you.</p>
+            <h1 className="text-4xl lg:text-7xl font-black mb-8 leading-[1.1] tracking-tighter">Discover <br/>Unforgettable <br/>Experiences</h1>
+            <p className="text-blue-100 text-xl mb-12 font-medium max-w-2xl leading-relaxed">Join thousands of people discovering local workshops, conferences, and festivals near you.</p>
 
-            <div className="flex flex-col sm:flex-row items-center gap-4">
-              <div className="relative flex-1 max-w-md w-full">
-                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={24} />
+            <div className="bg-white p-3 rounded-[2.5rem] shadow-2xl flex flex-col lg:flex-row items-center gap-3 w-full border border-white/20">
+              <div className="relative flex-[1.5] w-full">
+                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-primary" size={20} />
                 <input
                   type="text"
-                  placeholder="Search events, workshops, or festivals..."
-                  className="w-full pl-14 pr-4 py-5 bg-white border-none rounded-3xl text-gray-900 shadow-lg focus:ring-4 focus:ring-white/20 transition-all font-medium"
+                  placeholder="Event title or keyword..."
+                  className="w-full pl-16 pr-6 py-5 bg-gray-50 border-none rounded-3xl text-gray-900 focus:ring-2 focus:ring-primary/20 transition-all font-bold text-lg placeholder:text-gray-400"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <Link
-                href="/apply-organizer"
-                className="px-8 py-5 bg-white text-primary font-black rounded-3xl shadow-lg hover:bg-blue-50 transition-all flex items-center gap-2 whitespace-nowrap"
+              <div className="w-px h-12 bg-gray-200 hidden lg:block mx-2"></div>
+              <div className="relative flex-1 w-full">
+                <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 text-primary" size={20} />
+                <input
+                  type="text"
+                  placeholder="Location or city..."
+                  className="w-full pl-16 pr-6 py-5 bg-gray-50 border-none rounded-3xl text-gray-900 focus:ring-2 focus:ring-primary/20 transition-all font-bold text-lg placeholder:text-gray-400"
+                  value={locationTerm}
+                  onChange={(e) => setLocationTerm(e.target.value)}
+                />
+              </div>
+              <button
+                onClick={() => handleSearch(1)}
+                className="w-full lg:w-auto px-12 py-5 bg-primary text-white font-black rounded-3xl shadow-lg hover:brightness-110 transition-all flex items-center justify-center gap-3 text-lg"
               >
-                <PlusCircle size={20} />
-                List Your Event
-              </Link>
+                Find Events
+              </button>
+            </div>
+
+            <div className="mt-8 flex flex-wrap items-center gap-6">
+               <Link
+                href="/apply-organizer"
+                className="text-white/80 hover:text-white transition-colors text-sm font-black flex items-center gap-2 uppercase tracking-widest"
+               >
+                 <PlusCircle size={20} className="text-white" />
+                 Are you an organizer? List your event
+               </Link>
             </div>
           </div>
 
-          <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-white/10 to-transparent pointer-events-none"></div>
-          <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl"></div>
-          <div className="absolute top-12 right-24 hidden lg:block animate-bounce duration-[3000ms]">
-             <div className="bg-white/10 backdrop-blur-md p-6 rounded-3xl border border-white/20 shadow-xl">
-                <div className="flex items-center gap-3">
-                   <div className="w-12 h-12 bg-emerald-400 rounded-2xl flex items-center justify-center">
-                      <CheckCircle2 size={24} />
+          {/* Decorative Elements */}
+          <div className="absolute -top-24 -right-24 w-96 h-96 bg-blue-400/20 rounded-full blur-[100px]"></div>
+          <div className="absolute top-1/2 right-20 -translate-y-1/2 hidden xl:block">
+             <div className="relative">
+                <div className="w-72 h-96 bg-white/10 backdrop-blur-2xl rounded-[3rem] border border-white/20 shadow-2xl rotate-6 animate-pulse"></div>
+                <div className="absolute inset-0 w-72 h-96 bg-white/10 backdrop-blur-2xl rounded-[3rem] border border-white/20 shadow-2xl -rotate-3"></div>
+                <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
+                   <div className="w-20 h-20 bg-emerald-400 rounded-[2rem] flex items-center justify-center mb-6 shadow-xl shadow-emerald-400/40">
+                      <CheckCircle2 size={40} />
                    </div>
-                   <div>
-                      <p className="font-black text-sm uppercase tracking-widest">Verified Events</p>
-                      <p className="text-blue-100 text-xs">Quality guaranteed by Gobokin</p>
-                   </div>
+                   <p className="font-black text-xl uppercase tracking-tighter mb-2">Verified Events</p>
+                   <p className="text-blue-100 text-sm font-medium">Quality guaranteed by Gobokin Experts</p>
                 </div>
              </div>
           </div>
         </div>
       </section>
 
-      {/* Featured Section */}
-      {discoveryData?.featured?.length > 0 && (
-        <section className="container mx-auto px-4 mb-20">
-          <div className="flex items-center justify-between mb-8">
-             <h2 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">
-               <Star className="text-amber-400 fill-amber-400" size={28} />
-               Featured Events
-             </h2>
-             <Link href="/events?filter=featured" className="text-primary font-bold hover:underline flex items-center gap-1">
-                View all featured
-                <ChevronRight size={18} />
-             </Link>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {discoveryData.featured.map(event => renderEventCard(event, 'featured'))}
-          </div>
-        </section>
-      )}
+      <div className="container mx-auto px-4 flex flex-col lg:flex-row gap-12">
+        <FilterSidebar />
 
-      {/* Category Filter */}
-      <section className="container mx-auto px-4 mb-12 sticky top-24 z-20">
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-8 bg-white/80 backdrop-blur-md p-3 rounded-[2rem] shadow-sm border border-gray-100">
-           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar w-full lg:w-auto px-2">
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
-                  className={`px-6 py-3.5 rounded-2xl text-sm font-bold whitespace-nowrap transition-all ${
-                    activeCategory === cat
-                      ? "bg-primary text-white shadow-xl shadow-primary/20"
-                      : "text-gray-500 hover:bg-gray-50"
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
-           </div>
+        {/* Mobile Filter Button */}
+        <button
+          onClick={() => setShowMobileFilters(true)}
+          className="lg:hidden flex items-center justify-center gap-2 w-full py-4 bg-white border border-gray-100 rounded-2xl font-black text-gray-900 shadow-sm mb-8"
+        >
+          <Filter size={20} />
+          Filters & View
+        </button>
 
-           <div className="flex items-center gap-4 w-full lg:w-auto justify-end">
-              <button className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-gray-50 text-gray-700 font-bold text-sm hover:bg-gray-100 transition-all">
-                <Filter size={18} />
-                Filters
-              </button>
-           </div>
-        </div>
-      </section>
-
-      {/* Main Grid: Shows Upcoming or Categorized */}
-      <section className="container mx-auto px-4">
-        {activeCategory === "All" ? (
-          <div className="space-y-20">
-            {/* Upcoming Section */}
-            {discoveryData?.upcoming?.length > 0 && (
-              <div>
-                <h2 className="text-3xl font-black text-gray-900 tracking-tight mb-8">Upcoming Experiences</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                  {discoveryData.upcoming.map(event => renderEventCard(event))}
-                </div>
-              </div>
-            )}
-
-            {/* Categorized Sections Preview */}
-            {Object.entries(discoveryData?.byCategory || {}).map(([category, events]) => (
-               <div key={category}>
-                  <div className="flex items-center justify-between mb-8">
-                     <h2 className="text-3xl font-black text-gray-900 tracking-tight">{category}</h2>
-                     <button onClick={() => setActiveCategory(category)} className="text-primary font-bold hover:underline">See more</button>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                    {events && Array.isArray(events) && events.slice(0, 4).map(event => renderEventCard(event))}
-                  </div>
+        {/* Main Content */}
+        <main className="flex-1 min-w-0">
+          {searching ? (
+            <div className="py-20 flex flex-col items-center justify-center space-y-6">
+               <div className="relative">
+                  <div className="w-16 h-16 border-4 border-primary/10 border-t-primary rounded-full animate-spin"></div>
+                  <Search className="absolute inset-0 m-auto text-primary" size={24} />
                </div>
-            ))}
-          </div>
-        ) : (
-          <div>
-            <h2 className="text-3xl font-black text-gray-900 tracking-tight mb-8">{activeCategory} Events</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {discoveryData?.byCategory?.[activeCategory]?.map(event => renderEventCard(event)) || (
-                <div className="col-span-full py-20 text-center bg-white rounded-[3rem] border border-gray-100">
-                   <p className="text-gray-500 font-medium">No events found in this category.</p>
+               <p className="text-gray-500 font-black uppercase tracking-widest text-sm animate-pulse">Scanning the horizon for events...</p>
+            </div>
+          ) : isSearching ? (
+            <div className="space-y-12">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                 <div>
+                    <h2 className="text-4xl font-black text-gray-900 tracking-tighter">Search Results</h2>
+                    <p className="text-gray-500 font-bold mt-1">We found <span className="text-primary">{pagination.total}</span> events matching your search</p>
+                 </div>
+                 {viewMode === 'map' && (
+                    <div className="flex items-center gap-2 text-primary font-black text-xs uppercase tracking-widest bg-blue-50 px-5 py-2.5 rounded-2xl border border-blue-100 shadow-sm shadow-blue-900/5">
+                       <MapPinned size={16} />
+                       Map mode active
+                    </div>
+                 )}
+              </div>
+
+              {viewMode === 'grid' ? (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                    {searchResults.map(event => renderEventCard(event))}
+                  </div>
+
+                  {searchResults.length === 0 && (
+                    <div className="py-32 text-center bg-white rounded-[4rem] border border-gray-100 shadow-sm relative overflow-hidden">
+                      <div className="absolute -top-24 -left-24 w-64 h-64 bg-gray-50 rounded-full blur-3xl"></div>
+                      <div className="relative z-10">
+                        <div className="w-24 h-24 bg-gray-50 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 text-gray-300">
+                          <Search size={48} />
+                        </div>
+                        <h3 className="text-3xl font-black text-gray-900 mb-4 tracking-tighter">No events discovered</h3>
+                        <p className="text-gray-500 font-bold max-w-md mx-auto mb-10 text-lg">
+                          We couldn't find any events matching your criteria. Try widening your search radius or changing categories.
+                        </p>
+                        <button
+                          onClick={() => {
+                            setSearchTerm("");
+                            setLocationTerm("");
+                            setActiveCategory("All");
+                            setEventType("All");
+                          }}
+                          className="px-10 py-5 bg-primary text-white font-black rounded-3xl shadow-xl shadow-primary/20 hover:scale-105 transition-all"
+                        >
+                          Clear all filters
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {pagination.page < pagination.pages && (
+                    <div className="mt-20 text-center">
+                      <button
+                        onClick={loadMore}
+                        disabled={loadingMore}
+                        className="px-12 py-5 bg-white border-2 border-primary text-primary font-black rounded-[2.5rem] hover:bg-primary hover:text-white transition-all shadow-xl shadow-primary/5 disabled:opacity-50 flex items-center gap-4 mx-auto text-lg group"
+                      >
+                        {loadingMore ? <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div> : <PlusCircle size={24} className="group-hover:rotate-90 transition-transform" />}
+                        {loadingMore ? 'Fetching more...' : 'Discover more events'}
+                      </button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="relative h-[700px] w-full rounded-[3.5rem] overflow-hidden border border-gray-100 shadow-2xl bg-gray-100 group">
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    loading="lazy"
+                    allowFullScreen
+                    src={`https://www.google.com/maps/embed/v1/place?key=PLACEHOLDER_KEY&q=${encodeURIComponent(locationTerm || 'Lagos, Nigeria')}`}
+                  ></iframe>
+                  <div className="absolute inset-0 bg-black/5 flex flex-col items-center justify-center pointer-events-none group-hover:bg-black/0 transition-colors">
+                     <div className="bg-white/95 backdrop-blur-xl p-10 rounded-[3rem] shadow-2xl text-center max-w-md pointer-events-auto border border-white relative overflow-hidden">
+                        <div className="absolute -top-12 -right-12 w-32 h-32 bg-primary/10 rounded-full blur-2xl"></div>
+                        <div className="w-20 h-20 bg-primary/10 text-primary rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-inner">
+                          <MapIcon size={32} />
+                        </div>
+                        <h3 className="text-2xl font-black text-gray-900 mb-4 tracking-tighter">Interactive Map Explorer</h3>
+                        <p className="text-gray-500 font-bold leading-relaxed mb-8">
+                          Visualize events happening across the city. Click pins to explore details and book tickets instantly.
+                        </p>
+                        <button
+                          onClick={() => setViewMode('grid')}
+                          className="px-8 py-4 bg-primary text-white font-black rounded-2xl shadow-xl shadow-primary/20 flex items-center gap-3 mx-auto hover:scale-105 transition-all"
+                        >
+                          <LayoutGrid size={20} />
+                          Back to Grid Layout
+                        </button>
+                     </div>
+                  </div>
                 </div>
               )}
             </div>
-          </div>
-        )}
-      </section>
+          ) : (
+            <div className="space-y-24">
+              {/* Featured Section */}
+              {discoveryData?.featured?.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between mb-10">
+                     <div>
+                        <h2 className="text-3xl font-black text-gray-900 tracking-tighter flex items-center gap-3">
+                          <Sparkles className="text-amber-400 fill-amber-400" size={32} />
+                          Featured Experiences
+                        </h2>
+                        <p className="text-gray-500 font-bold mt-1 uppercase tracking-widest text-[10px]">Curated events you cannot miss</p>
+                     </div>
+                     <Link href="/events?filter=featured" className="hidden md:flex items-center gap-2 px-6 py-3 bg-white rounded-2xl text-sm font-black text-primary border border-gray-100 shadow-sm hover:shadow-md transition-all">
+                        View All
+                        <ArrowRight size={16} />
+                     </Link>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
+                    {discoveryData.featured.slice(0, 3).map(event => renderEventCard(event, 'featured'))}
+                  </div>
+                </div>
+              )}
+
+              {/* Nearby Section */}
+              {discoveryData?.nearby?.length > 0 && (
+                <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
+                  <div className="flex items-center justify-between mb-10">
+                     <div>
+                        <h2 className="text-3xl font-black text-gray-900 tracking-tighter flex items-center gap-3">
+                          <MapPinned className="text-primary" size={32} />
+                          Happening Near You
+                        </h2>
+                        <p className="text-gray-500 font-bold mt-1 uppercase tracking-widest text-[10px]">Based on your current location</p>
+                     </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                    {discoveryData.nearby.slice(0, 6).map(event => renderEventCard(event))}
+                  </div>
+                </div>
+              )}
+
+              {/* Upcoming Section */}
+              {discoveryData?.upcoming?.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between mb-10">
+                     <div>
+                        <h2 className="text-3xl font-black text-gray-900 tracking-tighter flex items-center gap-3">
+                          <Zap className="text-primary fill-primary" size={32} />
+                          Upcoming Wonders
+                        </h2>
+                        <p className="text-gray-500 font-bold mt-1 uppercase tracking-widest text-[10px]">Fresh experiences on the horizon</p>
+                     </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                    {discoveryData.upcoming.map(event => renderEventCard(event))}
+                  </div>
+                </div>
+              )}
+
+              {/* Categorized Sections */}
+              {Object.entries(discoveryData?.byCategory || {}).map(([category, events], idx) => (
+                 <div key={category} className={`animate-in fade-in slide-in-from-bottom-8 duration-700`} style={{ animationDelay: `${(idx + 1) * 200}ms` }}>
+                    <div className="flex items-center justify-between mb-10 border-b border-gray-100 pb-6">
+                       <div>
+                          <h2 className="text-2xl font-black text-gray-900 tracking-tight">{category}</h2>
+                          <p className="text-gray-400 font-bold mt-1 uppercase tracking-widest text-[10px]">Explore {events.length} more in this category</p>
+                       </div>
+                       <button onClick={() => setActiveCategory(category)} className="text-primary font-black text-sm uppercase tracking-widest hover:underline flex items-center gap-2">
+                          View Category <ChevronRight size={14} />
+                       </button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                      {events && Array.isArray(events) && events.slice(0, 3).map(event => renderEventCard(event))}
+                    </div>
+                 </div>
+              ))}
+            </div>
+          )}
+        </main>
+      </div>
+
+      {/* Mobile Filters Drawer */}
+      {showMobileFilters && (
+        <div className="fixed inset-0 z-[100] lg:hidden">
+           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowMobileFilters(false)}></div>
+           <div className="absolute inset-y-0 right-0 w-[85%] bg-white shadow-2xl animate-in slide-in-from-right duration-300 flex flex-col">
+              <div className="p-6 border-b flex items-center justify-between">
+                 <h3 className="text-xl font-black text-gray-900 tracking-tight uppercase tracking-widest">Filter Discovery</h3>
+                 <button onClick={() => setShowMobileFilters(false)} className="p-2 bg-gray-100 rounded-full"><X size={20} /></button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-8 space-y-10">
+                 <div className="space-y-4">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Category</label>
+                    <div className="grid grid-cols-1 gap-2">
+                       {["All", ...Object.keys(discoveryData?.byCategory || {})].map(cat => (
+                         <button
+                           key={cat}
+                           onClick={() => { setActiveCategory(cat); setShowMobileFilters(false); }}
+                           className={`px-5 py-4 rounded-2xl text-sm font-bold text-left transition-all ${activeCategory === cat ? 'bg-primary text-white' : 'bg-gray-50 text-gray-600'}`}
+                         >
+                           {cat}
+                         </button>
+                       ))}
+                    </div>
+                 </div>
+
+                 <div className="space-y-4">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">View Mode</label>
+                    <div className="flex bg-gray-50 p-1.5 rounded-2xl">
+                       <button onClick={() => setViewMode('grid')} className={`flex-1 py-4 rounded-xl text-xs font-bold ${viewMode === 'grid' ? 'bg-white text-primary shadow-sm' : 'text-gray-500'}`}>Grid</button>
+                       <button onClick={() => setViewMode('map')} className={`flex-1 py-4 rounded-xl text-xs font-bold ${viewMode === 'map' ? 'bg-white text-primary shadow-sm' : 'text-gray-500'}`}>Map</button>
+                    </div>
+                 </div>
+              </div>
+              <div className="p-6 border-t">
+                 <button onClick={() => setShowMobileFilters(false)} className="w-full py-5 bg-primary text-white font-black rounded-2xl shadow-xl shadow-primary/20">Apply Filters</button>
+              </div>
+           </div>
+        </div>
+      )}
     </div>
   );
 };
