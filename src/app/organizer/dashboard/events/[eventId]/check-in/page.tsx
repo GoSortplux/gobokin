@@ -15,7 +15,7 @@ import {
   Mail
 } from "lucide-react";
 import api from "@/services/api";
-import { Event, Analytics } from "@/types";
+import { Event, Analytics, StaffMember } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
@@ -27,6 +27,7 @@ const CheckInInterface = () => {
   const { user } = useAuth();
   const [event, setEvent] = useState<Event | null>(null);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
+  const [staff, setStaff] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResult, setSearchResult] = useState<any | null>(null);
@@ -37,12 +38,14 @@ const CheckInInterface = () => {
   const fetchData = useCallback(async (showLoading = true) => {
     try {
       if (showLoading) setLoading(true);
-      const [eventRes, analyticsRes] = await Promise.all([
+      const [eventRes, analyticsRes, staffRes] = await Promise.all([
         api.get(`/events/${eventId}`),
-        api.get(`/events/${eventId}/analytics`)
+        api.get(`/events/${eventId}/analytics`),
+        api.get(`/events/${eventId}/staff`)
       ]);
       setEvent(eventRes.data.data);
       setAnalytics(analyticsRes.data.data);
+      setStaff(staffRes.data.data || []);
     } catch (error) {
       console.error("Failed to fetch check-in data:", error);
       if (showLoading) Swal.fire("Error", translateError(error), "error");
@@ -351,14 +354,20 @@ const CheckInInterface = () => {
              <div className="mt-12 p-6 bg-white/5 rounded-[2rem] border border-white/5 relative z-10">
                 <div className="flex items-center gap-3 mb-3">
                    <div className="w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_12px_rgba(16,185,129,0.5)]"></div>
-                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Active Check-in Staff</p>
+                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Assigned Check-in Staff</p>
                 </div>
                 <div className="flex -space-x-2">
-                   {[1].map(i => (
-                     <div key={i} className="w-8 h-8 rounded-full bg-primary/20 border-2 border-gray-900 flex items-center justify-center text-[10px] font-bold">
-                        {user?.fullName?.[0]}
+                   {staff.length > 0 ? (
+                     staff.map((member) => (
+                       <div key={member.id} className="w-8 h-8 rounded-full bg-primary/20 border-2 border-gray-900 flex items-center justify-center text-[10px] font-bold overflow-hidden" title={member.fullName || member.email}>
+                          {member.fullName?.[0] || member.email[0].toUpperCase()}
+                       </div>
+                     ))
+                   ) : (
+                     <div className="w-8 h-8 rounded-full bg-primary/20 border-2 border-gray-900 flex items-center justify-center text-[10px] font-bold overflow-hidden">
+                        {user?.fullName?.[0] || 'U'}
                      </div>
-                   ))}
+                   )}
                 </div>
              </div>
           </div>
