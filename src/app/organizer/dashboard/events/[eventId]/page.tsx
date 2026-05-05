@@ -76,7 +76,9 @@ const EventDetails = () => {
       const fetchStaff = async () => {
         try {
           const response = await api.get(`/events/${eventId}/staff`);
-          setStaff(response.data.data || []);
+          // Extract nested staff data from the assignment objects
+          const staffMembers = (response.data.data || []).map((item: any) => item.staff).filter(Boolean);
+          setStaff(staffMembers);
         } catch (error) {
           console.error("Failed to fetch staff:", error);
         }
@@ -112,8 +114,9 @@ const EventDetails = () => {
     try {
       await api.post(`/events/${eventId}/staff`, { staffId });
       Swal.fire('Assigned!', 'Staff member has been assigned to this event.', 'success');
-      const staffRes = await api.get(`/events/${eventId}/staff`);
-      setStaff(staffRes.data.data || []);
+      const response = await api.get(`/events/${eventId}/staff`);
+      const staffMembers = (response.data.data || []).map((item: any) => item.staff).filter(Boolean);
+      setStaff(staffMembers);
     } catch (error) {
       Swal.fire('Error', translateError(error), 'error');
     }
@@ -134,8 +137,9 @@ const EventDetails = () => {
         Swal.showLoading();
         await api.delete(`/events/${eventId}/staff/${staffId}`);
         Swal.fire('Unassigned!', 'Staff member has been unassigned from this event.', 'success');
-        const staffRes = await api.get(`/events/${eventId}/staff`);
-        setStaff(staffRes.data.data || []);
+        const response = await api.get(`/events/${eventId}/staff`);
+        const staffMembers = (response.data.data || []).map((item: any) => item.staff).filter(Boolean);
+        setStaff(staffMembers);
       } catch (error) {
         Swal.fire('Error', translateError(error), 'error');
       }
@@ -864,7 +868,7 @@ const EventDetails = () => {
                                  {member.fullName?.[0] || <Users size={24} />}
                               </div>
                               <div>
-                                 <h4 className="font-bold text-gray-900">{member.fullName || member.email.split('@')[0]}</h4>
+                                 <h4 className="font-bold text-gray-900">{member.fullName || member.email?.split('@')[0] || 'Staff'}</h4>
                                  <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest ${
                                    member.role === 'MANAGER' ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-gray-50 text-gray-500 border border-gray-100'
                                  }`}>

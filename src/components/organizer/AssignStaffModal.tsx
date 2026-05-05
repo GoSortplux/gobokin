@@ -119,7 +119,7 @@ const AssignStaffModal: React.FC<AssignStaffModalProps> = ({
                     </div>
                     <div>
                       <h4 className="font-bold text-gray-900 text-sm">
-                        {member.fullName || member.email.split('@')[0]}
+                        {member.fullName || member.email?.split('@')[0] || 'Staff'}
                       </h4>
                       <div className="flex items-center gap-2 mt-0.5">
                         <Mail size={12} className="text-gray-400" />

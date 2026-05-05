@@ -45,7 +45,8 @@ const CheckInInterface = () => {
       ]);
       setEvent(eventRes.data.data);
       setAnalytics(analyticsRes.data.data);
-      setStaff(staffRes.data.data || []);
+      const staffMembers = (staffRes.data.data || []).map((item: any) => item.staff).filter(Boolean);
+      setStaff(staffMembers);
     } catch (error) {
       console.error("Failed to fetch check-in data:", error);
       if (showLoading) Swal.fire("Error", translateError(error), "error");
