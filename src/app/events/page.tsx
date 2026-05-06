@@ -305,72 +305,70 @@ const EventDiscovery = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-24 pb-20">
-      {/* Hero Section - Luma Best Style */}
-      <section className="container mx-auto px-4 mb-16">
-        <div className="bg-primary rounded-[3rem] p-8 lg:p-20 text-white relative overflow-hidden shadow-2xl shadow-primary/20">
-          <div className="relative z-10 max-w-4xl">
-            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest mb-8">
-              <TrendingUp size={14} />
+    <div className="min-h-screen bg-gray-50 pt-20 pb-20">
+      {/* Hero Section - Minimal & Compact */}
+      <section className="container mx-auto px-4 mb-10">
+        <div className="bg-primary rounded-[2.5rem] p-6 lg:py-12 lg:px-16 text-white relative overflow-hidden shadow-2xl shadow-primary/20">
+          <div className="relative z-10 max-w-5xl">
+            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest mb-4">
+              <TrendingUp size={12} />
               Featured Events in your area
             </div>
-            <h1 className="text-4xl lg:text-7xl font-black mb-8 leading-[1.1] tracking-tighter">Discover <br/>Unforgettable <br/>Experiences</h1>
-            <p className="text-blue-100 text-xl mb-12 font-medium max-w-2xl leading-relaxed">Join thousands of people discovering local workshops, conferences, and festivals near you.</p>
 
-            <div className="bg-white p-3 rounded-[2.5rem] shadow-2xl flex flex-col lg:flex-row items-center gap-3 w-full border border-white/20">
-              <div className="relative flex-[1.5] w-full">
-                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-primary" size={20} />
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-8">
+               <div className="space-y-4">
+                  <h1 className="text-3xl lg:text-5xl font-black leading-none tracking-tighter">Discover <br/>Unforgettable Experiences</h1>
+                  <p className="text-blue-100 text-lg font-medium max-w-xl leading-relaxed opacity-90">Join thousands discovering local workshops, conferences, and festivals.</p>
+               </div>
+
+               <div className="hidden lg:block">
+                  <Link
+                    href="/apply-organizer"
+                    className="text-white/80 hover:text-white transition-colors text-[10px] font-black flex items-center gap-2 uppercase tracking-widest bg-white/10 px-6 py-3 rounded-2xl backdrop-blur-sm border border-white/10"
+                  >
+                    <PlusCircle size={16} className="text-white" />
+                    List your event
+                  </Link>
+               </div>
+            </div>
+
+            <div className="bg-white p-2 rounded-[2rem] shadow-2xl flex flex-col lg:flex-row items-center gap-2 w-full border border-white/20">
+              <div className="relative flex-[1.2] w-full">
+                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-primary/60" size={18} />
                 <input
                   type="text"
                   placeholder="Event title or keyword..."
-                  className="w-full pl-16 pr-6 py-5 bg-gray-50 border-none rounded-3xl text-gray-900 focus:ring-2 focus:ring-primary/20 transition-all font-bold text-lg placeholder:text-gray-400"
+                  className="w-full pl-14 pr-4 py-4 bg-gray-50 border-none rounded-2xl text-gray-900 focus:ring-2 focus:ring-primary/20 transition-all font-bold text-base placeholder:text-gray-400"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <div className="w-px h-12 bg-gray-200 hidden lg:block mx-2"></div>
+              <div className="w-px h-10 bg-gray-200 hidden lg:block mx-1"></div>
               <div className="relative flex-1 w-full">
-                <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 text-primary" size={20} />
+                <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 text-primary/60" size={18} />
                 <input
                   type="text"
                   placeholder="Location or city..."
-                  className="w-full pl-16 pr-6 py-5 bg-gray-50 border-none rounded-3xl text-gray-900 focus:ring-2 focus:ring-primary/20 transition-all font-bold text-lg placeholder:text-gray-400"
+                  className="w-full pl-14 pr-4 py-4 bg-gray-50 border-none rounded-2xl text-gray-900 focus:ring-2 focus:ring-primary/20 transition-all font-bold text-base placeholder:text-gray-400"
                   value={locationTerm}
                   onChange={(e) => setLocationTerm(e.target.value)}
                 />
               </div>
               <button
                 onClick={() => handleSearch(1)}
-                className="w-full lg:w-auto px-12 py-5 bg-primary text-white font-black rounded-3xl shadow-lg hover:brightness-110 transition-all flex items-center justify-center gap-3 text-lg"
+                className="w-full lg:w-auto px-10 py-4 bg-primary text-white font-black rounded-2xl shadow-lg hover:brightness-110 transition-all flex items-center justify-center gap-3 text-base"
               >
                 Find Events
               </button>
             </div>
-
-            <div className="mt-8 flex flex-wrap items-center gap-6">
-               <Link
-                href="/apply-organizer"
-                className="text-white/80 hover:text-white transition-colors text-sm font-black flex items-center gap-2 uppercase tracking-widest"
-               >
-                 <PlusCircle size={20} className="text-white" />
-                 Are you an organizer? List your event
-               </Link>
-            </div>
           </div>
 
-          {/* Decorative Elements */}
-          <div className="absolute -top-24 -right-24 w-96 h-96 bg-blue-400/20 rounded-full blur-[100px]"></div>
-          <div className="absolute top-1/2 right-20 -translate-y-1/2 hidden xl:block">
+          {/* Decorative Elements - Subtler */}
+          <div className="absolute -top-24 -right-24 w-80 h-80 bg-blue-400/10 rounded-full blur-[80px]"></div>
+          <div className="absolute bottom-0 right-10 translate-y-1/4 hidden 2xl:block opacity-20">
              <div className="relative">
-                <div className="w-72 h-96 bg-white/10 backdrop-blur-2xl rounded-[3rem] border border-white/20 shadow-2xl rotate-6 animate-pulse"></div>
-                <div className="absolute inset-0 w-72 h-96 bg-white/10 backdrop-blur-2xl rounded-[3rem] border border-white/20 shadow-2xl -rotate-3"></div>
-                <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
-                   <div className="w-20 h-20 bg-emerald-400 rounded-[2rem] flex items-center justify-center mb-6 shadow-xl shadow-emerald-400/40">
-                      <CheckCircle2 size={40} />
-                   </div>
-                   <p className="font-black text-xl uppercase tracking-tighter mb-2">Verified Events</p>
-                   <p className="text-blue-100 text-sm font-medium">Quality guaranteed by Gobokin Experts</p>
-                </div>
+                <div className="w-64 h-80 bg-white/10 backdrop-blur-2xl rounded-[3rem] border border-white/20 shadow-2xl rotate-6"></div>
+                <div className="absolute inset-0 w-64 h-80 bg-white/10 backdrop-blur-2xl rounded-[3rem] border border-white/20 shadow-2xl -rotate-3"></div>
              </div>
           </div>
         </div>

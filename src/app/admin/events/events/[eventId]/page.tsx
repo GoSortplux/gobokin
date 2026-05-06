@@ -28,7 +28,7 @@ const AdminEventDetails = () => {
   const router = useRouter();
   const [event, setEvent] = useState<Event | null>(null);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
-  const [attendees, setAttendees] = useState<{ id?: string; attendeeName?: string; attendeeEmail?: string; ticketName?: string; ticketNumber?: string; status?: string; checkInStatus?: boolean; createdAt: string; attendeeData?: Record<string, string> }[]>([]);;
+  const [attendees, setAttendees] = useState<{ id?: string; attendeeName?: string; attendeeEmail?: string; ticketName?: string; ticketNumber?: string; status?: string; checkInStatus?: boolean; createdAt: string; attendeeData?: Record<string, string> }[]>([]);
   const [loading, setLoading] = useState(true);
   const [attendeesLoading, setAttendeesLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
