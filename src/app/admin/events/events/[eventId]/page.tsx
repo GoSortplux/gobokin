@@ -168,7 +168,7 @@ const AdminEventDetails = () => {
           Back to Platform Events
         </button>
         <div className="flex items-center gap-3">
-          {event.status === 'DRAFT' ? (
+          {!event.isPublished ? (
             <button
               onClick={handlePublish}
               disabled={isActionLoading}
@@ -178,16 +178,14 @@ const AdminEventDetails = () => {
               Publish Event
             </button>
           ) : (
-            (event.status === 'UPCOMING' || event.status === 'ONGOING') && (
-              <button
-                onClick={handleUnpublish}
-                disabled={isActionLoading}
-                className="flex items-center gap-2 bg-amber-50 text-amber-600 font-bold px-5 py-2.5 rounded-xl hover:bg-amber-600 hover:text-white transition-all border border-amber-100"
-              >
-                <EyeOff size={18} />
-                Unpublish Event
-              </button>
-            )
+            <button
+              onClick={handleUnpublish}
+              disabled={isActionLoading}
+              className="flex items-center gap-2 bg-amber-50 text-amber-600 font-bold px-5 py-2.5 rounded-xl hover:bg-amber-600 hover:text-white transition-all border border-amber-100"
+            >
+              <EyeOff size={18} />
+              Unpublish Event
+            </button>
           )}
           <button
             onClick={deleteEvent}

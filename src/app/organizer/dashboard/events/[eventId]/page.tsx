@@ -240,7 +240,7 @@ const EventDetails = () => {
             <Share2 size={20} />
           </button>
 
-          {event.status === 'DRAFT' ? (
+          {!event.isPublished ? (
             <button
               onClick={handlePublish}
               disabled={isActionLoading}
@@ -250,16 +250,14 @@ const EventDetails = () => {
               Publish
             </button>
           ) : (
-            (event.status === 'UPCOMING' || event.status === 'ONGOING') && (
-              <button
-                onClick={handleUnpublish}
-                disabled={isActionLoading}
-                className="flex items-center gap-2 bg-amber-50 text-amber-600 font-bold px-5 py-2.5 rounded-xl hover:bg-amber-600 hover:text-white transition-all border border-amber-100"
-              >
-                <EyeOff size={18} />
-                Unpublish
-              </button>
-            )
+            <button
+              onClick={handleUnpublish}
+              disabled={isActionLoading}
+              className="flex items-center gap-2 bg-amber-50 text-amber-600 font-bold px-5 py-2.5 rounded-xl hover:bg-amber-600 hover:text-white transition-all border border-amber-100"
+            >
+              <EyeOff size={18} />
+              Unpublish
+            </button>
           )}
 
           <button onClick={handleBroadcast} className="flex items-center gap-2 bg-blue-50 text-primary font-bold px-5 py-2.5 rounded-xl hover:bg-blue-100 transition-all border border-blue-100">
