@@ -26,6 +26,7 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
     pathname.startsWith("/organizer") ||
     pathname.startsWith("/admin");
   const isPaymentPage = pathname.startsWith("/payment/verify");
+  const isEventListingPage = pathname === "/events";
 
   useEffect(() => {
     if (user && !user.hasAcceptedLatestPolicies && !isAuthPage) {
@@ -71,9 +72,9 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       <TourGuide />
-      <Header />
+      {!isEventListingPage && <Header />}
       {children}
-      <Footer />
+      {!isEventListingPage && <Footer />}
       <CookieConsent />
       {user && !user.hasAcceptedLatestPolicies && (
         <PolicyModal
