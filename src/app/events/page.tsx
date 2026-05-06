@@ -1,5 +1,6 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   Calendar,
@@ -16,11 +17,16 @@ import {
   Map as MapIcon,
   Sparkles,
   Zap,
-  MapPinned
+  MapPinned,
+  CalendarPlus,
+  Download
 } from "lucide-react";
 import Image from "next/image";
 import api from "@/services/api";
 import { Event } from "@/types";
+import { motion, AnimatePresence } from "framer-motion";
+import useOnClickOutside from "@/hooks/useOnClickOutside";
+import Swal from "@/utils/sweetalert";
 
 interface DiscoveryData {
   featured: Event[];
@@ -29,7 +35,8 @@ interface DiscoveryData {
   byCategory: Record<string, Event[]>;
 }
 
-const EventDiscovery = () => {
+const EventDiscoveryContent = () => {
+  const searchParams = useSearchParams();
   const [discoveryData, setDiscoveryData] = useState<DiscoveryData>({
     featured: [],
     upcoming: [],
@@ -42,9 +49,9 @@ const EventDiscovery = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
 
-  // Filters
-  const [searchTerm, setSearchTerm] = useState("");
-  const [locationTerm, setLocationTerm] = useState("");
+  // Filters - Synced with EventHeader/URL
+  const searchTerm = searchParams.get("search") || "";
+  const locationTerm = searchParams.get("location") || "";
   const [activeCategory, setActiveCategory] = useState("All");
   const [eventType, setEventType] = useState<string>("All");
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
@@ -134,10 +141,7 @@ const EventDiscovery = () => {
 
   useEffect(() => {
     if (searchTerm || locationTerm || activeCategory !== "All" || eventType !== "All") {
-      const delayDebounceFn = setTimeout(() => {
-        handleSearch(1);
-      }, 500);
-      return () => clearTimeout(delayDebounceFn);
+      handleSearch(1);
     } else {
       setSearchResults([]);
     }
@@ -151,14 +155,59 @@ const EventDiscovery = () => {
 
   const isSearching = searchTerm || locationTerm || activeCategory !== "All" || eventType !== "All";
 
-  const renderEventCard = (event: Event, variant: 'featured' | 'standard' = 'standard') => (
-    <Link
-      key={event.id}
-      href={`/events/${event.id}`}
+  const renderEventCard = (event: Event, variant: 'featured' | 'standard' = 'standard') => {
+    // Component-level state for dropdown
+    // Note: This would normally be its own component for proper state management
+    return (
+      <EventCard key={event.id} event={event} variant={variant} />
+    );
+  };
+
+  const EventCard = ({ event, variant }: { event: Event, variant: 'featured' | 'standard' }) => {
+    const [showCalendarOptions, setShowCalendarOptions] = useState(false);
+    const calendarRef = React.useRef<HTMLDivElement>(null);
+    useOnClickOutside(calendarRef, () => setShowCalendarOptions(false));
+
+    const handleDownloadICS = async (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      try {
+        const response = await api.get(`/events/${event.id}/ics`, { responseType: 'blob' });
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `${event.title}.ics`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      } catch (error) {
+        console.error("Failed to download ICS:", error);
+        Swal.fire("Error", "Could not download calendar file.", "error");
+      }
+    };
+
+    const handleAddToCalendar = async (e: React.MouseEvent, type: 'google' | 'outlook' | 'apple') => {
+      e.preventDefault();
+      e.stopPropagation();
+      try {
+        const response = await api.get(`/events/${event.id}/calendar-links`);
+        const links = response.data.data;
+        if (links && links[type]) {
+          window.open(links[type], '_blank');
+        }
+      } catch (error) {
+        console.error("Failed to get calendar links:", error);
+        Swal.fire("Error", "Could not open calendar.", "error");
+      }
+    };
+
+    return (
+    <div
       className={`bg-white border border-gray-100 shadow-sm overflow-hidden hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 group relative ${
         variant === 'featured' ? 'rounded-[2rem] lg:rounded-[3rem]' : 'rounded-[2rem]'
       }`}
     >
+      <Link href={`/events/${event.id}`} className="block">
       <div className={`relative w-full overflow-hidden ${variant === 'featured' ? 'h-80' : 'h-64'}`}>
         {event.bannerUrl ? (
           <Image src={event.bannerUrl} alt={event.title} fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
@@ -198,7 +247,51 @@ const EventDiscovery = () => {
       </div>
 
       <div className="p-6 lg:p-8">
-        <h3 className={`font-black text-gray-900 mb-3 line-clamp-2 group-hover:text-primary transition-colors leading-tight ${variant === 'featured' ? 'text-2xl' : 'text-xl'}`}>{event.title}</h3>
+        <div className="flex items-start justify-between gap-4 mb-3">
+          <h3 className={`font-black text-gray-900 line-clamp-2 group-hover:text-primary transition-colors leading-tight ${variant === 'featured' ? 'text-2xl' : 'text-xl'}`}>
+            {event.title}
+          </h3>
+
+          <div className="relative" ref={calendarRef}>
+             <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowCalendarOptions(!showCalendarOptions);
+                }}
+                className="p-2.5 rounded-xl bg-gray-50 text-gray-400 hover:text-primary hover:bg-blue-50 transition-all"
+                title="Add to Calendar"
+             >
+                <CalendarPlus size={20} />
+             </button>
+
+             <AnimatePresence>
+               {showCalendarOptions && (
+                 <motion.div
+                   initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                   animate={{ opacity: 1, scale: 1, y: 0 }}
+                   exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                   className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-gray-100 py-3 z-[20] overflow-hidden"
+                 >
+                    <p className="px-4 pb-2 mb-2 border-b border-gray-50 text-[10px] font-black text-gray-400 uppercase tracking-widest">Save Event</p>
+                    <button
+                      onClick={(e) => handleAddToCalendar(e, 'google')}
+                      className="flex items-center gap-3 w-full px-4 py-2.5 text-xs font-bold text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors"
+                    >
+                      Google Calendar
+                    </button>
+                    <button
+                      onClick={(e) => handleDownloadICS(e)}
+                      className="flex items-center justify-between w-full px-4 py-2.5 text-xs font-bold text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors"
+                    >
+                      <span>iCal / Outlook</span>
+                      <Download size={14} className="opacity-50" />
+                    </button>
+                 </motion.div>
+               )}
+             </AnimatePresence>
+          </div>
+        </div>
 
         <div className="flex items-center gap-2 text-sm text-gray-500 font-medium mb-6">
           <MapPin size={16} className="text-primary/60 flex-shrink-0" />
@@ -217,8 +310,10 @@ const EventDiscovery = () => {
           </div>
         </div>
       </div>
-    </Link>
-  );
+      </Link>
+    </div>
+    );
+  };
 
   const FilterSidebar = () => (
     <aside className="hidden lg:block w-72 space-y-8 flex-shrink-0">
@@ -305,80 +400,46 @@ const EventDiscovery = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-10 pb-20">
-      {/* Header Branding */}
-      <div className="container mx-auto px-4 mb-8">
-        <div className="flex items-center justify-center gap-3">
-          <Image
-            src="/logo.png"
-            alt="Gobokin"
-            width={120}
-            height={40}
-            className="h-10 w-auto object-contain"
-          />
-          <div className="w-px h-6 bg-gray-300"></div>
-          <span className="text-xl font-black text-gray-900 uppercase tracking-tighter">Events</span>
-        </div>
-      </div>
-
-      {/* Hero Section - Minimal & Compact */}
+    <div className="min-h-screen bg-gray-50 pt-28 pb-20">
+      {/* Hero Section - Immersive & Minimal */}
       <section className="container mx-auto px-4 mb-10">
-        <div className="bg-primary rounded-[2.5rem] p-6 lg:py-8 lg:px-16 text-white relative overflow-hidden shadow-2xl shadow-primary/20">
-          <div className="relative z-10 max-w-5xl">
-            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest mb-4">
-              <TrendingUp size={12} />
-              Featured Events in your area
+        <div className="bg-primary rounded-[3rem] p-8 lg:py-12 lg:px-16 text-white relative overflow-hidden shadow-2xl shadow-primary/20">
+          <div className="relative z-10 max-w-4xl">
+            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest mb-6">
+              <Sparkles size={14} className="text-amber-300" />
+              Explore curated experiences
             </div>
 
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-6">
-               <div className="space-y-2">
-                  <h1 className="text-3xl lg:text-4xl font-black leading-none tracking-tighter uppercase">Discover Experiences</h1>
-                  <p className="text-blue-100 text-base font-medium max-w-xl leading-relaxed opacity-90">Join thousands discovering local workshops and festivals.</p>
-               </div>
+            <div className="flex flex-col gap-6 mb-2">
+               <h1 className="text-4xl md:text-6xl lg:text-7xl font-black leading-[0.9] tracking-tighter uppercase">
+                 Discover <br/>
+                 <span className="text-blue-200 italic">Something</span> New.
+               </h1>
+               <p className="text-blue-100 text-lg md:text-xl font-medium max-w-xl leading-relaxed opacity-90">
+                 Join thousands discovering local workshops, tech meetups, and music festivals.
+               </p>
 
-               <div className="hidden lg:block">
+               <div className="flex items-center gap-4 mt-4">
                   <Link
                     href="/apply-organizer"
-                    className="text-white/80 hover:text-white transition-colors text-[10px] font-black flex items-center gap-2 uppercase tracking-widest bg-white/10 px-6 py-3 rounded-2xl backdrop-blur-sm border border-white/10"
+                    className="bg-white text-primary px-8 py-4 rounded-2xl text-sm font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl"
                   >
-                    <PlusCircle size={16} className="text-white" />
-                    List your event
+                    Host an Event
                   </Link>
+                  <button
+                    onClick={() => {
+                      const el = document.getElementById('main-listing');
+                      el?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="bg-white/10 backdrop-blur-md text-white border border-white/20 px-8 py-4 rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-white/20 transition-all"
+                  >
+                    Browse List
+                  </button>
                </div>
-            </div>
-
-            <div className="bg-white p-2 rounded-[2rem] shadow-2xl flex flex-col lg:flex-row items-center gap-2 w-full border border-white/20">
-              <div className="relative flex-[1.2] w-full">
-                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-primary/60" size={18} />
-                <input
-                  type="text"
-                  placeholder="Event title or keyword..."
-                  className="w-full pl-14 pr-4 py-4 bg-gray-50 border-none rounded-2xl text-gray-900 focus:ring-2 focus:ring-primary/20 transition-all font-bold text-base placeholder:text-gray-400"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <div className="w-px h-10 bg-gray-200 hidden lg:block mx-1"></div>
-              <div className="relative flex-1 w-full">
-                <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 text-primary/60" size={18} />
-                <input
-                  type="text"
-                  placeholder="Location or city..."
-                  className="w-full pl-14 pr-4 py-4 bg-gray-50 border-none rounded-2xl text-gray-900 focus:ring-2 focus:ring-primary/20 transition-all font-bold text-base placeholder:text-gray-400"
-                  value={locationTerm}
-                  onChange={(e) => setLocationTerm(e.target.value)}
-                />
-              </div>
-              <button
-                onClick={() => handleSearch(1)}
-                className="w-full lg:w-auto px-10 py-4 bg-primary text-white font-black rounded-2xl shadow-lg hover:brightness-110 transition-all flex items-center justify-center gap-3 text-base"
-              >
-                Find Events
-              </button>
             </div>
           </div>
 
-          {/* Decorative Elements - Subtler */}
+          {/* Decorative Elements - Modern Luma Style */}
           <div className="absolute -top-24 -right-24 w-80 h-80 bg-blue-400/10 rounded-full blur-[80px]"></div>
           <div className="absolute bottom-0 right-10 translate-y-1/4 hidden 2xl:block opacity-20">
              <div className="relative">
@@ -389,7 +450,7 @@ const EventDiscovery = () => {
         </div>
       </section>
 
-      <div className="container mx-auto px-4 flex flex-col lg:flex-row gap-12">
+      <div id="main-listing" className="container mx-auto px-4 flex flex-col lg:flex-row gap-12">
         <FilterSidebar />
 
         {/* Mobile Filter Button */}
@@ -627,5 +688,15 @@ const EventDiscovery = () => {
     </div>
   );
 };
+
+const EventDiscovery = () => (
+  <Suspense fallback={
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  }>
+    <EventDiscoveryContent />
+  </Suspense>
+);
 
 export default EventDiscovery;

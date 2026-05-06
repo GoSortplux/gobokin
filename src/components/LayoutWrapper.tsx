@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Header from "@/components/Header";
+import EventHeader from "@/components/EventHeader";
 import Footer from "@/components/Footer";
 import TourGuide from "@/components/TourGuide";
 import CookieConsent from "@/components/CookieConsent";
@@ -26,7 +27,7 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
     pathname.startsWith("/organizer") ||
     pathname.startsWith("/admin");
   const isPaymentPage = pathname.startsWith("/payment/verify");
-  const isEventListingPage = pathname === "/events";
+  const isEventPage = pathname.startsWith("/events");
 
   useEffect(() => {
     if (user && !user.hasAcceptedLatestPolicies && !isAuthPage) {
@@ -72,9 +73,9 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       <TourGuide />
-      {!isEventListingPage && <Header />}
+      {isEventPage ? <EventHeader /> : <Header />}
       {children}
-      {!isEventListingPage && <Footer />}
+      {!isEventPage && <Footer />}
       <CookieConsent />
       {user && !user.hasAcceptedLatestPolicies && (
         <PolicyModal
