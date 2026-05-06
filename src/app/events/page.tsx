@@ -306,6 +306,21 @@ const EventDiscovery = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pt-10 pb-20">
+      {/* Header Branding */}
+      <div className="container mx-auto px-4 mb-8">
+        <div className="flex items-center gap-3">
+          <Image
+            src="/logo.png"
+            alt="Gobokin"
+            width={120}
+            height={40}
+            className="h-10 w-auto object-contain"
+          />
+          <div className="w-px h-6 bg-gray-300"></div>
+          <span className="text-xl font-black text-gray-900 uppercase tracking-tighter">Events</span>
+        </div>
+      </div>
+
       {/* Hero Section - Minimal & Compact */}
       <section className="container mx-auto px-4 mb-10">
         <div className="bg-primary rounded-[2.5rem] p-6 lg:py-8 lg:px-16 text-white relative overflow-hidden shadow-2xl shadow-primary/20">
