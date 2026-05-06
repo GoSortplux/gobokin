@@ -34,12 +34,51 @@ const EventHeaderContent = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notificationDropdownOpen, setNotificationDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+  const [showMobileLocationDropdown, setShowMobileLocationDropdown] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notificationDropdownRef = useRef<HTMLDivElement>(null);
+  const locationDropdownRef = useRef<HTMLDivElement>(null);
+  const mobileLocationDropdownRef = useRef<HTMLDivElement>(null);
 
   useOnClickOutside(dropdownRef, () => setDropdownOpen(false));
   useOnClickOutside(notificationDropdownRef, () => setNotificationDropdownOpen(false));
+  useOnClickOutside(locationDropdownRef, () => setShowLocationDropdown(false));
+  useOnClickOutside(mobileLocationDropdownRef, () => setShowMobileLocationDropdown(false));
+
+  const popularLocations = [
+    'Lagos',
+    'Abuja',
+    'Port Harcourt',
+    'Kano',
+    'Ibadan',
+    'Enugu',
+    'Benin City',
+    'Kaduna',
+  ];
+
+  const handleUseCurrentLocation = () => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLocationTerm("Near Me");
+          setShowLocationDropdown(false);
+          setShowMobileLocationDropdown(false);
+
+          const params = new URLSearchParams(searchParams.toString());
+          if (searchTerm) params.set("search", searchTerm);
+          params.set("location", "Near Me");
+          params.set("lat", position.coords.latitude.toString());
+          params.set("lng", position.coords.longitude.toString());
+          router.push(`/events?${params.toString()}`);
+        },
+        (error) => {
+          console.error("Geolocation error:", error);
+        }
+      );
+    }
+  };
 
   // Sync state with URL params
   useEffect(() => {
@@ -90,33 +129,82 @@ const EventHeaderContent = () => {
         {/* Search Bar - Desktop */}
         <form
           onSubmit={handleSearch}
-          className="hidden md:flex flex-1 max-w-2xl bg-gray-50 border border-gray-200 rounded-2xl p-1 items-center"
+          className="hidden md:flex flex-1 max-w-lg bg-gray-50 border border-gray-200 rounded-2xl p-1 items-center transition-all duration-300 hover:bg-white hover:shadow-lg focus-within:bg-white focus-within:shadow-lg focus-within:border-primary/30"
         >
-          <div className="flex-1 flex items-center px-3 gap-2 border-r border-gray-200">
-            <Search size={18} className="text-gray-400" />
+          <div className="flex-[1.2] flex items-center px-3 gap-2 border-r border-gray-200">
+            <Search size={16} className="text-gray-400" />
             <input
               type="text"
               placeholder="Search events..."
-              className="bg-transparent border-none focus:ring-0 text-sm font-bold text-gray-700 w-full placeholder:text-gray-400"
+              className="bg-transparent border-none focus:ring-0 text-xs font-bold text-gray-700 w-full placeholder:text-gray-400"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <div className="flex-1 flex items-center px-3 gap-2">
-            <MapPin size={18} className="text-gray-400" />
-            <input
-              type="text"
-              placeholder="All Locations"
-              className="bg-transparent border-none focus:ring-0 text-sm font-bold text-gray-700 w-full placeholder:text-gray-400"
-              value={locationTerm}
-              onChange={(e) => setLocationTerm(e.target.value)}
-            />
+          <div className="flex-1 relative" ref={locationDropdownRef}>
+            <div
+              className="flex items-center px-3 gap-2 cursor-pointer"
+              onClick={() => setShowLocationDropdown(true)}
+            >
+              <MapPin size={16} className="text-gray-400" />
+              <input
+                type="text"
+                placeholder="Location"
+                className="bg-transparent border-none focus:ring-0 text-xs font-bold text-gray-700 w-full placeholder:text-gray-400 cursor-pointer outline-none"
+                value={locationTerm}
+                onChange={(e) => setLocationTerm(e.target.value)}
+                onFocus={(e) => {
+                  e.stopPropagation();
+                  setShowLocationDropdown(true);
+                }}
+              />
+            </div>
+
+            <AnimatePresence>
+              {showLocationDropdown && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 overflow-hidden min-w-[200px]"
+                >
+                  <button
+                    type="button"
+                    onClick={handleUseCurrentLocation}
+                    className="flex items-center gap-3 w-full px-4 py-2.5 text-xs font-bold text-primary hover:bg-primary/5 transition-colors border-b border-gray-50"
+                  >
+                    <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
+                      <MapPin size={14} />
+                    </div>
+                    Use Current Location
+                  </button>
+                  <div className="px-4 py-2">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Popular Cities</p>
+                  </div>
+                  <div className="max-h-48 overflow-y-auto">
+                    {popularLocations.map((loc) => (
+                      <button
+                        key={loc}
+                        type="button"
+                        onClick={() => {
+                          setLocationTerm(loc);
+                          setShowLocationDropdown(false);
+                        }}
+                        className="flex items-center gap-3 w-full px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+                      >
+                        {loc}
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
           <button
             type="submit"
-            className="bg-primary text-white p-2.5 rounded-xl hover:bg-blue-700 transition-colors"
+            className="bg-primary text-white p-2 rounded-xl hover:bg-blue-700 transition-all hover:scale-105 active:scale-95 shadow-sm"
           >
-            <Search size={18} />
+            <Search size={16} />
           </button>
         </form>
 
@@ -238,22 +326,58 @@ const EventHeaderContent = () => {
                     <input
                       type="text"
                       placeholder="Search events..."
-                      className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-primary/20 outline-none"
+                      className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all focus:bg-white focus:shadow-lg"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
                  </div>
-                 <div className="relative">
+                 <div className="relative" ref={mobileLocationDropdownRef}>
                     <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                     <input
                       type="text"
                       placeholder="Location"
-                      className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-primary/20 outline-none"
+                      className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all focus:bg-white focus:shadow-lg"
                       value={locationTerm}
                       onChange={(e) => setLocationTerm(e.target.value)}
+                      onFocus={() => setShowMobileLocationDropdown(true)}
                     />
+
+                    <AnimatePresence>
+                      {showMobileLocationDropdown && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="mt-2 bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden relative z-50 shadow-lg"
+                        >
+                          <button
+                            type="button"
+                            onClick={handleUseCurrentLocation}
+                            className="flex items-center gap-3 w-full px-4 py-4 text-sm font-bold text-primary border-b border-gray-100"
+                          >
+                            <MapPin size={18} />
+                            Use Current Location
+                          </button>
+                          <div className="max-h-48 overflow-y-auto">
+                            {popularLocations.map((loc) => (
+                              <button
+                                key={loc}
+                                type="button"
+                                onClick={() => {
+                                  setLocationTerm(loc);
+                                  setShowMobileLocationDropdown(false);
+                                }}
+                                className="flex items-center gap-3 w-full px-4 py-3 text-sm font-bold text-gray-600 border-b border-gray-100 last:border-none"
+                              >
+                                {loc}
+                              </button>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                  </div>
-                 <button type="submit" className="w-full py-4 bg-primary text-white rounded-2xl font-black shadow-lg shadow-primary/20">
+                 <button type="submit" className="w-full py-4 bg-primary text-white rounded-2xl font-black shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">
                     Find Events
                  </button>
               </form>
