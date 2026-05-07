@@ -56,7 +56,7 @@ const IncidentModal = ({
   onSave: () => void
 }) => {
   const [loading, setLoading] = useState(false);
-  const [, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     title: incident?.title || "",
     message: incident?.message || "",
@@ -76,8 +76,8 @@ const IncidentModal = ({
       try {
         const res = await api.get("/admin/incidents/categories");
         setCategories(res.data.data || []);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
+      } catch (_error) {
+        console.error("Error fetching categories:", _error);
       }
     };
     fetchCategories();
@@ -134,9 +134,15 @@ const IncidentModal = ({
                 onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                 className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all text-gray-900"
               >
-                <option value="incident">Incident</option>
-                <option value="maintenance">Maintenance</option>
-                <option value="update">Update</option>
+                {categories.length > 0 ? categories.map(cat => (
+                  <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</option>
+                )) : (
+                  <>
+                    <option value="incident">Incident</option>
+                    <option value="maintenance">Maintenance</option>
+                    <option value="update">Update</option>
+                  </>
+                )}
               </select>
             </div>
           </div>
@@ -240,6 +246,32 @@ const IncidentModal = ({
                         {role}
                       </button>
                     ))}
+                  </div>
+                )}
+
+                {formData.audience === 'users' && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-600 mb-1 italic">User IDs (Comma separated)</label>
+                    <input
+                      type="text"
+                      value={formData.targetUsers.join(', ')}
+                      onChange={(e) => setFormData({ ...formData, targetUsers: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                      placeholder="e.g. 60d0..., 60d1..."
+                      className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all text-gray-900"
+                    />
+                  </div>
+                )}
+
+                {formData.audience === 'custom' && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-600 mb-1 italic">Custom Emails (Comma separated)</label>
+                    <input
+                      type="text"
+                      value={formData.customEmails.join(', ')}
+                      onChange={(e) => setFormData({ ...formData, customEmails: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                      placeholder="e.g. user1@example.com, user2@example.com"
+                      className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all text-gray-900"
+                    />
                   </div>
                 )}
               </div>
@@ -369,6 +401,8 @@ const CampaignModal = ({
                   className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all text-gray-900"
                 >
                   <option value="roles">Specific Roles</option>
+                  <option value="users">Specific Users</option>
+                  <option value="custom">Custom Emails</option>
                   <option value="all">All Users</option>
                 </select>
               </div>
@@ -394,6 +428,32 @@ const CampaignModal = ({
                       {role}
                     </button>
                   ))}
+                </div>
+              )}
+
+              {formData.audience === 'users' && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-600 mb-1 italic">User IDs (Comma separated)</label>
+                  <input
+                    type="text"
+                    value={formData.targetUsers.join(', ')}
+                    onChange={(e) => setFormData({ ...formData, targetUsers: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                    placeholder="e.g. 60d0..., 60d1..."
+                    className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all text-gray-900"
+                  />
+                </div>
+              )}
+
+              {formData.audience === 'custom' && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-600 mb-1 italic">Custom Emails (Comma separated)</label>
+                  <input
+                    type="text"
+                    value={formData.customEmails.join(', ')}
+                    onChange={(e) => setFormData({ ...formData, customEmails: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                    placeholder="e.g. user1@example.com, user2@example.com"
+                    className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all text-gray-900"
+                  />
                 </div>
               )}
             </div>

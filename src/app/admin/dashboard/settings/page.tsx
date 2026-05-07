@@ -415,45 +415,47 @@ const SettingsPage = () => {
             <div className="flex flex-col lg:flex-row gap-10">
                 {/* Sidebar Navigation */}
                 <aside className="w-full lg:w-80 flex-shrink-0">
-                    <nav className="space-y-2 sticky top-8">
-                        {tabs.map((tab) => {
-                            const Icon = tab.icon;
-                            const isActive = activeTab === tab.id;
-                            return (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => setActiveTab(tab.id)}
-                                    className={`w-full flex items-start gap-4 p-4 rounded-2xl transition-all text-left ${
-                                        isActive
-                                        ? 'bg-primary text-white shadow-lg shadow-primary/20 ring-1 ring-primary'
-                                        : 'bg-white text-gray-600 hover:bg-gray-50 border border-transparent hover:border-gray-200 shadow-sm'
-                                    }`}
-                                >
-                                    <div className={`p-2 rounded-xl ${isActive ? 'bg-white/20' : 'bg-gray-100'}`}>
-                                        <Icon size={22} className={isActive ? 'text-white' : 'text-gray-500'} />
-                                    </div>
-                                    <div className="flex-grow">
-                                        <div className="flex items-center justify-between">
-                                            <span className={`font-bold ${isActive ? 'text-white' : 'text-gray-900'}`}>
-                                                {tab.label}
-                                            </span>
-                                            {isActive && <ChevronRight size={18} className="opacity-60" />}
+                    <div className="lg:sticky lg:top-8 space-y-8 max-h-[calc(100vh-6rem)] overflow-y-auto lg:pr-2 custom-scrollbar">
+                        <nav className="space-y-2">
+                            {tabs.map((tab) => {
+                                const Icon = tab.icon;
+                                const isActive = activeTab === tab.id;
+                                return (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => setActiveTab(tab.id)}
+                                        className={`w-full flex items-start gap-4 p-4 rounded-2xl transition-all text-left ${
+                                            isActive
+                                            ? 'bg-primary text-white shadow-lg shadow-primary/20 ring-1 ring-primary'
+                                            : 'bg-white text-gray-600 hover:bg-gray-50 border border-transparent hover:border-gray-200 shadow-sm'
+                                        }`}
+                                    >
+                                        <div className={`p-2 rounded-xl ${isActive ? 'bg-white/20' : 'bg-gray-100'}`}>
+                                            <Icon size={22} className={isActive ? 'text-white' : 'text-gray-500'} />
                                         </div>
-                                        <p className={`text-xs mt-1 leading-snug ${isActive ? 'text-white/80' : 'text-gray-500'}`}>
-                                            {tab.description}
-                                        </p>
-                                    </div>
-                                </button>
-                            );
-                        })}
-                    </nav>
+                                        <div className="flex-grow">
+                                            <div className="flex items-center justify-between">
+                                                <span className={`font-bold ${isActive ? 'text-white' : 'text-gray-900'}`}>
+                                                    {tab.label}
+                                                </span>
+                                                {isActive && <ChevronRight size={18} className="opacity-60" />}
+                                            </div>
+                                            <p className={`text-xs mt-1 leading-snug ${isActive ? 'text-white/80' : 'text-gray-500'}`}>
+                                                {tab.description}
+                                            </p>
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </nav>
 
-                    <div className="mt-8 p-6 bg-blue-50 rounded-2xl border border-blue-100">
-                        <div className="flex gap-3 text-blue-700">
-                            <Info size={20} className="flex-shrink-0 mt-0.5" />
-                            <div className="text-sm">
-                                <p className="font-bold mb-1">Need help?</p>
-                                <p className="leading-relaxed opacity-90">Changes to these settings take effect immediately for all new transactions and bookings.</p>
+                        <div className="p-6 bg-blue-50 rounded-2xl border border-blue-100">
+                            <div className="flex gap-3 text-blue-700">
+                                <Info size={20} className="flex-shrink-0 mt-0.5" />
+                                <div className="text-sm">
+                                    <p className="font-bold mb-1">Need help?</p>
+                                    <p className="leading-relaxed opacity-90">Changes to these settings take effect immediately for all new transactions and bookings.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
