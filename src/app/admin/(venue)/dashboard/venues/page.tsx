@@ -81,7 +81,8 @@ const VenueManagementContent = () => {
   const fetchVenues = () => {
     return api.get("/halls")
       .then(response => {
-        setVenues(response.data.data);
+        const data = response.data.data;
+        setVenues(Array.isArray(data) ? data : (Array.isArray(data?.halls) ? data.halls : []));
       })
       .catch(error => {
         console.error("Error fetching venues:", error);
