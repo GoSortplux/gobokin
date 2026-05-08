@@ -16,7 +16,7 @@ import {
   Shield,
   DollarSign,
   X,
-  Ticket,
+  MessageSquare,
 } from "lucide-react";
 
 const AdminSidebar = () => {
@@ -64,6 +64,11 @@ const AdminSidebar = () => {
       href: "/admin/dashboard/payment-management",
       label: "Payment Management",
       icon: <DollarSign size={24} />,
+    },
+    {
+      href: "/admin/dashboard/communications",
+      label: "Communications",
+      icon: <MessageSquare size={24} />,
     },
     {
       href: "/admin/dashboard/settings",
