@@ -174,70 +174,57 @@ const VenueManagementContent = () => {
   };
 
   const handleTogglePremium = async (venue: Venue) => {
-    const isCurrentlyPremium = !!venue.isPremium;
+    // Helper to escape HTML to prevent XSS
+    const escapeHTML = (str: string) => str.replace(/[&<>"']/g, (m) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[m] || m));
 
-    if (isCurrentlyPremium) {
-      const result = await Swal.fire({
-        title: 'Remove Premium Status',
-        text: "Are you sure you want to remove this venue from premium halls?",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, remove it!'
-      });
-
-      if (result.isConfirmed) {
-        try {
-          await api.patch(`/admin/halls/${venue._id}/discovery-status`, { isPremium: false });
-          Swal.fire('Success!', 'Venue removed from premium halls.', 'success');
-          fetchVenues();
-        } catch (error) {
-          console.error("Error removing premium status:", error);
-          Swal.fire('Error', 'Could not remove premium status.', 'error');
-        }
-      }
-    } else {
-      const { value: formValues } = await Swal.fire({
-        title: 'Set as Premium Venue',
-        html: `
-          <div class="text-left space-y-4">
-            <div class="flex items-center mb-4">
-              <input id="forcePremiumOverride" type="checkbox" class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded">
-              <label for="forcePremiumOverride" class="ml-2 block text-sm font-medium text-gray-700">Force Premium Override</label>
-            </div>
-            <div>
-              <label for="premiumOverrideReason" class="block text-sm font-medium text-gray-700">Override Reason</label>
-              <textarea id="premiumOverrideReason" class="swal2-textarea !mt-1 !mx-0 !w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" placeholder="Reason for override (Required if override is checked)"></textarea>
-            </div>
+    const { value: formValues } = await Swal.fire({
+      title: 'Premium Status Management',
+      html: `
+        <div class="text-left space-y-4">
+          <div class="flex items-center mb-4">
+            <input id="isPremium" type="checkbox" ${venue.isPremium ? 'checked' : ''} class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded">
+            <label for="isPremium" class="ml-2 block text-sm font-medium text-gray-700 font-bold">Is Premium</label>
           </div>
-        `,
-        focusConfirm: false,
-        showCancelButton: true,
-        preConfirm: () => {
-          const forcePremiumOverride = (document.getElementById('forcePremiumOverride') as HTMLInputElement).checked;
-          const premiumOverrideReason = (document.getElementById('premiumOverrideReason') as HTMLTextAreaElement).value;
+          <div class="flex items-center mb-4">
+            <input id="forcePremiumOverride" type="checkbox" ${venue.forcePremiumOverride ? 'checked' : ''} class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded">
+            <label for="forcePremiumOverride" class="ml-2 block text-sm font-medium text-gray-700">Force Premium Override</label>
+          </div>
+          <div>
+            <label for="premiumOverrideReason" class="block text-sm font-medium text-gray-700">Override Reason</label>
+            <textarea id="premiumOverrideReason" class="swal2-textarea !mt-1 !mx-0 !w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" placeholder="Reason for override (Required if override is checked)">${escapeHTML(venue.premiumOverrideReason || '')}</textarea>
+          </div>
+        </div>
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      preConfirm: () => {
+        const isPremium = (document.getElementById('isPremium') as HTMLInputElement).checked;
+        const forcePremiumOverride = (document.getElementById('forcePremiumOverride') as HTMLInputElement).checked;
+        const premiumOverrideReason = (document.getElementById('premiumOverrideReason') as HTMLTextAreaElement).value;
 
-          if (forcePremiumOverride && !premiumOverrideReason.trim()) {
-            Swal.showValidationMessage('Override reason is required when force override is enabled');
-            return false;
-          }
-
-          return { forcePremiumOverride, premiumOverrideReason };
+        if (forcePremiumOverride && !premiumOverrideReason.trim()) {
+          Swal.showValidationMessage('Override reason is required when force override is enabled');
+          return false;
         }
-      });
 
-      if (formValues) {
-        try {
-          await api.patch(`/admin/halls/${venue._id}/discovery-status`, {
-            isPremium: true,
-            forcePremiumOverride: formValues.forcePremiumOverride,
-            premiumOverrideReason: formValues.premiumOverrideReason
-          });
-          Swal.fire('Success!', 'Venue is now premium.', 'success');
-          fetchVenues();
-        } catch (error) {
-          console.error("Error setting premium status:", error);
-          Swal.fire('Error', 'Could not set premium status.', 'error');
-        }
+        return { isPremium, forcePremiumOverride, premiumOverrideReason };
+      }
+    });
+
+    if (formValues) {
+      try {
+        await api.patch(`/admin/halls/${venue._id}/discovery-status`, {
+          isPremium: formValues.isPremium,
+          forcePremiumOverride: formValues.forcePremiumOverride,
+          premiumOverrideReason: formValues.premiumOverrideReason
+        });
+        Swal.fire('Success!', 'Premium status updated successfully.', 'success');
+        fetchVenues();
+      } catch (error) {
+        console.error("Error updating premium status:", error);
+        Swal.fire('Error', 'Could not update premium status.', 'error');
       }
     }
   };
