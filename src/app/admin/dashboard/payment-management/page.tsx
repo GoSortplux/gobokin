@@ -243,9 +243,9 @@ const SubaccountsTab = () => {
         api.get('/monnify/banks'),
         api.get('/settings/commission-rate'),
       ]);
-      setUsers(usersRes.data.data);
+      setUsers(Array.isArray(usersRes.data.data) ? usersRes.data.data : []);
       setSubaccounts(Array.isArray(subaccountsRes.data.data) ? subaccountsRes.data.data : []);
-      setBanks(banksRes.data.data);
+      setBanks(Array.isArray(banksRes.data.data) ? banksRes.data.data : []);
 
       const rate = commissionRes.data?.data?.value ?? commissionRes.data?.data?.rate;
       if (rate !== undefined) {
@@ -361,7 +361,7 @@ const SubaccountsTab = () => {
                           required
                       >
                           <option value="" disabled>Select a venue owner</option>
-                          {users.map(user => (
+                          {Array.isArray(users) && users.map(user => (
                               <option key={user._id} value={user._id}>{user.fullName}</option>
                           ))}
                       </select>
@@ -376,7 +376,7 @@ const SubaccountsTab = () => {
                           required
                       >
                           <option value="" disabled>Select a bank</option>
-                          {banks.map((bank: Bank) => (
+                          {Array.isArray(banks) && banks.map((bank: Bank) => (
                               <option key={bank.code} value={bank.code}>{bank.name}</option>
                           ))}
                       </select>
