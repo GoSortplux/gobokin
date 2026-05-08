@@ -243,7 +243,8 @@ const SubaccountsTab = () => {
         api.get('/monnify/banks'),
         api.get('/settings/commission-rate'),
       ]);
-      setUsers(Array.isArray(usersRes.data.data) ? usersRes.data.data : []);
+      const userData = usersRes.data.data;
+      setUsers(Array.isArray(userData) ? userData : (Array.isArray(userData?.users) ? userData.users : []));
       setSubaccounts(Array.isArray(subaccountsRes.data.data) ? subaccountsRes.data.data : []);
       setBanks(Array.isArray(banksRes.data.data) ? banksRes.data.data : []);
 
