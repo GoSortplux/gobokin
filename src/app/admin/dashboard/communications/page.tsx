@@ -317,8 +317,8 @@ const CampaignModal = ({
     targetRoles: ["user"],
     targetUsers: [] as string[],
     customEmails: [] as string[],
-    fromName: "Gobokin",
-    fromEmail: "hello@gobokin.com"
+    fromName: "HallBooker Community Team",
+    fromEmail: "community@hallbooker.com"
   });
 
   const handlePreview = async () => {
@@ -327,6 +327,9 @@ const CampaignModal = ({
       const res = await api.post("/admin/email-campaigns/preview", {
         subject: formData.subject,
         message: formData.message,
+        audience: formData.audience,
+        fromEmail: formData.fromEmail,
+        fromName: formData.fromName,
       });
       setPreviewHtml(res.data.data.html);
       setShowPreview(true);
@@ -392,7 +395,29 @@ const CampaignModal = ({
             </div>
 
             <div className="pt-4 border-t space-y-4">
-              <h3 className="text-sm font-bold text-primary uppercase italic">Recipient Settings</h3>
+              <h3 className="text-sm font-bold text-primary uppercase italic">Sender Settings</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-600 mb-1 italic">From Name</label>
+                  <input
+                    type="text"
+                    value={formData.fromName}
+                    onChange={(e) => setFormData({ ...formData, fromName: e.target.value })}
+                    className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all text-gray-900"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-600 mb-1 italic">From Email</label>
+                  <input
+                    type="email"
+                    value={formData.fromEmail}
+                    onChange={(e) => setFormData({ ...formData, fromEmail: e.target.value })}
+                    className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all text-gray-900"
+                  />
+                </div>
+              </div>
+
+              <h3 className="text-sm font-bold text-primary uppercase italic pt-2">Recipient Settings</h3>
               <div>
                 <label className="block text-sm font-semibold text-gray-600 mb-1 italic">Audience</label>
                 <select
@@ -409,7 +434,7 @@ const CampaignModal = ({
 
               {formData.audience === 'roles' && (
                 <div className="flex flex-wrap gap-2">
-                  {['user', 'hall-owner', 'staff', 'super-admin'].map(role => (
+                  {['user', 'hall-owner', 'organizer', 'staff', 'super-admin'].map(role => (
                     <button
                       key={role}
                       type="button"

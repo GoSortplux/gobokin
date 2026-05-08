@@ -299,7 +299,8 @@ const AllUsersTab = () => {
     setLoading(true);
     try {
       const response = await api.get("/users");
-      setUsers(response.data.data || []);
+      const userData = response.data.data;
+      setUsers(Array.isArray(userData) ? userData : (Array.isArray(userData?.users) ? userData.users : []));
     } catch (error) {
       console.error("Error fetching users:", error);
       Swal.fire("Error", "Could not fetch users.", "error");
