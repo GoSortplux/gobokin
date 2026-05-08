@@ -35,13 +35,15 @@ const ManualAssignmentTab = () => {
         api.get("/halls")
       ]);
       // Filter for venue owners only
-      const hallOwners = usersRes.data.data.filter((u: User) => u.role.includes('hall-owner'));
+      const allUsers = Array.isArray(usersRes.data.data) ? usersRes.data.data : [];
+      const hallOwners = allUsers.filter((u: User) => u.role.includes('hall-owner'));
       setUsers(hallOwners);
-      setTiers(tiersRes.data.data);
+      setTiers(Array.isArray(tiersRes.data.data) ? tiersRes.data.data : []);
 
       // Calculate venue counts
       const counts: Record<string, number> = {};
-      hallsRes.data.data.forEach((venue: { owner?: string | { _id: string } }) => {
+      const allHalls = Array.isArray(hallsRes.data.data) ? hallsRes.data.data : [];
+      allHalls.forEach((venue: { owner?: string | { _id: string } }) => {
         const ownerId = (typeof venue.owner === 'object' ? venue.owner?._id : venue.owner);
         if (ownerId) {
           counts[ownerId] = (counts[ownerId] || 0) + 1;
