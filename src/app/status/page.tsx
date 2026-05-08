@@ -22,7 +22,8 @@ const StatusPage = () => {
     const fetchIncidents = async () => {
       try {
         const res = await api.get("/admin/incidents");
-        setIncidents(res.data.data || []);
+        const data = res.data.data;
+        setIncidents(Array.isArray(data) ? data : (Array.isArray(data?.incidents) ? data.incidents : []));
       } catch (error) {
         console.error("Error fetching status:", error);
       } finally {
@@ -48,7 +49,7 @@ const StatusPage = () => {
     }
   };
 
-  const isSystemDown = incidents.some(i => i.status !== 'resolved' && i.type === 'incident');
+  const isSystemDown = Array.isArray(incidents) && incidents.some(i => i.status !== 'resolved' && i.type === 'incident');
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans selection:bg-primary selection:text-white">

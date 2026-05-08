@@ -540,7 +540,8 @@ const IncidentsTab = () => {
     setLoading(true);
     try {
       const res = await api.get("/admin/incidents");
-      setIncidents(res.data.data || []);
+      const data = res.data.data;
+      setIncidents(Array.isArray(data) ? data : (Array.isArray(data?.incidents) ? data.incidents : []));
     } catch (error) {
       console.error("Error fetching incidents:", error);
     } finally {
@@ -682,7 +683,8 @@ const CampaignsTab = () => {
     setLoading(true);
     try {
       const res = await api.get("/admin/email-campaigns/history");
-      setCampaigns(res.data.data || []);
+      const data = res.data.data;
+      setCampaigns(Array.isArray(data) ? data : (Array.isArray(data?.campaigns) ? data.campaigns : []));
     } catch (_error) {
       console.error("Error fetching campaigns:", _error);
     } finally {
