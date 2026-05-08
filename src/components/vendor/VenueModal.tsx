@@ -767,7 +767,18 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
 
     if (step === 2 || isUpdate) {
       if (Number(formData.hourlyRate) < 0) newErrors.hourlyRate = 'Hourly rate cannot be negative';
-      if (Number(formData.dailyRate) <= 0) newErrors.dailyRate = 'Daily rate must be greater than 0';
+
+      const blockRateValue = Number(formData.blockRate);
+      const dailyRateValue = Number(formData.dailyRate);
+      const blockDurationValue = Number(formData.blockDurationHours);
+
+      if (blockRateValue > 0) {
+        if (dailyRateValue < 0) newErrors.dailyRate = 'Daily rate cannot be negative';
+        if (blockDurationValue <= 0) newErrors.blockDurationHours = 'Block duration must be greater than 0 when block rate is set';
+      } else {
+        if (dailyRateValue <= 0) newErrors.dailyRate = 'Daily rate must be greater than 0';
+      }
+
       if (Number(formData.carParkCapacity) <= 0) newErrors.carParkCapacity = 'Car park capacity must be greater than 0';
       if (formData.suitableFor.length === 0) newErrors.suitableFor = 'Select at least one suitability category';
 
@@ -1203,20 +1214,28 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
                     <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₦</span>
                     <input type="number" name="dailyRate" placeholder="Enter Price Per Day" value={formData.dailyRate} onChange={handleChange} className={`w-full pl-7 pr-4 py-2 border ${errors.dailyRate ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-900 placeholder-gray-500`} />
                   </div>
-                  {errors.dailyRate && <p className="text-red-500 text-xs mt-1">{errors.dailyRate}</p>}
+                  {errors.dailyRate ? (
+                    <p className="text-red-500 text-xs mt-1">{errors.dailyRate}</p>
+                  ) : Number(formData.blockRate) > 0 && (
+                    <p className="text-[10px] text-gray-500 mt-1 italic leading-tight">Enter 0 if daily rate doesn&apos;t apply.</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-800">Block Rate</label>
                   <div className="relative">
                     <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₦</span>
-                    <input type="number" name="blockRate" placeholder="e.g. 500,000" value={formData.blockRate} onChange={handleChange} className="w-full pl-7 pr-4 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500" />
+                    <input type="number" name="blockRate" placeholder="e.g. 500,000" value={formData.blockRate} onChange={handleChange} className={`w-full pl-7 pr-4 py-2 border ${errors.blockRate ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-900 placeholder-gray-500`} />
                   </div>
                   <p className="text-[10px] text-gray-500 mt-1 italic leading-tight">Price for a fixed block of time.</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-800">Block Duration (Hours)</label>
-                  <input type="number" name="blockDurationHours" placeholder="e.g. 6" value={formData.blockDurationHours} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500" />
-                  <p className="text-[10px] text-gray-500 mt-1 italic leading-tight">Hours included in the block rate.</p>
+                  <input type="number" name="blockDurationHours" placeholder="e.g. 6" value={formData.blockDurationHours} onChange={handleChange} className={`w-full px-4 py-2 border ${errors.blockDurationHours ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-900 placeholder-gray-500`} />
+                  {errors.blockDurationHours ? (
+                    <p className="text-red-500 text-xs mt-1">{errors.blockDurationHours}</p>
+                  ) : (
+                    <p className="text-[10px] text-gray-500 mt-1 italic leading-tight">Hours included in the block rate.</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-800">Car Park Capacity</label>
@@ -1876,20 +1895,28 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
                         <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₦</span>
                         <input type="number" name="dailyRate" placeholder="Enter Price Per Day" value={formData.dailyRate} onChange={handleChange} className={`w-full pl-7 pr-4 py-2 border ${errors.dailyRate ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-900 placeholder-gray-500`} />
                       </div>
-                      {errors.dailyRate && <p className="text-red-500 text-xs mt-1">{errors.dailyRate}</p>}
+                      {errors.dailyRate ? (
+                        <p className="text-red-500 text-xs mt-1">{errors.dailyRate}</p>
+                      ) : Number(formData.blockRate) > 0 && (
+                        <p className="text-[10px] text-gray-500 mt-1 italic leading-tight">Enter 0 if daily rate doesn&apos;t apply.</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-800">Block Rate</label>
                       <div className="relative">
                         <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₦</span>
-                        <input type="number" name="blockRate" placeholder="e.g. 500,000" value={formData.blockRate} onChange={handleChange} className="w-full pl-7 pr-4 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500" />
+                        <input type="number" name="blockRate" placeholder="e.g. 500,000" value={formData.blockRate} onChange={handleChange} className={`w-full pl-7 pr-4 py-2 border ${errors.blockRate ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-900 placeholder-gray-500`} />
                       </div>
                       <p className="text-[10px] text-gray-500 mt-1 italic leading-tight">Price for a fixed block of time.</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-800">Block Duration (Hours)</label>
-                      <input type="number" name="blockDurationHours" placeholder="e.g. 6" value={formData.blockDurationHours} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500" />
-                      <p className="text-[10px] text-gray-500 mt-1 italic leading-tight">Hours included in the block rate.</p>
+                      <input type="number" name="blockDurationHours" placeholder="e.g. 6" value={formData.blockDurationHours} onChange={handleChange} className={`w-full px-4 py-2 border ${errors.blockDurationHours ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-900 placeholder-gray-500`} />
+                      {errors.blockDurationHours ? (
+                        <p className="text-red-500 text-xs mt-1">{errors.blockDurationHours}</p>
+                      ) : (
+                        <p className="text-[10px] text-gray-500 mt-1 italic leading-tight">Hours included in the block rate.</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-800">Car Park Capacity</label>
