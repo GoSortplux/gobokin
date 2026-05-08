@@ -28,3 +28,4 @@
  GET /auth/login 200 in 49ms
  ✓ Compiled in 14.4s (2535 modules)
  ✓ Compiled in 984ms (2535 modules)
+ ✓ Compiled in 12.9s (4513 modules)
