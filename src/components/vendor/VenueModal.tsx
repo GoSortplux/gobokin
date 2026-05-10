@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useState, useEffect, useContext } from 'react';
-import { X, Plus, Trash2, Info, ChevronDown, ChevronUp, Settings2, User } from 'lucide-react';
+import { useState, useEffect, useContext, useRef } from 'react';
+import { X, Plus, Trash2, Info, ChevronDown, ChevronUp, Settings2, User, Search, Check } from 'lucide-react';
 import MediaUpload from './MediaUpload';
 import { isVideo } from '@/utils/media';
 import api from '@/services/api';
@@ -103,6 +103,8 @@ interface VenueData {
   commissionRate?: number;
   isPartnership?: boolean;
   referralDiscountPercentage?: number;
+  isCautionFeeEnabled?: boolean;
+  cautionFee?: number;
   images?: string[];
   videos?: string[];
 }
@@ -177,6 +179,8 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
       commissionRate: '' as number | string,
       isPartnership: false,
       referralDiscountPercentage: '' as number | string,
+      isCautionFeeEnabled: false,
+      cautionFee: 0 as number | string,
     });
     setCurrentStep(1);
     setVenueId(null);
@@ -206,6 +210,13 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
   const [lgas, setLgas] = useState<{ _id: string; name: string }[]>([]);
   const [userVenues, setUserVenues] = useState<{ id: string; _id: string; name: string; slug?: string }[]>([]);
   const [isImporting, setIsImporting] = useState(false);
+  const [expandedFacilities, setExpandedFacilities] = useState<number[]>([]);
+  const [showBulkAdd, setShowBulkAdd] = useState(false);
+  const [bulkSearch, setBulkSearch] = useState('');
+  const [selectedBulkFacilities, setSelectedBulkFacilities] = useState<string[]>([]);
+  const facilityListRef = useRef<HTMLDivElement>(null);
+  const hasAutoFilledDefaults = useRef(false);
+
   const [availablePlatformContacts, setAvailablePlatformContacts] = useState<{ _id: string; name: string; phone: string; email?: string }[]>([]);
   const [formData, setFormData] = useState({
     name: '',
@@ -255,6 +266,8 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
     commissionRate: '' as number | string,
     isPartnership: false,
     referralDiscountPercentage: '' as number | string,
+    isCautionFeeEnabled: false,
+    cautionFee: 0 as number | string,
   });
 
   useEffect(() => {
@@ -299,6 +312,48 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
       fetchInitialData();
     }
   }, [isOpen, isSuperAdmin, venue]);
+
+  useEffect(() => {
+    // Pre-fill "Chairs" and "Tables" for new venues, only once
+    if (!venue && availableFacilities.length > 0 && !hasAutoFilledDefaults.current) {
+      const chairs = availableFacilities.find(f => f.name.toLowerCase().includes('chair'));
+      const tables = availableFacilities.find(f => f.name.toLowerCase().includes('table'));
+
+      const defaults: Facility[] = [];
+      if (chairs) {
+        defaults.push({
+          facility: chairs._id,
+          name: chairs.name,
+          available: true,
+          chargeable: false,
+          quantity: 1,
+          chargePerUnit: false,
+          variantName: '',
+          description: ''
+        });
+      }
+      if (tables) {
+        defaults.push({
+          facility: tables._id,
+          name: tables.name,
+          available: true,
+          chargeable: false,
+          quantity: 1,
+          chargePerUnit: false,
+          variantName: '',
+          description: ''
+        });
+      }
+
+      if (defaults.length > 0) {
+        setFormData(prev => ({
+          ...prev,
+          facilities: [...prev.facilities, ...defaults]
+        }));
+        hasAutoFilledDefaults.current = true;
+      }
+    }
+  }, [availableFacilities, venue]);
 
   useEffect(() => {
     if (formData.country) {
@@ -419,6 +474,8 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
         commissionRate: venue.commissionRate !== undefined ? venue.commissionRate : '',
         isPartnership: venue.isPartnership || false,
         referralDiscountPercentage: venue.referralDiscountPercentage !== undefined ? venue.referralDiscountPercentage : '',
+        isCautionFeeEnabled: venue.isCautionFeeEnabled || false,
+        cautionFee: venue.cautionFee !== undefined ? venue.cautionFee : 0,
       });
       setVenueId(venue._id || venue.id || null);
     } else {
@@ -474,6 +531,8 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
             commissionRate: '',
             isPartnership: false,
             referralDiscountPercentage: '',
+            isCautionFeeEnabled: false,
+            cautionFee: 0,
             ...parsedData
           });
           setCurrentStep(1);
@@ -532,6 +591,8 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
           commissionRate: '',
           isPartnership: false,
           referralDiscountPercentage: '',
+          isCautionFeeEnabled: false,
+          cautionFee: 0,
       });
       setCurrentStep(1);
       setVenueId(null);
@@ -620,19 +681,76 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
   };
 
   const addFacility = () => {
+    const newFacilityId = `new-${Date.now()}`;
     setFormData((prev) => ({
       ...prev,
       facilities: [
         ...prev.facilities,
         // Initialize with empty values, user will select a facility
-        { facility: '', name: '', available: true, chargeable: false, quantity: 1, chargePerUnit: false, variantName: '', description: '' },
+        { facility: '', name: '', available: true, chargeable: false, quantity: 1, chargePerUnit: false, variantName: '', description: '', id: newFacilityId } as Facility & { id: string },
       ],
     }));
+    setExpandedFacilities(prev => [...prev, formData.facilities.length]);
+
+    // Auto-scroll to the new facility
+    setTimeout(() => {
+      if (facilityListRef.current) {
+        facilityListRef.current.scrollTo({
+          top: facilityListRef.current.scrollHeight,
+          behavior: 'smooth'
+        });
+      }
+    }, 100);
+  };
+
+  const handleBulkAdd = () => {
+    const startIdx = formData.facilities.length;
+    const newFacilities: Facility[] = selectedBulkFacilities.map((id, idx) => {
+      const facility = availableFacilities.find(f => f._id === id);
+      return {
+        facility: id,
+        name: facility?.name || '',
+        available: true,
+        chargeable: false,
+        quantity: 1,
+        chargePerUnit: false,
+        variantName: '',
+        description: ''
+      };
+    });
+
+    setFormData(prev => ({
+      ...prev,
+      facilities: [...prev.facilities, ...newFacilities]
+    }));
+
+    // Expand the newly added facilities
+    const newIndices = newFacilities.map((_, i) => startIdx + i);
+    setExpandedFacilities(prev => [...prev, ...newIndices]);
+
+    setShowBulkAdd(false);
+    setSelectedBulkFacilities([]);
+    setBulkSearch('');
+
+    // Auto-scroll to first of new items
+    setTimeout(() => {
+      if (facilityListRef.current) {
+        facilityListRef.current.scrollTo({
+          top: facilityListRef.current.scrollHeight,
+          behavior: 'smooth'
+        });
+      }
+    }, 100);
   };
 
   const removeFacility = (index: number) => {
     const newFacilities = formData.facilities.filter((_, i) => i !== index);
     setFormData((prev) => ({ ...prev, facilities: newFacilities }));
+    // Update expanded state to reflect shifted indices
+    setExpandedFacilities(prev =>
+      prev.filter(i => i !== index)
+          .map(i => i > index ? i - 1 : i)
+    );
   };
 
   const handleImportConfig = async (sourceHallId: string) => {
@@ -726,6 +844,8 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
         commissionRate: config.commissionRate !== undefined ? config.commissionRate : prev.commissionRate,
         isPartnership: config.isPartnership !== undefined ? config.isPartnership : prev.isPartnership,
         referralDiscountPercentage: config.referralDiscountPercentage !== undefined ? config.referralDiscountPercentage : prev.referralDiscountPercentage,
+        isCautionFeeEnabled: config.isCautionFeeEnabled !== undefined ? config.isCautionFeeEnabled : prev.isCautionFeeEnabled,
+        cautionFee: config.cautionFee !== undefined ? config.cautionFee : prev.cautionFee,
       }));
 
       Swal.toast.fire({
@@ -824,6 +944,12 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
           newErrors.vatPercentage = 'VAT cannot be negative';
         }
       }
+
+      if (formData.isCautionFeeEnabled) {
+        if (!formData.cautionFee || Number(formData.cautionFee) <= 0) {
+          newErrors.cautionFee = 'Caution fee must be greater than 0 when enabled';
+        }
+      }
     }
 
     setErrors(newErrors);
@@ -910,6 +1036,8 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
         commissionRate: formData.commissionRate !== '' ? Number(formData.commissionRate) : undefined,
         isPartnership: formData.isPartnership,
         referralDiscountPercentage: formData.referralDiscountPercentage !== '' ? Number(formData.referralDiscountPercentage) : undefined,
+        isCautionFeeEnabled: formData.isCautionFeeEnabled,
+        cautionFee: formData.isCautionFeeEnabled ? Number(formData.cautionFee) : 0,
         openingHour: parseHour(openingHour),
         closingHour: parseHour(closingHour),
         country,
@@ -1009,6 +1137,8 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
         commissionRate: formData.commissionRate !== '' ? Number(formData.commissionRate) : undefined,
         isPartnership: formData.isPartnership,
         referralDiscountPercentage: formData.referralDiscountPercentage !== '' ? Number(formData.referralDiscountPercentage) : undefined,
+        isCautionFeeEnabled: formData.isCautionFeeEnabled,
+        cautionFee: formData.isCautionFeeEnabled ? Number(formData.cautionFee) : 0,
         discountSettings: {
           enabled: formData.discountSettings.enabled,
           hourly: {
@@ -1196,6 +1326,37 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2 flex flex-col md:flex-row items-start md:items-center gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                  <div className="flex items-center gap-2 min-w-[200px]">
+                    <input
+                      type="checkbox"
+                      name="isCautionFeeEnabled"
+                      id="isCautionFeeEnabled-edit"
+                      checked={formData.isCautionFeeEnabled}
+                      onChange={handleChange}
+                      className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                    />
+                    <label htmlFor="isCautionFeeEnabled-edit" className="text-xs font-bold text-gray-900 uppercase italic">
+                      Enable Caution Fee
+                    </label>
+                  </div>
+                  {formData.isCautionFeeEnabled && (
+                    <div className="flex-1 w-full animate-in fade-in slide-in-from-left-2 duration-300">
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₦</span>
+                        <input
+                          type="number"
+                          name="cautionFee"
+                          placeholder="Enter Caution Fee (Flat Amount)"
+                          value={formData.cautionFee}
+                          onChange={handleChange}
+                          className={`w-full pl-7 pr-4 py-2 bg-white border ${errors.cautionFee ? 'border-red-500' : 'border-gray-200'} rounded-xl text-sm font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 transition-all`}
+                        />
+                      </div>
+                      {errors.cautionFee && <p className="text-red-500 text-[10px] mt-1 font-bold ml-1">{errors.cautionFee}</p>}
+                    </div>
+                  )}
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-800">Price Per Hour</label>
                   <div className="relative">
@@ -1633,17 +1794,88 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
                     </h3>
                     <p className="text-[10px] text-gray-500 font-medium mt-0.5">Manage amenities and equipment for this venue</p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={addFacility}
-                    className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary-dark transition-all shadow-sm shadow-primary/20"
-                  >
-                    <Plus size={14} />
-                    <span>Add New</span>
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowBulkAdd(true)}
+                      className="flex items-center gap-2 px-4 py-2 bg-white text-primary border border-primary/20 rounded-xl text-xs font-bold hover:bg-primary/5 transition-all shadow-sm"
+                    >
+                      <Plus size={14} />
+                      <span>Bulk Add</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={addFacility}
+                      className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary-dark transition-all shadow-sm shadow-primary/20"
+                    >
+                      <Plus size={14} />
+                      <span>Add New</span>
+                    </button>
+                  </div>
                 </div>
 
-                <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                {showBulkAdd && (
+                  <div className="bg-white border border-primary/20 rounded-2xl p-4 space-y-4 animate-in zoom-in-95 duration-200 shadow-xl shadow-primary/5">
+                    <div className="flex items-center justify-between">
+                       <h4 className="text-xs font-bold text-primary uppercase tracking-widest">Select Amenities to Add</h4>
+                       <button type="button" onClick={() => setShowBulkAdd(false)} className="text-gray-400 hover:text-gray-600"><X size={16} /></button>
+                    </div>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                      <input
+                        type="text"
+                        placeholder="Search amenities..."
+                        value={bulkSearch}
+                        onChange={(e) => setBulkSearch(e.target.value)}
+                        className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 transition-all"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                      {availableFacilities
+                        .filter(f => f.name.toLowerCase().includes(bulkSearch.toLowerCase()))
+                        .map(f => (
+                          <button
+                            key={f._id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedBulkFacilities(prev =>
+                                prev.includes(f._id) ? prev.filter(id => id !== f._id) : [...prev, f._id]
+                              );
+                            }}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-xl text-[11px] font-bold transition-all border ${
+                              selectedBulkFacilities.includes(f._id)
+                                ? 'bg-primary text-white border-primary shadow-md shadow-primary/20 scale-[0.98]'
+                                : 'bg-white text-gray-600 border-gray-100 hover:border-primary/30'
+                            }`}
+                          >
+                            <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${selectedBulkFacilities.includes(f._id) ? 'bg-white text-primary border-white' : 'border-gray-300'}`}>
+                              {selectedBulkFacilities.includes(f._id) && <Check size={10} />}
+                            </div>
+                            <span className="truncate">{f.name}</span>
+                          </button>
+                        ))}
+                    </div>
+                    <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
+                      <button
+                        type="button"
+                        onClick={() => { setShowBulkAdd(false); setSelectedBulkFacilities([]); }}
+                        className="px-4 py-1.5 rounded-lg text-[11px] font-bold text-gray-500 hover:bg-gray-100 transition-all"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        disabled={selectedBulkFacilities.length === 0}
+                        onClick={handleBulkAdd}
+                        className="px-4 py-1.5 bg-primary text-white rounded-lg text-[11px] font-bold hover:bg-primary-dark transition-all disabled:opacity-50 shadow-sm"
+                      >
+                        Add Selected ({selectedBulkFacilities.length})
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div ref={facilityListRef} className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                   {formData.facilities.length === 0 ? (
                     <div className="text-center py-10 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
                        <Info className="w-8 h-8 text-gray-300 mx-auto mb-2" />
@@ -1652,25 +1884,37 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
                     </div>
                   ) : (
                     formData.facilities.map((facility, index) => (
-                      <div key={index} className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all">
+                      <div key={index} className={`bg-white border ${expandedFacilities.includes(index) ? 'border-primary/30 shadow-md' : 'border-gray-200 shadow-sm'} rounded-2xl overflow-hidden transition-all`}>
                         {/* Header */}
-                        <div className="bg-gray-50/50 px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-                          <div className="flex-1 max-w-xs">
-                            <select
-                              value={facility.facility}
-                              onChange={(e) => handleFacilityChange(index, 'facility', e.target.value)}
-                              className={`w-full bg-white px-3 py-1.5 border ${errors[`facility_${index}`] ? 'border-red-500' : 'border-gray-200'} rounded-lg text-sm font-semibold text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all`}
-                            >
-                              <option value="">Select Amenity</option>
-                              {availableFacilities.map((f) => (
-                                <option key={f._id} value={f._id}>{f.name}</option>
-                              ))}
-                            </select>
-                            {errors[`facility_${index}`] && <p className="text-red-500 text-[10px] mt-1 font-bold ml-1">{errors[`facility_${index}`]}</p>}
+                        <div className={`px-4 py-3 border-b border-gray-100 flex items-center justify-between cursor-pointer ${expandedFacilities.includes(index) ? 'bg-primary/5' : 'bg-gray-50/50 hover:bg-gray-100'}`}
+                             onClick={() => setExpandedFacilities(prev => prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index])}
+                        >
+                          <div className="flex items-center gap-3 flex-1">
+                            <div className={`p-1.5 rounded-lg ${expandedFacilities.includes(index) ? 'bg-primary text-white' : 'bg-white text-gray-400 border border-gray-200'}`}>
+                              {expandedFacilities.includes(index) ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                            </div>
+                            <div className="flex-1 max-w-xs" onClick={(e) => e.stopPropagation()}>
+                              <select
+                                value={facility.facility}
+                                onChange={(e) => handleFacilityChange(index, 'facility', e.target.value)}
+                                className={`w-full bg-white px-3 py-1.5 border ${errors[`facility_${index}`] ? 'border-red-500' : 'border-gray-200'} rounded-lg text-sm font-semibold text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all`}
+                              >
+                                <option value="">Select Amenity</option>
+                                {availableFacilities.map((f) => (
+                                  <option key={f._id} value={f._id}>{f.name}</option>
+                                ))}
+                              </select>
+                              {errors[`facility_${index}`] && <p className="text-red-500 text-[10px] mt-1 font-bold ml-1">{errors[`facility_${index}`]}</p>}
+                            </div>
+                            {!expandedFacilities.includes(index) && facility.available && (
+                              <span className="hidden md:flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full uppercase">
+                                <Check size={10} /> Available
+                              </span>
+                            )}
                           </div>
                           <button
                             type="button"
-                            onClick={() => removeFacility(index)}
+                            onClick={(e) => { e.stopPropagation(); removeFacility(index); }}
                             className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                             title="Remove Facility"
                           >
@@ -1679,7 +1923,7 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
                         </div>
 
                         {/* Body */}
-                        <div className="p-4 space-y-4">
+                        <div className={`p-4 space-y-4 transition-all ${expandedFacilities.includes(index) ? 'block animate-in slide-in-from-top-2 duration-200' : 'hidden'}`}>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-1.5">
                               <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Variant Name</label>
@@ -1877,6 +2121,37 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
                 <>
                   {/* Step 2 fields */}
                   <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2 flex flex-col md:flex-row items-start md:items-center gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                      <div className="flex items-center gap-2 min-w-[200px]">
+                        <input
+                          type="checkbox"
+                          name="isCautionFeeEnabled"
+                          id="isCautionFeeEnabled-step"
+                          checked={formData.isCautionFeeEnabled}
+                          onChange={handleChange}
+                          className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                        />
+                        <label htmlFor="isCautionFeeEnabled-step" className="text-xs font-bold text-gray-900 uppercase italic">
+                          Enable Caution Fee
+                        </label>
+                      </div>
+                      {formData.isCautionFeeEnabled && (
+                        <div className="flex-1 w-full animate-in fade-in slide-in-from-left-2 duration-300">
+                          <div className="relative">
+                            <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₦</span>
+                            <input
+                              type="number"
+                              name="cautionFee"
+                              placeholder="Enter Caution Fee (Flat Amount)"
+                              value={formData.cautionFee}
+                              onChange={handleChange}
+                              className={`w-full pl-7 pr-4 py-2 bg-white border ${errors.cautionFee ? 'border-red-500' : 'border-gray-200'} rounded-xl text-sm font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 transition-all`}
+                            />
+                          </div>
+                          {errors.cautionFee && <p className="text-red-500 text-[10px] mt-1 font-bold ml-1">{errors.cautionFee}</p>}
+                        </div>
+                      )}
+                    </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-800">Price Per Hour</label>
                       <div className="relative">
@@ -2224,17 +2499,88 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
                         </h3>
                         <p className="text-[10px] text-gray-500 font-medium mt-0.5">Manage amenities and equipment for this venue</p>
                       </div>
-                      <button
-                        type="button"
-                        onClick={addFacility}
-                        className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary-dark transition-all shadow-sm shadow-primary/20"
-                      >
-                        <Plus size={14} />
-                        <span>Add New</span>
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowBulkAdd(true)}
+                          className="flex items-center gap-2 px-4 py-2 bg-white text-primary border border-primary/20 rounded-xl text-xs font-bold hover:bg-primary/5 transition-all shadow-sm"
+                        >
+                          <Plus size={14} />
+                          <span>Bulk Add</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={addFacility}
+                          className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary-dark transition-all shadow-sm shadow-primary/20"
+                        >
+                          <Plus size={14} />
+                          <span>Add New</span>
+                        </button>
+                      </div>
                     </div>
 
-                    <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                    {showBulkAdd && (
+                      <div className="bg-white border border-primary/20 rounded-2xl p-4 space-y-4 animate-in zoom-in-95 duration-200 shadow-xl shadow-primary/5">
+                        <div className="flex items-center justify-between">
+                           <h4 className="text-xs font-bold text-primary uppercase tracking-widest">Select Amenities to Add</h4>
+                           <button type="button" onClick={() => setShowBulkAdd(false)} className="text-gray-400 hover:text-gray-600"><X size={16} /></button>
+                        </div>
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                          <input
+                            type="text"
+                            placeholder="Search amenities..."
+                            value={bulkSearch}
+                            onChange={(e) => setBulkSearch(e.target.value)}
+                            className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 transition-all"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                          {availableFacilities
+                            .filter(f => f.name.toLowerCase().includes(bulkSearch.toLowerCase()))
+                            .map(f => (
+                              <button
+                                key={f._id}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedBulkFacilities(prev =>
+                                    prev.includes(f._id) ? prev.filter(id => id !== f._id) : [...prev, f._id]
+                                  );
+                                }}
+                                className={`flex items-center gap-2 px-3 py-2 rounded-xl text-[11px] font-bold transition-all border ${
+                                  selectedBulkFacilities.includes(f._id)
+                                    ? 'bg-primary text-white border-primary shadow-md shadow-primary/20 scale-[0.98]'
+                                    : 'bg-white text-gray-600 border-gray-100 hover:border-primary/30'
+                                }`}
+                              >
+                                <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${selectedBulkFacilities.includes(f._id) ? 'bg-white text-primary border-white' : 'border-gray-300'}`}>
+                                  {selectedBulkFacilities.includes(f._id) && <Check size={10} />}
+                                </div>
+                                <span className="truncate">{f.name}</span>
+                              </button>
+                            ))}
+                        </div>
+                        <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
+                          <button
+                            type="button"
+                            onClick={() => { setShowBulkAdd(false); setSelectedBulkFacilities([]); }}
+                            className="px-4 py-1.5 rounded-lg text-[11px] font-bold text-gray-500 hover:bg-gray-100 transition-all"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            disabled={selectedBulkFacilities.length === 0}
+                            onClick={handleBulkAdd}
+                            className="px-4 py-1.5 bg-primary text-white rounded-lg text-[11px] font-bold hover:bg-primary-dark transition-all disabled:opacity-50 shadow-sm"
+                          >
+                            Add Selected ({selectedBulkFacilities.length})
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    <div ref={facilityListRef} className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                       {formData.facilities.length === 0 ? (
                         <div className="text-center py-10 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
                            <Info className="w-8 h-8 text-gray-300 mx-auto mb-2" />
@@ -2243,25 +2589,37 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
                         </div>
                       ) : (
                         formData.facilities.map((facility, index) => (
-                          <div key={index} className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all">
+                          <div key={index} className={`bg-white border ${expandedFacilities.includes(index) ? 'border-primary/30 shadow-md' : 'border-gray-200 shadow-sm'} rounded-2xl overflow-hidden transition-all`}>
                             {/* Header */}
-                            <div className="bg-gray-50/50 px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-                              <div className="flex-1 max-w-xs">
-                                <select
-                                  value={facility.facility}
-                                  onChange={(e) => handleFacilityChange(index, 'facility', e.target.value)}
-                                  className={`w-full bg-white px-3 py-1.5 border ${errors[`facility_${index}`] ? 'border-red-500' : 'border-gray-200'} rounded-lg text-sm font-semibold text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all`}
-                                >
-                                  <option value="">Select Amenity</option>
-                                  {availableFacilities.map((f) => (
-                                    <option key={f._id} value={f._id}>{f.name}</option>
-                                  ))}
-                                </select>
-                                {errors[`facility_${index}`] && <p className="text-red-500 text-[10px] mt-1 font-bold ml-1">{errors[`facility_${index}`]}</p>}
+                            <div className={`px-4 py-3 border-b border-gray-100 flex items-center justify-between cursor-pointer ${expandedFacilities.includes(index) ? 'bg-primary/5' : 'bg-gray-50/50 hover:bg-gray-100'}`}
+                                 onClick={() => setExpandedFacilities(prev => prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index])}
+                            >
+                              <div className="flex items-center gap-3 flex-1">
+                                <div className={`p-1.5 rounded-lg ${expandedFacilities.includes(index) ? 'bg-primary text-white' : 'bg-white text-gray-400 border border-gray-200'}`}>
+                                  {expandedFacilities.includes(index) ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                                </div>
+                                <div className="flex-1 max-w-xs" onClick={(e) => e.stopPropagation()}>
+                                  <select
+                                    value={facility.facility}
+                                    onChange={(e) => handleFacilityChange(index, 'facility', e.target.value)}
+                                    className={`w-full bg-white px-3 py-1.5 border ${errors[`facility_${index}`] ? 'border-red-500' : 'border-gray-200'} rounded-lg text-sm font-semibold text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all`}
+                                  >
+                                    <option value="">Select Amenity</option>
+                                    {availableFacilities.map((f) => (
+                                      <option key={f._id} value={f._id}>{f.name}</option>
+                                    ))}
+                                  </select>
+                                  {errors[`facility_${index}`] && <p className="text-red-500 text-[10px] mt-1 font-bold ml-1">{errors[`facility_${index}`]}</p>}
+                                </div>
+                                {!expandedFacilities.includes(index) && facility.available && (
+                                  <span className="hidden md:flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full uppercase">
+                                    <Check size={10} /> Available
+                                  </span>
+                                )}
                               </div>
                               <button
                                 type="button"
-                                onClick={() => removeFacility(index)}
+                                onClick={(e) => { e.stopPropagation(); removeFacility(index); }}
                                 className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                                 title="Remove Facility"
                               >
@@ -2270,7 +2628,7 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
                             </div>
 
                             {/* Body */}
-                            <div className="p-4 space-y-4">
+                            <div className={`p-4 space-y-4 transition-all ${expandedFacilities.includes(index) ? 'block animate-in slide-in-from-top-2 duration-200' : 'hidden'}`}>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
                                   <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Variant Name</label>
