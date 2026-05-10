@@ -946,6 +946,13 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
                     </p>
                     <span className="ml-1 text-gray-600">/ hour</span>
                   </div>
+                ) : venue.pricing?.blockRate ? (
+                  <div className="flex items-baseline">
+                    <p className="text-2xl font-bold text-gray-900">
+                      ₦{venue.pricing.blockRate.toLocaleString()}
+                    </p>
+                    <span className="ml-1 text-gray-600">/ {venue.pricing.blockDurationHours || 6}hrs</span>
+                  </div>
                 ) : (
                   <p className="text-2xl font-bold text-gray-500">Price not available</p>
                 )}
