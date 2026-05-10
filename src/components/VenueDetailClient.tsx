@@ -1017,10 +1017,10 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
                       className="w-full bg-emerald-50 text-emerald-700 border border-emerald-100 py-3 rounded-xl font-bold hover:bg-emerald-100 cursor-pointer transition duration-300 flex items-center justify-center gap-2"
                     >
                       <Ticket size={18} />
-                      Generate Discount Code
+                      Get Walk-In Discount Code
                     </button>
                     <p className="text-[10px] text-center font-bold text-emerald-600 uppercase tracking-wider">
-                      Get a {venue.referralDiscountPercentage || 2}% discount when paying for walk-in booking at the venue
+                      Use this code when paying at the venue to enjoy a {venue.referralDiscountPercentage || 2}% discount.
                     </p>
                   </div>
                 </div>

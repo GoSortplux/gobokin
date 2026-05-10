@@ -18,6 +18,7 @@ interface VenueCardProps {
 const VenueCard = ({ venue, variant = 'default' }: VenueCardProps) => {
   const { user } = useAuth();
   const [isHovered, setIsHovered] = useState(false);
+  const [activeSlide, setActiveSlide] = useState(0);
 
   const canSeeViews = useMemo(() => {
     if (!user) return false;
@@ -43,8 +44,12 @@ const VenueCard = ({ venue, variant = 'default' }: VenueCardProps) => {
 
   const { dailyRate, hourlyRate, blockRate, blockDurationHours } = venue.pricing || {};
 
-  const settings = {
-    dots: true,
+  const media = useMemo(() => {
+    return getReorderedMedia(venue.videos, venue.images);
+  }, [venue.videos, venue.images]);
+
+  const settings = useMemo(() => ({
+    dots: media.length <= 10,
     infinite: true,
     speed: 500,
     slidesToShow: 1,
@@ -54,13 +59,11 @@ const VenueCard = ({ venue, variant = 'default' }: VenueCardProps) => {
     autoplaySpeed: 2000,
     pauseOnHover: false,
     lazyLoad: 'ondemand' as const,
-  };
+    dotsClass: "slick-dots slick-thumb",
+    beforeChange: (_oldIndex: number, newIndex: number) => setActiveSlide(newIndex),
+  }), [media.length, isHovered]);
 
   const isFeatured = variant === 'featured';
-
-  const media = useMemo(() => {
-    return getReorderedMedia(venue.videos, venue.images);
-  }, [venue.videos, venue.images]);
 
   return (
     <div className="h-full">
@@ -72,8 +75,9 @@ const VenueCard = ({ venue, variant = 'default' }: VenueCardProps) => {
           isFeatured ? 'border-2 border-primary/10' : ''
         }`}
       >
-        <div className="relative venue-card-slider">
+        <div className="relative venue-card-slider group/slider">
           {media && media.length > 1 && isHovered ? (
+            <>
             <Slider {...settings} className="hall-card-slick">
               {media.map((item, index) => (
                 <Link href={`/venues/${createVenueSlug(venue.name, venue._id, venue.slug)}`} key={index}>
@@ -92,6 +96,12 @@ const VenueCard = ({ venue, variant = 'default' }: VenueCardProps) => {
                 </Link>
               ))}
             </Slider>
+            {media.length > 7 && (
+              <div className="absolute top-2 right-2 bg-black/50 backdrop-blur-sm text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium opacity-0 group-hover/slider:opacity-100 transition-opacity">
+                {activeSlide + 1}/{media.length}
+              </div>
+            )}
+            </>
           ) : (
             <Link href={`/venues/${createVenueSlug(venue.name, venue._id, venue.slug)}`}>
               <div className={`relative w-full ${isFeatured ? 'h-64 md:h-80' : 'h-48'}`}>

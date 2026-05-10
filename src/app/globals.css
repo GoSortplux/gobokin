@@ -98,17 +98,62 @@ input[type="reset"]:disabled {
 /* Custom styles for VenueCard slider dots */
 .hall-card-slick .slick-dots {
   bottom: 12px;
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 0 10px;
+  margin: 0;
+  list-style: none;
+  pointer-events: none;
+  overflow: hidden;
+  left: 0 !important;
+}
+
+.hall-card-slick .slick-dots li {
+  margin: 0 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hall-card-slick .slick-dots li button {
+  padding: 0;
+  width: 6px;
+  height: 6px;
+  pointer-events: auto;
 }
 
 .hall-card-slick .slick-dots li button:before {
-  color: white;
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: white;
   opacity: 0.5;
-  font-size: 8px;
+  font-size: 0; /* Hide the default character */
+  transition: all 0.2s ease;
 }
 
 .hall-card-slick .slick-dots li.slick-active button:before {
-  color: white;
   opacity: 1;
+  width: 8px;
+  height: 8px;
+}
+
+/* For many dots, scale them down to fit */
+.hall-card-slick .slick-dots:has(li:nth-child(8)) li button:before {
+  width: 4px;
+  height: 4px;
+}
+.hall-card-slick .slick-dots:has(li:nth-child(8)) li.slick-active button:before {
+  width: 6px;
+  height: 6px;
 }
 
 @media print {
