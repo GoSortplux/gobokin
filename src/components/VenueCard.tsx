@@ -41,7 +41,7 @@ const VenueCard = ({ venue, variant = 'default' }: VenueCardProps) => {
     return false;
   }, [user, venue]);
 
-  const { dailyRate, hourlyRate } = venue.pricing || {};
+  const { dailyRate, hourlyRate, blockRate, blockDurationHours } = venue.pricing || {};
 
   const settings = {
     dots: true,
@@ -142,6 +142,10 @@ const VenueCard = ({ venue, variant = 'default' }: VenueCardProps) => {
                 ) : (hourlyRate && hourlyRate > 0) ? (
                   <p>
                     <span className={`font-bold ${isFeatured ? 'text-lg md:text-xl' : 'text-sm'}`}>₦{hourlyRate.toLocaleString()}</span> / hour
+                  </p>
+                ) : blockRate ? (
+                  <p>
+                    <span className={`font-bold ${isFeatured ? 'text-lg md:text-xl' : 'text-sm'}`}>₦{blockRate.toLocaleString()}</span> / {blockDurationHours || 6}hrs
                   </p>
                 ) : (
                   <span className="text-gray-500">Price not available</span>
