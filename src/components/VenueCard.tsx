@@ -44,7 +44,11 @@ const VenueCard = ({ venue, variant = 'default' }: VenueCardProps) => {
 
   const { dailyRate, hourlyRate, blockRate, blockDurationHours } = venue.pricing || {};
 
-  const settings = {
+  const media = useMemo(() => {
+    return getReorderedMedia(venue.videos, venue.images);
+  }, [venue.videos, venue.images]);
+
+  const settings = useMemo(() => ({
     dots: media.length <= 10,
     infinite: true,
     speed: 500,
@@ -57,13 +61,9 @@ const VenueCard = ({ venue, variant = 'default' }: VenueCardProps) => {
     lazyLoad: 'ondemand' as const,
     dotsClass: "slick-dots slick-thumb",
     beforeChange: (_oldIndex: number, newIndex: number) => setActiveSlide(newIndex),
-  };
+  }), [media.length, isHovered]);
 
   const isFeatured = variant === 'featured';
-
-  const media = useMemo(() => {
-    return getReorderedMedia(venue.videos, venue.images);
-  }, [venue.videos, venue.images]);
 
   return (
     <div className="h-full">
