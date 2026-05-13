@@ -136,19 +136,19 @@ const VenueCard = ({ venue, variant = 'default' }: VenueCardProps) => {
             </p>
             <div className="mt-4 flex justify-between items-end">
               <div className={`${isFeatured ? 'text-sm md:text-base' : 'text-xs'} font-semibold text-gray-800 min-h-[2.5em] flex flex-col justify-end`}>
-                {dailyRate && dailyRate > 0 && (
+                {Number(dailyRate) > 0 && (
                   <p>
-                    <span className={`font-bold ${isFeatured ? 'text-lg md:text-xl' : 'text-sm'}`}>₦{dailyRate.toLocaleString()}</span>/day
+                    <span className={`font-bold ${isFeatured ? 'text-lg md:text-xl' : 'text-sm'}`}>₦{dailyRate?.toLocaleString()}</span>/day
                   </p>
                 )}
-                {hourlyRate && hourlyRate > 0 && (
+                {Number(hourlyRate) > 0 && (
                   <p>
-                    <span className={`font-bold ${isFeatured ? 'text-lg md:text-xl' : 'text-sm'}`}>₦{hourlyRate.toLocaleString()}</span>/hr
+                    <span className={`font-bold ${isFeatured ? 'text-lg md:text-xl' : 'text-sm'}`}>₦{hourlyRate?.toLocaleString()}</span>/hr
                   </p>
                 )}
-                {blockRate && blockRate > 0 && (
+                {Number(blockRate) > 0 && (
                   <p>
-                    <span className={`font-bold ${isFeatured ? 'text-lg md:text-xl' : 'text-sm'}`}>₦{blockRate.toLocaleString()}</span>/{blockDurationHours || 6}hrs
+                    <span className={`font-bold ${isFeatured ? 'text-lg md:text-xl' : 'text-sm'}`}>₦{blockRate?.toLocaleString()}</span>/{blockDurationHours || 6}hrs
                   </p>
                 )}
                 {(!dailyRate || dailyRate === 0) && (!hourlyRate || hourlyRate === 0) && (!blockRate || blockRate === 0) && (
