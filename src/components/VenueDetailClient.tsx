@@ -348,25 +348,70 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
 
       if (!currentVenue) return;
 
-      // Fetch recommendations only if geoLocation data is available
+      const currentId = currentVenue._id || currentVenue.id;
+
+      const getFallbackRecommendations = async (v: Venue) => {
+        try {
+          const response = await api.get<{ data: Venue[] }>('/halls');
+          const allVenues = response.data.data;
+          if (!Array.isArray(allVenues)) return [];
+
+          const currentPrice = v.pricing?.dailyRate || v.pricing?.hourlyRate || v.pricing?.blockRate || 0;
+
+          return allVenues
+            .filter(item => {
+              const itemId = item._id || item.id;
+              if (itemId === currentId) return false;
+
+              // Filter by capacity (at least 80%)
+              if (item.capacity < v.capacity * 0.8) return false;
+
+              // Filter by price (within 20% range)
+              const itemPrice = item.pricing?.dailyRate || item.pricing?.hourlyRate || item.pricing?.blockRate || 0;
+              if (currentPrice > 0) {
+                const minPrice = currentPrice * 0.8;
+                const maxPrice = currentPrice * 1.2;
+                if (itemPrice < minPrice || itemPrice > maxPrice) return false;
+              }
+
+              return true;
+            })
+            .sort((a, b) => {
+                // Sort by how close they are in capacity
+                return Math.abs(a.capacity - v.capacity) - Math.abs(b.capacity - v.capacity);
+            })
+            .slice(0, 10);
+        } catch (err) {
+          console.error('Failed to fetch fallback recommendations:', err);
+          return [];
+        }
+      };
+
+      // Try Geo-recommendations first
+      let recs: Venue[] = [];
       if (currentVenue.geoLocation?.coordinates && currentVenue.geoLocation.coordinates.length === 2) {
         const longitude = currentVenue.geoLocation.coordinates[0];
         const latitude = currentVenue.geoLocation.coordinates[1];
-        api.get<{ data: Venue[] }>(
-          `/halls/recommendations`,
-          {
-            params: { latitude, longitude },
-          }
-        ).then(recommendationsResponse => {
-          setRecommendations(recommendationsResponse.data.data || []);
-        }).catch(recErr => {
-          if (recErr.response?.status === 500) {
-            setRecommendationsUnavailable(true);
-          }
-          console.error('Failed to fetch recommendations:', recErr);
-          setRecommendations([]);
-        });
+        try {
+          const recommendationsResponse = await api.get<{ data: Venue[] }>(
+            `/halls/recommendations`,
+            {
+              params: { latitude, longitude },
+            }
+          );
+          recs = (recommendationsResponse.data.data || []).filter(r => (r._id || r.id) !== currentId);
+        } catch (recErr) {
+          console.error('Failed to fetch geo-recommendations:', recErr);
+        }
       }
+
+      // If geo-recs failed or returned empty, try fallback
+      if (recs.length === 0) {
+        recs = await getFallbackRecommendations(currentVenue);
+      }
+
+      setRecommendations(recs);
+      setRecommendationsUnavailable(false); // Reset this as we have a fallback or verified it's empty
 
       // Fetch reviews
       setReviewsLoading(true);
