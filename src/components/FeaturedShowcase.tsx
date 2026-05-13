@@ -181,16 +181,43 @@ const FeaturedShowcase = ({ venues = [], interval = 12000, badge = 'Featured Ven
                 <div className="h-6 md:h-10 w-px bg-white/10" />
 
                 <div className="flex flex-col">
-                  <span className="text-[8px] md:text-xs uppercase text-gray-400 font-bold tracking-wider">Starting From</span>
-                  <div className="flex items-baseline space-x-0.5 md:space-x-1">
-                    <span className="text-base sm:text-2xl md:text-3xl font-black text-white">
-                      ₦{(currentVenue.pricing?.hourlyRate && currentVenue.pricing.hourlyRate > 0
-                        ? currentVenue.pricing.hourlyRate
-                        : currentVenue.pricing?.dailyRate || 0).toLocaleString()}
-                    </span>
-                    <span className="text-[8px] md:text-sm text-gray-400">
-                      /{currentVenue.pricing?.hourlyRate && currentVenue.pricing.hourlyRate > 0 ? 'hr' : 'day'}
-                    </span>
+                  <span className="text-[8px] md:text-xs uppercase text-gray-400 font-bold tracking-wider">
+                    {((currentVenue.pricing?.dailyRate ? 1 : 0) + (currentVenue.pricing?.hourlyRate ? 1 : 0) + (currentVenue.pricing?.blockRate ? 1 : 0)) > 1 ? 'Pricing' : 'Starting From'}
+                  </span>
+                  <div className="flex flex-col space-y-0.5">
+                    {Number(currentVenue.pricing?.dailyRate) > 0 && (
+                      <div className="flex items-baseline space-x-0.5 md:space-x-1">
+                        <span className="text-base sm:text-lg md:text-2xl lg:text-3xl font-black text-white leading-tight">
+                          ₦{currentVenue.pricing?.dailyRate?.toLocaleString()}
+                        </span>
+                        <span className="text-[8px] md:text-sm text-gray-400 font-bold">/day</span>
+                      </div>
+                    )}
+                    {Number(currentVenue.pricing?.hourlyRate) > 0 && (
+                      <div className="flex items-baseline space-x-0.5 md:space-x-1">
+                        <span className="text-base sm:text-lg md:text-2xl lg:text-3xl font-black text-white leading-tight">
+                          ₦{currentVenue.pricing?.hourlyRate?.toLocaleString()}
+                        </span>
+                        <span className="text-[8px] md:text-sm text-gray-400 font-bold">/hr</span>
+                      </div>
+                    )}
+                    {Number(currentVenue.pricing?.blockRate) > 0 && (
+                      <div className="flex items-baseline space-x-0.5 md:space-x-1">
+                        <span className="text-base sm:text-lg md:text-2xl lg:text-3xl font-black text-white leading-tight">
+                          ₦{currentVenue.pricing?.blockRate?.toLocaleString()}
+                        </span>
+                        <span className="text-[8px] md:text-sm text-gray-400 font-bold">
+                          /{currentVenue.pricing?.blockDurationHours || 6}hrs
+                        </span>
+                      </div>
+                    )}
+                    {(!currentVenue.pricing || (
+                      !(currentVenue.pricing.dailyRate && currentVenue.pricing.dailyRate > 0) &&
+                      !(currentVenue.pricing.hourlyRate && currentVenue.pricing.hourlyRate > 0) &&
+                      !(currentVenue.pricing.blockRate && currentVenue.pricing.blockRate > 0)
+                    )) && (
+                      <span className="text-base font-bold text-gray-400">Price not available</span>
+                    )}
                   </div>
                 </div>
               </div>
