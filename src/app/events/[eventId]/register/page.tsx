@@ -46,6 +46,26 @@ const RegistrationForm = () => {
         const selectedTicket = eventData.tickets.find(t => t.id === ticketId);
         setTicket(selectedTicket || null);
 
+        if (selectedTicket) {
+          const maxLimit = Math.min(
+            selectedTicket.availableQuantity || 0,
+            selectedTicket.maxPerOrder && selectedTicket.maxPerOrder > 0 ? selectedTicket.maxPerOrder : Infinity
+          );
+
+          if (quantity > maxLimit) {
+            Swal.fire({
+              title: "Limit Exceeded",
+              text: `You can only purchase a maximum of ${maxLimit} tickets for this event.`,
+              icon: "warning",
+              confirmButtonText: "Return to Event",
+              confirmButtonColor: "#295FA7",
+            }).then(() => {
+              router.push(`/events/${eventId}`);
+            });
+            return;
+          }
+        }
+
         // Initialize attendees array based on quantity
         const initialAttendees = Array.from({ length: quantity }, () => ({
           "full-name": "",

@@ -57,6 +57,17 @@ const EventDetailClient = () => {
 
   const handleRegister = async () => {
     if (!selectedTicket) return;
+
+    const maxLimit = Math.min(
+      selectedTicket.availableQuantity || 0,
+      selectedTicket.maxPerOrder && selectedTicket.maxPerOrder > 0 ? selectedTicket.maxPerOrder : Infinity
+    );
+
+    if (quantity > maxLimit) {
+      Swal.fire("Limit Exceeded", `You can only purchase a maximum of ${maxLimit} tickets for this event.`, "warning");
+      return;
+    }
+
     router.push(`/events/${eventId}/register?ticketId=${selectedTicket.id}&qty=${quantity}`);
   };
 
@@ -357,7 +368,12 @@ const EventDetailClient = () => {
                      </div>
 
                      <div className="space-y-4">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Quantity</label>
+                        <div className="flex items-center justify-between ml-1">
+                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Quantity</label>
+                          {selectedTicket && selectedTicket.maxPerOrder > 0 && (
+                            <span className="text-[10px] font-black text-primary uppercase tracking-widest">Max {selectedTicket.maxPerOrder} per order</span>
+                          )}
+                        </div>
                         <div className="flex items-center gap-4 bg-gray-50 p-2.5 rounded-[2rem] border border-gray-100 shadow-sm">
                            <button
                              onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -365,8 +381,20 @@ const EventDetailClient = () => {
                            >-</button>
                            <div className="flex-1 text-center text-2xl font-black text-gray-900">{quantity}</div>
                            <button
-                             onClick={() => setQuantity(Math.min(selectedTicket?.availableQuantity || 1, quantity + 1))}
-                             className="w-14 h-14 bg-white rounded-2xl text-2xl font-black text-gray-900 hover:text-primary shadow-sm hover:shadow-md transition-all active:scale-95 flex items-center justify-center"
+                             onClick={() => {
+                               const maxLimit = Math.min(
+                                 selectedTicket?.availableQuantity || 1,
+                                 selectedTicket?.maxPerOrder && selectedTicket.maxPerOrder > 0 ? selectedTicket.maxPerOrder : Infinity
+                               );
+                               if (quantity < maxLimit) {
+                                 setQuantity(quantity + 1);
+                               }
+                             }}
+                             disabled={quantity >= Math.min(
+                               selectedTicket?.availableQuantity || 1,
+                               selectedTicket?.maxPerOrder && selectedTicket.maxPerOrder > 0 ? selectedTicket.maxPerOrder : Infinity
+                             )}
+                             className="w-14 h-14 bg-white rounded-2xl text-2xl font-black text-gray-900 hover:text-primary shadow-sm hover:shadow-md transition-all active:scale-95 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed"
                            >+</button>
                         </div>
                      </div>
