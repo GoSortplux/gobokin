@@ -122,7 +122,8 @@ const RegistrationForm = () => {
       const orderData = response.data.data;
 
       // If order is successful, check if it's a free ticket or needs payment
-      if (ticket?.price === 0) {
+      // Use Number() to handle cases where price might be a string "0"
+      if (Number(ticket?.price) === 0) {
         await Swal.fire({
           title: "Registration Successful!",
           text: "Your ticket has been sent to your email.",
