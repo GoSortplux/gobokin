@@ -43,6 +43,7 @@ const EventDiscoveryContent = () => {
     nearby: [],
     byCategory: {}
   });
+  const [heroBannerImage, setHeroBannerImage] = useState<string | null>(null);
   const [searchResults, setSearchResults] = useState<Event[]>([]);
   const [pagination, setPagination] = useState({ page: 1, limit: 12, total: 0, pages: 1 });
   const [searching, setSearching] = useState(false);
@@ -91,6 +92,24 @@ const EventDiscoveryContent = () => {
           nearby: data.nearby || [], // Assuming the API might return nearby
           byCategory: data.byCategory || {}
         });
+
+        // Collect all available banner images
+        const allEvents = [
+          ...(data.featured || []),
+          ...(data.upcoming || []),
+          ...(data.nearby || []),
+          ...Object.values(data.byCategory || {}).flat()
+        ];
+
+        const bannerImages = allEvents
+          .map(event => (event as Event).bannerUrl)
+          .filter((url): url is string => !!url);
+
+        if (bannerImages.length > 0) {
+          // Shuffle and pick one
+          const shuffled = [...bannerImages].sort(() => 0.5 - Math.random());
+          setHeroBannerImage(shuffled[0]);
+        }
       }
     } catch (error) {
       console.error("Failed to fetch discovery events:", error);
@@ -440,23 +459,23 @@ const EventDiscoveryContent = () => {
           </div>
 
           {/* Background Image with Gradient Overlay */}
-          {discoveryData?.featured?.[0]?.bannerUrl && (
-            <div className="absolute inset-0 z-0 select-none pointer-events-none">
+          {heroBannerImage && (
+            <div className="absolute inset-0 z-0 select-none pointer-events-none hero-banner-image">
               <div className="absolute inset-y-0 right-0 w-full h-full">
                 <Image
-                  src={discoveryData.featured[0].bannerUrl}
+                  src={heroBannerImage}
                   alt=""
                   fill
                   className="object-cover object-center"
                   priority
                 />
                 {/* Gradient overlay: pure white on left to keep text readable, transparent on right */}
-                <div className="absolute inset-0 bg-gradient-to-r from-white via-white/70 to-white/10 lg:from-white lg:via-white/50 lg:to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-white via-white/90 to-white/20 lg:from-white lg:via-white/80 lg:to-transparent"></div>
               </div>
             </div>
           )}
 
-          {!discoveryData?.featured?.[0]?.bannerUrl && (
+          {!heroBannerImage && (
             <>
               <div className="absolute -top-24 -right-24 w-80 h-80 bg-primary/5 rounded-full blur-[80px]"></div>
               <div className="absolute bottom-0 right-10 translate-y-1/4 hidden 2xl:block opacity-5">
