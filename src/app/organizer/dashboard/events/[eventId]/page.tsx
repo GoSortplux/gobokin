@@ -94,16 +94,34 @@ const EventDetails = () => {
       const fetchAttendees = async () => {
         try {
           setAttendeesLoading(true);
-          const response = await api.get(`/events/${eventId}/registrations`);
-          setAttendees(response.data.data || []);
-        } catch (error) {
-          console.error("Failed to fetch attendees:", error);
-          try {
-             const response = await api.get(`/events/orders/all?eventId=${eventId}`);
-             setAttendees(response.data.data || []);
-          } catch (_e) {
-             setAttendees([]);
+          // Correct endpoint according to requirements
+          const response = await api.get(`/events/${eventId}/orders`);
+
+          // Orders typically contain nested registration/attendee data
+          // If the API returns orders, we may need to flatten them for the attendees list
+          const orders = response.data.data || [];
+
+          // Based on common patterns in this repo, if orders have registrations:
+          let flattenedAttendees = [];
+          if (Array.isArray(orders)) {
+            flattenedAttendees = orders.flatMap((order: any) => {
+              if (order.registrations && Array.isArray(order.registrations)) {
+                return order.registrations.map((reg: any) => ({
+                  ...reg,
+                  orderId: order.id,
+                  amountPaid: order.amountPaid,
+                  paymentStatus: order.paymentStatus || order.status
+                }));
+              }
+              // Fallback if registrations are not nested
+              return [order];
+            });
           }
+
+          setAttendees(flattenedAttendees);
+        } catch (error) {
+          console.error("Failed to fetch attendees/orders:", error);
+          setAttendees([]);
         } finally {
           setAttendeesLoading(false);
         }

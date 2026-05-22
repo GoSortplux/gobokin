@@ -30,7 +30,8 @@ const OrdersView = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const response = await api.get("/events/orders/all"); // Assuming an endpoint for all organizer orders
+      // Using /events/orders/all for overview, or filter by event if needed
+      const response = await api.get("/events/orders/all");
       setOrders(response.data.data || []);
     } catch (error) {
       console.error("Failed to fetch orders:", error);
