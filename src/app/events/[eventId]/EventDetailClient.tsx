@@ -101,10 +101,10 @@ const EventDetailClient = () => {
   };
 
   if (loading) return <div className="min-h-screen pt-32 flex items-center justify-center bg-gray-50"><CustomLoader /></div>;
-  if (!event) return <div className="p-20 text-center bg-gray-50"><h3 className="text-xl font-bold">Event not found</h3></div>;
+  if (!event) return <div className="p-20 text-center bg-gray-50"><h3 className="text-xl font-semibold">Event not found</h3></div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-24 pb-24">
+    <div className="min-h-screen bg-white pt-24 pb-24">
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Breadcrumbs - Minimal Luma style */}
         <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-8 overflow-x-auto no-scrollbar whitespace-nowrap">
@@ -123,7 +123,7 @@ const EventDetailClient = () => {
 
             {/* High-Impact Hero Section */}
             <div className="space-y-6">
-               <div className="relative aspect-video lg:aspect-[21/10] rounded-3xl overflow-hidden shadow-xl group">
+               <div className="relative aspect-video lg:aspect-[21/10] rounded-2xl overflow-hidden shadow-sm group border border-gray-100">
                   {event.bannerUrl ? (
                     <Image src={event.bannerUrl} alt={event.title} fill className="object-cover group-hover:scale-105 transition-transform duration-1000" />
                   ) : (
@@ -134,7 +134,7 @@ const EventDetailClient = () => {
 
                   {/* Floating Date Badge */}
                   <div className="absolute top-6 left-6">
-                     <div className="bg-white/95 backdrop-blur-md px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3.5">
+                     <div className="bg-white/95 backdrop-blur-md px-4 py-2 rounded-xl shadow-md flex items-center gap-3.5">
                         <div className="flex flex-col items-center">
                            <span className="text-[10px] font-semibold uppercase tracking-widest text-primary mb-0.5">
                              {new Date(event.startDate).toLocaleDateString(undefined, { month: 'short' })}
@@ -180,13 +180,13 @@ const EventDetailClient = () => {
 
             {/* Content Tabs */}
             <div className="space-y-8">
-               <div className="flex items-center gap-2 p-1.5 bg-white rounded-2xl border border-gray-100 shadow-sm w-fit">
+               <div className="flex items-center gap-2 p-1.5 bg-gray-50 rounded-xl border border-gray-100 w-fit">
                   {["overview", "schedule", "tickets"].map(tab => (
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
-                      className={`px-8 py-3 rounded-xl text-xs font-semibold uppercase tracking-widest transition-all duration-300 ${
-                        activeTab === tab ? "bg-primary text-white shadow-lg shadow-primary/10" : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                      className={`px-8 py-3 rounded-lg text-xs font-semibold uppercase tracking-widest transition-all duration-300 ${
+                        activeTab === tab ? "bg-white text-primary shadow-sm" : "text-gray-500 hover:text-gray-900 hover:bg-gray-100/50"
                       }`}
                     >
                       {tab}
@@ -194,7 +194,7 @@ const EventDetailClient = () => {
                   ))}
                </div>
 
-               <div className="bg-white p-8 lg:p-12 rounded-[2rem] border border-gray-100 shadow-sm min-h-[400px] relative overflow-hidden">
+               <div className="bg-white p-8 lg:p-12 rounded-2xl border border-gray-100 shadow-sm min-h-[400px] relative overflow-hidden">
                   {/* Decorative element */}
                   <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[100px] -mr-32 -mt-32"></div>
 
@@ -272,10 +272,10 @@ const EventDetailClient = () => {
                         </div>
                       ) : (
                         <div className="py-32 text-center">
-                           <div className="w-24 h-24 bg-gray-50 rounded-[3rem] flex items-center justify-center mx-auto mb-6 text-gray-300">
-                             <Clock size={48} />
+                           <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-6 text-gray-300">
+                             <Clock size={40} />
                            </div>
-                           <h4 className="text-xl font-black text-gray-900 mb-2">Timeline being finalized</h4>
+                           <h4 className="text-xl font-semibold text-gray-900 mb-2">Timeline being finalized</h4>
                            <p className="text-gray-500 font-medium">The organizer is putting the final touches on the schedule.</p>
                         </div>
                       )}
@@ -293,8 +293,8 @@ const EventDetailClient = () => {
                              <button
                                key={ticket.id}
                                onClick={() => setSelectedTicket(ticket)}
-                               className={`p-8 rounded-3xl text-left border-2 transition-all duration-500 relative overflow-hidden group ${
-                                 selectedTicket?.id === ticket.id ? "border-primary bg-blue-50/10 shadow-lg shadow-primary/5" : "border-gray-100 hover:border-gray-200 hover:bg-gray-50"
+                               className={`p-6 rounded-2xl text-left border transition-all duration-500 relative overflow-hidden group ${
+                                 selectedTicket?.id === ticket.id ? "border-primary bg-primary/5 shadow-sm" : "border-gray-100 hover:border-gray-200 hover:bg-gray-50"
                                }`}
                              >
                                 <div className="flex items-center justify-between mb-6">
@@ -338,7 +338,7 @@ const EventDetailClient = () => {
             <div className="sticky top-32 space-y-6">
 
                {/* Primary CTA Box */}
-               <div className="bg-white rounded-3xl border border-gray-100 shadow-xl p-8 lg:p-10 space-y-8 overflow-hidden relative">
+               <div className="bg-white rounded-2xl border border-gray-100 shadow-lg p-8 lg:p-10 space-y-8 overflow-hidden relative">
                   {/* Decorative Luma circle */}
                   <div className="absolute -top-16 -right-16 w-48 h-48 bg-primary/5 rounded-full blur-3xl"></div>
 
@@ -400,7 +400,7 @@ const EventDetailClient = () => {
                      </div>
                   </div>
 
-                  <div className="bg-gray-50 rounded-3xl p-8 space-y-4 relative z-10 border border-gray-100/50">
+                  <div className="bg-gray-50 rounded-2xl p-6 space-y-4 relative z-10 border border-gray-100/50">
                      <div className="flex items-center justify-between text-xs font-semibold text-gray-500 uppercase tracking-widest">
                         <span>{selectedTicket?.name || 'Selection'}</span>
                         <span className="text-gray-900">₦{((selectedTicket?.price || 0) * quantity).toLocaleString()}</span>
@@ -456,7 +456,7 @@ const EventDetailClient = () => {
                </div>
 
                {/* Secondary Save Date Options - Explicit Luma Style */}
-               <div className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm space-y-6">
+               <div className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm space-y-6">
                   <div className="flex items-center gap-3">
                      <div className="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center">
                         <BookmarkPlus size={20} />
@@ -485,7 +485,7 @@ const EventDetailClient = () => {
                </div>
 
                {/* Minimalist Organizer Card */}
-               <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
+               <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
                   <div className="w-14 h-14 bg-primary/5 rounded-xl flex items-center justify-center text-primary text-xl font-semibold relative overflow-hidden">
                      {event.organizer?.userProfile?.fullName?.[0] || 'O'}
                   </div>

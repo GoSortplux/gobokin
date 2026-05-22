@@ -203,12 +203,12 @@ const EventDiscoveryContent = () => {
 
     return (
     <div
-      className={`bg-white border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:shadow-primary/5 transition-all duration-500 group relative ${
-        variant === 'featured' ? 'rounded-3xl' : 'rounded-2xl'
+      className={`bg-white border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-all duration-500 group relative ${
+        variant === 'featured' ? 'rounded-2xl' : 'rounded-xl'
       }`}
     >
       <Link href={`/events/${event.id}`} className="block">
-      <div className={`relative w-full overflow-hidden ${variant === 'featured' ? 'h-72' : 'h-56'}`}>
+      <div className={`relative w-full overflow-hidden ${variant === 'featured' ? 'h-64' : 'h-48'}`}>
         {event.bannerUrl ? (
           <Image src={event.bannerUrl} alt={event.title} fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
         ) : (
@@ -317,7 +317,7 @@ const EventDiscoveryContent = () => {
 
   const FilterSidebar = () => (
     <aside className="hidden lg:block w-72 space-y-6 flex-shrink-0">
-      <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-6 sticky top-32">
+      <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6 sticky top-32">
         <div className="flex items-center justify-between">
            <h4 className="font-semibold text-gray-900 uppercase tracking-tighter text-base flex items-center gap-2">
              <Filter size={18} className="text-primary" />
@@ -400,12 +400,12 @@ const EventDiscoveryContent = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-24 pb-20">
+    <div className="min-h-screen bg-white pt-24 pb-20">
       {/* Hero Section - Immersive & Minimal */}
-      <section className="container mx-auto px-4 mb-8">
-        <div className="bg-white border border-gray-100 rounded-3xl p-8 lg:py-10 lg:px-12 text-gray-900 relative overflow-hidden shadow-sm">
-          <div className="relative z-10 max-w-4xl">
-            <div className="inline-flex items-center gap-2 bg-gray-50 border border-gray-100 px-3 py-1.5 rounded-full text-[10px] font-semibold uppercase tracking-widest mb-4">
+      <section className="container mx-auto px-4 mb-12">
+        <div className="bg-white border border-gray-100 rounded-2xl p-8 lg:py-10 lg:px-12 text-gray-900 relative overflow-hidden shadow-sm min-h-[320px] flex items-center">
+          <div className="relative z-10 max-w-2xl">
+            <div className="inline-flex items-center gap-2 bg-gray-50/80 backdrop-blur-sm border border-gray-100 px-3 py-1.5 rounded-full text-[10px] font-semibold uppercase tracking-widest mb-4">
               <Sparkles size={12} className="text-amber-500" />
               Explore curated experiences
             </div>
@@ -431,7 +431,7 @@ const EventDiscoveryContent = () => {
                       const el = document.getElementById('main-listing');
                       el?.scrollIntoView({ behavior: 'smooth' });
                     }}
-                    className="bg-white border border-gray-200 text-gray-700 px-6 py-3 rounded-xl text-sm font-semibold uppercase tracking-widest hover:bg-gray-50 transition-all"
+                    className="bg-white border border-gray-200 text-gray-700 px-6 py-3 rounded-xl text-sm font-semibold uppercase tracking-widest hover:bg-gray-50 transition-all shadow-sm"
                   >
                     Browse List
                   </button>
@@ -439,14 +439,34 @@ const EventDiscoveryContent = () => {
             </div>
           </div>
 
-          {/* Decorative Elements - Modern Luma Style */}
-          <div className="absolute -top-24 -right-24 w-80 h-80 bg-primary/5 rounded-full blur-[80px]"></div>
-          <div className="absolute bottom-0 right-10 translate-y-1/4 hidden 2xl:block opacity-5">
-             <div className="relative">
-                <div className="w-64 h-80 bg-gray-100 rounded-3xl border border-gray-200 shadow-sm rotate-6"></div>
-                <div className="absolute inset-0 w-64 h-80 bg-gray-100 rounded-3xl border border-gray-200 shadow-sm -rotate-3"></div>
-             </div>
-          </div>
+          {/* Background Image with Gradient Overlay */}
+          {discoveryData?.featured?.[0]?.bannerUrl && (
+            <div className="absolute inset-0 z-0 select-none pointer-events-none">
+              <div className="absolute inset-y-0 right-0 w-full h-full">
+                <Image
+                  src={discoveryData.featured[0].bannerUrl}
+                  alt=""
+                  fill
+                  className="object-cover object-center"
+                  priority
+                />
+                {/* Gradient overlay: pure white on left to keep text readable, transparent on right */}
+                <div className="absolute inset-0 bg-gradient-to-r from-white via-white/70 to-white/10 lg:from-white lg:via-white/50 lg:to-transparent"></div>
+              </div>
+            </div>
+          )}
+
+          {!discoveryData?.featured?.[0]?.bannerUrl && (
+            <>
+              <div className="absolute -top-24 -right-24 w-80 h-80 bg-primary/5 rounded-full blur-[80px]"></div>
+              <div className="absolute bottom-0 right-10 translate-y-1/4 hidden 2xl:block opacity-5">
+                 <div className="relative">
+                    <div className="w-64 h-80 bg-gray-100 rounded-2xl border border-gray-200 shadow-sm rotate-6"></div>
+                    <div className="absolute inset-0 w-64 h-80 bg-gray-100 rounded-2xl border border-gray-200 shadow-sm -rotate-3"></div>
+                 </div>
+              </div>
+            </>
+          )}
         </div>
       </section>
 
@@ -494,7 +514,7 @@ const EventDiscoveryContent = () => {
                   </div>
 
                   {searchResults.length === 0 && (
-                    <div className="py-24 text-center bg-white rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden">
+                    <div className="py-24 text-center bg-white rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden">
                       <div className="absolute -top-24 -left-24 w-64 h-64 bg-gray-50 rounded-full blur-3xl"></div>
                       <div className="relative z-10">
                         <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-6 text-gray-300">
@@ -533,7 +553,7 @@ const EventDiscoveryContent = () => {
                   )}
                 </>
               ) : (
-                <div className="relative h-[700px] w-full rounded-[3.5rem] overflow-hidden border border-gray-100 shadow-2xl bg-gray-100 group">
+                <div className="relative h-[700px] w-full rounded-2xl overflow-hidden border border-gray-100 shadow-2xl bg-gray-100 group">
                   <iframe
                     width="100%"
                     height="100%"
@@ -543,18 +563,18 @@ const EventDiscoveryContent = () => {
                     src={`https://www.google.com/maps/embed/v1/place?key=PLACEHOLDER_KEY&q=${encodeURIComponent(locationTerm || 'Lagos, Nigeria')}`}
                   ></iframe>
                   <div className="absolute inset-0 bg-black/5 flex flex-col items-center justify-center pointer-events-none group-hover:bg-black/0 transition-colors">
-                     <div className="bg-white/95 backdrop-blur-xl p-10 rounded-[3rem] shadow-2xl text-center max-w-md pointer-events-auto border border-white relative overflow-hidden">
+                     <div className="bg-white/95 backdrop-blur-xl p-10 rounded-2xl shadow-2xl text-center max-w-md pointer-events-auto border border-white relative overflow-hidden">
                         <div className="absolute -top-12 -right-12 w-32 h-32 bg-primary/10 rounded-full blur-2xl"></div>
                         <div className="w-20 h-20 bg-primary/10 text-primary rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-inner">
                           <MapIcon size={32} />
                         </div>
-                        <h3 className="text-2xl font-black text-gray-900 mb-4 tracking-tighter">Interactive Map Explorer</h3>
-                        <p className="text-gray-500 font-bold leading-relaxed mb-8">
+                        <h3 className="text-2xl font-semibold text-gray-900 mb-4 tracking-tighter">Interactive Map Explorer</h3>
+                        <p className="text-gray-500 font-medium leading-relaxed mb-8">
                           Visualize events happening across the city. Click pins to explore details and book tickets instantly.
                         </p>
                         <button
                           onClick={() => setViewMode('grid')}
-                          className="px-8 py-4 bg-primary text-white font-black rounded-2xl shadow-xl shadow-primary/20 flex items-center gap-3 mx-auto hover:scale-105 transition-all"
+                          className="px-8 py-4 bg-primary text-white font-semibold rounded-2xl shadow-xl shadow-primary/20 flex items-center gap-3 mx-auto hover:scale-105 transition-all"
                         >
                           <LayoutGrid size={20} />
                           Back to Grid Layout
