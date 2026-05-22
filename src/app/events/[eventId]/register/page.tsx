@@ -100,10 +100,21 @@ const RegistrationForm = () => {
     try {
       Swal.showLoading();
 
+      // Map attendees to use 'fullName' instead of 'full-name' and include buyerInfo
+      const mappedAttendees = attendees.map(att => ({
+        ...att,
+        fullName: att["full-name"],
+      }));
+
       const payload = {
         ticketId: ticketId,
         quantity: quantity,
-        attendees: attendees,
+        buyerInfo: {
+          fullName: attendees[0]["full-name"],
+          email: attendees[0]["email"],
+          phone: attendees[0]["phone"],
+        },
+        attendees: mappedAttendees,
         sharedData: sharedData,
       };
 
