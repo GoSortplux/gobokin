@@ -2,11 +2,12 @@
 import React, { useState, useEffect } from "react";
 import api from "@/services/api";
 import CustomLoader from "@/components/CustomLoader";
-import { Ticket, Calendar, MapPin, Tag, QrCode, Download } from "lucide-react";
+import { Ticket, Calendar, MapPin, Tag, QrCode, Download, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { format } from "date-fns";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
+import RegistrationDetailsModal from "./RegistrationDetailsModal";
 
 interface Registration {
   id: string;
@@ -30,6 +31,7 @@ interface Registration {
 const EventsView = () => {
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedRegistration, setSelectedRegistration] = useState<Registration | null>(null);
 
   useEffect(() => {
     const fetchRegistrations = async () => {
@@ -71,6 +73,12 @@ const EventsView = () => {
 
   return (
     <div className="space-y-6">
+      {selectedRegistration && (
+        <RegistrationDetailsModal
+          registration={selectedRegistration}
+          onClose={() => setSelectedRegistration(null)}
+        />
+      )}
       <div className="flex items-center justify-between mb-8">
          <h2 className="text-2xl font-black text-gray-900 tracking-tight">My Event Tickets</h2>
          <span className="px-4 py-2 bg-primary/10 text-primary text-xs font-black rounded-full uppercase tracking-widest">
@@ -80,7 +88,11 @@ const EventsView = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {registrations.map((reg) => (
-          <div key={reg.id} className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all duration-500 group overflow-hidden">
+          <div
+            key={reg.id}
+            onClick={() => setSelectedRegistration(reg)}
+            className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all duration-500 group overflow-hidden cursor-pointer"
+          >
             <div className="flex flex-col sm:flex-row h-full">
                {/* Left: Event Banner */}
                <div className="relative w-full sm:w-48 h-48 sm:h-auto bg-gray-100 flex-shrink-0">
@@ -133,16 +145,14 @@ const EventsView = () => {
                      </div>
                      <div className="flex items-center gap-2">
                         <button
-                           className="w-10 h-10 rounded-xl bg-gray-50 text-gray-400 hover:text-primary hover:bg-blue-50 transition-all flex items-center justify-center"
-                           title="View QR Code"
+                           className="w-10 h-10 rounded-xl bg-primary/5 text-primary hover:bg-primary hover:text-white transition-all flex items-center justify-center"
+                           title="View Details"
+                           onClick={(e) => {
+                             e.stopPropagation();
+                             setSelectedRegistration(reg);
+                           }}
                         >
-                           <QrCode size={18} />
-                        </button>
-                        <button
-                           className="w-10 h-10 rounded-xl bg-gray-50 text-gray-400 hover:text-primary hover:bg-blue-50 transition-all flex items-center justify-center"
-                           title="Download PDF"
-                        >
-                           <Download size={18} />
+                           <ChevronRight size={18} />
                         </button>
                      </div>
                   </div>
