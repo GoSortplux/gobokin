@@ -130,7 +130,7 @@ const RegistrationForm = () => {
           icon: "success",
           confirmButtonColor: "#295FA7",
         });
-        router.push("/dashboard");
+        router.push("/dashboard?tab=events");
       } else {
         // Extract registration IDs for payment initialization
         const registrationIds = orderData.registrations.map((reg: any) => reg.id);

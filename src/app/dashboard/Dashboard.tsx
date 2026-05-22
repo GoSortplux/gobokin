@@ -1,12 +1,21 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import BookingsView from "./BookingsView";
 import SettingsView from "./SettingsView";
 import ReservationsList from "@/components/ReservationsList";
+import EventsView from "./EventsView";
 
-const Dashboard = () => {
+const DashboardContent = () => {
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState("bookings");
 
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab && ["bookings", "reservations", "events", "settings"].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="container mx-auto px-4 py-12">
@@ -15,6 +24,7 @@ const Dashboard = () => {
             {[
               { id: "bookings", label: "My Bookings" },
               { id: "reservations", label: "My Reservations" },
+              { id: "events", label: "My Events" },
               { id: "settings", label: "Profile Settings" },
             ].map((tab) => (
               <button
@@ -34,11 +44,18 @@ const Dashboard = () => {
         <main className="py-8">
           {activeTab === "bookings" && <BookingsView />}
           {activeTab === "reservations" && <ReservationsList />}
+          {activeTab === "events" && <EventsView />}
           {activeTab === "settings" && <SettingsView />}
         </main>
       </div>
     </div>
   );
 };
+
+const Dashboard = () => (
+  <Suspense fallback={null}>
+    <DashboardContent />
+  </Suspense>
+);
 
 export default Dashboard;
