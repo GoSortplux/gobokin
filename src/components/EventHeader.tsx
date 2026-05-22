@@ -107,7 +107,7 @@ const EventHeaderContent = () => {
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? "bg-white shadow-md h-16" : "bg-white/80 backdrop-blur-md h-20"
+        scrolled ? "bg-white shadow-sm h-16" : "bg-white/80 backdrop-blur-md h-20"
       } border-b border-gray-100`}
     >
       <div className="container mx-auto px-4 h-full flex items-center justify-between gap-4">
@@ -122,21 +122,21 @@ const EventHeaderContent = () => {
               className="h-8 w-auto object-contain"
             />
             <div className="w-px h-6 bg-gray-200 hidden sm:block"></div>
-            <span className="text-lg font-black text-gray-900 tracking-tighter uppercase hidden sm:block">Events</span>
+            <span className="text-lg font-semibold text-gray-900 tracking-tighter uppercase hidden sm:block">Events</span>
           </Link>
         </div>
 
         {/* Search Bar - Desktop */}
         <form
           onSubmit={handleSearch}
-          className="hidden md:flex flex-1 max-w-lg bg-gray-50 border border-gray-200 rounded-2xl p-1 items-center transition-all duration-300 hover:bg-white hover:shadow-lg focus-within:bg-white focus-within:shadow-lg focus-within:border-primary/30"
+          className="hidden md:flex flex-1 max-w-lg bg-gray-50 border border-gray-200 rounded-xl p-1 items-center transition-all duration-300 hover:bg-white hover:shadow-md focus-within:bg-white focus-within:shadow-md focus-within:border-primary/30"
         >
           <div className="flex-[1.2] flex items-center px-3 gap-2 border-r border-gray-200">
             <Search size={16} className="text-gray-400" />
             <input
               type="text"
               placeholder="Search events..."
-              className="bg-transparent border-none focus:ring-0 text-xs font-bold text-gray-700 w-full placeholder:text-gray-400"
+              className="bg-transparent border-none focus:ring-0 text-xs font-semibold text-gray-700 w-full placeholder:text-gray-400"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -150,7 +150,7 @@ const EventHeaderContent = () => {
               <input
                 type="text"
                 placeholder="Location"
-                className="bg-transparent border-none focus:ring-0 text-xs font-bold text-gray-700 w-full placeholder:text-gray-400 cursor-pointer outline-none"
+                className="bg-transparent border-none focus:ring-0 text-xs font-semibold text-gray-700 w-full placeholder:text-gray-400 cursor-pointer outline-none"
                 value={locationTerm}
                 onChange={(e) => setLocationTerm(e.target.value)}
                 onFocus={(e) => {
@@ -166,12 +166,12 @@ const EventHeaderContent = () => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
-                  className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 overflow-hidden min-w-[200px]"
+                  className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50 overflow-hidden min-w-[200px]"
                 >
                   <button
                     type="button"
                     onClick={handleUseCurrentLocation}
-                    className="flex items-center gap-3 w-full px-4 py-2.5 text-xs font-bold text-primary hover:bg-primary/5 transition-colors border-b border-gray-50"
+                    className="flex items-center gap-3 w-full px-4 py-2.5 text-xs font-semibold text-primary hover:bg-primary/5 transition-colors border-b border-gray-50"
                   >
                     <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
                       <MapPin size={14} />
@@ -179,7 +179,7 @@ const EventHeaderContent = () => {
                     Use Current Location
                   </button>
                   <div className="px-4 py-2">
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Popular Cities</p>
+                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Popular Cities</p>
                   </div>
                   <div className="max-h-48 overflow-y-auto">
                     {popularLocations.map((loc) => (
@@ -190,7 +190,7 @@ const EventHeaderContent = () => {
                           setLocationTerm(loc);
                           setShowLocationDropdown(false);
                         }}
-                        className="flex items-center gap-3 w-full px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+                        className="flex items-center gap-3 w-full px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
                       >
                         {loc}
                       </button>
@@ -202,7 +202,7 @@ const EventHeaderContent = () => {
           </div>
           <button
             type="submit"
-            className="bg-primary text-white p-2 rounded-xl hover:bg-blue-700 transition-all hover:scale-105 active:scale-95 shadow-sm"
+            className="bg-primary text-white p-2 rounded-lg hover:bg-blue-700 transition-all hover:scale-105 active:scale-95 shadow-sm"
           >
             <Search size={16} />
           </button>
@@ -212,7 +212,7 @@ const EventHeaderContent = () => {
         <div className="flex items-center gap-2 sm:gap-4">
           <Link
             href="/events"
-            className={`hidden lg:flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black transition-colors ${
+            className={`hidden lg:flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
               pathname === "/events" ? "text-primary bg-primary/5" : "text-gray-600 hover:bg-gray-50"
             }`}
           >
@@ -251,15 +251,15 @@ const EventHeaderContent = () => {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 10 }}
-                      className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-[60]"
+                      className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-[60]"
                     >
                       <div className="px-4 py-3 border-b border-gray-50 mb-2">
-                        <p className="text-sm font-black text-gray-900 truncate">{user.fullName}</p>
+                        <p className="text-sm font-semibold text-gray-900 truncate">{user.fullName}</p>
                         <p className="text-xs text-gray-500 truncate">{user.email}</p>
                       </div>
                       <Link
                         href={dashboardUrl}
-                        className="flex items-center gap-3 px-4 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50"
+                        className="flex items-center gap-3 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
                         onClick={() => setDropdownOpen(false)}
                       >
                         <LayoutDashboard size={18} className="text-gray-400" />
@@ -267,7 +267,7 @@ const EventHeaderContent = () => {
                       </Link>
                       <button
                         onClick={logout}
-                        className="flex items-center gap-3 w-full px-4 py-2 text-sm font-bold text-red-600 hover:bg-red-50"
+                        className="flex items-center gap-3 w-full px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50"
                       >
                         <LogOut size={18} />
                         Logout
@@ -280,7 +280,7 @@ const EventHeaderContent = () => {
           ) : (
             <Link
               href="/auth/login"
-              className="bg-primary text-white px-6 py-2.5 rounded-xl text-sm font-black shadow-lg shadow-primary/20 hover:scale-105 transition-all"
+              className="bg-primary text-white px-6 py-2.5 rounded-lg text-sm font-semibold shadow-md shadow-primary/10 hover:scale-105 transition-all"
             >
               Login
             </Link>
@@ -326,7 +326,7 @@ const EventHeaderContent = () => {
                     <input
                       type="text"
                       placeholder="Search events..."
-                      className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all focus:bg-white focus:shadow-lg"
+                      className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-primary/20 outline-none transition-all focus:bg-white focus:shadow-md"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -336,7 +336,7 @@ const EventHeaderContent = () => {
                     <input
                       type="text"
                       placeholder="Location"
-                      className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all focus:bg-white focus:shadow-lg"
+                      className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-primary/20 outline-none transition-all focus:bg-white focus:shadow-md"
                       value={locationTerm}
                       onChange={(e) => setLocationTerm(e.target.value)}
                       onFocus={() => setShowMobileLocationDropdown(true)}
@@ -348,12 +348,12 @@ const EventHeaderContent = () => {
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: 'auto' }}
                           exit={{ opacity: 0, height: 0 }}
-                          className="mt-2 bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden relative z-50 shadow-lg"
+                          className="mt-2 bg-gray-50 rounded-xl border border-gray-100 overflow-hidden relative z-50 shadow-md"
                         >
                           <button
                             type="button"
                             onClick={handleUseCurrentLocation}
-                            className="flex items-center gap-3 w-full px-4 py-4 text-sm font-bold text-primary border-b border-gray-100"
+                            className="flex items-center gap-3 w-full px-4 py-4 text-sm font-semibold text-primary border-b border-gray-100"
                           >
                             <MapPin size={18} />
                             Use Current Location
@@ -367,7 +367,7 @@ const EventHeaderContent = () => {
                                   setLocationTerm(loc);
                                   setShowMobileLocationDropdown(false);
                                 }}
-                                className="flex items-center gap-3 w-full px-4 py-3 text-sm font-bold text-gray-600 border-b border-gray-100 last:border-none"
+                                className="flex items-center gap-3 w-full px-4 py-3 text-sm font-semibold text-gray-600 border-b border-gray-100 last:border-none"
                               >
                                 {loc}
                               </button>
@@ -377,18 +377,18 @@ const EventHeaderContent = () => {
                       )}
                     </AnimatePresence>
                  </div>
-                 <button type="submit" className="w-full py-4 bg-primary text-white rounded-2xl font-black shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">
+                 <button type="submit" className="w-full py-4 bg-primary text-white rounded-xl font-semibold shadow-md shadow-primary/10 hover:scale-[1.02] active:scale-95 transition-all">
                     Find Events
                  </button>
               </form>
 
               <nav className="flex flex-col gap-2">
-                 <Link href="/events" className="flex items-center gap-3 p-4 rounded-2xl font-bold text-gray-700 hover:bg-gray-50 transition-colors">
+                 <Link href="/events" className="flex items-center gap-3 p-4 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
                     <Calendar size={20} className="text-primary" />
                     Explore Events
                  </Link>
                  {user && (
-                    <Link href={dashboardUrl} className="flex items-center gap-3 p-4 rounded-2xl font-bold text-gray-700 hover:bg-gray-50 transition-colors">
+                    <Link href={dashboardUrl} className="flex items-center gap-3 p-4 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
                        <LayoutDashboard size={20} className="text-primary" />
                        Go to Dashboard
                     </Link>
@@ -397,17 +397,17 @@ const EventHeaderContent = () => {
 
               {!user && (
                  <div className="mt-auto space-y-4">
-                    <Link href="/auth/login" className="block w-full py-4 text-center bg-primary text-white rounded-2xl font-black shadow-lg shadow-primary/20">
+                    <Link href="/auth/login" className="block w-full py-4 text-center bg-primary text-white rounded-xl font-semibold shadow-md shadow-primary/10">
                        Login
                     </Link>
-                    <Link href="/auth/register" className="block w-full py-4 text-center border-2 border-primary text-primary rounded-2xl font-black">
+                    <Link href="/auth/register" className="block w-full py-4 text-center border-2 border-primary text-primary rounded-xl font-semibold">
                        Create Account
                     </Link>
                  </div>
               )}
 
               {user && (
-                 <button onClick={logout} className="mt-auto flex items-center gap-3 p-4 text-red-600 font-bold hover:bg-red-50 rounded-2xl transition-colors">
+                 <button onClick={logout} className="mt-auto flex items-center gap-3 p-4 text-red-600 font-semibold hover:bg-red-50 rounded-xl transition-colors">
                     <LogOut size={20} />
                     Logout
                  </button>
