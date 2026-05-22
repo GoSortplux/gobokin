@@ -2,12 +2,11 @@
 import React, { useState, useEffect } from "react";
 import api from "@/services/api";
 import CustomLoader from "@/components/CustomLoader";
-import { Ticket, Calendar, MapPin, Tag, QrCode, Download, ChevronRight } from "lucide-react";
-import Image from "next/image";
-import { format } from "date-fns";
+import { Ticket } from "lucide-react";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 import RegistrationDetailsModal from "./RegistrationDetailsModal";
+import EventTicketCard from "./EventTicketCard";
 
 interface Registration {
   id: string;
@@ -81,84 +80,18 @@ const EventsView = () => {
       )}
       <div className="flex items-center justify-between mb-8">
          <h2 className="text-2xl font-black text-gray-900 tracking-tight">My Event Tickets</h2>
-         <span className="px-4 py-2 bg-primary/10 text-primary text-xs font-black rounded-full uppercase tracking-widest">
+         <span className="px-4 py-2 bg-emerald-50 text-emerald-600 text-xs font-black rounded-full uppercase tracking-widest border border-emerald-100">
             {registrations.length} Total
          </span>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {registrations.map((reg) => (
-          <div
+          <EventTicketCard
             key={reg.id}
-            onClick={() => setSelectedRegistration(reg)}
-            className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all duration-500 group overflow-hidden cursor-pointer"
-          >
-            <div className="flex flex-col sm:flex-row h-full">
-               {/* Left: Event Banner */}
-               <div className="relative w-full sm:w-48 h-48 sm:h-auto bg-gray-100 flex-shrink-0">
-                  {reg.event.bannerUrl ? (
-                    <Image
-                      src={reg.event.bannerUrl}
-                      alt={reg.event.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-700"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-300 bg-gray-50">
-                       <Calendar size={48} />
-                    </div>
-                  )}
-                  <div className="absolute top-4 left-4">
-                     <div className="bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-xl shadow-sm flex flex-col items-center leading-none">
-                        <span className="text-[10px] font-black text-primary uppercase">{format(new Date(reg.event.startDate), "MMM")}</span>
-                        <span className="text-lg font-black text-gray-900">{format(new Date(reg.event.startDate), "d")}</span>
-                     </div>
-                  </div>
-               </div>
-
-               {/* Right: Ticket Details */}
-               <div className="p-6 flex-1 flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-start justify-between gap-4 mb-2">
-                       <h3 className="font-black text-gray-900 text-lg leading-tight line-clamp-1">{reg.event.title}</h3>
-                       <div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${reg.paymentStatus === 'PAID' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
-                          {reg.paymentStatus}
-                       </div>
-                    </div>
-
-                    <div className="space-y-2 mb-6">
-                       <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
-                          <MapPin size={14} className="text-primary/60" />
-                          <span className="line-clamp-1">{reg.event.location || "Virtual Event"}</span>
-                       </div>
-                       <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
-                          <Tag size={14} className="text-primary/60" />
-                          <span>{reg.ticket.name} • {reg.ticket.type}</span>
-                       </div>
-                    </div>
-                  </div>
-
-                  <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
-                     <div className="space-y-0.5">
-                        <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest">Ticket Number</p>
-                        <p className="text-sm font-black text-gray-900">{reg.ticketNumber}</p>
-                     </div>
-                     <div className="flex items-center gap-2">
-                        <button
-                           className="w-10 h-10 rounded-xl bg-primary/5 text-primary hover:bg-primary hover:text-white transition-all flex items-center justify-center"
-                           title="View Details"
-                           onClick={(e) => {
-                             e.stopPropagation();
-                             setSelectedRegistration(reg);
-                           }}
-                        >
-                           <ChevronRight size={18} />
-                        </button>
-                     </div>
-                  </div>
-               </div>
-            </div>
-          </div>
+            registration={reg}
+            onViewDetails={(r) => setSelectedRegistration(r)}
+          />
         ))}
       </div>
     </div>

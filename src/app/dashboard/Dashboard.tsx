@@ -5,6 +5,7 @@ import BookingsView from "./BookingsView";
 import SettingsView from "./SettingsView";
 import ReservationsList from "@/components/ReservationsList";
 import EventsView from "./EventsView";
+import { Calendar, Ticket, Clock, Settings } from "lucide-react";
 
 const DashboardContent = () => {
   const searchParams = useSearchParams();
@@ -22,20 +23,21 @@ const DashboardContent = () => {
         <nav className="mt-16 lg:mt-20 mb-8 overflow-x-auto no-scrollbar">
           <div className="inline-flex p-1.5 bg-white rounded-2xl shadow-sm border border-gray-100">
             {[
-              { id: "bookings", label: "My Bookings" },
-              { id: "reservations", label: "My Reservations" },
-              { id: "events", label: "My Events" },
-              { id: "settings", label: "Profile Settings" },
+              { id: "bookings", label: "My Bookings", icon: Calendar, color: "bg-primary", shadow: "shadow-primary/20" },
+              { id: "reservations", label: "My Reservations", icon: Clock, color: "bg-amber-600", shadow: "shadow-amber-600/20" },
+              { id: "events", label: "My Events", icon: Ticket, color: "bg-emerald-600", shadow: "shadow-emerald-600/20" },
+              { id: "settings", label: "Profile Settings", icon: Settings, color: "bg-gray-800", shadow: "shadow-gray-800/20" },
             ].map((tab) => (
               <button
                 key={tab.id}
-                className={`cursor-pointer py-2.5 px-6 rounded-xl text-sm font-bold transition-all duration-200 whitespace-nowrap ${
+                className={`cursor-pointer py-2.5 px-6 rounded-xl text-sm font-bold transition-all duration-200 whitespace-nowrap flex items-center gap-2 ${
                   activeTab === tab.id
-                    ? "bg-primary text-white shadow-md shadow-primary/20"
+                    ? `${tab.color} text-white shadow-md ${tab.shadow}`
                     : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
                 }`}
                 onClick={() => setActiveTab(tab.id)}
               >
+                <tab.icon size={16} />
                 {tab.label}
               </button>
             ))}
