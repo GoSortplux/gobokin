@@ -119,6 +119,7 @@ const RegistrationForm = () => {
       };
 
       const response = await api.post(`/events/${eventId}/orders`, payload);
+      const orderData = response.data.data;
 
       // If order is successful, check if it's a free ticket or needs payment
       if (ticket?.price === 0) {
@@ -130,9 +131,13 @@ const RegistrationForm = () => {
         });
         router.push("/dashboard");
       } else {
+        // Extract registration IDs for payment initialization
+        const registrationIds = orderData.registrations.map((reg: any) => reg.id);
+
         // Initialize payment
         const paymentRes = await api.post("/events/payments/initialize", {
-           orderId: response.data.data.id
+           orderId: orderData.order.id,
+           registrationIds: registrationIds
         });
 
         if (paymentRes.data.data.checkoutUrl) {
