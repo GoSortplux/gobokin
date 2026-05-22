@@ -422,10 +422,10 @@ const EventDiscoveryContent = () => {
     <div className="min-h-screen bg-white pt-24 pb-20">
       {/* Hero Section - Immersive & Minimal */}
       <section className="container mx-auto px-4 mb-12">
-        <div className="bg-white border border-gray-100 rounded-2xl p-8 lg:py-10 lg:px-12 text-gray-900 relative overflow-hidden shadow-sm min-h-[320px] flex items-center">
+        <div className="bg-gray-950 border border-gray-800 rounded-2xl p-8 lg:py-10 lg:px-12 text-white relative overflow-hidden shadow-sm min-h-[320px] flex items-center">
           <div className="relative z-10 max-w-2xl">
-            <div className="inline-flex items-center gap-2 bg-gray-50/80 backdrop-blur-sm border border-gray-100 px-3 py-1.5 rounded-full text-[10px] font-semibold uppercase tracking-widest mb-4">
-              <Sparkles size={12} className="text-amber-500" />
+            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/10 px-3 py-1.5 rounded-full text-[10px] font-semibold uppercase tracking-widest mb-4">
+              <Sparkles size={12} className="text-amber-400" />
               Explore curated experiences
             </div>
 
@@ -434,7 +434,7 @@ const EventDiscoveryContent = () => {
                  Discover <br/>
                  <span className="text-primary italic">Something</span> New.
                </h1>
-               <p className="text-gray-500 text-base md:text-lg font-medium max-w-xl leading-relaxed">
+               <p className="text-gray-400 text-base md:text-lg font-medium max-w-xl leading-relaxed">
                  Join thousands discovering local workshops, tech meetups, and music festivals.
                </p>
 
@@ -450,7 +450,7 @@ const EventDiscoveryContent = () => {
                       const el = document.getElementById('main-listing');
                       el?.scrollIntoView({ behavior: 'smooth' });
                     }}
-                    className="bg-white border border-gray-200 text-gray-700 px-6 py-3 rounded-xl text-sm font-semibold uppercase tracking-widest hover:bg-gray-50 transition-all shadow-sm"
+                    className="bg-white/5 border border-white/10 text-white px-6 py-3 rounded-xl text-sm font-semibold uppercase tracking-widest hover:bg-white/10 transition-all shadow-sm"
                   >
                     Browse List
                   </button>
@@ -469,19 +469,19 @@ const EventDiscoveryContent = () => {
                   className="object-cover object-center"
                   priority
                 />
-                {/* Gradient overlay: pure white on left to keep text readable, transparent on right */}
-                <div className="absolute inset-0 bg-gradient-to-r from-white via-white/90 to-white/20 lg:from-white lg:via-white/80 lg:to-transparent"></div>
+                {/* Gradient overlay: Dark on left to keep text readable, transparent on right */}
+                <div className="absolute inset-0 bg-gradient-to-r from-gray-950 via-gray-950/90 to-gray-950/20 lg:from-gray-950 lg:via-gray-950/80 lg:to-transparent"></div>
               </div>
             </div>
           )}
 
           {!heroBannerImage && (
             <>
-              <div className="absolute -top-24 -right-24 w-80 h-80 bg-primary/5 rounded-full blur-[80px]"></div>
+              <div className="absolute -top-24 -right-24 w-80 h-80 bg-primary/20 rounded-full blur-[80px]"></div>
               <div className="absolute bottom-0 right-10 translate-y-1/4 hidden 2xl:block opacity-5">
                  <div className="relative">
-                    <div className="w-64 h-80 bg-gray-100 rounded-2xl border border-gray-200 shadow-sm rotate-6"></div>
-                    <div className="absolute inset-0 w-64 h-80 bg-gray-100 rounded-2xl border border-gray-200 shadow-sm -rotate-3"></div>
+                    <div className="w-64 h-80 bg-white/5 rounded-2xl border border-white/10 shadow-sm rotate-6"></div>
+                    <div className="absolute inset-0 w-64 h-80 bg-white/5 rounded-2xl border border-white/10 shadow-sm -rotate-3"></div>
                  </div>
               </div>
             </>
