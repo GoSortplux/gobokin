@@ -19,7 +19,15 @@ import {
   Zap,
   MapPinned,
   CalendarPlus,
-  Download
+  Download,
+  Cpu,
+  Church,
+  Users,
+  Briefcase,
+  Wrench,
+  Music,
+  MoreHorizontal,
+  Layers
 } from "lucide-react";
 import Image from "next/image";
 import api from "@/services/api";
@@ -35,6 +43,17 @@ interface DiscoveryData {
   byCategory: Record<string, Event[]>;
 }
 
+const CATEGORY_ICONS: Record<string, any> = {
+  "Technology": Cpu,
+  "Religious": Church,
+  "Social": Users,
+  "Corporate": Briefcase,
+  "Workshop": Wrench,
+  "Concert": Music,
+  "Other": MoreHorizontal,
+  "All": Layers
+};
+
 const EventDiscoveryContent = () => {
   const searchParams = useSearchParams();
   const [discoveryData, setDiscoveryData] = useState<DiscoveryData>({
@@ -43,6 +62,7 @@ const EventDiscoveryContent = () => {
     nearby: [],
     byCategory: {}
   });
+  const [categories, setCategories] = useState<string[]>([]);
   const [heroBannerImage, setHeroBannerImage] = useState<string | null>(null);
   const [searchResults, setSearchResults] = useState<Event[]>([]);
   const [pagination, setPagination] = useState({ page: 1, limit: 12, total: 0, pages: 1 });
@@ -116,9 +136,21 @@ const EventDiscoveryContent = () => {
     }
   }, [coords]);
 
+  const fetchCategories = useCallback(async () => {
+    try {
+      const response = await api.get("/events/utils/categories");
+      if (response.data.success) {
+        setCategories(response.data.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch categories:", error);
+    }
+  }, []);
+
   useEffect(() => {
     fetchDiscoveryEvents();
-  }, [fetchDiscoveryEvents]);
+    fetchCategories();
+  }, [fetchDiscoveryEvents, fetchCategories]);
 
   const handleSearch = useCallback(async (page = 1, append = false) => {
     try {
@@ -361,18 +393,24 @@ const EventDiscoveryContent = () => {
         <div className="space-y-3">
            <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest ml-1">Category</label>
            <div className="flex flex-col gap-1.5">
-              {["All", ...Object.keys(discoveryData?.byCategory || {})].map(cat => (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
-                  className={`flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                    activeCategory === cat ? 'bg-primary text-white shadow-md shadow-primary/10' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-                  }`}
-                >
-                  {cat}
-                  {activeCategory === cat && <CheckCircle2 size={14} />}
-                </button>
-              ))}
+              {["All", ...categories].map(cat => {
+                const Icon = CATEGORY_ICONS[cat] || MoreHorizontal;
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => setActiveCategory(cat)}
+                    className={`flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                      activeCategory === cat ? 'bg-primary text-white shadow-md shadow-primary/10' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Icon size={16} className={activeCategory === cat ? 'text-white' : 'text-primary/60'} />
+                      {cat}
+                    </div>
+                    {activeCategory === cat && <CheckCircle2 size={14} />}
+                  </button>
+                );
+              })}
            </div>
         </div>
 
@@ -698,15 +736,19 @@ const EventDiscoveryContent = () => {
                  <div className="space-y-3">
                     <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Category</label>
                     <div className="grid grid-cols-1 gap-1.5">
-                       {["All", ...Object.keys(discoveryData?.byCategory || {})].map(cat => (
-                         <button
-                           key={cat}
-                           onClick={() => { setActiveCategory(cat); setShowMobileFilters(false); }}
-                           className={`px-5 py-4 rounded-xl text-sm font-semibold text-left transition-all ${activeCategory === cat ? 'bg-primary text-white' : 'bg-gray-50 text-gray-600'}`}
-                         >
-                           {cat}
-                         </button>
-                       ))}
+                       {["All", ...categories].map(cat => {
+                         const Icon = CATEGORY_ICONS[cat] || MoreHorizontal;
+                         return (
+                          <button
+                            key={cat}
+                            onClick={() => { setActiveCategory(cat); setShowMobileFilters(false); }}
+                            className={`flex items-center gap-3 px-5 py-4 rounded-xl text-sm font-semibold text-left transition-all ${activeCategory === cat ? 'bg-primary text-white' : 'bg-gray-50 text-gray-600'}`}
+                          >
+                            <Icon size={18} className={activeCategory === cat ? 'text-white' : 'text-primary/60'} />
+                            {cat}
+                          </button>
+                         );
+                       })}
                     </div>
                  </div>
 
