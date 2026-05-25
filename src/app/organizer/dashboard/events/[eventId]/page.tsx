@@ -105,16 +105,29 @@ const EventDetails = () => {
           let flattenedAttendees = [];
           if (Array.isArray(orders)) {
             flattenedAttendees = orders.flatMap((order: any) => {
-              if (order.registrations && Array.isArray(order.registrations)) {
-                return order.registrations.map((reg: any) => ({
-                  ...reg,
-                  orderId: order.id,
-                  amountPaid: order.amountPaid,
-                  paymentStatus: order.paymentStatus || order.status
-                }));
+              const registrations = order.registrations || [];
+              if (registrations.length === 0) {
+                 return [{
+                   ...order,
+                   attendeeName: order.buyerInfo?.fullName || "Guest",
+                   attendeeEmail: order.buyerInfo?.email || "N/A",
+                   ticketName: order.ticketName || "Standard Entry",
+                   ticketNumber: `ORD-${order.id?.slice(0, 8)}`,
+                   status: order.status || "PENDING",
+                   createdAt: order.createdAt
+                 }];
               }
-              // Fallback if registrations are not nested
-              return [order];
+
+              return registrations.map((reg: any) => ({
+                ...reg,
+                orderId: order.id,
+                attendeeName: reg.attendeeData?.fullName || reg.attendeeData?.['full-name'] || order.buyerInfo?.fullName || "Guest",
+                attendeeEmail: reg.attendeeData?.email || order.buyerInfo?.email || "N/A",
+                ticketName: reg.ticketId?.name || order.ticketName || "Standard Entry",
+                ticketNumber: reg.ticketNumber || `ORD-${order.id?.slice(0, 8)}`,
+                status: reg.paymentStatus || order.status || "PAID",
+                createdAt: reg.createdAt || order.createdAt
+              }));
             });
           }
 

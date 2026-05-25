@@ -32,9 +32,40 @@ const OrdersView = () => {
       setLoading(true);
       // Using /events/orders to get all orders across organizer scope
       const response = await api.get("/events/orders");
-      // Handle both nested and direct data structures
-      const data = response.data.data;
-      setOrders(Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []));
+      const rawData = response.data.data;
+      const orderList = Array.isArray(rawData) ? rawData : (Array.isArray(rawData?.data) ? rawData.data : []);
+
+      // Flatten orders into individual registrations to display ticket numbers
+      const flattened = orderList.flatMap((order: any) => {
+        const registrations = order.registrations || [];
+        if (registrations.length === 0) {
+           return [{
+             ...order,
+             id: order.id,
+             ticketNumber: `ORD-${order.id.slice(0, 8)}`,
+             attendeeName: order.buyerInfo?.fullName || "Guest",
+             eventTitle: order.event?.title || order.eventTitle || "N/A",
+             amountPaid: order.amountPaid || 0,
+             status: order.status || "PENDING"
+           }];
+        }
+
+        return registrations.map((reg: any) => ({
+          ...order,
+          ...reg,
+          id: reg.id,
+          orderId: order.id,
+          createdAt: reg.createdAt || order.createdAt,
+          eventTitle: order.event?.title || order.eventTitle || "N/A",
+          ticketName: reg.ticketId?.name || order.ticketName || "Ticket",
+          ticketNumber: reg.ticketNumber || `ORD-${order.id.slice(0, 8)}`,
+          attendeeName: reg.attendeeData?.fullName || reg.attendeeData?.['full-name'] || order.buyerInfo?.fullName || "Guest",
+          amountPaid: Number(reg.pricePaid || order.amountPaid || 0),
+          status: reg.paymentStatus || order.status || "PAID"
+        }));
+      });
+
+      setOrders(flattened);
     } catch (error) {
       console.error("Failed to fetch orders:", error);
       setOrders([]);
@@ -89,7 +120,7 @@ const OrdersView = () => {
                     orders.map((order) => (
                       <tr key={order.id} className="hover:bg-gray-50 transition-colors group">
                         <td className="px-6 py-6">
-                           <p className="font-black text-gray-900">ORD-{order.id.slice(0, 8)}</p>
+                           <p className="font-black text-gray-900">{order.ticketNumber}</p>
                            <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest flex items-center gap-1 mt-1.5">
                               <Clock size={10} />
                               {new Date(order.createdAt).toLocaleDateString()}

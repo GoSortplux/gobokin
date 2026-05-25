@@ -31,8 +31,43 @@ const AllOrdersAdmin = () => {
       setLoading(true);
       // Using /events/orders to get all orders across organizer scope
       const response = await api.get("/events/orders");
-      const data = response.data.data;
-      setOrders(Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []));
+      const rawData = response.data.data;
+      const orderList = Array.isArray(rawData) ? rawData : (Array.isArray(rawData?.data) ? rawData.data : []);
+
+      // Flatten orders into individual registrations to display ticket numbers
+      const flattened = orderList.flatMap((order: any) => {
+        const registrations = order.registrations || [];
+        if (registrations.length === 0) {
+           return [{
+             ...order,
+             id: order.id,
+             ticketNumber: `ORD-${order.id.slice(0, 8)}`,
+             buyerName: order.buyerInfo?.fullName || "Guest",
+             buyerEmail: order.buyerInfo?.email || "N/A",
+             eventTitle: order.event?.title || order.eventTitle || "N/A",
+             totalAmount: order.amountPaid || 0,
+             status: order.status || "PENDING",
+             ticketCount: 0
+           }];
+        }
+
+        return registrations.map((reg: any) => ({
+          ...order,
+          ...reg,
+          id: reg.id,
+          orderId: order.id,
+          createdAt: reg.createdAt || order.createdAt,
+          eventTitle: order.event?.title || order.eventTitle || "N/A",
+          ticketNumber: reg.ticketNumber || `ORD-${order.id.slice(0, 8)}`,
+          buyerName: reg.attendeeData?.fullName || reg.attendeeData?.['full-name'] || order.buyerInfo?.fullName || "Guest",
+          buyerEmail: reg.attendeeData?.email || order.buyerInfo?.email || "N/A",
+          totalAmount: Number(reg.pricePaid || order.amountPaid || 0),
+          status: reg.paymentStatus || order.status || "PAID",
+          ticketCount: 1
+        }));
+      });
+
+      setOrders(flattened);
     } catch (error) {
       console.error("Failed to fetch orders:", error);
       setOrders([]);
@@ -43,8 +78,9 @@ const AllOrdersAdmin = () => {
 
   const filteredOrders = orders.filter(order =>
     order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    order.buyerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    order.eventTitle?.toLowerCase().includes(searchTerm.toLowerCase())
+    (order.ticketNumber && order.ticketNumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (order.buyerName && order.buyerName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (order.eventTitle && order.eventTitle.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   if (loading) return <div className="h-full flex items-center justify-center"><CustomLoader /></div>;
@@ -78,7 +114,7 @@ const AllOrdersAdmin = () => {
           <table className="w-full text-left">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Order ID</th>
+                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Ticket Number</th>
                 <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Event</th>
                 <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Buyer</th>
                 <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Tickets</th>
@@ -93,7 +129,7 @@ const AllOrdersAdmin = () => {
                   <td className="px-8 py-6">
                     <p className="text-sm font-black text-gray-900 flex items-center gap-2">
                        <Hash size={14} className="text-primary" />
-                       {order.id.slice(0, 8).toUpperCase()}
+                       {order.ticketNumber}
                     </p>
                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">{new Date(order.createdAt).toLocaleDateString()}</p>
                   </td>
