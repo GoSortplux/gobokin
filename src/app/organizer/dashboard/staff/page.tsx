@@ -45,7 +45,7 @@ const StaffPool = () => {
     }
   };
 
-  const handleAddStaffSubmit = async (formData: { fullName: string; email: string; role: string }) => {
+  const handleAddStaffSubmit = async (formData: { fullName: string; email: string; role: string; password?: string }) => {
     try {
       setModalLoading(true);
       Swal.showLoading();

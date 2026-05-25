@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, User, Mail, Shield } from 'lucide-react';
+import { X, User, Mail, Shield, Lock } from 'lucide-react';
 
 interface StaffModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (formData: { fullName: string; email: string; role: string }) => void;
+  onSubmit: (formData: { fullName: string; email: string; role: string; password?: string }) => void;
   loading?: boolean;
 }
 
@@ -15,6 +15,7 @@ const OrganizerStaffModal: React.FC<StaffModalProps> = ({ isOpen, onClose, onSub
     fullName: '',
     email: '',
     role: 'STAFF',
+    password: '',
   });
 
   useEffect(() => {
@@ -23,6 +24,7 @@ const OrganizerStaffModal: React.FC<StaffModalProps> = ({ isOpen, onClose, onSub
         fullName: '',
         email: '',
         role: 'STAFF',
+        password: '',
       });
     }
   }, [isOpen]);
@@ -117,6 +119,22 @@ const OrganizerStaffModal: React.FC<StaffModalProps> = ({ isOpen, onClose, onSub
                 <option value="STAFF">Staff (Check-in Access)</option>
                 <option value="MANAGER">Manager (Admin Access)</option>
               </select>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Account Password</label>
+            <div className="relative">
+              <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="password"
+                name="password"
+                placeholder="Set a temporary password"
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-bold focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+                required
+              />
             </div>
           </div>
 
