@@ -30,9 +30,11 @@ const OrdersView = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      // Using /events/orders/all for overview, or filter by event if needed
-      const response = await api.get("/events/orders/all");
-      setOrders(response.data.data || []);
+      // Using /events/orders to get all orders across organizer scope
+      const response = await api.get("/events/orders");
+      // Handle both nested and direct data structures
+      const data = response.data.data;
+      setOrders(Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []));
     } catch (error) {
       console.error("Failed to fetch orders:", error);
       setOrders([]);

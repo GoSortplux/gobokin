@@ -29,9 +29,10 @@ const AllOrdersAdmin = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      // Assuming an admin orders endpoint exists
-      const response = await api.get("/events/admin/orders");
-      setOrders(response.data.data || []);
+      // Using /events/orders to get all orders across organizer scope
+      const response = await api.get("/events/orders");
+      const data = response.data.data;
+      setOrders(Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []));
     } catch (error) {
       console.error("Failed to fetch orders:", error);
       setOrders([]);
