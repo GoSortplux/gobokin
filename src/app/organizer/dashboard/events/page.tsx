@@ -180,7 +180,13 @@ const MyEvents = () => {
                 </div>
 
                 <div className="p-5">
-                  <h3 className="text-xl font-black text-gray-900 mb-3 line-clamp-1 group-hover:text-primary transition-colors">{event.title}</h3>
+                  <h3 className="text-xl font-black text-gray-900 mb-2 line-clamp-1 group-hover:text-primary transition-colors">{event.title}</h3>
+
+                  {event.description && (
+                    <p className="text-sm text-gray-500 line-clamp-2 mb-4">
+                      {event.description}
+                    </p>
+                  )}
 
                   <div className="space-y-3 mb-4">
                     <div className="flex items-center gap-3 text-sm text-gray-500 font-medium">

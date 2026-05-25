@@ -344,6 +344,12 @@ const EventDiscoveryContent = () => {
           </div>
         </div>
 
+        {event.description && (
+          <p className="text-sm text-gray-500 line-clamp-2 mb-4">
+            {event.description}
+          </p>
+        )}
+
         <div className="flex items-center gap-2 text-sm text-gray-500 font-medium mb-6">
           <MapPin size={16} className="text-primary/60 flex-shrink-0" />
           <span className="line-clamp-1">{event.location || "Virtual Event"}</span>
