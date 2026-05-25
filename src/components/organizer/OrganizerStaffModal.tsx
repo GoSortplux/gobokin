@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, User, Mail, Shield, Lock } from 'lucide-react';
+import { X, User, Mail, Shield, Lock, Phone } from 'lucide-react';
 
 interface StaffModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (formData: { fullName: string; email: string; role: string; password?: string }) => void;
+  onSubmit: (formData: { fullName: string; email: string; phone?: string; role: string; password?: string }) => void;
   loading?: boolean;
 }
 
@@ -14,6 +14,7 @@ const OrganizerStaffModal: React.FC<StaffModalProps> = ({ isOpen, onClose, onSub
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
+    phone: '',
     role: 'STAFF',
     password: '',
   });
@@ -23,6 +24,7 @@ const OrganizerStaffModal: React.FC<StaffModalProps> = ({ isOpen, onClose, onSub
       setFormData({
         fullName: '',
         email: '',
+        phone: '',
         role: 'STAFF',
         password: '',
       });
@@ -86,6 +88,21 @@ const OrganizerStaffModal: React.FC<StaffModalProps> = ({ isOpen, onClose, onSub
                 onChange={handleChange}
                 className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-bold focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none"
                 required
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Phone Number (Optional)</label>
+            <div className="relative">
+              <Phone size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="tel"
+                name="phone"
+                placeholder="e.g. +2348012345678"
+                value={formData.phone}
+                onChange={handleChange}
+                className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-bold focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none"
               />
             </div>
           </div>
