@@ -2,17 +2,13 @@
 import React, { useState, useEffect } from "react";
 import {
   Settings,
-  User,
-  Globe,
   Shield,
   CheckCircle2,
   Zap,
   CreditCard,
   FileText,
-  AlertCircle,
   Save,
   ArrowRight,
-  MoreVertical,
   ChevronDown
 } from "lucide-react";
 import api from "@/services/api";
@@ -20,16 +16,15 @@ import { OrganizerProfile } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
+import OrganizerProfileModal from "./OrganizerProfileModal";
 
 const OrganizerSettings = () => {
   const [profile, setProfile] = useState<OrganizerProfile | null>(null);
   const [subscriptions, setSubscriptions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [formData, setFormData] = useState({
-    slug: "",
-    bio: "",
-    website: "",
     defaultRefundType: "PARTIAL" as any,
     defaultRefundPercentage: 80,
     defaultRefundCutoffDays: 7,
@@ -47,9 +42,6 @@ const OrganizerSettings = () => {
       const data = response.data.data;
       setProfile(data);
       setFormData({
-        slug: data.slug || "",
-        bio: data.bio || "",
-        website: data.website || "",
         defaultRefundType: data.defaultRefundType || "PARTIAL",
         defaultRefundPercentage: data.defaultRefundPercentage || 80,
         defaultRefundCutoffDays: data.defaultRefundCutoffDays || 7,
@@ -76,7 +68,7 @@ const OrganizerSettings = () => {
     try {
       Swal.showLoading();
       await api.patch("/events/my-organizer-profile", formData);
-      Swal.fire('Success!', 'Organizer profile updated successfully.', 'success');
+      Swal.fire('Success!', 'Default policies updated successfully.', 'success');
       fetchProfile();
     } catch (error) {
       Swal.fire('Error', translateError(error), 'error');
@@ -118,6 +110,14 @@ const OrganizerSettings = () => {
                      <p className="text-xl font-black text-gray-900">{profile?.maxStaff}</p>
                   </div>
                </div>
+
+               <button
+                  onClick={() => setIsEditModalOpen(true)}
+                  className="mt-8 w-full bg-primary/5 text-primary font-black py-4 rounded-2xl hover:bg-primary hover:text-white transition-all border border-primary/10 flex items-center justify-center gap-2 group shadow-sm"
+               >
+                  <Settings size={18} className="group-hover:rotate-90 transition-transform duration-500" />
+                  Edit Profile Information
+               </button>
             </div>
 
             <div className="bg-gray-900 rounded-3xl p-8 text-white space-y-6 shadow-xl">
@@ -138,10 +138,13 @@ const OrganizerSettings = () => {
             <form onSubmit={handleUpdate} className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
                <div className="p-8 lg:p-10 border-b border-gray-50 flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                     <div className="w-12 h-12 bg-blue-50 text-primary rounded-2xl flex items-center justify-center">
-                        <User size={24} />
+                     <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
+                        <FileText size={24} />
                      </div>
-                     <h3 className="text-xl font-black text-gray-900">General Information</h3>
+                     <div>
+                        <h3 className="text-xl font-black text-gray-900">Event Policies</h3>
+                        <p className="text-xs text-gray-400 font-bold uppercase tracking-widest leading-none mt-1">Global Default Settings</p>
+                     </div>
                   </div>
                   <button
                     type="submit"
@@ -149,101 +152,47 @@ const OrganizerSettings = () => {
                     className="hidden md:flex items-center gap-2 bg-primary text-white font-black px-6 py-3 rounded-2xl hover:bg-opacity-90 transition-all shadow-lg shadow-primary/20 text-sm disabled:opacity-50"
                   >
                      <Save size={18} />
-                     Save Changes
+                     Save Policies
                   </button>
                </div>
 
                <div className="p-6 md:p-8 lg:p-10 space-y-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                      <div className="space-y-3">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Organizer Slug</label>
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Default Refund Type</label>
                         <div className="relative">
-                           <Zap className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                           <select
+                              className="w-full p-5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all appearance-none"
+                              value={formData.defaultRefundType}
+                              onChange={(e) => setFormData({...formData, defaultRefundType: e.target.value})}
+                           >
+                              <option value="FULL">Full Refund</option>
+                              <option value="PARTIAL">Partial Refund</option>
+                              <option value="NONE">No Refunds</option>
+                           </select>
+                           <ChevronDown size={18} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                        </div>
+                     </div>
+                     {formData.defaultRefundType === 'PARTIAL' && (
+                        <div className="space-y-3">
+                           <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Refund Percentage (%)</label>
                            <input
-                             type="text"
-                             className="w-full pl-12 pr-6 py-5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all placeholder:font-medium"
-                             value={formData.slug}
-                             onChange={(e) => setFormData({...formData, slug: e.target.value})}
-                             placeholder="my-cool-org"
+                              type="number"
+                              className="w-full p-4 bg-gray-50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 transition-all"
+                              value={formData.defaultRefundPercentage}
+                              onChange={(e) => setFormData({...formData, defaultRefundPercentage: parseFloat(e.target.value)})}
                            />
                         </div>
-                        <p className="text-[10px] text-gray-400 font-medium ml-2">This will be used in your public profile URL.</p>
-                     </div>
-
+                     )}
                      <div className="space-y-3">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Organizer Website</label>
-                        <div className="relative">
-                           <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                           <input
-                             type="url"
-                             className="w-full pl-12 pr-6 py-5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all placeholder:font-medium"
-                             value={formData.website}
-                             onChange={(e) => setFormData({...formData, website: e.target.value})}
-                             placeholder="https://techorganizer.com"
-                           />
-                        </div>
-                     </div>
-                  </div>
-
-                  <div className="space-y-3">
-                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Public Biography</label>
-                     <textarea
-                        rows={4}
-                        className="w-full p-6 bg-gray-50 border-none rounded-[2rem] text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all leading-relaxed placeholder:font-medium"
-                        value={formData.bio}
-                        onChange={(e) => setFormData({...formData, bio: e.target.value})}
-                     />
-                     <p className="text-[10px] text-gray-400 font-medium ml-2 italic">*This bio appears on your event detail pages for attendees.</p>
-                  </div>
-
-                  <div className="pt-8 border-t border-gray-100 space-y-8">
-                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
-                           <FileText size={24} />
-                        </div>
-                        <div>
-                           <h3 className="text-xl font-black text-gray-900">Default Event Policies</h3>
-                           <p className="text-xs text-gray-400 font-bold uppercase tracking-widest leading-none mt-1">Automatic Refund Settings</p>
-                        </div>
-                     </div>
-
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="space-y-3">
-                           <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Default Refund Type</label>
-                           <div className="relative">
-                              <select
-                                className="w-full p-5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all appearance-none"
-                                value={formData.defaultRefundType}
-                                onChange={(e) => setFormData({...formData, defaultRefundType: e.target.value})}
-                              >
-                                 <option value="FULL">Full Refund</option>
-                                 <option value="PARTIAL">Partial Refund</option>
-                                 <option value="NONE">No Refunds</option>
-                              </select>
-                              <ChevronDown size={18} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                           </div>
-                        </div>
-                        {formData.defaultRefundType === 'PARTIAL' && (
-                          <div className="space-y-3">
-                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Refund Percentage (%)</label>
-                             <input
-                               type="number"
-                               className="w-full p-4 bg-gray-50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 transition-all"
-                               value={formData.defaultRefundPercentage}
-                               onChange={(e) => setFormData({...formData, defaultRefundPercentage: parseFloat(e.target.value)})}
-                             />
-                          </div>
-                        )}
-                        <div className="space-y-3">
-                           <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Cancellation Cutoff (Days)</label>
-                           <input
-                             type="number"
-                             className="w-full p-5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all"
-                             value={formData.defaultRefundCutoffDays}
-                             onChange={(e) => setFormData({...formData, defaultRefundCutoffDays: parseInt(e.target.value)})}
-                           />
-                           <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1 ml-2">Days before event starts</p>
-                        </div>
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Cancellation Cutoff (Days)</label>
+                        <input
+                           type="number"
+                           className="w-full p-5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all"
+                           value={formData.defaultRefundCutoffDays}
+                           onChange={(e) => setFormData({...formData, defaultRefundCutoffDays: parseInt(e.target.value)})}
+                        />
+                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1 ml-2">Days before event starts</p>
                      </div>
                   </div>
                </div>
@@ -255,7 +204,7 @@ const OrganizerSettings = () => {
                     className="w-full bg-primary text-white font-black py-4 rounded-[2rem] hover:bg-opacity-90 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-2"
                   >
                      <Save size={18} />
-                     Save Changes
+                     Save Policies
                   </button>
                </div>
             </form>
@@ -295,6 +244,13 @@ const OrganizerSettings = () => {
             </div>
          </div>
       </div>
+
+      <OrganizerProfileModal
+         isOpen={isEditModalOpen}
+         onClose={() => setIsEditModalOpen(false)}
+         profile={profile}
+         onUpdate={fetchProfile}
+      />
     </div>
   );
 };
