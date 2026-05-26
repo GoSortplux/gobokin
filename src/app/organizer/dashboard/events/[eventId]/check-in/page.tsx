@@ -25,6 +25,7 @@ const CheckInInterface = () => {
   const { eventId } = useParams();
   const router = useRouter();
   const { user } = useAuth();
+  const isStaff = user?.role?.includes('organizer-staff');
   const [event, setEvent] = useState<Event | null>(null);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [staff, setStaff] = useState<StaffMember[]>([]);
@@ -36,7 +37,6 @@ const CheckInInterface = () => {
   const [selectedSessionId, setSelectedSessionId] = useState<string>("");
 
   const fetchData = useCallback(async (showLoading = true) => {
-    const isStaff = user?.role?.includes('organizer-staff');
     try {
       if (showLoading) setLoading(true);
 
