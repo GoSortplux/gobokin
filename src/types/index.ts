@@ -168,6 +168,8 @@ export interface Policy {
   effectiveDate: string;
 }
 
+export type UserRole = 'user' | 'hall-owner' | 'super-admin' | 'staff' | 'organizer' | 'organizer-staff';
+
 export interface User {
   id: string;
   _id: string;
@@ -176,7 +178,7 @@ export interface User {
   phone?: string;
   whatsappNumber?: string;
   avatar?: string;
-  role: string[];
+  role: UserRole[];
   activeRole: string;
   accountName?: string;
   accountNumber?: string;

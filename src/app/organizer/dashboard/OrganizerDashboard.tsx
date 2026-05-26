@@ -23,6 +23,7 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import api from "@/services/api";
+import { useAuth } from "@/context/AuthContext";
 import { Analytics, Event } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 import {
@@ -41,8 +42,11 @@ import {
 } from 'recharts';
 
 const OrganizerDashboard = () => {
+  const { user } = useAuth();
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const isStaff = user?.role?.includes('organizer-staff');
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -63,7 +67,36 @@ const OrganizerDashboard = () => {
 
   const formatCurrency = (amount: number) => new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(amount);
 
-  const stats = [
+  const stats = isStaff ? [
+    {
+        label: "Total Registrations",
+        value: (analytics?.summary?.totalRegistrations || 0).toLocaleString(),
+        icon: Ticket,
+        color: "text-blue-600",
+        bg: "bg-blue-50"
+    },
+    {
+        label: "Checked-in Guests",
+        value: (analytics?.summary?.checkedInGuests || 0).toLocaleString(),
+        icon: CheckCircle2,
+        color: "text-emerald-600",
+        bg: "bg-emerald-50"
+    },
+    {
+        label: "Attendance Rate",
+        value: `${analytics?.summary?.attendanceRate || 0}%`,
+        icon: TrendingUp,
+        color: "text-purple-600",
+        bg: "bg-purple-50"
+    },
+    {
+        label: "Total Events",
+        value: (analytics?.summary?.totalEvents || 0).toLocaleString(),
+        icon: Calendar,
+        color: "text-amber-600",
+        bg: "bg-amber-50"
+    },
+  ] : [
     {
         label: "Gross Revenue",
         value: formatCurrency(analytics?.summary?.grossRevenue || 0),
@@ -109,19 +142,21 @@ const OrganizerDashboard = () => {
           <h1 className="text-4xl font-black text-primary tracking-tight">Dashboard</h1>
           <p className="text-gray-500 font-medium mt-1">Experience the pulse of your events in real-time.</p>
         </div>
-        <div className="flex items-center gap-3">
-            <button className="flex items-center justify-center gap-2 bg-white text-gray-700 font-bold px-5 py-3.5 rounded-2xl border border-gray-100 shadow-sm hover:bg-gray-50 transition-all">
-                <BarChart3 size={18} />
-                Download Reports
-            </button>
-            <Link
-                href="/organizer/dashboard/events/create"
-                className="flex items-center justify-center gap-2 bg-primary text-white font-bold px-6 py-3.5 rounded-2xl hover:bg-opacity-90 transition-all shadow-xl shadow-primary/20"
-            >
-                <PlusCircle size={20} />
-                Create New Event
-            </Link>
-        </div>
+        {!isStaff && (
+            <div className="flex items-center gap-3">
+                <button className="flex items-center justify-center gap-2 bg-white text-gray-700 font-bold px-5 py-3.5 rounded-2xl border border-gray-100 shadow-sm hover:bg-gray-50 transition-all">
+                    <BarChart3 size={18} />
+                    Download Reports
+                </button>
+                <Link
+                    href="/organizer/dashboard/events/create"
+                    className="flex items-center justify-center gap-2 bg-primary text-white font-bold px-6 py-3.5 rounded-2xl hover:bg-opacity-90 transition-all shadow-xl shadow-primary/20"
+                >
+                    <PlusCircle size={20} />
+                    Create New Event
+                </Link>
+            </div>
+        )}
       </div>
 
       {/* Stats Grid */}
@@ -140,59 +175,61 @@ const OrganizerDashboard = () => {
       </div>
 
       {/* Analytics & Breakdown */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm">
-            <div className="flex items-center justify-between mb-8">
-                <div>
-                    <h2 className="text-xl font-black text-gray-900 tracking-tight">Revenue Trends</h2>
-                    <p className="text-sm text-gray-400 font-medium">Daily revenue performance</p>
+      <div className={`grid grid-cols-1 ${isStaff ? 'lg:grid-cols-1' : 'lg:grid-cols-3'} gap-8`}>
+        {!isStaff && (
+            <div className="lg:col-span-2 bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm">
+                <div className="flex items-center justify-between mb-8">
+                    <div>
+                        <h2 className="text-xl font-black text-gray-900 tracking-tight">Revenue Trends</h2>
+                        <p className="text-sm text-gray-400 font-medium">Daily revenue performance</p>
+                    </div>
+                    <div className="text-[10px] font-black uppercase tracking-widest px-4 py-2.5 bg-gray-50 rounded-xl text-gray-500">
+                        Last 7 Days
+                    </div>
                 </div>
-                <div className="text-[10px] font-black uppercase tracking-widest px-4 py-2.5 bg-gray-50 rounded-xl text-gray-500">
-                    Last 7 Days
+                <div className="h-[300px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={salesData}>
+                            <defs>
+                                <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#295FA7" stopOpacity={0.1}/>
+                                    <stop offset="95%" stopColor="#295FA7" stopOpacity={0}/>
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                            <XAxis
+                                dataKey="name"
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{fontSize: 10, fontWeight: 600, fill: '#9ca3af'}}
+                                dy={10}
+                                tickFormatter={(str) => {
+                                    try {
+                                        return new Date(str).toLocaleDateString('en-US', { weekday: 'short' });
+                                    } catch (e) {
+                                        return str;
+                                    }
+                                }}
+                            />
+                            <YAxis
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{fontSize: 10, fontWeight: 600, fill: '#9ca3af'}}
+                                tickFormatter={(value) => `₦${value.toLocaleString()}`}
+                            />
+                            <Tooltip
+                                contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '12px' }}
+                                itemStyle={{ fontWeight: 800, color: '#295FA7' }}
+                                formatter={(value: any) => [`₦${value.toLocaleString()}`, 'Revenue']}
+                            />
+                            <Area type="monotone" dataKey="sales" stroke="#295FA7" strokeWidth={4} fillOpacity={1} fill="url(#colorSales)" />
+                        </AreaChart>
+                    </ResponsiveContainer>
                 </div>
             </div>
-            <div className="h-[300px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={salesData}>
-                        <defs>
-                            <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#295FA7" stopOpacity={0.1}/>
-                                <stop offset="95%" stopColor="#295FA7" stopOpacity={0}/>
-                            </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                        <XAxis
-                            dataKey="name"
-                            axisLine={false}
-                            tickLine={false}
-                            tick={{fontSize: 10, fontWeight: 600, fill: '#9ca3af'}}
-                            dy={10}
-                            tickFormatter={(str) => {
-                                try {
-                                    return new Date(str).toLocaleDateString('en-US', { weekday: 'short' });
-                                } catch (e) {
-                                    return str;
-                                }
-                            }}
-                        />
-                        <YAxis
-                            axisLine={false}
-                            tickLine={false}
-                            tick={{fontSize: 10, fontWeight: 600, fill: '#9ca3af'}}
-                            tickFormatter={(value) => `₦${value.toLocaleString()}`}
-                        />
-                        <Tooltip
-                            contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '12px' }}
-                            itemStyle={{ fontWeight: 800, color: '#295FA7' }}
-                            formatter={(value: any) => [`₦${value.toLocaleString()}`, 'Revenue']}
-                        />
-                        <Area type="monotone" dataKey="sales" stroke="#295FA7" strokeWidth={4} fillOpacity={1} fill="url(#colorSales)" />
-                    </AreaChart>
-                </ResponsiveContainer>
-            </div>
-        </div>
+        )}
 
-        <div className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm">
+        <div className={`bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm ${isStaff ? 'w-full' : ''}`}>
             <h2 className="text-xl font-black text-gray-900 tracking-tight mb-2">Event Distribution</h2>
             <p className="text-sm text-gray-400 font-medium mb-8">Status of your events</p>
 
@@ -269,7 +306,8 @@ const OrganizerDashboard = () => {
                         <th className="pb-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
                         <th className="pb-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Views</th>
                         <th className="pb-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Registrations</th>
-                        <th className="pb-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">Revenue</th>
+                        {!isStaff && <th className="pb-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">Revenue</th>}
+                        {isStaff && <th className="pb-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">Attendance</th>}
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -295,9 +333,15 @@ const OrganizerDashboard = () => {
                             <td className="py-5 text-center text-sm font-bold text-gray-600">
                                 {event.registrations.toLocaleString()}
                             </td>
-                            <td className="py-5 text-right font-black text-gray-900 text-sm">
-                                {formatCurrency(event.grossRevenue)}
-                            </td>
+                            {!isStaff ? (
+                                <td className="py-5 text-right font-black text-gray-900 text-sm">
+                                    {formatCurrency(event.grossRevenue)}
+                                </td>
+                            ) : (
+                                <td className="py-5 text-right font-black text-gray-900 text-sm">
+                                    {event.attendanceRate || 0}%
+                                </td>
+                            )}
                         </tr>
                     ))}
                     {!analytics?.topEvents?.length && (

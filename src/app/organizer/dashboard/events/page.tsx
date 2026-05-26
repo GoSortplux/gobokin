@@ -23,13 +23,17 @@ import { Event } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
+import { useAuth } from "@/context/AuthContext";
 
 const MyEvents = () => {
+  const { user } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [activeFilter, setActiveFilter] = useState<"ALL" | "UPCOMING" | "ONGOING" | "COMPLETED" | "CANCELLED">("ALL");
+
+  const isStaff = user?.role?.includes('organizer-staff');
 
   useEffect(() => {
     fetchEvents();
@@ -95,15 +99,17 @@ const MyEvents = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-4xl font-black text-primary tracking-tight">My Events</h1>
-          <p className="text-gray-500 font-medium mt-1">Manage and monitor all your events in one place.</p>
+          <p className="text-gray-500 font-medium mt-1">{isStaff ? "View and manage check-ins for your assigned events." : "Manage and monitor all your events in one place."}</p>
         </div>
-        <Link
-          href="/organizer/dashboard/events/create"
-          className="flex items-center justify-center gap-2 bg-primary text-white font-bold px-6 py-4 rounded-2xl hover:bg-opacity-90 transition-all shadow-xl shadow-primary/20"
-        >
-          <PlusCircle size={20} />
-          Create New Event
-        </Link>
+        {!isStaff && (
+          <Link
+            href="/organizer/dashboard/events/create"
+            className="flex items-center justify-center gap-2 bg-primary text-white font-bold px-6 py-4 rounded-2xl hover:bg-opacity-90 transition-all shadow-xl shadow-primary/20"
+          >
+            <PlusCircle size={20} />
+            Create New Event
+          </Link>
+        )}
       </div>
 
       {/* Toolbar */}
@@ -123,7 +129,7 @@ const MyEvents = () => {
           {["ALL", "UPCOMING", "ONGOING", "COMPLETED", "CANCELLED"].map((filter) => (
             <button
               key={filter}
-            onClick={() => setActiveFilter(filter as "ALL" | "UPCOMING" | "ONGOING" | "COMPLETED" | "CANCELLED")}
+              onClick={() => setActiveFilter(filter as any)}
               className={`px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
                 activeFilter === filter
                   ? "bg-primary text-white shadow-md shadow-primary/20"
@@ -211,12 +217,14 @@ const MyEvents = () => {
                         Manage Event
                         <ArrowRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
                     </Link>
-                    <button
-                        onClick={() => deleteEvent(event.id)}
-                        className="w-14 h-14 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all shadow-sm"
-                    >
-                        <Trash2 size={20} />
-                    </button>
+                    {!isStaff && (
+                      <button
+                          onClick={() => deleteEvent(event.id)}
+                          className="w-14 h-14 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all shadow-sm"
+                      >
+                          <Trash2 size={20} />
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -232,7 +240,7 @@ const MyEvents = () => {
                     <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
                     <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Date</th>
                     <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Registrations</th>
-                    <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Revenue</th>
+                    {!isStaff && <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Revenue</th>}
                     <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>
                   </tr>
                 </thead>
@@ -267,13 +275,13 @@ const MyEvents = () => {
                       </td>
                       <td className="px-6 py-5">
                          <div className="space-y-1">
-                            <p className="text-sm font-black text-gray-900">{event.registrationCount || 0} / {event.capacity}</p>
+                            <p className="text-sm font-black text-gray-900">{(event as any).registrationCount || 0} / {event.capacity}</p>
                             <div className="w-24 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                               <div className="w-full h-full bg-primary rounded-full" style={{ width: `${Math.min(100, ((event.registrationCount || 0) / event.capacity) * 100)}%` }}></div>
+                               <div className="w-full h-full bg-primary rounded-full" style={{ width: `${Math.min(100, (((event as any).registrationCount || 0) / event.capacity) * 100)}%` }}></div>
                             </div>
                          </div>
                       </td>
-                      <td className="px-6 py-5 font-black text-emerald-600 text-sm">₦{(event.totalRevenue || 0).toLocaleString()}</td>
+                      {!isStaff && <td className="px-6 py-5 font-black text-emerald-600 text-sm">₦{((event as any).totalRevenue || 0).toLocaleString()}</td>}
                       <td className="px-6 py-5 text-right">
                         <div className="flex items-center justify-end gap-3">
                             <Link
@@ -282,12 +290,14 @@ const MyEvents = () => {
                             >
                                 <Eye size={18} />
                             </Link>
-                            <button
-                                onClick={() => deleteEvent(event.id)}
-                                className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white transition-all shadow-sm"
-                            >
-                                <Trash2 size={18} />
-                            </button>
+                            {!isStaff && (
+                              <button
+                                  onClick={() => deleteEvent(event.id)}
+                                  className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white transition-all shadow-sm"
+                              >
+                                  <Trash2 size={18} />
+                              </button>
+                            )}
                         </div>
                       </td>
                     </tr>
@@ -317,13 +327,15 @@ const MyEvents = () => {
                  Clear Filters
                </button>
              )}
-             <Link
-              href="/organizer/dashboard/events/create"
-              className="bg-primary text-white font-bold px-8 py-4 rounded-2xl hover:bg-opacity-90 transition-all shadow-xl shadow-primary/20 flex items-center gap-2"
-            >
-              <PlusCircle size={20} />
-              Create New Event
-            </Link>
+             {!isStaff && (
+               <Link
+                href="/organizer/dashboard/events/create"
+                className="bg-primary text-white font-bold px-8 py-4 rounded-2xl hover:bg-opacity-90 transition-all shadow-xl shadow-primary/20 flex items-center gap-2"
+              >
+                <PlusCircle size={20} />
+                Create New Event
+              </Link>
+             )}
           </div>
         </div>
       )}

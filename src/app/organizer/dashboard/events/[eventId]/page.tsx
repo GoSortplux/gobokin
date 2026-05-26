@@ -34,16 +34,21 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import api from "@/services/api";
+import { useAuth } from "@/context/AuthContext";
 import { Event, Analytics, StaffMember } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 import AssignStaffModal from "@/components/organizer/AssignStaffModal";
+import WalkInRegistrationModal from "@/components/organizer/WalkInRegistrationModal";
 
 const EventDetails = () => {
+  const { user } = useAuth();
   const { eventId } = useParams();
   const router = useRouter();
   const [event, setEvent] = useState<Event | null>(null);
+
+  const isStaff = user?.role?.includes('organizer-staff');
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [attendees, setAttendees] = useState<{ id?: string; attendeeName?: string; attendeeEmail?: string; ticketName?: string; ticketNumber?: string; status?: string; checkInStatus?: boolean; createdAt: string; attendeeData?: Record<string, string> }[]>([]);;
@@ -51,6 +56,7 @@ const EventDetails = () => {
   const [attendeesLoading, setAttendeesLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [isStaffModalOpen, setIsStaffModalOpen] = useState(false);
+  const [isWalkInModalOpen, setIsWalkInModalOpen] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
 
   useEffect(() => {
@@ -271,34 +277,38 @@ const EventDetails = () => {
             <Share2 size={20} />
           </button>
 
-          {!event.isPublished ? (
-            <button
-              onClick={handlePublish}
-              disabled={isActionLoading}
-              className="flex items-center gap-2 bg-emerald-50 text-emerald-600 font-bold px-5 py-2.5 rounded-xl hover:bg-emerald-600 hover:text-white transition-all border border-emerald-100"
-            >
-              <CheckCircle2 size={18} />
-              Publish
-            </button>
-          ) : (
-            <button
-              onClick={handleUnpublish}
-              disabled={isActionLoading}
-              className="flex items-center gap-2 bg-amber-50 text-amber-600 font-bold px-5 py-2.5 rounded-xl hover:bg-amber-600 hover:text-white transition-all border border-amber-100"
-            >
-              <EyeOff size={18} />
-              Unpublish
-            </button>
-          )}
+          {!isStaff && (
+            <>
+              {!event.isPublished ? (
+                <button
+                  onClick={handlePublish}
+                  disabled={isActionLoading}
+                  className="flex items-center gap-2 bg-emerald-50 text-emerald-600 font-bold px-5 py-2.5 rounded-xl hover:bg-emerald-600 hover:text-white transition-all border border-emerald-100"
+                >
+                  <CheckCircle2 size={18} />
+                  Publish
+                </button>
+              ) : (
+                <button
+                  onClick={handleUnpublish}
+                  disabled={isActionLoading}
+                  className="flex items-center gap-2 bg-amber-50 text-amber-600 font-bold px-5 py-2.5 rounded-xl hover:bg-amber-600 hover:text-white transition-all border border-amber-100"
+                >
+                  <EyeOff size={18} />
+                  Unpublish
+                </button>
+              )}
 
-          <button onClick={handleBroadcast} className="flex items-center gap-2 bg-blue-50 text-primary font-bold px-5 py-2.5 rounded-xl hover:bg-blue-100 transition-all border border-blue-100">
-            <Radio size={18} />
-            Broadcast
-          </button>
-          <Link href={`/organizer/dashboard/events/${eventId}/edit`} className="flex items-center gap-2 bg-primary text-white font-bold px-5 py-2.5 rounded-xl hover:bg-opacity-90 transition-all shadow-lg shadow-primary/20">
-            <Settings size={18} />
-            Edit Event
-          </Link>
+              <button onClick={handleBroadcast} className="flex items-center gap-2 bg-blue-50 text-primary font-bold px-5 py-2.5 rounded-xl hover:bg-blue-100 transition-all border border-blue-100">
+                <Radio size={18} />
+                Broadcast
+              </button>
+              <Link href={`/organizer/dashboard/events/${eventId}/edit`} className="flex items-center gap-2 bg-primary text-white font-bold px-5 py-2.5 rounded-xl hover:bg-opacity-90 transition-all shadow-lg shadow-primary/20">
+                <Settings size={18} />
+                Edit Event
+              </Link>
+            </>
+          )}
         </div>
       </div>
 
@@ -341,12 +351,17 @@ const EventDetails = () => {
 
       {/* Analytics Summary */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[
+        {(isStaff ? [
+          { label: "Ticket Sales", value: analytics?.orders || 0, icon: Ticket, color: "text-blue-600", bg: "bg-blue-50" },
+          { label: "Checked-in", value: analytics?.summary?.checkedInGuests || 0, icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50" },
+          { label: "Registrations", value: analytics?.registrations || 0, icon: Users, color: "text-purple-600", bg: "bg-purple-50" },
+          { label: "Attendance Rate", value: `${analytics?.summary?.attendanceRate || 0}%`, icon: TrendingUp, color: "text-amber-600", bg: "bg-amber-50" },
+        ] : [
           { label: "Ticket Sales", value: analytics?.orders || 0, icon: Ticket, color: "text-blue-600", bg: "bg-blue-50" },
           { label: "Revenue", value: `₦${analytics?.totalRevenue?.toLocaleString() || 0}`, icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-50" },
           { label: "Registrations", value: analytics?.registrations || 0, icon: Users, color: "text-purple-600", bg: "bg-purple-50" },
           { label: "Page Views", value: analytics?.views || 0, icon: Eye, color: "text-amber-600", bg: "bg-amber-50" },
-        ].map((stat, i) => (
+        ]).map((stat, i) => (
           <div key={i} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 group">
             <div className={`w-12 h-12 rounded-2xl ${stat.bg} ${stat.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
               <stat.icon size={24} />
@@ -360,7 +375,7 @@ const EventDetails = () => {
       {/* Tabs & Detailed Content */}
       <div className="space-y-6">
          <div className="flex items-center gap-2 bg-white p-1.5 rounded-2xl shadow-sm border border-gray-100 w-fit overflow-x-auto no-scrollbar">
-            {["overview", "schedule", "tickets", "attendees", "staff"].map(tab => (
+            {["overview", "schedule", "tickets", "attendees", "staff"].filter(t => !isStaff || t !== "staff").map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -858,6 +873,13 @@ const EventDetails = () => {
                           <Download size={14} />
                           Export List
                        </button>
+                       <button
+                         onClick={() => setIsWalkInModalOpen(true)}
+                         className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-900/20 hover:bg-emerald-700 transition-all"
+                       >
+                          <UserPlus size={14} />
+                          Walk-in Registration
+                       </button>
                        <Link href={`/organizer/dashboard/events/${eventId}/check-in`} className="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-xs rounded-xl shadow-lg shadow-primary/20 hover:opacity-90 transition-all">
                           <CheckCircle2 size={14} />
                           QR Check-in
@@ -919,9 +941,72 @@ const EventDetails = () => {
                                          <p className="text-[9px] text-gray-400 font-medium">{new Date(attendee.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                                       </td>
                                       <td className="px-6 py-6 text-right">
-                                         <button className="p-2 text-gray-400 hover:text-primary transition-colors">
-                                            <MoreVertical size={16} />
-                                         </button>
+                                         <div className="flex items-center justify-end gap-2">
+                                            {!attendee.checkInStatus && (
+                                              <button
+                                                onClick={async () => {
+                                                  try {
+                                                    const result = await Swal.fire({
+                                                      title: 'Confirm Check-in',
+                                                      text: `Are you sure you want to check in ${attendee.attendeeName}?`,
+                                                      icon: 'question',
+                                                      showCancelButton: true,
+                                                      confirmButtonText: 'Yes, Check-in',
+                                                      confirmButtonColor: '#10b981',
+                                                    });
+
+                                                    if (result.isConfirmed) {
+                                                      Swal.showLoading();
+                                                      await api.post("/events/check-in", {
+                                                        ticketNumber: attendee.ticketNumber
+                                                      });
+                                                      await Swal.fire('Success', 'Attendee checked in successfully', 'success');
+                                                      // Refresh data
+                                                      api.get(`/events/${eventId}/analytics`).then(res => setAnalytics(res.data.data));
+                                                      const response = await api.get(`/events/${eventId}/orders`);
+                                                      const orders = response.data.data || [];
+                                                      let flattenedAttendees = [];
+                                                      if (Array.isArray(orders)) {
+                                                        flattenedAttendees = orders.flatMap((order: any) => {
+                                                          const registrations = order.registrations || [];
+                                                          if (registrations.length === 0) {
+                                                            return [{
+                                                              ...order,
+                                                              attendeeName: order.buyerInfo?.fullName || "Guest",
+                                                              attendeeEmail: order.buyerInfo?.email || "N/A",
+                                                              ticketName: order.ticketName || "Standard Entry",
+                                                              ticketNumber: `ORD-${order.id?.slice(0, 8)}`,
+                                                              status: order.status || "PENDING",
+                                                              createdAt: order.createdAt
+                                                            }];
+                                                          }
+                                                          return registrations.map((reg: any) => ({
+                                                            ...reg,
+                                                            orderId: order.id,
+                                                            attendeeName: reg.attendeeData?.fullName || reg.attendeeData?.['full-name'] || order.buyerInfo?.fullName || "Guest",
+                                                            attendeeEmail: reg.attendeeData?.email || order.buyerInfo?.email || "N/A",
+                                                            ticketName: reg.ticketId?.name || order.ticketName || "Standard Entry",
+                                                            ticketNumber: reg.ticketNumber || `ORD-${order.id?.slice(0, 8)}`,
+                                                            status: reg.paymentStatus || order.status || "PAID",
+                                                            createdAt: reg.createdAt || order.createdAt
+                                                          }));
+                                                        });
+                                                      }
+                                                      setAttendees(flattenedAttendees);
+                                                    }
+                                                  } catch (error) {
+                                                    Swal.fire('Error', translateError(error), 'error');
+                                                  }
+                                                }}
+                                                className="px-3 py-1.5 bg-emerald-50 text-emerald-600 font-bold text-[10px] rounded-lg border border-emerald-100 hover:bg-emerald-600 hover:text-white transition-all"
+                                              >
+                                                Check-in
+                                              </button>
+                                            )}
+                                            <button className="p-2 text-gray-400 hover:text-primary transition-colors">
+                                               <MoreVertical size={16} />
+                                            </button>
+                                         </div>
                                       </td>
                                    </tr>
                                  ))
@@ -950,6 +1035,62 @@ const EventDetails = () => {
         onAssign={handleAssignStaff}
         assignedStaffIds={staff.map(s => s.id)}
       />
+
+      {event && (
+        <WalkInRegistrationModal
+          isOpen={isWalkInModalOpen}
+          onClose={() => setIsWalkInModalOpen(false)}
+          eventId={event.id}
+          tickets={event.tickets || []}
+          onSuccess={() => {
+            // Refresh analytics
+            api.get(`/events/${eventId}/analytics`).then(res => setAnalytics(res.data.data));
+            // Refresh attendees if on that tab
+            if (activeTab === "attendees") {
+              const fetchAttendees = async () => {
+                try {
+                  setAttendeesLoading(true);
+                  const response = await api.get(`/events/${eventId}/orders`);
+                  const orders = response.data.data || [];
+                  let flattenedAttendees = [];
+                  if (Array.isArray(orders)) {
+                    flattenedAttendees = orders.flatMap((order: any) => {
+                      const registrations = order.registrations || [];
+                      if (registrations.length === 0) {
+                        return [{
+                          ...order,
+                          attendeeName: order.buyerInfo?.fullName || "Guest",
+                          attendeeEmail: order.buyerInfo?.email || "N/A",
+                          ticketName: order.ticketName || "Standard Entry",
+                          ticketNumber: `ORD-${order.id?.slice(0, 8)}`,
+                          status: order.status || "PENDING",
+                          createdAt: order.createdAt
+                        }];
+                      }
+                      return registrations.map((reg: any) => ({
+                        ...reg,
+                        orderId: order.id,
+                        attendeeName: reg.attendeeData?.fullName || reg.attendeeData?.['full-name'] || order.buyerInfo?.fullName || "Guest",
+                        attendeeEmail: reg.attendeeData?.email || order.buyerInfo?.email || "N/A",
+                        ticketName: reg.ticketId?.name || order.ticketName || "Standard Entry",
+                        ticketNumber: reg.ticketNumber || `ORD-${order.id?.slice(0, 8)}`,
+                        status: reg.paymentStatus || order.status || "PAID",
+                        createdAt: reg.createdAt || order.createdAt
+                      }));
+                    });
+                  }
+                  setAttendees(flattenedAttendees);
+                } catch (error) {
+                  console.error("Failed to fetch attendees:", error);
+                } finally {
+                  setAttendeesLoading(false);
+                }
+              };
+              fetchAttendees();
+            }
+          }}
+        />
+      )}
 
             {activeTab === "staff" && (
               <div className="space-y-8 animate-in fade-in duration-500">
