@@ -476,7 +476,7 @@ export interface OrganizerApplication {
     portfolio: string;
     experience: string;
     references: string[];
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
@@ -622,7 +622,7 @@ export interface FinanceSummary {
     netAmount: number;
   };
   transactionCount: number;
-  recentTransactions: any[];
+  recentTransactions: unknown[];
 }
 
 export interface EventSummary {

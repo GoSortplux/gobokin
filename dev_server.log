@@ -1,0 +1,17 @@
+
+> gobokin-app@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.5.9
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.2:3000
+
+ ✓ Starting...
+ ✓ Ready in 2.4s
+ ○ Compiling / ...
+ ✓ Compiled / in 6.4s (3737 modules)
+ GET / 200 in 7585ms
+ ○ Compiling /organizer/dashboard/settings ...
+ ✓ Compiled /organizer/dashboard/settings in 1989ms (3788 modules)
+ GET /organizer/dashboard/settings 200 in 2904ms
+ GET / 200 in 238ms

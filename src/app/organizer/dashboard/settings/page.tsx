@@ -9,7 +9,10 @@ import {
   FileText,
   Save,
   ArrowRight,
-  ChevronDown
+  ChevronDown,
+  Globe,
+  User,
+  ExternalLink
 } from "lucide-react";
 import api from "@/services/api";
 import { OrganizerProfile } from "@/types";
@@ -25,7 +28,7 @@ const OrganizerSettings = () => {
   const [saving, setSaving] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [formData, setFormData] = useState({
-    defaultRefundType: "PARTIAL" as any,
+    defaultRefundType: "PARTIAL" as "FULL" | "PARTIAL" | "NONE",
     defaultRefundPercentage: 80,
     defaultRefundCutoffDays: 7,
   });
@@ -101,13 +104,40 @@ const OrganizerSettings = () => {
                </div>
 
                <div className="grid grid-cols-2 gap-4 mt-8 pt-8 border-t border-gray-50">
-               <div className="p-5 bg-gray-50 rounded-2xl border border-gray-100">
-                     <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Fee Rate</p>
-                     <p className="text-xl font-black text-gray-900">{profile?.commissionRate}%</p>
+                  <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                     <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest mb-1">Fee Rate</p>
+                     <p className="text-lg font-black text-gray-900">{profile?.commissionRate}%</p>
                   </div>
-                  <div className="p-5 bg-gray-50 rounded-2xl border border-gray-100">
-                     <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Max Staff</p>
-                     <p className="text-xl font-black text-gray-900">{profile?.maxStaff}</p>
+                  <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                     <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest mb-1">Max Staff</p>
+                     <p className="text-lg font-black text-gray-900">{profile?.maxStaff}</p>
+                  </div>
+               </div>
+
+               <div className="mt-4 space-y-3">
+                  <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 flex items-center justify-between">
+                     <div className="text-left">
+                        <p className="text-[8px] text-emerald-600 font-black uppercase tracking-widest mb-1">Available</p>
+                        <p className="text-lg font-black text-emerald-700">
+                           {profile?.wallet?.currency === 'NGN' ? '₦' : (profile?.wallet?.currency || '₦')}
+                           {profile?.wallet?.availableBalance.toLocaleString() || '0'}
+                        </p>
+                     </div>
+                     <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-emerald-600 shadow-sm">
+                        <CreditCard size={18} />
+                     </div>
+                  </div>
+                  <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 flex items-center justify-between">
+                     <div className="text-left">
+                        <p className="text-[8px] text-amber-600 font-black uppercase tracking-widest mb-1">Pending</p>
+                        <p className="text-lg font-black text-amber-700">
+                           {profile?.wallet?.currency === 'NGN' ? '₦' : (profile?.wallet?.currency || '₦')}
+                           {profile?.wallet?.pendingBalance.toLocaleString() || '0'}
+                        </p>
+                     </div>
+                     <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-amber-600 shadow-sm">
+                        <Clock size={18} />
+                     </div>
                   </div>
                </div>
 
@@ -135,6 +165,67 @@ const OrganizerSettings = () => {
 
          {/* Settings Form */}
          <div className="lg:col-span-2 space-y-8">
+            {/* Profile Preview Card */}
+            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+               <div className="p-8 lg:p-10 border-b border-gray-50 flex items-center justify-between bg-gray-50/30">
+                  <div className="flex items-center gap-4">
+                     <div className="w-12 h-12 bg-blue-50 text-primary rounded-2xl flex items-center justify-center">
+                        <User size={24} />
+                     </div>
+                     <div>
+                        <h3 className="text-xl font-black text-gray-900">Public Profile</h3>
+                        <p className="text-xs text-gray-400 font-bold uppercase tracking-widest leading-none mt-1">What your audience sees</p>
+                     </div>
+                  </div>
+                  <button
+                     onClick={() => setIsEditModalOpen(true)}
+                     className="flex items-center gap-2 text-primary font-black px-4 py-2 rounded-xl hover:bg-primary/5 transition-all text-sm"
+                  >
+                     <Settings size={16} />
+                     Edit Profile
+                  </button>
+               </div>
+               <div className="p-8 lg:p-10 space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                     <div className="space-y-1.5">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Profile URL / Slug</p>
+                        <div className="flex items-center gap-2 p-4 bg-gray-50 rounded-2xl border border-gray-100 group transition-all hover:bg-white hover:shadow-md">
+                           <Zap size={16} className="text-gray-400" />
+                           <span className="text-sm font-bold text-gray-900">gobokin.com/organizer/{profile?.slug || '...'}</span>
+                        </div>
+                     </div>
+                     <div className="space-y-1.5">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Website</p>
+                        {profile?.website ? (
+                           <a
+                              href={profile.website}
+                              target="_blank"
+                              className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 group transition-all hover:bg-white hover:shadow-md"
+                           >
+                              <div className="flex items-center gap-2">
+                                 <Globe size={16} className="text-gray-400" />
+                                 <span className="text-sm font-bold text-gray-900 truncate max-w-[150px]">{profile.website}</span>
+                              </div>
+                              <ExternalLink size={14} className="text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+                           </a>
+                        ) : (
+                           <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 text-sm font-bold text-gray-400 italic">
+                              No website added
+                           </div>
+                        )}
+                     </div>
+                  </div>
+                  <div className="space-y-1.5">
+                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Public Biography</p>
+                     <div className="p-6 bg-gray-50 rounded-[2rem] border border-gray-100 min-h-[100px]">
+                        <p className="text-sm font-medium text-gray-600 leading-relaxed whitespace-pre-wrap">
+                           {profile?.bio || "You haven't added a biography yet. Tell your audience about your organization to build trust."}
+                        </p>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
             <form onSubmit={handleUpdate} className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
                <div className="p-8 lg:p-10 border-b border-gray-50 flex items-center justify-between">
                   <div className="flex items-center gap-4">
@@ -164,7 +255,7 @@ const OrganizerSettings = () => {
                            <select
                               className="w-full p-5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all appearance-none"
                               value={formData.defaultRefundType}
-                              onChange={(e) => setFormData({...formData, defaultRefundType: e.target.value})}
+                              onChange={(e) => setFormData({...formData, defaultRefundType: e.target.value as "FULL" | "PARTIAL" | "NONE"})}
                            >
                               <option value="FULL">Full Refund</option>
                               <option value="PARTIAL">Partial Refund</option>
