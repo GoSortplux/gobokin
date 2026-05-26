@@ -63,12 +63,19 @@ const EventDetails = () => {
     const fetchEventData = async () => {
       try {
         setLoading(true);
-        const [eventRes, analyticsRes] = await Promise.all([
+
+        // Only fetch analytics if not staff
+        const promises: [Promise<any>, Promise<any> | null] = [
           api.get(`/events/${eventId}`),
-          api.get(`/events/${eventId}/analytics`)
-        ]);
+          !isStaff ? api.get(`/events/${eventId}/analytics`) : null
+        ];
+
+        const [eventRes, analyticsRes] = await Promise.all(promises);
+
         setEvent(eventRes.data.data);
-        setAnalytics(analyticsRes.data.data);
+        if (analyticsRes) {
+          setAnalytics(analyticsRes.data.data);
+        }
       } catch (error) {
         console.error("Failed to fetch event data:", error);
         Swal.fire("Error", translateError(error), "error");
@@ -962,7 +969,9 @@ const EventDetails = () => {
                                                       });
                                                       await Swal.fire('Success', 'Attendee checked in successfully', 'success');
                                                       // Refresh data
-                                                      api.get(`/events/${eventId}/analytics`).then(res => setAnalytics(res.data.data));
+                                                      if (!isStaff) {
+                                                        api.get(`/events/${eventId}/analytics`).then(res => setAnalytics(res.data.data));
+                                                      }
                                                       const response = await api.get(`/events/${eventId}/orders`);
                                                       const orders = response.data.data || [];
                                                       let flattenedAttendees = [];
@@ -1043,8 +1052,10 @@ const EventDetails = () => {
           eventId={event.id}
           tickets={event.tickets || []}
           onSuccess={() => {
-            // Refresh analytics
-            api.get(`/events/${eventId}/analytics`).then(res => setAnalytics(res.data.data));
+            // Refresh analytics if not staff
+            if (!isStaff) {
+              api.get(`/events/${eventId}/analytics`).then(res => setAnalytics(res.data.data));
+            }
             // Refresh attendees if on that tab
             if (activeTab === "attendees") {
               const fetchAttendees = async () => {

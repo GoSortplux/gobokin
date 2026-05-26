@@ -18,6 +18,7 @@ import { useAuth } from "@/context/AuthContext";
 import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
+import withAuth from "@/components/auth/withAuth";
 
 const OrdersView = () => {
   const { user } = useAuth();
@@ -180,4 +181,4 @@ const OrdersView = () => {
   );
 };
 
-export default OrdersView;
+export default withAuth(OrdersView, ["organizer"]);

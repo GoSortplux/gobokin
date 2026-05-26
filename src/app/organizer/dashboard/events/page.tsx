@@ -24,6 +24,7 @@ import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 import { useAuth } from "@/context/AuthContext";
+import WalkInRegistrationModal from "@/components/organizer/WalkInRegistrationModal";
 
 const MyEvents = () => {
   const { user } = useAuth();
@@ -32,6 +33,8 @@ const MyEvents = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [activeFilter, setActiveFilter] = useState<"ALL" | "UPCOMING" | "ONGOING" | "COMPLETED" | "CANCELLED">("ALL");
+  const [selectedEventForWalkIn, setSelectedEventForWalkIn] = useState<Event | null>(null);
+  const [isWalkInModalOpen, setIsWalkInModalOpen] = useState(false);
 
   const isStaff = user?.role?.includes('organizer-staff');
 
@@ -89,6 +92,25 @@ const MyEvents = () => {
       case "CANCELLED": return "bg-rose-50 text-rose-600 border border-rose-100";
       default: return "bg-gray-50 text-gray-600 border border-gray-100";
     }
+  };
+
+  const handleWalkIn = async (event: Event) => {
+    if (!event.tickets || event.tickets.length === 0) {
+      try {
+        Swal.showLoading();
+        const response = await api.get(`/events/${event.id}`);
+        const fullEvent = response.data.data;
+        setSelectedEventForWalkIn(fullEvent);
+        Swal.close();
+      } catch (error) {
+        console.error("Failed to fetch event tickets:", error);
+        Swal.fire("Error", "Could not load ticket categories for this event.", "error");
+        return;
+      }
+    } else {
+      setSelectedEventForWalkIn(event);
+    }
+    setIsWalkInModalOpen(true);
   };
 
   if (loading) return <div className="h-full flex items-center justify-center"><CustomLoader /></div>;
@@ -210,20 +232,39 @@ const MyEvents = () => {
                   </div>
 
                   <div className="flex items-center gap-3 mt-4">
-                    <Link
-                        href={`/organizer/dashboard/events/${event.id}`}
-                        className="flex-1 bg-gray-50 text-gray-900 font-black py-4 rounded-2xl hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-2 group/btn shadow-sm text-sm uppercase tracking-widest"
-                    >
-                        Manage Event
-                        <ArrowRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
-                    </Link>
-                    {!isStaff && (
-                      <button
-                          onClick={() => deleteEvent(event.id)}
-                          className="w-14 h-14 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all shadow-sm"
-                      >
-                          <Trash2 size={20} />
-                      </button>
+                    {!isStaff ? (
+                      <>
+                        <Link
+                            href={`/organizer/dashboard/events/${event.id}`}
+                            className="flex-1 bg-gray-50 text-gray-900 font-black py-4 rounded-2xl hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-2 group/btn shadow-sm text-sm uppercase tracking-widest"
+                        >
+                            Manage Event
+                            <ArrowRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
+                        </Link>
+                        <button
+                            onClick={() => deleteEvent(event.id)}
+                            className="w-14 h-14 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all shadow-sm"
+                        >
+                            <Trash2 size={20} />
+                        </button>
+                      </>
+                    ) : (
+                      <div className="flex items-center gap-2 w-full">
+                        <Link
+                            href={`/organizer/dashboard/events/${event.id}/check-in`}
+                            className="flex-1 bg-primary text-white font-black py-3 rounded-xl hover:bg-opacity-90 transition-all flex items-center justify-center gap-2 group/btn shadow-md shadow-primary/20 text-[10px] uppercase tracking-wider"
+                        >
+                            <CheckCircle2 size={16} />
+                            Check-in
+                        </Link>
+                        <button
+                            onClick={() => handleWalkIn(event)}
+                            className="flex-1 bg-emerald-50 text-emerald-600 font-black py-3 rounded-xl hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center gap-2 group/btn border border-emerald-100 text-[10px] uppercase tracking-wider"
+                        >
+                            <PlusCircle size={16} />
+                            Walk-in
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -284,19 +325,40 @@ const MyEvents = () => {
                       {!isStaff && <td className="px-6 py-5 font-black text-emerald-600 text-sm">₦{((event as any).totalRevenue || 0).toLocaleString()}</td>}
                       <td className="px-6 py-5 text-right">
                         <div className="flex items-center justify-end gap-3">
-                            <Link
-                                href={`/organizer/dashboard/events/${event.id}`}
-                                className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-blue-50 text-primary hover:bg-primary hover:text-white transition-all shadow-sm"
-                            >
-                                <Eye size={18} />
-                            </Link>
-                            {!isStaff && (
-                              <button
-                                  onClick={() => deleteEvent(event.id)}
-                                  className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white transition-all shadow-sm"
-                              >
-                                  <Trash2 size={18} />
-                              </button>
+                            {!isStaff ? (
+                              <>
+                                <Link
+                                    href={`/organizer/dashboard/events/${event.id}`}
+                                    className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-blue-50 text-primary hover:bg-primary hover:text-white transition-all shadow-sm"
+                                    title="Manage Event"
+                                >
+                                    <Eye size={18} />
+                                </Link>
+                                <button
+                                    onClick={() => deleteEvent(event.id)}
+                                    className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white transition-all shadow-sm"
+                                    title="Delete Event"
+                                >
+                                    <Trash2 size={18} />
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <Link
+                                    href={`/organizer/dashboard/events/${event.id}/check-in`}
+                                    className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary text-white hover:bg-opacity-90 transition-all shadow-sm"
+                                    title="Check-in"
+                                >
+                                    <CheckCircle2 size={18} />
+                                </Link>
+                                <button
+                                    onClick={() => handleWalkIn(event)}
+                                    className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
+                                    title="Walk-in Registration"
+                                >
+                                    <PlusCircle size={18} />
+                                </button>
+                              </>
                             )}
                         </div>
                       </td>
@@ -338,6 +400,21 @@ const MyEvents = () => {
              )}
           </div>
         </div>
+      )}
+
+      {selectedEventForWalkIn && (
+        <WalkInRegistrationModal
+          isOpen={isWalkInModalOpen}
+          onClose={() => {
+            setIsWalkInModalOpen(false);
+            setSelectedEventForWalkIn(null);
+          }}
+          eventId={selectedEventForWalkIn.id}
+          tickets={selectedEventForWalkIn.tickets || []}
+          onSuccess={() => {
+            fetchEvents();
+          }}
+        />
       )}
     </div>
   );

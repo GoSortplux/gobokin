@@ -51,7 +51,7 @@ const OrganizerSidebar = () => {
       label: "Orders & Registrations",
       icon: <Ticket size={24} />,
       id: "organizer-nav-orders",
-      roles: ["organizer", "organizer-staff"]
+      roles: ["organizer"]
     },
     {
       href: "/organizer/dashboard/staff",
