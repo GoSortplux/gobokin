@@ -17,3 +17,12 @@ export const formatDateLong = (date: string | Date): string => {
     day: 'numeric'
   });
 };
+
+/**
+ * Formats a date string or Date object into a readable date string.
+ */
+export const formatDate = (date: string | Date): string => {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  if (isNaN(d.getTime())) return 'N/A';
+  return d.toLocaleDateString();
+};

@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useCallback, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Calendar,
@@ -56,6 +56,7 @@ const CATEGORY_ICONS: Record<string, any> = {
 
 const EventDiscoveryContent = () => {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [discoveryData, setDiscoveryData] = useState<DiscoveryData>({
     featured: [],
     upcoming: [],
@@ -359,7 +360,7 @@ const EventDiscoveryContent = () => {
           <div className="space-y-0.5">
             <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-widest">Starts from</p>
             <p className="text-xl font-semibold text-gray-900">
-              {event.tickets?.[0]?.price > 0 ? `₦${event.tickets[0].price.toLocaleString()}` : "Free"}
+              {event.tickets && event.tickets[0]?.price > 0 ? `₦${event.tickets[0].price.toLocaleString()}` : "Free"}
             </p>
           </div>
           <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center shadow-md shadow-primary/10 group-hover:scale-110 transition-all">
@@ -383,8 +384,7 @@ const EventDiscoveryContent = () => {
            {isSearching && (
               <button
                 onClick={() => {
-                  setSearchTerm("");
-                  setLocationTerm("");
+                  router.push("/events");
                   setActiveCategory("All");
                   setEventType("All");
                 }}
@@ -589,8 +589,7 @@ const EventDiscoveryContent = () => {
                         </p>
                         <button
                           onClick={() => {
-                            setSearchTerm("");
-                            setLocationTerm("");
+                            router.push("/events");
                             setActiveCategory("All");
                             setEventType("All");
                           }}

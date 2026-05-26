@@ -346,6 +346,7 @@ const EditEvent = () => {
     isPublic: true,
     isFeatured: false,
     status: "UPCOMING",
+    agendaEnabled: false,
   });
 
   const [mediaInfo, setMediaInfo] = useState({
@@ -431,6 +432,7 @@ const EditEvent = () => {
           isPublic: event.isPublic !== false,
           isFeatured: !!event.isFeatured,
           status: event.status || "UPCOMING",
+          agendaEnabled: !!event.agendaEnabled,
         });
 
         setMediaInfo({

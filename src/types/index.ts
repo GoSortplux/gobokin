@@ -463,6 +463,45 @@ export interface RegistrationField {
   label: string;
   required: boolean;
   isPerAttendee: boolean;
+  options?: string[];
+}
+
+export interface OrganizerApplication {
+  id: string;
+  organizerId: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  adminNotes?: string;
+  createdAt: string;
+  data: {
+    portfolio: string;
+    experience: string;
+    references: string[];
+    [key: string]: any;
+  };
+}
+
+export interface Wallet {
+  id: string;
+  pendingBalance: number;
+  availableBalance: number;
+  withdrawnBalance: number;
+  currency: string;
+}
+
+export interface OrganizerProfile {
+  id: string;
+  mongoUserId: string;
+  status: string;
+  slug: string;
+  isVerified: boolean;
+  bio: string | null;
+  website: string | null;
+  commissionRate: number;
+  maxStaff: number;
+  defaultRefundType: string;
+  defaultRefundPercentage: number;
+  defaultRefundCutoffDays: number;
+  wallet: Wallet;
 }
 
 export interface Organizer {
@@ -489,6 +528,7 @@ export interface Organizer {
     fullName: string;
     email: string;
   };
+  wallet?: Wallet;
 }
 
 export interface StaffMember {
@@ -502,6 +542,7 @@ export interface StaffMember {
 export interface QuantityDiscount {
   minQuantity: number;
   discountPercentage: number;
+  price?: number;
 }
 
 export interface Ticket {
@@ -571,6 +612,17 @@ export interface Event {
   tickets?: Ticket[];
   sessions?: Session[];
   staff?: StaffMember[];
+}
+
+export interface FinanceSummary {
+  wallet: Wallet;
+  totals: {
+    amount: number;
+    commission: number;
+    netAmount: number;
+  };
+  transactionCount: number;
+  recentTransactions: any[];
 }
 
 export interface EventSummary {

@@ -23,9 +23,11 @@ import { translateError } from "@/utils/errors";
 
 const OrganizerSettings = () => {
   const [profile, setProfile] = useState<OrganizerProfile | null>(null);
+  const [subscriptions, setSubscriptions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
+    slug: "",
     bio: "",
     website: "",
     defaultRefundType: "PARTIAL" as any,
@@ -35,24 +37,36 @@ const OrganizerSettings = () => {
 
   useEffect(() => {
     fetchProfile();
+    fetchSubscriptions();
   }, []);
 
   const fetchProfile = async () => {
     try {
       setLoading(true);
       const response = await api.get("/events/my-organizer-profile");
-      setProfile(response.data.data);
+      const data = response.data.data;
+      setProfile(data);
       setFormData({
-        bio: response.data.data.bio || "",
-        website: response.data.data.website || "",
-        defaultRefundType: response.data.data.defaultRefundType || "PARTIAL",
-        defaultRefundPercentage: response.data.data.defaultRefundPercentage || 80,
-        defaultRefundCutoffDays: response.data.data.defaultRefundCutoffDays || 7,
+        slug: data.slug || "",
+        bio: data.bio || "",
+        website: data.website || "",
+        defaultRefundType: data.defaultRefundType || "PARTIAL",
+        defaultRefundPercentage: data.defaultRefundPercentage || 80,
+        defaultRefundCutoffDays: data.defaultRefundCutoffDays || 7,
       });
     } catch (error) {
       console.error("Failed to fetch profile:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSubscriptions = async () => {
+    try {
+      const response = await api.get("/events/my-subscriptions");
+      setSubscriptions(response.data.data || []);
+    } catch (error) {
+      console.error("Failed to fetch subscriptions:", error);
     }
   };
 
@@ -142,6 +156,21 @@ const OrganizerSettings = () => {
                <div className="p-6 md:p-8 lg:p-10 space-y-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                      <div className="space-y-3">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Organizer Slug</label>
+                        <div className="relative">
+                           <Zap className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                           <input
+                             type="text"
+                             className="w-full pl-12 pr-6 py-5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all placeholder:font-medium"
+                             value={formData.slug}
+                             onChange={(e) => setFormData({...formData, slug: e.target.value})}
+                             placeholder="my-cool-org"
+                           />
+                        </div>
+                        <p className="text-[10px] text-gray-400 font-medium ml-2">This will be used in your public profile URL.</p>
+                     </div>
+
+                     <div className="space-y-3">
                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Organizer Website</label>
                         <div className="relative">
                            <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -150,6 +179,7 @@ const OrganizerSettings = () => {
                              className="w-full pl-12 pr-6 py-5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all placeholder:font-medium"
                              value={formData.website}
                              onChange={(e) => setFormData({...formData, website: e.target.value})}
+                             placeholder="https://techorganizer.com"
                            />
                         </div>
                      </div>
@@ -229,6 +259,40 @@ const OrganizerSettings = () => {
                   </button>
                </div>
             </form>
+
+            {/* Subscriptions Section */}
+            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+               <div className="p-8 lg:p-10 border-b border-gray-50">
+                  <div className="flex items-center gap-4">
+                     <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center">
+                        <CreditCard size={24} />
+                     </div>
+                     <h3 className="text-xl font-black text-gray-900">Active Subscriptions</h3>
+                  </div>
+               </div>
+               <div className="p-6 md:p-8 lg:p-10">
+                  {subscriptions.length > 0 ? (
+                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {subscriptions.map((sub, index) => (
+                           <div key={index} className="p-6 bg-gray-50 rounded-2xl border border-gray-100 flex items-center gap-4 group hover:bg-white hover:shadow-xl hover:shadow-blue-900/5 transition-all duration-300">
+                              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform">
+                                 <CheckCircle2 size={20} />
+                              </div>
+                              <span className="font-bold text-gray-900">{sub}</span>
+                           </div>
+                        ))}
+                     </div>
+                  ) : (
+                     <div className="text-center py-12 space-y-4">
+                        <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto text-gray-300">
+                           <CreditCard size={32} />
+                        </div>
+                        <p className="text-gray-500 font-medium">No active subscriptions found.</p>
+                        <button className="text-primary font-bold hover:underline text-sm">Explore Subscription Plans</button>
+                     </div>
+                  )}
+               </div>
+            </div>
          </div>
       </div>
     </div>

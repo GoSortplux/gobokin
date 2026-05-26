@@ -43,7 +43,7 @@ import axios from "axios";
 import { useEffect } from "react";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
-import { AgendaItem, EventType, RegistrationMode, Speaker, TicketType } from "@/types";
+import { AgendaItem, EventType, RegistrationMode, Speaker, TicketType, Ticket as ITicket } from "@/types";
 
 const steps = [
   { id: 1, title: "Event Details", icon: Info },
@@ -398,7 +398,7 @@ const CreateEvent = () => {
     speakerNames: [] as string[],
   }]);
 
-  const [tickets, setTickets] = useState<Ticket[]>([{
+  const [tickets, setTickets] = useState<ITicket[]>([{
     id: "1",
     name: "General Admission",
     price: 0,
@@ -1867,7 +1867,7 @@ const CreateEvent = () => {
                              </div>
                              {tickets.length > 1 && (
                                 <button
-                                  onClick={() => removeTicket(ticket.id)}
+                                  onClick={() => removeTicket(ticket.id!)}
                                   className="w-14 h-14 flex items-center justify-center text-gray-300 hover:text-secondary bg-white rounded-2xl shadow-sm hover:shadow-2xl transition-all border border-gray-100 group/trash"
                                 >
                                    <Trash2 size={20} className="group-hover/trash:rotate-12 transition-transform" />
@@ -1886,7 +1886,7 @@ const CreateEvent = () => {
                                    placeholder="e.g., VIP Early Bird"
                                    className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none transition-all shadow-sm"
                                    value={ticket.name}
-                                   onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id, "name", e.target.value)}
+                                   onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id!, "name", e.target.value)}
                                 />
                              </div>
 
@@ -1900,7 +1900,7 @@ const CreateEvent = () => {
                                    placeholder="What's included in this tier? (e.g., Free drinks, Front row seating)"
                                    className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none transition-all shadow-sm resize-none"
                                    value={ticket.description}
-                                   onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id, "description", e.target.value)}
+                                   onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id!, "description", e.target.value)}
                                 />
                              </div>
 
@@ -1914,7 +1914,7 @@ const CreateEvent = () => {
                                        <select
                                           className="w-full pl-5 pr-10 py-5 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none appearance-none shadow-sm"
                                           value={ticket.type}
-                                          onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id, "type", e.target.value as TicketType)}
+                                          onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id!, "type", e.target.value as TicketType)}
                                        >
                                           <option value="FREE">Complimentary</option>
                                           <option value="PAID">Premium Access</option>
@@ -1934,7 +1934,7 @@ const CreateEvent = () => {
                                           disabled={ticket.type === "FREE"}
                                           className="w-full pl-10 pr-5 py-5 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 disabled:bg-gray-100 disabled:opacity-50 outline-none shadow-sm"
                                           value={ticket.price}
-                                          onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id, "price", parseFloat(e.target.value))}
+                                          onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id!, "price", parseFloat(e.target.value))}
                                        />
                                    </div>
                                 </div>
@@ -1948,7 +1948,7 @@ const CreateEvent = () => {
                                       type="number"
                                       className="w-full px-5 py-5 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none shadow-sm"
                                       value={ticket.totalQuantity}
-                                      onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id, "totalQuantity", parseInt(e.target.value))}
+                                      onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id!, "totalQuantity", parseInt(e.target.value))}
                                    />
                                    <p className="text-[9px] font-bold text-gray-400 mt-1 ml-1 uppercase">
                                        Max: {Math.max(0, basicInfo.capacity - tickets.filter(t => t.id !== ticket.id).reduce((sum, t) => sum + (t.totalQuantity || 0), 0))}
@@ -1963,7 +1963,7 @@ const CreateEvent = () => {
                                       type="number"
                                       className="w-full px-5 py-5 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none shadow-sm"
                                       value={ticket.groupSize}
-                                      onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id, "groupSize", parseInt(e.target.value))}
+                                      onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id!, "groupSize", parseInt(e.target.value))}
                                    />
                                 </div>
                              </div>
@@ -1980,7 +1980,7 @@ const CreateEvent = () => {
                                                 disabled={ticket.type === "FREE"}
                                                 className="w-full pl-8 pr-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none disabled:bg-gray-100 disabled:opacity-50"
                                                 value={ticket.earlyBirdPrice}
-                                                onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id, "earlyBirdPrice", parseFloat(e.target.value))}
+                                                onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id!, "earlyBirdPrice", parseFloat(e.target.value))}
                                             />
                                         </div>
                                     </div>
@@ -1991,7 +1991,7 @@ const CreateEvent = () => {
                                             disabled={ticket.type === "FREE"}
                                             className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none disabled:bg-gray-100 disabled:opacity-50"
                                             value={ticket.earlyBirdLimit}
-                                            onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id, "earlyBirdLimit", parseInt(e.target.value))}
+                                            onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id!, "earlyBirdLimit", parseInt(e.target.value))}
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -2001,7 +2001,7 @@ const CreateEvent = () => {
                                             disabled={ticket.type === "FREE"}
                                             className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none disabled:bg-gray-100 disabled:opacity-50"
                                             value={ticket.earlyBirdExpiry}
-                                            onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id, "earlyBirdExpiry", e.target.value)}
+                                            onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id!, "earlyBirdExpiry", e.target.value)}
                                         />
                                     </div>
                                 </div>
@@ -2019,7 +2019,7 @@ const CreateEvent = () => {
                                             type="datetime-local"
                                             className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-[10px] font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
                                             value={ticket.salesStart}
-                                            onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id, "salesStart", e.target.value)}
+                                            onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id!, "salesStart", e.target.value)}
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -2028,7 +2028,7 @@ const CreateEvent = () => {
                                             type="datetime-local"
                                             className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-[10px] font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
                                             value={ticket.salesEnd}
-                                            onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id, "salesEnd", e.target.value)}
+                                            onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id!, "salesEnd", e.target.value)}
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -2036,7 +2036,7 @@ const CreateEvent = () => {
                                         <select
                                             className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
                                             value={ticket.allocationType}
-                                            onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id, "allocationType", e.target.value as "GENERAL" | "RESERVED")}
+                                            onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id!, "allocationType", e.target.value as "GENERAL" | "RESERVED")}
                                         >
                                             <option value="GENERAL">General</option>
                                             <option value="RESERVED">Reserved</option>
@@ -2048,7 +2048,7 @@ const CreateEvent = () => {
                                             type="number"
                                             className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
                                             value={ticket.maxPerOrder}
-                                            onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id, "maxPerOrder", parseInt(e.target.value))}
+                                            onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id!, "maxPerOrder", parseInt(e.target.value))}
                                         />
                                     </div>
                                     <div className="flex items-center gap-3 pt-6">
@@ -2057,7 +2057,7 @@ const CreateEvent = () => {
                                             id={`isOffline-${ticket.id}`}
                                             className="w-4 h-4 rounded text-secondary focus:ring-secondary border-gray-300"
                                             checked={ticket.isOffline}
-                                            onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id, "isOffline", e.target.checked)}
+                                            onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id!, "isOffline", e.target.checked)}
                                         />
                                         <label htmlFor={`isOffline-${ticket.id}`} className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
                                             Offline Ticket
@@ -2073,7 +2073,7 @@ const CreateEvent = () => {
                                         Quantity Discounts
                                     </h5>
                                     <button
-                                        onClick={() => addQuantityDiscount(ticket.id)}
+                                        onClick={() => addQuantityDiscount(ticket.id!)}
                                         className="text-[9px] font-black text-secondary uppercase tracking-widest hover:underline flex items-center gap-1"
                                     >
                                         <Plus size={10} /> Add Rule
@@ -2088,7 +2088,7 @@ const CreateEvent = () => {
                                                     type="number"
                                                     className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold outline-none"
                                                     value={discount.minQuantity}
-                                                    onBlur={handleBlur} onChange={(e) => updateQuantityDiscount(ticket.id, dIndex, "minQuantity", parseInt(e.target.value))}
+                                                    onBlur={handleBlur} onChange={(e) => updateQuantityDiscount(ticket.id!, dIndex, "minQuantity", parseInt(e.target.value))}
                                                 />
                                             </div>
                                             <div className="space-y-2">
@@ -2099,13 +2099,13 @@ const CreateEvent = () => {
                                                         type="number"
                                                         className="w-full pl-6 pr-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold outline-none"
                                                         value={discount.price}
-                                                        onBlur={handleBlur} onChange={(e) => updateQuantityDiscount(ticket.id, dIndex, "price", parseFloat(e.target.value))}
+                                                        onBlur={handleBlur} onChange={(e) => updateQuantityDiscount(ticket.id!, dIndex, "price", parseFloat(e.target.value))}
                                                     />
                                                 </div>
                                             </div>
                                             <div className="flex justify-end">
                                                 <button
-                                                    onClick={() => removeQuantityDiscount(ticket.id, dIndex)}
+                                                    onClick={() => removeQuantityDiscount(ticket.id!, dIndex)}
                                                     className="p-2 text-gray-400 hover:text-red-500 transition-colors"
                                                 >
                                                     <Trash2 size={14} />

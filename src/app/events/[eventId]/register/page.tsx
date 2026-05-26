@@ -43,7 +43,7 @@ const RegistrationForm = () => {
         const eventData = response.data.data as Event;
         setEvent(eventData);
 
-        const selectedTicket = eventData.tickets.find(t => t.id === ticketId);
+        const selectedTicket = eventData.tickets?.find(t => t.id === ticketId);
         setTicket(selectedTicket || null);
 
         if (selectedTicket) {
@@ -158,8 +158,8 @@ const RegistrationForm = () => {
   if (loading) return <div className="min-h-screen pt-32 flex items-center justify-center bg-gray-50"><CustomLoader /></div>;
   if (!event || !ticket) return <div className="p-20 text-center bg-gray-50"><h3 className="text-xl font-bold">Registration data missing</h3></div>;
 
-  const perAttendeeFields = event.registrationFields.filter(f => f.isPerAttendee);
-  const sharedFields = event.registrationFields.filter(f => !f.isPerAttendee);
+  const perAttendeeFields = event.registrationFields?.filter(f => f.isPerAttendee) || [];
+  const sharedFields = event.registrationFields?.filter(f => !f.isPerAttendee) || [];
 
   return (
     <div className="min-h-screen bg-gray-50 pt-24 pb-24">
