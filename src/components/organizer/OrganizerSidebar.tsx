@@ -29,44 +29,52 @@ const OrganizerSidebar = () => {
     closeSidebar();
   }, [pathname, closeSidebar]);
 
+  const isStaff = user?.role?.includes('organizer-staff');
+
   const navLinks = [
     {
       href: "/organizer/dashboard",
       label: "Dashboard",
       icon: <LayoutDashboard size={24} />,
       id: "organizer-nav-dashboard",
+      roles: ["organizer", "organizer-staff"]
     },
     {
       href: "/organizer/dashboard/events",
       label: "My Events",
       icon: <Calendar size={24} />,
       id: "organizer-nav-events",
+      roles: ["organizer", "organizer-staff"]
     },
     {
       href: "/organizer/dashboard/orders",
       label: "Orders & Registrations",
       icon: <Ticket size={24} />,
       id: "organizer-nav-orders",
+      roles: ["organizer", "organizer-staff"]
     },
     {
       href: "/organizer/dashboard/staff",
       label: "Staff Pool",
       icon: <Users size={24} />,
       id: "organizer-nav-staff",
+      roles: ["organizer"]
     },
     {
       href: "/organizer/dashboard/finance",
       label: "Finance",
       icon: <Wallet size={24} />,
       id: "organizer-nav-finance",
+      roles: ["organizer"]
     },
     {
       href: "/organizer/dashboard/settings",
       label: "Organizer Settings",
       icon: <Settings size={24} />,
       id: "organizer-nav-settings",
+      roles: ["organizer"]
     },
-  ];
+  ].filter(link => !link.roles || link.roles.some(r => user?.role?.includes(r)));
 
   return (
     <>
@@ -127,17 +135,19 @@ const OrganizerSidebar = () => {
         </div>
 
         <nav className="flex-1 flex flex-col px-3 space-y-3">
-          <Link
-            href="/organizer/dashboard/events/create"
-            className={`flex items-center ${isExpanded ? "px-4" : "justify-center"} h-12 rounded-2xl transition-all duration-300 bg-primary text-white shadow-lg shadow-blue-200 mb-4 group relative`}
-          >
-            <div className="flex-shrink-0 transform group-hover:scale-110 transition-transform duration-200">
-              <PlusCircle size={20} />
-            </div>
-            {(isExpanded || isSidebarOpen) && (
-              <span className="ml-4 text-sm font-bold whitespace-nowrap">Create Event</span>
-            )}
-          </Link>
+          {!isStaff && (
+            <Link
+              href="/organizer/dashboard/events/create"
+              className={`flex items-center ${isExpanded ? "px-4" : "justify-center"} h-12 rounded-2xl transition-all duration-300 bg-primary text-white shadow-lg shadow-blue-200 mb-4 group relative`}
+            >
+              <div className="flex-shrink-0 transform group-hover:scale-110 transition-transform duration-200">
+                <PlusCircle size={20} />
+              </div>
+              {(isExpanded || isSidebarOpen) && (
+                <span className="ml-4 text-sm font-bold whitespace-nowrap">Create Event</span>
+              )}
+            </Link>
+          )}
 
           {navLinks.map((link) => (
             <Link

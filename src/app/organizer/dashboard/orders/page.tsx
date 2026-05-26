@@ -14,14 +14,18 @@ import {
   MoreVertical
 } from "lucide-react";
 import api from "@/services/api";
+import { useAuth } from "@/context/AuthContext";
 import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 
 const OrdersView = () => {
+  const { user } = useAuth();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const isStaff = user?.role?.includes('organizer-staff');
 
   useEffect(() => {
     fetchOrders();
@@ -110,7 +114,7 @@ const OrdersView = () => {
                     <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Order Info</th>
                     <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Event</th>
                     <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Attendee</th>
-                    <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Amount</th>
+                    {!isStaff && <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Amount</th>}
                     <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
                     <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>
                   </tr>
@@ -138,9 +142,11 @@ const OrdersView = () => {
                               <p className="text-sm font-bold text-gray-900">{order.attendeeName}</p>
                            </div>
                         </td>
-                        <td className="px-6 py-6">
-                           <p className="text-base font-black text-gray-900">₦{order.amountPaid.toLocaleString()}</p>
-                        </td>
+                        {!isStaff && (
+                          <td className="px-6 py-6">
+                             <p className="text-base font-black text-gray-900">₦{order.amountPaid.toLocaleString()}</p>
+                          </td>
+                        )}
                         <td className="px-6 py-6">
                            <span className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${
                              order.status === 'PAID' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-amber-50 text-amber-600 border border-amber-100'
