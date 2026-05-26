@@ -273,7 +273,7 @@ const MyEvents = () => {
                             </div>
                          </div>
                       </td>
-                      <td className="px-6 py-5 font-black text-emerald-600 text-sm">₦{(0).toLocaleString()}</td>
+                      <td className="px-6 py-5 font-black text-emerald-600 text-sm">₦{(event.totalRevenue || 0).toLocaleString()}</td>
                       <td className="px-6 py-5 text-right">
                         <div className="flex items-center justify-end gap-3">
                             <Link

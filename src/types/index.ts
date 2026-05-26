@@ -612,6 +612,7 @@ export interface Event {
   tickets?: Ticket[];
   sessions?: Session[];
   staff?: StaffMember[];
+  totalRevenue?: number;
 }
 
 export interface FinanceSummary {

@@ -12,7 +12,8 @@ import {
   ChevronDown,
   Globe,
   User,
-  ExternalLink
+  ExternalLink,
+  Clock
 } from "lucide-react";
 import api from "@/services/api";
 import { OrganizerProfile } from "@/types";
