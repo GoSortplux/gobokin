@@ -153,17 +153,13 @@ const StaffPool = () => {
                   </div>
                </div>
 
-               <div className="mt-8 flex items-center gap-2 relative z-10">
-                  <button className="flex-1 py-3 bg-gray-50 text-gray-600 text-xs font-bold rounded-xl hover:bg-gray-100 transition-all border border-gray-100">
-                     Manage Permissions
-                  </button>
-                  <button
-                    onClick={() => handleRemoveStaff(member.id)}
-                    className="p-3 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-100 transition-all border border-rose-100"
-                  >
-                     <Trash2 size={18} />
-                  </button>
-               </div>
+               <button
+                 onClick={() => handleRemoveStaff(member.id)}
+                 className="absolute top-4 right-4 p-2.5 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all border border-rose-100 z-20 shadow-sm"
+                 title="Remove Staff"
+               >
+                  <Trash2 size={16} />
+               </button>
             </div>
           ))
         ) : (

@@ -44,15 +44,15 @@ const OrganizerStaffModal: React.FC<StaffModalProps> = ({ isOpen, onClose, onSub
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex justify-center items-center p-4">
+    <div className="fixed inset-0 z-[100] flex justify-center items-center p-2 sm:p-4 overflow-y-auto py-10">
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onClose}
       />
       <div
         role="dialog"
         aria-modal="true"
-        className="bg-white p-8 rounded-[2.5rem] shadow-2xl w-full max-w-md relative z-10 animate-in fade-in zoom-in-95 border border-gray-100"
+        className="bg-white p-6 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl w-full max-w-lg relative z-10 animate-in fade-in zoom-in-95 border border-gray-100 my-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <button
