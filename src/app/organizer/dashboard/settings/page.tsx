@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Settings,
   Shield,
@@ -36,6 +37,12 @@ const OrganizerSettings = () => {
   const [saving, setSaving] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    profile: true,
+    policies: true,
+    subscriptions: false,
+    discounts: false,
+  });
   const [formData, setFormData] = useState({
     defaultRefundType: "PARTIAL" as "FULL" | "PARTIAL" | "NONE",
     defaultRefundPercentage: 80,
@@ -139,6 +146,13 @@ const OrganizerSettings = () => {
     }
   };
 
+  const toggleSection = (section: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
   if (loading) return <div className="h-full flex items-center justify-center"><CustomLoader /></div>;
 
   return (
@@ -226,79 +240,113 @@ const OrganizerSettings = () => {
          <div className="lg:col-span-2 space-y-8">
             {/* Profile Preview Card */}
             <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-               <div className="p-8 lg:p-10 border-b border-gray-50 flex items-center justify-between bg-gray-50/30">
+               <div
+                  onClick={() => toggleSection('profile')}
+                  className="p-8 lg:p-10 border-b border-gray-50 flex items-center justify-between bg-gray-50/30 cursor-pointer hover:bg-gray-50/50 transition-colors"
+               >
                   <div className="flex items-center gap-4">
                      <div className="w-12 h-12 bg-blue-50 text-primary rounded-2xl flex items-center justify-center">
                         <User size={24} />
                      </div>
                      <div>
-                        <h3 className="text-xl font-black text-gray-900">Public Profile</h3>
+                        <div className="flex items-center gap-2">
+                           <h3 className="text-xl font-black text-gray-900">Public Profile</h3>
+                           <ChevronDown
+                              size={20}
+                              className={`text-gray-400 transition-transform duration-300 ${expandedSections.profile ? 'rotate-180' : ''}`}
+                           />
+                        </div>
                         <p className="text-xs text-gray-400 font-bold uppercase tracking-widest leading-none mt-1">What your audience sees</p>
                      </div>
                   </div>
                   <button
-                     onClick={() => setIsEditModalOpen(true)}
+                     onClick={(e) => {
+                        e.stopPropagation();
+                        setIsEditModalOpen(true);
+                     }}
                      className="flex items-center gap-2 text-primary font-black px-4 py-2 rounded-xl hover:bg-primary/5 transition-all text-sm"
                   >
                      <Settings size={16} />
                      Edit Profile
                   </button>
                </div>
-               <div className="p-8 lg:p-10 space-y-8">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                     <div className="space-y-1.5">
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Profile URL / Slug</p>
-                        <div className="flex items-center gap-2 p-4 bg-gray-50 rounded-2xl border border-gray-100 group transition-all hover:bg-white hover:shadow-md">
-                           <Zap size={16} className="text-gray-400" />
-                           <span className="text-sm font-bold text-gray-900">gobokin.com/organizer/{profile?.slug || '...'}</span>
+               <AnimatePresence>
+                  {expandedSections.profile && (
+                  <motion.div
+                     initial={{ height: 0, opacity: 0 }}
+                     animate={{ height: "auto", opacity: 1 }}
+                     exit={{ height: 0, opacity: 0 }}
+                     transition={{ duration: 0.3, ease: "easeInOut" }}
+                     className="overflow-hidden"
+                  >
+                     <div className="p-8 lg:p-10 space-y-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                           <div className="space-y-1.5">
+                              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Profile URL / Slug</p>
+                              <div className="flex items-center gap-2 p-4 bg-gray-50 rounded-2xl border border-gray-100 group transition-all hover:bg-white hover:shadow-md">
+                                 <Zap size={16} className="text-gray-400" />
+                                 <span className="text-sm font-bold text-gray-900">gobokin.com/organizer/{profile?.slug || '...'}</span>
+                              </div>
+                           </div>
+                           <div className="space-y-1.5">
+                              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Website</p>
+                              {profile?.website ? (
+                                 <a
+                                    href={profile.website}
+                                    target="_blank"
+                                    className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 group transition-all hover:bg-white hover:shadow-md"
+                                 >
+                                    <div className="flex items-center gap-2">
+                                       <Globe size={16} className="text-gray-400" />
+                                       <span className="text-sm font-bold text-gray-900 truncate max-w-[150px]">{profile.website}</span>
+                                    </div>
+                                    <ExternalLink size={14} className="text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+                                 </a>
+                              ) : (
+                                 <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 text-sm font-bold text-gray-400 italic">
+                                    No website added
+                                 </div>
+                              )}
+                           </div>
+                        </div>
+                        <div className="space-y-1.5">
+                           <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Public Biography</p>
+                           <div className="p-6 bg-gray-50 rounded-[2rem] border border-gray-100 min-h-[100px]">
+                              <p className="text-sm font-medium text-gray-600 leading-relaxed whitespace-pre-wrap">
+                                 {profile?.bio || "You haven't added a biography yet. Tell your audience about your organization to build trust."}
+                              </p>
+                           </div>
                         </div>
                      </div>
-                     <div className="space-y-1.5">
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Website</p>
-                        {profile?.website ? (
-                           <a
-                              href={profile.website}
-                              target="_blank"
-                              className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 group transition-all hover:bg-white hover:shadow-md"
-                           >
-                              <div className="flex items-center gap-2">
-                                 <Globe size={16} className="text-gray-400" />
-                                 <span className="text-sm font-bold text-gray-900 truncate max-w-[150px]">{profile.website}</span>
-                              </div>
-                              <ExternalLink size={14} className="text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
-                           </a>
-                        ) : (
-                           <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 text-sm font-bold text-gray-400 italic">
-                              No website added
-                           </div>
-                        )}
-                     </div>
-                  </div>
-                  <div className="space-y-1.5">
-                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Public Biography</p>
-                     <div className="p-6 bg-gray-50 rounded-[2rem] border border-gray-100 min-h-[100px]">
-                        <p className="text-sm font-medium text-gray-600 leading-relaxed whitespace-pre-wrap">
-                           {profile?.bio || "You haven't added a biography yet. Tell your audience about your organization to build trust."}
-                        </p>
-                     </div>
-                  </div>
-               </div>
+                  </motion.div>
+                  )}
+               </AnimatePresence>
             </div>
 
             <form onSubmit={handleUpdate} className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-               <div className="p-8 lg:p-10 border-b border-gray-50 flex items-center justify-between">
+               <div
+                  onClick={() => toggleSection('policies')}
+                  className="p-8 lg:p-10 border-b border-gray-50 flex items-center justify-between cursor-pointer hover:bg-gray-50/50 transition-colors"
+               >
                   <div className="flex items-center gap-4">
                      <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
                         <FileText size={24} />
                      </div>
                      <div>
-                        <h3 className="text-xl font-black text-gray-900">Event Policies</h3>
+                        <div className="flex items-center gap-2">
+                           <h3 className="text-xl font-black text-gray-900">Event Policies</h3>
+                           <ChevronDown
+                              size={20}
+                              className={`text-gray-400 transition-transform duration-300 ${expandedSections.policies ? 'rotate-180' : ''}`}
+                           />
+                        </div>
                         <p className="text-xs text-gray-400 font-bold uppercase tracking-widest leading-none mt-1">Global Default Settings</p>
                      </div>
                   </div>
                   <button
                     type="submit"
                     disabled={saving}
+                    onClick={(e) => e.stopPropagation()}
                     className="hidden md:flex items-center gap-2 bg-primary text-white font-black px-6 py-3 rounded-2xl hover:bg-opacity-90 transition-all shadow-lg shadow-primary/20 text-sm disabled:opacity-50"
                   >
                      <Save size={18} />
@@ -306,163 +354,220 @@ const OrganizerSettings = () => {
                   </button>
                </div>
 
-               <div className="p-6 md:p-8 lg:p-10 space-y-8">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                     <div className="space-y-3">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Default Refund Type</label>
-                        <div className="relative">
-                           <select
-                              className="w-full p-5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all appearance-none"
-                              value={formData.defaultRefundType}
-                              onChange={(e) => setFormData({...formData, defaultRefundType: e.target.value as "FULL" | "PARTIAL" | "NONE"})}
-                           >
-                              <option value="FULL">Full Refund</option>
-                              <option value="PARTIAL">Partial Refund</option>
-                              <option value="NONE">No Refunds</option>
-                           </select>
-                           <ChevronDown size={18} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                        </div>
-                     </div>
-                     {formData.defaultRefundType === 'PARTIAL' && (
-                        <div className="space-y-3">
-                           <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Refund Percentage (%)</label>
-                           <input
-                              type="number"
-                              className="w-full p-4 bg-gray-50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 transition-all"
-                              value={formData.defaultRefundPercentage}
-                              onChange={(e) => setFormData({...formData, defaultRefundPercentage: parseFloat(e.target.value)})}
-                           />
-                        </div>
-                     )}
-                     <div className="space-y-3">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Cancellation Cutoff (Days)</label>
-                        <input
-                           type="number"
-                           className="w-full p-5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all"
-                           value={formData.defaultRefundCutoffDays}
-                           onChange={(e) => setFormData({...formData, defaultRefundCutoffDays: parseInt(e.target.value)})}
-                        />
-                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1 ml-2">Days before event starts</p>
-                     </div>
-                  </div>
-               </div>
-
-               <div className="p-8 lg:p-10 bg-gray-50 md:hidden">
-                  <button
-                    type="submit"
-                    disabled={saving}
-                    className="w-full bg-primary text-white font-black py-4 rounded-[2rem] hover:bg-opacity-90 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-2"
+               <AnimatePresence>
+                  {expandedSections.policies && (
+                  <motion.div
+                     initial={{ height: 0, opacity: 0 }}
+                     animate={{ height: "auto", opacity: 1 }}
+                     exit={{ height: 0, opacity: 0 }}
+                     transition={{ duration: 0.3, ease: "easeInOut" }}
+                     className="overflow-hidden"
                   >
-                     <Save size={18} />
-                     Save Policies
-                  </button>
-               </div>
+                     <div className="p-6 md:p-8 lg:p-10 space-y-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                           <div className="space-y-3">
+                              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Default Refund Type</label>
+                              <div className="relative">
+                                 <select
+                                    className="w-full p-5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all appearance-none"
+                                    value={formData.defaultRefundType}
+                                    onChange={(e) => setFormData({...formData, defaultRefundType: e.target.value as "FULL" | "PARTIAL" | "NONE"})}
+                                 >
+                                    <option value="FULL">Full Refund</option>
+                                    <option value="PARTIAL">Partial Refund</option>
+                                    <option value="NONE">No Refunds</option>
+                                 </select>
+                                 <ChevronDown size={18} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                              </div>
+                           </div>
+                           {formData.defaultRefundType === 'PARTIAL' && (
+                              <div className="space-y-3">
+                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Refund Percentage (%)</label>
+                                 <input
+                                    type="number"
+                                    className="w-full p-4 bg-gray-50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 transition-all"
+                                    value={formData.defaultRefundPercentage}
+                                    onChange={(e) => setFormData({...formData, defaultRefundPercentage: parseFloat(e.target.value)})}
+                                 />
+                              </div>
+                           )}
+                           <div className="space-y-3">
+                              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Cancellation Cutoff (Days)</label>
+                              <input
+                                 type="number"
+                                 className="w-full p-5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all"
+                                 value={formData.defaultRefundCutoffDays}
+                                 onChange={(e) => setFormData({...formData, defaultRefundCutoffDays: parseInt(e.target.value)})}
+                              />
+                              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1 ml-2">Days before event starts</p>
+                           </div>
+                        </div>
+                     </div>
+
+                     <div className="p-8 lg:p-10 bg-gray-50 md:hidden">
+                        <button
+                          type="submit"
+                          disabled={saving}
+                          className="w-full bg-primary text-white font-black py-4 rounded-[2rem] hover:bg-opacity-90 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-2"
+                        >
+                           <Save size={18} />
+                           Save Policies
+                        </button>
+                     </div>
+                  </motion.div>
+                  )}
+               </AnimatePresence>
             </form>
 
             {/* Subscriptions Section */}
             <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-               <div className="p-8 lg:p-10 border-b border-gray-50">
+               <div
+                  onClick={() => toggleSection('subscriptions')}
+                  className="p-8 lg:p-10 border-b border-gray-50 cursor-pointer hover:bg-gray-50/50 transition-colors"
+               >
                   <div className="flex items-center gap-4">
                      <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center">
                         <CreditCard size={24} />
                      </div>
-                     <h3 className="text-xl font-black text-gray-900">Active Subscriptions</h3>
+                     <div className="flex items-center gap-2">
+                        <h3 className="text-xl font-black text-gray-900">Active Subscriptions</h3>
+                        <ChevronDown
+                           size={20}
+                           className={`text-gray-400 transition-transform duration-300 ${expandedSections.subscriptions ? 'rotate-180' : ''}`}
+                        />
+                     </div>
                   </div>
                </div>
-               <div className="p-6 md:p-8 lg:p-10">
-                  {subscriptions.length > 0 ? (
-                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {subscriptions.map((sub, index) => (
-                           <div key={index} className="p-6 bg-gray-50 rounded-2xl border border-gray-100 flex items-center gap-4 group hover:bg-white hover:shadow-xl hover:shadow-blue-900/5 transition-all duration-300">
-                              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform">
-                                 <CheckCircle2 size={20} />
-                              </div>
-                              <span className="font-bold text-gray-900">{sub}</span>
+               <AnimatePresence>
+                  {expandedSections.subscriptions && (
+                  <motion.div
+                     initial={{ height: 0, opacity: 0 }}
+                     animate={{ height: "auto", opacity: 1 }}
+                     exit={{ height: 0, opacity: 0 }}
+                     transition={{ duration: 0.3, ease: "easeInOut" }}
+                     className="overflow-hidden"
+                  >
+                     <div className="p-6 md:p-8 lg:p-10">
+                        {subscriptions.length > 0 ? (
+                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                              {subscriptions.map((sub, index) => (
+                                 <div key={index} className="p-6 bg-gray-50 rounded-2xl border border-gray-100 flex items-center gap-4 group hover:bg-white hover:shadow-xl hover:shadow-blue-900/5 transition-all duration-300">
+                                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform">
+                                       <CheckCircle2 size={20} />
+                                    </div>
+                                    <span className="font-bold text-gray-900">{sub}</span>
+                                 </div>
+                              ))}
                            </div>
-                        ))}
+                        ) : (
+                           <div className="text-center py-12 space-y-4">
+                              <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto text-gray-300">
+                                 <CreditCard size={32} />
+                              </div>
+                              <p className="text-gray-500 font-medium">No active subscriptions found.</p>
+                              <button className="text-primary font-bold hover:underline text-sm">Explore Subscription Plans</button>
+                           </div>
+                        )}
                      </div>
-                  ) : (
-                     <div className="text-center py-12 space-y-4">
-                        <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto text-gray-300">
-                           <CreditCard size={32} />
-                        </div>
-                        <p className="text-gray-500 font-medium">No active subscriptions found.</p>
-                        <button className="text-primary font-bold hover:underline text-sm">Explore Subscription Plans</button>
-                     </div>
+                  </motion.div>
                   )}
-               </div>
+               </AnimatePresence>
             </div>
 
             {/* Global Discounts Section */}
             <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-               <div className="p-8 lg:p-10 border-b border-gray-50 flex items-center justify-between">
+               <div
+                  onClick={() => toggleSection('discounts')}
+                  className="p-8 lg:p-10 border-b border-gray-50 flex items-center justify-between cursor-pointer hover:bg-gray-50/50 transition-colors"
+               >
                   <div className="flex items-center gap-4">
                      <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center">
                         <Tag size={24} />
                      </div>
                      <div>
-                        <h3 className="text-xl font-black text-gray-900">Global Discounts</h3>
+                        <div className="flex items-center gap-2">
+                           <h3 className="text-xl font-black text-gray-900">Global Discounts</h3>
+                           <ChevronDown
+                              size={20}
+                              className={`text-gray-400 transition-transform duration-300 ${expandedSections.discounts ? 'rotate-180' : ''}`}
+                           />
+                        </div>
                         <p className="text-xs text-gray-400 font-bold uppercase tracking-widest leading-none mt-1">Codes valid for all events</p>
                      </div>
                   </div>
                   <button
-                    onClick={() => setIsDiscountModalOpen(true)}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setIsDiscountModalOpen(true);
+                    }}
                     className="flex items-center gap-2 bg-primary text-white font-black px-4 py-2 rounded-xl hover:bg-opacity-90 transition-all shadow-lg shadow-primary/20 text-xs"
                   >
                      <PlusCircle size={16} />
                      Create Code
                   </button>
                </div>
-               <div className="p-6 md:p-8 lg:p-10">
-                  {discountsLoading && discounts.length === 0 ? (
-                    <div className="flex justify-center py-10"><CustomLoader /></div>
-                  ) : discounts.length > 0 ? (
-                    <div className="grid grid-cols-1 gap-4">
-                        {discounts.map((discount) => (
-                           <div key={discount.id} className="p-6 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4 group hover:bg-white hover:shadow-xl hover:shadow-blue-900/5 transition-all duration-300">
-                              <div className="flex items-center gap-4">
-                                 <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform font-black">
-                                    {discount.discountPercentage}%
-                                 </div>
-                                 <div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="font-black text-gray-900 text-lg uppercase tracking-tight">{discount.code}</span>
-                                        {!discount.isActive && (
-                                            <span className="bg-rose-50 text-rose-600 text-[8px] font-black px-1.5 py-0.5 rounded border border-rose-100 uppercase">Inactive</span>
-                                        )}
-                                        {new Date(discount.expiryDate) < new Date() && (
-                                            <span className="bg-amber-50 text-amber-600 text-[8px] font-black px-1.5 py-0.5 rounded border border-amber-100 uppercase">Expired</span>
-                                        )}
+               <AnimatePresence>
+                  {expandedSections.discounts && (
+                  <motion.div
+                     initial={{ height: 0, opacity: 0 }}
+                     animate={{ height: "auto", opacity: 1 }}
+                     exit={{ height: 0, opacity: 0 }}
+                     transition={{ duration: 0.3, ease: "easeInOut" }}
+                     className="overflow-hidden"
+                  >
+                     <div className="p-6 md:p-8 lg:p-10">
+                        {discountsLoading && discounts.length === 0 ? (
+                          <div className="flex justify-center py-10"><CustomLoader /></div>
+                        ) : discounts.length > 0 ? (
+                          <div className="grid grid-cols-1 gap-4">
+                              {discounts.map((discount) => (
+                                 <div key={discount.id} className="p-6 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4 group hover:bg-white hover:shadow-xl hover:shadow-blue-900/5 transition-all duration-300">
+                                    <div className="flex items-center gap-4">
+                                       <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform font-black">
+                                          {discount.discountPercentage}%
+                                       </div>
+                                       <div>
+                                          <div className="flex items-center gap-2">
+                                              <span className="font-black text-gray-900 text-lg uppercase tracking-tight">{discount.code}</span>
+                                              {!discount.isActive && (
+                                                  <span className="bg-rose-50 text-rose-600 text-[8px] font-black px-1.5 py-0.5 rounded border border-rose-100 uppercase">Inactive</span>
+                                              )}
+                                              {new Date(discount.expiryDate) < new Date() && (
+                                                  <span className="bg-amber-50 text-amber-600 text-[8px] font-black px-1.5 py-0.5 rounded border border-amber-100 uppercase">Expired</span>
+                                              )}
+                                          </div>
+                                          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
+                                              Expires: {new Date(discount.expiryDate).toLocaleDateString()} • {discount.usageCount} uses
+                                          </p>
+                                       </div>
                                     </div>
-                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
-                                        Expires: {new Date(discount.expiryDate).toLocaleDateString()} • {discount.usageCount} uses
-                                    </p>
+                                    <button
+                                      onClick={() => handleDeleteDiscount(discount.id)}
+                                      className="p-3 bg-white text-rose-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all shadow-sm border border-gray-100 self-end md:self-auto"
+                                    >
+                                      <Trash2 size={16} />
+                                    </button>
                                  </div>
+                              ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-12 space-y-4">
+                              <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto text-gray-300">
+                                 <Tag size={32} />
                               </div>
+                              <p className="text-gray-500 font-medium">No global discount codes found.</p>
                               <button
-                                onClick={() => handleDeleteDiscount(discount.id)}
-                                className="p-3 bg-white text-rose-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all shadow-sm border border-gray-100 self-end md:self-auto"
+                                  onClick={() => setIsDiscountModalOpen(true)}
+                                  className="text-primary font-bold hover:underline text-sm"
                               >
-                                <Trash2 size={16} />
+                                  Create your first discount code
                               </button>
-                           </div>
-                        ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-12 space-y-4">
-                        <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto text-gray-300">
-                           <Tag size={32} />
-                        </div>
-                        <p className="text-gray-500 font-medium">No global discount codes found.</p>
-                        <button
-                            onClick={() => setIsDiscountModalOpen(true)}
-                            className="text-primary font-bold hover:underline text-sm"
-                        >
-                            Create your first discount code
-                        </button>
-                    </div>
+                          </div>
+                        )}
+                     </div>
+                  </motion.div>
                   )}
-               </div>
+               </AnimatePresence>
             </div>
          </div>
       </div>
