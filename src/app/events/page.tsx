@@ -276,11 +276,18 @@ const EventDiscoveryContent = () => {
               {event.category}
             </span>
           </div>
-          {event.isFeatured && (
-            <div className="w-8 h-8 bg-amber-400 text-white rounded-xl flex items-center justify-center shadow-md">
-              <Sparkles size={14} className="fill-current" />
-            </div>
-          )}
+          <div className="flex flex-col items-end gap-2">
+            {event.isFeatured && (
+              <div className="w-8 h-8 bg-amber-400 text-white rounded-xl flex items-center justify-center shadow-md">
+                <Sparkles size={14} className="fill-current" />
+              </div>
+            )}
+            {(event.isSoldOut || event.availabilityStatus === 'SOLD_OUT') && (
+              <div className="px-3 py-1.5 bg-rose-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-rose-600/20 animate-in fade-in zoom-in duration-300">
+                Sold Out
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Date Overlay */}
@@ -358,12 +365,21 @@ const EventDiscoveryContent = () => {
 
         <div className="flex items-center justify-between pt-5 border-t border-gray-50">
           <div className="space-y-0.5">
-            <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-widest">Starts from</p>
-            <p className="text-xl font-semibold text-gray-900">
-              {event.tickets && event.tickets[0]?.price > 0 ? `₦${event.tickets[0].price.toLocaleString()}` : "Free"}
+            <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-widest">
+              {(event.isSoldOut || event.availabilityStatus === 'SOLD_OUT') ? "Status" : "Starts from"}
+            </p>
+            <p className={`text-xl font-semibold ${ (event.isSoldOut || event.availabilityStatus === 'SOLD_OUT') ? 'text-rose-600' : 'text-gray-900'}`}>
+              {(event.isSoldOut || event.availabilityStatus === 'SOLD_OUT')
+                ? "SOLD OUT"
+                : (event.tickets && event.tickets[0]?.price > 0 ? `₦${event.tickets[0].price.toLocaleString()}` : "Free")
+              }
             </p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center shadow-md shadow-primary/10 group-hover:scale-110 transition-all">
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-md transition-all ${
+            (event.isSoldOut || event.availabilityStatus === 'SOLD_OUT')
+              ? 'bg-gray-100 text-gray-400'
+              : 'bg-primary text-white shadow-primary/10 group-hover:scale-110'
+          }`}>
             <ArrowRight size={18} />
           </div>
         </div>

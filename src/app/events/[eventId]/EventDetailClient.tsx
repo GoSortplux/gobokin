@@ -161,6 +161,11 @@ const EventDetailClient = () => {
                      <span className="px-4 py-1.5 rounded-xl bg-primary text-white text-[10px] font-semibold uppercase tracking-widest shadow-md shadow-primary/10">
                        {event.category}
                      </span>
+                     {(event.isSoldOut || event.availabilityStatus === 'SOLD_OUT') && (
+                       <span className="px-4 py-1.5 rounded-xl bg-rose-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-rose-600/20">
+                         SOLD OUT
+                       </span>
+                     )}
                      {event.type && (
                        <span className="px-4 py-1.5 rounded-xl bg-white border border-gray-100 text-gray-600 text-[10px] font-semibold uppercase tracking-widest flex items-center gap-1.5 shadow-sm">
                          <Globe size={12} className="text-primary" />
@@ -289,43 +294,60 @@ const EventDetailClient = () => {
                           Choose your Experience
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                           {event.tickets && event.tickets.map((ticket) => (
-                             <button
-                               key={ticket.id}
-                               onClick={() => setSelectedTicket(ticket)}
-                               className={`p-6 rounded-2xl text-left border transition-all duration-500 relative overflow-hidden group ${
-                                 selectedTicket?.id === ticket.id ? "border-primary bg-primary/5 shadow-sm" : "border-gray-100 hover:border-gray-200 hover:bg-gray-50"
-                               }`}
-                             >
-                                <div className="flex items-center justify-between mb-6">
-                                   <div className={`px-4 py-1.5 rounded-xl text-[9px] font-semibold uppercase tracking-widest ${ticket.type === 'FREE' ? 'bg-gray-100 text-gray-600' : 'bg-emerald-100 text-emerald-700'}`}>
-                                      {ticket.type} PASS
-                                   </div>
-                                   {selectedTicket?.id === ticket.id && (
-                                     <div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center animate-in zoom-in duration-500 shadow-md shadow-primary/20">
-                                        <CheckCircle2 size={16} />
+                           {event.tickets && event.tickets.map((ticket) => {
+                             const isTicketSoldOut = ticket.isSoldOut || (ticket.remainingTickets !== undefined && ticket.remainingTickets <= 0) || (ticket.availableQuantity !== undefined && ticket.availableQuantity <= 0);
+                             return (
+                               <button
+                                 key={ticket.id}
+                                 onClick={() => !isTicketSoldOut && setSelectedTicket(ticket)}
+                                 disabled={isTicketSoldOut}
+                                 className={`p-6 rounded-2xl text-left border transition-all duration-500 relative overflow-hidden group ${
+                                   selectedTicket?.id === ticket.id
+                                     ? "border-primary bg-primary/5 shadow-sm"
+                                     : isTicketSoldOut
+                                       ? "border-gray-100 bg-gray-50 opacity-60 grayscale cursor-not-allowed"
+                                       : "border-gray-100 hover:border-gray-200 hover:bg-gray-50"
+                                 }`}
+                               >
+                                  <div className="flex items-center justify-between mb-6">
+                                     <div className="flex gap-2">
+                                       <div className={`px-4 py-1.5 rounded-xl text-[9px] font-semibold uppercase tracking-widest ${ticket.type === 'FREE' ? 'bg-gray-100 text-gray-600' : 'bg-emerald-100 text-emerald-700'}`}>
+                                          {ticket.type} PASS
+                                       </div>
+                                       {isTicketSoldOut && (
+                                         <div className="px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-rose-100 text-rose-600">
+                                            SOLD OUT
+                                         </div>
+                                       )}
                                      </div>
-                                   )}
-                                </div>
-                                <h4 className="text-2xl font-semibold text-gray-900 mb-3 tracking-tight">{ticket.name}</h4>
-                                <div className="flex items-baseline gap-2">
-                                   <p className="text-3xl font-semibold text-gray-900">
-                                      {ticket.price > 0 ? `₦${ticket.price.toLocaleString()}` : "FREE"}
-                                   </p>
-                                   {ticket.price > 0 && <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">/ seat</span>}
-                                </div>
+                                     {selectedTicket?.id === ticket.id && !isTicketSoldOut && (
+                                       <div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center animate-in zoom-in duration-500 shadow-md shadow-primary/20">
+                                          <CheckCircle2 size={16} />
+                                       </div>
+                                     )}
+                                  </div>
+                                  <h4 className={`text-2xl font-semibold mb-3 tracking-tight ${isTicketSoldOut ? 'text-gray-400' : 'text-gray-900'}`}>{ticket.name}</h4>
+                                  <div className="flex items-baseline gap-2">
+                                     <p className={`text-3xl font-semibold ${isTicketSoldOut ? 'text-gray-400' : 'text-gray-900'}`}>
+                                        {ticket.price > 0 ? `₦${ticket.price.toLocaleString()}` : "FREE"}
+                                     </p>
+                                     {ticket.price > 0 && <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">/ seat</span>}
+                                  </div>
 
-                                <div className="mt-8 pt-8 border-t border-gray-100 flex items-center justify-between">
-                                   <div className="flex items-center gap-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-[0.1em]">
-                                      <Users size={14} className="text-primary" />
-                                      {ticket.availableQuantity} Slots Left
-                                   </div>
-                                   <p className="text-[10px] font-semibold text-primary group-hover:translate-x-2 transition-transform flex items-center gap-1.5">
-                                      SELECT PASS <ChevronRight size={14} />
-                                   </p>
-                                </div>
-                             </button>
-                           ))}
+                                  <div className="mt-8 pt-8 border-t border-gray-100 flex items-center justify-between">
+                                     <div className="flex items-center gap-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-[0.1em]">
+                                        <Users size={14} className={isTicketSoldOut ? 'text-gray-300' : 'text-primary'} />
+                                        {isTicketSoldOut ? '0' : (ticket.remainingTickets ?? ticket.availableQuantity)} Slots Left
+                                     </div>
+                                     {!isTicketSoldOut && (
+                                       <p className="text-[10px] font-semibold text-primary group-hover:translate-x-2 transition-transform flex items-center gap-1.5">
+                                          SELECT PASS <ChevronRight size={14} />
+                                       </p>
+                                     )}
+                                  </div>
+                               </button>
+                             );
+                           })}
                         </div>
                      </div>
                   )}
@@ -418,11 +440,15 @@ const EventDetailClient = () => {
                   <div className="space-y-3 relative z-10">
                      <button
                         onClick={handleRegister}
-                        disabled={!selectedTicket}
-                        className="w-full bg-primary text-white font-semibold py-5 rounded-2xl hover:brightness-110 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-3 text-lg group disabled:opacity-50 disabled:grayscale"
+                        disabled={!selectedTicket || event.isSoldOut || event.availabilityStatus === 'SOLD_OUT'}
+                        className={`w-full font-semibold py-5 rounded-2xl transition-all flex items-center justify-center gap-3 text-lg group ${
+                           (event.isSoldOut || event.availabilityStatus === 'SOLD_OUT')
+                           ? 'bg-rose-600 text-white shadow-xl shadow-rose-600/20'
+                           : 'bg-primary text-white hover:brightness-110 shadow-xl shadow-primary/20 disabled:opacity-50 disabled:grayscale'
+                        }`}
                      >
-                        Claim your Ticket
-                        <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform" />
+                        {(event.isSoldOut || event.availabilityStatus === 'SOLD_OUT') ? 'SOLD OUT' : 'Claim your Ticket'}
+                        {!event.isSoldOut && event.availabilityStatus !== 'SOLD_OUT' && <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform" />}
                      </button>
 
                      <div className="flex items-center gap-2 justify-center pt-2">

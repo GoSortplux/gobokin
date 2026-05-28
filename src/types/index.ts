@@ -556,6 +556,10 @@ export interface Ticket {
   allocationType: 'GENERAL' | 'RESERVED';
   totalQuantity: number;
   availableQuantity?: number;
+  remainingTickets?: number;
+  soldQuantity?: number;
+  isSoldOut?: boolean;
+  availabilityStatus?: string;
   maxPerOrder: number;
   salesStart?: string;
   salesEnd?: string;
@@ -588,6 +592,10 @@ export interface Event {
   virtualLink?: string | null;
   capacity: number;
   registrationCount?: number;
+  remainingTickets?: number;
+  soldQuantity?: number;
+  isSoldOut?: boolean;
+  availabilityStatus?: string;
   tags?: string[];
   mediaUrls?: string[];
   speakers?: Speaker[];
