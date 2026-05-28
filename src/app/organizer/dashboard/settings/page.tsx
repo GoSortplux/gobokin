@@ -13,21 +13,29 @@ import {
   Globe,
   User,
   ExternalLink,
-  Clock
+  Clock,
+  Tag,
+  PlusCircle,
+  Trash2,
+  AlertCircle
 } from "lucide-react";
 import api from "@/services/api";
-import { OrganizerProfile } from "@/types";
+import { OrganizerProfile, GlobalDiscount } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 import OrganizerProfileModal from "./OrganizerProfileModal";
+import GlobalDiscountModal from "./GlobalDiscountModal";
 
 const OrganizerSettings = () => {
   const [profile, setProfile] = useState<OrganizerProfile | null>(null);
   const [subscriptions, setSubscriptions] = useState<string[]>([]);
+  const [discounts, setDiscounts] = useState<GlobalDiscount[]>([]);
   const [loading, setLoading] = useState(true);
+  const [discountsLoading, setDiscountsLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     defaultRefundType: "PARTIAL" as "FULL" | "PARTIAL" | "NONE",
     defaultRefundPercentage: 80,
@@ -37,7 +45,20 @@ const OrganizerSettings = () => {
   useEffect(() => {
     fetchProfile();
     fetchSubscriptions();
+    fetchDiscounts();
   }, []);
+
+  const fetchDiscounts = async () => {
+    try {
+      setDiscountsLoading(true);
+      const response = await api.get("/events/my-organizer-profile/global-discounts");
+      setDiscounts(response.data.data || []);
+    } catch (error) {
+      console.error("Failed to fetch discounts:", error);
+    } finally {
+      setDiscountsLoading(false);
+    }
+  };
 
   const fetchProfile = async () => {
     try {
@@ -78,6 +99,43 @@ const OrganizerSettings = () => {
       Swal.fire('Error', translateError(error), 'error');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleCreateDiscount = async (discountData: { code: string; discountPercentage: number; expiryDate: string; maxUsagePerGuest: number }) => {
+    try {
+        setDiscountsLoading(true);
+        Swal.showLoading();
+        await api.post("/events/my-organizer-profile/global-discounts", discountData);
+        Swal.fire('Created!', 'Global discount code created successfully.', 'success');
+        setIsDiscountModalOpen(false);
+        fetchDiscounts();
+    } catch (error) {
+        Swal.fire('Error', translateError(error), 'error');
+    } finally {
+        setDiscountsLoading(false);
+    }
+  };
+
+  const handleDeleteDiscount = async (id: string) => {
+    const result = await Swal.fire({
+      title: 'Delete Discount?',
+      text: 'This code will no longer be valid for use.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it',
+      confirmButtonColor: '#ef4444',
+    });
+
+    if (result.isConfirmed) {
+      try {
+        Swal.showLoading();
+        await api.delete(`/events/my-organizer-profile/global-discounts/${id}`);
+        Swal.fire('Deleted!', 'Discount code removed successfully.', 'success');
+        fetchDiscounts();
+      } catch (error) {
+        Swal.fire('Error', translateError(error), 'error');
+      }
     }
   };
 
@@ -334,6 +392,78 @@ const OrganizerSettings = () => {
                   )}
                </div>
             </div>
+
+            {/* Global Discounts Section */}
+            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+               <div className="p-8 lg:p-10 border-b border-gray-50 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                     <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center">
+                        <Tag size={24} />
+                     </div>
+                     <div>
+                        <h3 className="text-xl font-black text-gray-900">Global Discounts</h3>
+                        <p className="text-xs text-gray-400 font-bold uppercase tracking-widest leading-none mt-1">Codes valid for all events</p>
+                     </div>
+                  </div>
+                  <button
+                    onClick={() => setIsDiscountModalOpen(true)}
+                    className="flex items-center gap-2 bg-primary text-white font-black px-4 py-2 rounded-xl hover:bg-opacity-90 transition-all shadow-lg shadow-primary/20 text-xs"
+                  >
+                     <PlusCircle size={16} />
+                     Create Code
+                  </button>
+               </div>
+               <div className="p-6 md:p-8 lg:p-10">
+                  {discountsLoading && discounts.length === 0 ? (
+                    <div className="flex justify-center py-10"><CustomLoader /></div>
+                  ) : discounts.length > 0 ? (
+                    <div className="grid grid-cols-1 gap-4">
+                        {discounts.map((discount) => (
+                           <div key={discount.id} className="p-6 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4 group hover:bg-white hover:shadow-xl hover:shadow-blue-900/5 transition-all duration-300">
+                              <div className="flex items-center gap-4">
+                                 <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform font-black">
+                                    {discount.discountPercentage}%
+                                 </div>
+                                 <div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-black text-gray-900 text-lg uppercase tracking-tight">{discount.code}</span>
+                                        {!discount.isActive && (
+                                            <span className="bg-rose-50 text-rose-600 text-[8px] font-black px-1.5 py-0.5 rounded border border-rose-100 uppercase">Inactive</span>
+                                        )}
+                                        {new Date(discount.expiryDate) < new Date() && (
+                                            <span className="bg-amber-50 text-amber-600 text-[8px] font-black px-1.5 py-0.5 rounded border border-amber-100 uppercase">Expired</span>
+                                        )}
+                                    </div>
+                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
+                                        Expires: {new Date(discount.expiryDate).toLocaleDateString()} • {discount.usageCount} uses
+                                    </p>
+                                 </div>
+                              </div>
+                              <button
+                                onClick={() => handleDeleteDiscount(discount.id)}
+                                className="p-3 bg-white text-rose-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all shadow-sm border border-gray-100 self-end md:self-auto"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                           </div>
+                        ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 space-y-4">
+                        <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto text-gray-300">
+                           <Tag size={32} />
+                        </div>
+                        <p className="text-gray-500 font-medium">No global discount codes found.</p>
+                        <button
+                            onClick={() => setIsDiscountModalOpen(true)}
+                            className="text-primary font-bold hover:underline text-sm"
+                        >
+                            Create your first discount code
+                        </button>
+                    </div>
+                  )}
+               </div>
+            </div>
          </div>
       </div>
 
@@ -342,6 +472,13 @@ const OrganizerSettings = () => {
          onClose={() => setIsEditModalOpen(false)}
          profile={profile}
          onUpdate={fetchProfile}
+      />
+
+      <GlobalDiscountModal
+        isOpen={isDiscountModalOpen}
+        onClose={() => setIsDiscountModalOpen(false)}
+        onSubmit={handleCreateDiscount}
+        loading={discountsLoading}
       />
     </div>
   );

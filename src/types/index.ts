@@ -541,6 +541,17 @@ export interface StaffMember {
   canRegisterGuests?: boolean;
 }
 
+export interface GlobalDiscount {
+  id: string;
+  code: string;
+  discountPercentage: number;
+  expiryDate: string;
+  maxUsagePerGuest: number;
+  usageCount: number;
+  isActive: boolean;
+  createdAt: string;
+}
+
 export interface QuantityDiscount {
   minQuantity: number;
   discountPercentage: number;
