@@ -23,20 +23,52 @@ import withAuth from "@/components/auth/withAuth";
 const OrdersView = () => {
   const { user } = useAuth();
   const [orders, setOrders] = useState<any[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
+  const [selectedEventId, setSelectedEventId] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [ordersLoading, setOrdersLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
   const isStaff = user?.role?.includes('organizer-staff');
 
   useEffect(() => {
-    fetchOrders();
-  }, []);
+    const init = async () => {
+        setLoading(true);
+        try {
+            // Both roles can benefit from filtering by event
+            const res = await api.get("/events/my-events");
+            const eventList = res.data.data || [];
+            setEvents(eventList);
+
+            if (isStaff && eventList.length > 0) {
+                setSelectedEventId(eventList[0].id);
+            } else {
+                // For regular organizer, start with global view (empty event id)
+                await fetchOrders();
+            }
+        } catch (error) {
+            console.error("Failed to initialize orders view", error);
+            if (!isStaff) await fetchOrders();
+        }
+        setLoading(false);
+    }
+    init();
+  }, [isStaff]);
+
+  useEffect(() => {
+    if (selectedEventId) {
+        fetchOrders();
+    }
+  }, [selectedEventId]);
 
   const fetchOrders = async () => {
     try {
-      setLoading(true);
-      // Using /events/orders to get all orders across organizer scope
-      const response = await api.get("/events/orders");
+      setOrdersLoading(true);
+      const endpoint = selectedEventId
+        ? `/events/${selectedEventId}/orders`
+        : "/events/orders";
+
+      const response = await api.get(endpoint);
       const rawData = response.data.data;
       const orderList = Array.isArray(rawData) ? rawData : (Array.isArray(rawData?.data) ? rawData.data : []);
 
@@ -66,7 +98,8 @@ const OrdersView = () => {
           ticketNumber: reg.ticketNumber || `ORD-${order.id.slice(0, 8)}`,
           attendeeName: reg.attendeeData?.fullName || reg.attendeeData?.['full-name'] || order.buyerInfo?.fullName || "Guest",
           amountPaid: Number(reg.pricePaid || order.amountPaid || 0),
-          status: reg.paymentStatus || order.status || "PAID"
+          status: reg.paymentStatus || order.status || "PAID",
+          checkedInBy: reg.checkedInBy
         }));
       });
 
@@ -75,7 +108,59 @@ const OrdersView = () => {
       console.error("Failed to fetch orders:", error);
       setOrders([]);
     } finally {
-      setLoading(false);
+      setOrdersLoading(false);
+    }
+  };
+
+  const handleCheckIn = async (ticketNumber: string, attendeeName: string) => {
+    try {
+        const result = await Swal.fire({
+            title: 'Confirm Check-in',
+            text: `Are you sure you want to check in ${attendeeName}?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, Check-in',
+            confirmButtonColor: '#10b981',
+        });
+
+        if (result.isConfirmed) {
+            Swal.showLoading();
+            await api.post("/events/check-in", { ticketNumber });
+            await Swal.fire('Success', 'Attendee checked in successfully', 'success');
+            fetchOrders();
+        }
+    } catch (error) {
+        Swal.fire('Error', translateError(error), 'error');
+    }
+  };
+
+  const handleExport = async () => {
+    if (!selectedEventId && isStaff) {
+        Swal.fire("Selection Required", "Please select an event to export attendance.", "warning");
+        return;
+    }
+
+    try {
+        Swal.showLoading();
+        // Assuming the endpoint returns a blob or triggers a download
+        const url = selectedEventId
+            ? `/events/${selectedEventId}/export-attendance`
+            : "/events/orders/export"; // Fallback for global
+
+        const response = await api.get(url, { responseType: 'blob' });
+
+        const downloadUrl = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        const filename = `attendance-${selectedEventId || 'global'}-${new Date().toISOString().split('T')[0]}.csv`;
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        Swal.close();
+    } catch (error) {
+        Swal.fire('Export Failed', translateError(error), 'error');
     }
   };
 
@@ -100,14 +185,37 @@ const OrdersView = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <button className="flex items-center gap-2 px-8 py-4 rounded-2xl bg-white text-gray-700 font-black text-sm border border-gray-100 hover:bg-gray-50 transition-all shadow-sm">
+
+        <div className="w-full lg:w-64">
+            <select
+                value={selectedEventId}
+                onChange={(e) => setSelectedEventId(e.target.value)}
+                className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+            >
+                {!isStaff && <option value="">All Events</option>}
+                {events.map(event => (
+                    <option key={event.id} value={event.id}>{event.title}</option>
+                ))}
+                {events.length === 0 && isStaff && <option value="">No events assigned</option>}
+            </select>
+        </div>
+
+        <button
+            onClick={handleExport}
+            className="flex items-center gap-2 px-8 py-4 rounded-2xl bg-white text-gray-700 font-black text-sm border border-gray-100 hover:bg-gray-50 transition-all shadow-sm whitespace-nowrap"
+        >
           <Download size={18} />
-          Export All
+          {isStaff ? 'Export Attendance' : 'Export All'}
         </button>
       </div>
 
       {/* Orders Table */}
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden min-h-[300px] relative">
+         {ordersLoading && (
+            <div className="absolute inset-0 bg-white/50 backdrop-blur-[2px] z-10 flex items-center justify-center">
+                <CustomLoader />
+            </div>
+         )}
          <div className="overflow-x-auto">
             <table className="w-full text-left">
                <thead className="bg-gray-50 border-b border-gray-100">
@@ -117,6 +225,7 @@ const OrdersView = () => {
                     <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Attendee</th>
                     {!isStaff && <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Amount</th>}
                     <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Checked In By</th>
                     <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>
                   </tr>
                </thead>
@@ -155,10 +264,35 @@ const OrdersView = () => {
                              {order.status}
                            </span>
                         </td>
+                        <td className="px-6 py-6">
+                           {order.checkedInBy ? (
+                              <div className="flex flex-col">
+                                 <p className="text-xs font-bold text-gray-900">{order.checkedInBy.fullName}</p>
+                                 <p className="text-[10px] text-gray-400 font-medium">{order.checkedInBy.email}</p>
+                              </div>
+                           ) : (
+                              <span className="text-[10px] text-gray-300 font-bold italic uppercase">Not checked in</span>
+                           )}
+                        </td>
                         <td className="px-6 py-5 text-right">
-                           <button className="p-2 text-gray-400 hover:text-primary transition-all">
-                              <Eye size={18} />
-                           </button>
+                           <div className="flex items-center justify-end gap-2">
+                                {order.checkInStatus ? (
+                                    <span className="flex items-center gap-1 text-[9px] font-black text-blue-600 uppercase tracking-widest bg-blue-50 px-2 py-1 rounded-lg">
+                                        <CheckCircle2 size={10} />
+                                        Checked-in
+                                    </span>
+                                ) : (
+                                    <button
+                                        onClick={() => handleCheckIn(order.ticketNumber, order.attendeeName)}
+                                        className="px-3 py-1.5 bg-emerald-50 text-emerald-600 font-bold text-[10px] rounded-lg border border-emerald-100 hover:bg-emerald-600 hover:text-white transition-all uppercase tracking-widest"
+                                    >
+                                        Check-in
+                                    </button>
+                                )}
+                                <button className="p-2 text-gray-400 hover:text-primary transition-all">
+                                    <Eye size={18} />
+                                </button>
+                           </div>
                         </td>
                       </tr>
                     ))
@@ -181,4 +315,4 @@ const OrdersView = () => {
   );
 };
 
-export default withAuth(OrdersView, ["organizer"]);
+export default withAuth(OrdersView, ["organizer", "organizer-staff"]);

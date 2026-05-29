@@ -51,8 +51,15 @@ const OrganizerDashboard = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const response = await api.get("/events/my-organizer-profile/analytics");
-        setAnalytics(response.data.data);
+        if (isStaff) {
+            const response = await api.get("/events/my-events");
+            setAnalytics({
+                topEvents: response.data.data || []
+            } as any);
+        } else {
+            const response = await api.get("/events/my-organizer-profile/analytics");
+            setAnalytics(response.data.data);
+        }
       } catch (error) {
         console.error("Failed to fetch dashboard data", error);
       } finally {
@@ -61,7 +68,7 @@ const OrganizerDashboard = () => {
     };
 
     fetchDashboardData();
-  }, []);
+  }, [isStaff]);
 
   if (loading) return <div className="h-full flex items-center justify-center"><CustomLoader /></div>;
 
@@ -160,6 +167,7 @@ const OrganizerDashboard = () => {
       </div>
 
       {/* Stats Grid */}
+      {!isStaff && (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, idx) => (
           <div key={idx} className="bg-white p-7 rounded-3xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 group">
@@ -173,8 +181,10 @@ const OrganizerDashboard = () => {
           </div>
         ))}
       </div>
+      )}
 
       {/* Analytics & Breakdown */}
+      {!isStaff && (
       <div className={`grid grid-cols-1 ${isStaff ? 'lg:grid-cols-1' : 'lg:grid-cols-3'} gap-8`}>
         {!isStaff && (
             <div className="lg:col-span-2 bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm">
@@ -284,6 +294,7 @@ const OrganizerDashboard = () => {
             </div>
         </div>
       </div>
+      )}
 
       {/* Top Events Table */}
       <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
