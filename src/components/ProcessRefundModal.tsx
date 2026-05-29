@@ -17,6 +17,36 @@ const ProcessRefundModal: React.FC<ProcessRefundModalProps> = ({ request, onClos
   const [isManual, setIsManual] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const handleTopUp = async (suggestedAmount: number) => {
+    const { value: amount, isConfirmed } = await Swal.fire({
+      title: 'Top up Wallet',
+      text: `Your wallet balance is insufficient. Suggested amount to cover this refund: ₦${suggestedAmount.toLocaleString()}`,
+      input: 'number',
+      inputValue: suggestedAmount,
+      inputPlaceholder: 'Enter amount...',
+      showCancelButton: true,
+      confirmButtonText: 'Initialize Payment',
+      confirmButtonColor: '#295FA7',
+    });
+
+    if (isConfirmed && amount) {
+      try {
+        Swal.showLoading();
+        const response = await api.post("/events/wallet/top-up", {
+          amount: parseFloat(amount)
+        });
+
+        if (response.data.data?.authorization_url) {
+          window.location.href = response.data.data.authorization_url;
+        } else {
+          Swal.fire('Success', 'Top-up initialized. Please complete payment.', 'success');
+        }
+      } catch (error) {
+        Swal.fire('Error', translateError(error), 'error');
+      }
+    }
+  };
+
   const handleProcess = async () => {
     try {
       setLoading(true);
@@ -35,13 +65,12 @@ const ProcessRefundModal: React.FC<ProcessRefundModalProps> = ({ request, onClos
           text: errorMsg,
           icon: "warning",
           showCancelButton: true,
-          confirmButtonText: "Top up Wallet",
+          confirmButtonText: "Top up Now",
           confirmButtonColor: "#295FA7",
           cancelButtonText: "Close"
         }).then((result) => {
           if (result.isConfirmed) {
-            // Redirect to settings or wallet top-up if available
-            window.location.href = "/organizer/dashboard/finance";
+            handleTopUp(request.registration.pricePaid);
           }
         });
       } else {

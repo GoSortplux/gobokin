@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   AlertCircle,
   Banknote,
+  Coins,
   MoreVertical,
   CheckCircle2,
   Filter,
@@ -74,6 +75,42 @@ const FinanceDashboardContent = () => {
     }
   };
 
+  const handleTopUp = async () => {
+    const { value: amount, isConfirmed } = await Swal.fire({
+      title: 'Top up Wallet',
+      text: 'Enter the amount you would like to add to your wallet balance.',
+      input: 'number',
+      inputPlaceholder: 'Enter amount (e.g. 5000)',
+      showCancelButton: true,
+      confirmButtonText: 'Initialize Payment',
+      confirmButtonColor: '#295FA7',
+      inputValidator: (value) => {
+        if (!value || parseFloat(value) <= 0) {
+          return 'Please enter a valid amount';
+        }
+      }
+    });
+
+    if (isConfirmed && amount) {
+      try {
+        Swal.showLoading();
+        const response = await api.post("/events/wallet/top-up", {
+          amount: parseFloat(amount)
+        });
+
+        // Assuming the response contains a payment URL for Paystack/Flutterwave
+        if (response.data.data?.authorization_url) {
+          window.location.href = response.data.data.authorization_url;
+        } else {
+          Swal.fire('Success', 'Top-up request initialized. Please follow the instructions to complete payment.', 'success');
+          fetchFinanceData();
+        }
+      } catch (error) {
+        Swal.fire('Error', translateError(error), 'error');
+      }
+    }
+  };
+
   const handleWithdraw = async () => {
     if (!summary || summary.wallet.availableBalance <= 0) {
       Swal.fire("Ineligible", "No available balance for withdrawal.", "info");
@@ -120,9 +157,12 @@ const FinanceDashboardContent = () => {
           <p className="text-gray-500 font-medium mt-1">Monitor your earnings, transactions, and payouts.</p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center justify-center gap-2 bg-white text-gray-900 font-bold px-6 py-4 rounded-2xl hover:bg-gray-50 transition-all shadow-sm border border-gray-100">
-            <Download size={20} />
-            Export History
+          <button
+            onClick={handleTopUp}
+            className="flex items-center justify-center gap-2 bg-white text-gray-900 font-bold px-6 py-4 rounded-2xl hover:bg-gray-50 transition-all shadow-sm border border-gray-100"
+          >
+            <Coins size={20} className="text-primary" />
+            Top Up Wallet
           </button>
           <button
             onClick={handleWithdraw}
