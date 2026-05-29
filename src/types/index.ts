@@ -547,7 +547,10 @@ export interface GlobalDiscount {
   discountPercentage: number;
   expiryDate: string;
   maxUsagePerGuest: number;
+  maxUsage?: number;
   usageCount: number;
+  usedCount?: number;
+  applicableEventIds?: string[];
   isActive: boolean;
   createdAt: string;
 }

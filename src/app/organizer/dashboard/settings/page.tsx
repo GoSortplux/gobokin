@@ -21,7 +21,7 @@ import {
   AlertCircle
 } from "lucide-react";
 import api from "@/services/api";
-import { OrganizerProfile, GlobalDiscount } from "@/types";
+import { OrganizerProfile, GlobalDiscount, Event } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
@@ -32,6 +32,7 @@ const OrganizerSettings = () => {
   const [profile, setProfile] = useState<OrganizerProfile | null>(null);
   const [subscriptions, setSubscriptions] = useState<string[]>([]);
   const [discounts, setDiscounts] = useState<GlobalDiscount[]>([]);
+  const [events, setEvents] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [discountsLoading, setDiscountsLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -53,7 +54,22 @@ const OrganizerSettings = () => {
     fetchProfile();
     fetchSubscriptions();
     fetchDiscounts();
+    fetchEvents();
   }, []);
+
+  const fetchEvents = async () => {
+    try {
+      const response = await api.get("/events/my-events");
+      const eventsMap: Record<string, string> = {};
+      const eventsData = response.data.data || [];
+      eventsData.forEach((event: Event) => {
+        eventsMap[event.id] = event.title;
+      });
+      setEvents(eventsMap);
+    } catch (error) {
+      console.error("Failed to fetch events:", error);
+    }
+  };
 
   const fetchDiscounts = async () => {
     try {
@@ -109,7 +125,14 @@ const OrganizerSettings = () => {
     }
   };
 
-  const handleCreateDiscount = async (discountData: { code: string; discountPercentage: number; expiryDate: string; maxUsagePerGuest: number }) => {
+  const handleCreateDiscount = async (discountData: {
+    code: string;
+    discountPercentage: number;
+    expiryDate: string;
+    maxUsagePerGuest: number;
+    maxUsage: number;
+    applicableEventIds: string[];
+  }) => {
     try {
         setDiscountsLoading(true);
         Swal.showLoading();
@@ -537,8 +560,19 @@ const OrganizerSettings = () => {
                                               )}
                                           </div>
                                           <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
-                                              Expires: {new Date(discount.expiryDate).toLocaleDateString()} • {discount.usageCount} uses
+                                              Expires: {new Date(discount.expiryDate).toLocaleDateString()} • {discount.usedCount || discount.usageCount || 0} / {discount.maxUsage || '∞'} uses
                                           </p>
+                                          <div className="flex flex-wrap gap-1 mt-1">
+                                            {(!discount.applicableEventIds || discount.applicableEventIds.length === 0) ? (
+                                              <span className="text-[8px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-black uppercase tracking-tighter">All Events</span>
+                                            ) : (
+                                              discount.applicableEventIds.map(id => (
+                                                <span key={id} className="text-[8px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded font-black uppercase tracking-tighter">
+                                                  {events[id] || 'Specific Event'}
+                                                </span>
+                                              ))
+                                            )}
+                                          </div>
                                        </div>
                                     </div>
                                     <button

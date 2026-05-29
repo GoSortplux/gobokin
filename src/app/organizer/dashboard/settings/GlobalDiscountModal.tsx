@@ -1,12 +1,22 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { X, Tag, Percent, Calendar, UserCheck } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { X, Tag, Percent, Calendar, UserCheck, Hash, CheckSquare, Square, ChevronDown, Filter } from 'lucide-react';
+import { Event } from '@/types';
+import api from '@/services/api';
+import useOnClickOutside from '@/hooks/useOnClickOutside';
 
 interface GlobalDiscountModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (formData: { code: string; discountPercentage: number; expiryDate: string; maxUsagePerGuest: number }) => void;
+  onSubmit: (formData: {
+    code: string;
+    discountPercentage: number;
+    expiryDate: string;
+    maxUsagePerGuest: number;
+    maxUsage: number;
+    applicableEventIds: string[];
+  }) => void;
   loading?: boolean;
 }
 
@@ -16,7 +26,17 @@ const GlobalDiscountModal: React.FC<GlobalDiscountModalProps> = ({ isOpen, onClo
     discountPercentage: 0,
     expiryDate: '',
     maxUsagePerGuest: 1,
+    maxUsage: 100,
   });
+
+  const [applyToAll, setApplyToAll] = useState(true);
+  const [selectedEventIds, setSelectedEventIds] = useState<string[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(false);
+  const [showEventList, setShowEventList] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useOnClickOutside(dropdownRef, () => setShowEventList(false));
 
   useEffect(() => {
     if (isOpen) {
@@ -25,24 +45,48 @@ const GlobalDiscountModal: React.FC<GlobalDiscountModalProps> = ({ isOpen, onClo
         discountPercentage: 0,
         expiryDate: '',
         maxUsagePerGuest: 1,
+        maxUsage: 100,
       });
+      setApplyToAll(true);
+      setSelectedEventIds([]);
+      fetchEvents();
     }
   }, [isOpen]);
+
+  const fetchEvents = async () => {
+    try {
+      setEventsLoading(true);
+      const response = await api.get('/events/my-events');
+      setEvents(response.data.data || []);
+    } catch (error) {
+      console.error('Failed to fetch events:', error);
+    } finally {
+      setEventsLoading(false);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === 'discountPercentage' || name === 'maxUsagePerGuest' ? Number(value) : value,
+      [name]: name === 'discountPercentage' || name === 'maxUsagePerGuest' || name === 'maxUsage' ? Number(value) : value,
     }));
+  };
+
+  const toggleEvent = (eventId: string) => {
+    setSelectedEventIds(prev =>
+      prev.includes(eventId)
+        ? prev.filter(id => id !== eventId)
+        : [...prev, eventId]
+    );
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Ensure expiryDate is in ISO format if needed, but input type="datetime-local" gives YYYY-MM-DDTHH:mm
     const submissionData = {
         ...formData,
-        expiryDate: new Date(formData.expiryDate).toISOString()
+        expiryDate: new Date(formData.expiryDate).toISOString(),
+        applicableEventIds: applyToAll ? [] : selectedEventIds
     };
     onSubmit(submissionData);
   };
@@ -79,7 +123,7 @@ const GlobalDiscountModal: React.FC<GlobalDiscountModalProps> = ({ isOpen, onClo
               Global <span className="text-primary not-italic">Discount</span>
             </h2>
             <p className="text-xs sm:text-sm text-gray-500 font-medium mt-1">
-              Create a discount code that applies to all your events.
+              Create a discount code that applies to your events.
             </p>
           </div>
 
@@ -120,6 +164,25 @@ const GlobalDiscountModal: React.FC<GlobalDiscountModalProps> = ({ isOpen, onClo
                 </div>
 
                 <div className="space-y-1.5 sm:space-y-2">
+                    <label className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Total Usage Limit</label>
+                    <div className="relative">
+                        <Hash size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <input
+                            type="number"
+                            name="maxUsage"
+                            placeholder="100"
+                            min="1"
+                            value={formData.maxUsage || ''}
+                            onChange={handleChange}
+                            className="w-full pl-11 pr-4 py-3 sm:py-4 bg-gray-50 border border-gray-200 rounded-xl sm:rounded-2xl text-sm font-bold focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+                            required
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5 sm:space-y-2">
                     <label className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Max Usage Per Guest</label>
                     <div className="relative">
                         <UserCheck size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -135,22 +198,107 @@ const GlobalDiscountModal: React.FC<GlobalDiscountModalProps> = ({ isOpen, onClo
                         />
                     </div>
                 </div>
+
+                <div className="space-y-1.5 sm:space-y-2">
+                    <label className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Expiry Date & Time</label>
+                    <div className="relative">
+                        <Calendar size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <input
+                            type="datetime-local"
+                            name="expiryDate"
+                            value={formData.expiryDate}
+                            onChange={handleChange}
+                            className="w-full pl-11 pr-4 py-3 sm:py-4 bg-gray-50 border border-gray-200 rounded-xl sm:rounded-2xl text-sm font-bold focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+                            required
+                        />
+                    </div>
+                </div>
             </div>
 
-            <div className="space-y-1.5 sm:space-y-2">
-              <label className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Expiry Date & Time</label>
-              <div className="relative">
-                <Calendar size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input
-                  type="datetime-local"
-                  name="expiryDate"
-                  value={formData.expiryDate}
-                  onChange={handleChange}
-                  className="w-full pl-11 pr-4 py-3 sm:py-4 bg-gray-50 border border-gray-200 rounded-xl sm:rounded-2xl text-sm font-bold focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none"
-                  required
-                />
+            <div className="space-y-3">
+              <label className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Apply To</label>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setApplyToAll(true)}
+                  className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border transition-all text-xs font-bold ${
+                    applyToAll
+                    ? 'bg-primary/5 border-primary text-primary shadow-sm'
+                    : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'
+                  }`}
+                >
+                  <Tag size={14} />
+                  All Events
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setApplyToAll(false)}
+                  className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border transition-all text-xs font-bold ${
+                    !applyToAll
+                    ? 'bg-primary/5 border-primary text-primary shadow-sm'
+                    : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'
+                  }`}
+                >
+                  <Filter size={14} />
+                  Specific Events
+                </button>
               </div>
             </div>
+
+            {!applyToAll && (
+              <div className="space-y-1.5 sm:space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                <label className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Select Events</label>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowEventList(!showEventList)}
+                    className="w-full px-4 py-3 sm:py-4 bg-gray-50 border border-gray-200 rounded-xl sm:rounded-2xl text-sm font-bold text-left flex justify-between items-center focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+                  >
+                    <span className={selectedEventIds.length === 0 ? 'text-gray-400' : 'text-gray-900'}>
+                      {selectedEventIds.length === 0
+                        ? 'Select specific events...'
+                        : `${selectedEventIds.length} event${selectedEventIds.length > 1 ? 's' : ''} selected`}
+                    </span>
+                    <ChevronDown size={18} className={`text-gray-400 transition-transform ${showEventList ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {showEventList && (
+                    <div ref={dropdownRef} className="absolute z-20 left-0 right-0 mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl p-2 max-h-48 overflow-y-auto custom-scrollbar animate-in zoom-in-95 duration-200">
+                      {eventsLoading ? (
+                        <div className="p-4 text-center text-xs font-bold text-gray-400 italic">Loading events...</div>
+                      ) : events.length === 0 ? (
+                        <div className="p-4 text-center text-xs font-bold text-gray-400 italic">No events found</div>
+                      ) : (
+                        <div className="space-y-1">
+                          {events.map((event) => (
+                            <button
+                              key={event.id}
+                              type="button"
+                              onClick={() => toggleEvent(event.id)}
+                              className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all hover:bg-gray-50 text-left ${
+                                selectedEventIds.includes(event.id) ? 'bg-primary/5' : ''
+                              }`}
+                            >
+                              {selectedEventIds.includes(event.id) ? (
+                                <CheckSquare size={18} className="text-primary" />
+                              ) : (
+                                <Square size={18} className="text-gray-300" />
+                              )}
+                              <div>
+                                <p className={`text-sm font-bold ${selectedEventIds.includes(event.id) ? 'text-primary' : 'text-gray-700'}`}>
+                                  {event.title}
+                                </p>
+                                <p className="text-[10px] text-gray-400 font-medium">{new Date(event.startDate).toLocaleDateString()}</p>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             <div className="flex gap-3 sm:gap-4 pt-2 sm:pt-4">
               <button
@@ -162,7 +310,7 @@ const GlobalDiscountModal: React.FC<GlobalDiscountModalProps> = ({ isOpen, onClo
               </button>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || (!applyToAll && selectedEventIds.length === 0)}
                 className="flex-1 py-3 sm:py-4 rounded-xl sm:rounded-2xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-white bg-primary hover:bg-opacity-90 transition-all shadow-xl shadow-primary/20 disabled:opacity-50"
               >
                 {loading ? '...' : 'Create Discount'}
