@@ -53,8 +53,19 @@ const OrganizerDashboard = () => {
       try {
         if (isStaff) {
             const response = await api.get("/events/my-events");
+            const events = response.data.data || [];
+            // Map raw Event objects to TopEvent-like structure for the table
+            const mappedEvents = events.map((e: any) => ({
+                eventId: e.id,
+                title: e.title,
+                status: e.status,
+                views: e.views || 0,
+                registrations: e.registrationCount || 0,
+                attendanceRate: e.attendanceRate || 0,
+                grossRevenue: 0 // Staff shouldn't see revenue
+            }));
             setAnalytics({
-                topEvents: response.data.data || []
+                topEvents: mappedEvents
             } as any);
         } else {
             const response = await api.get("/events/my-organizer-profile/analytics");
@@ -339,10 +350,10 @@ const OrganizerDashboard = () => {
                                 </span>
                             </td>
                             <td className="py-5 text-center text-sm font-bold text-gray-600">
-                                {event.views.toLocaleString()}
+                                {(event.views || 0).toLocaleString()}
                             </td>
                             <td className="py-5 text-center text-sm font-bold text-gray-600">
-                                {event.registrations.toLocaleString()}
+                                {(event.registrations || 0).toLocaleString()}
                             </td>
                             {!isStaff ? (
                                 <td className="py-5 text-right font-black text-gray-900 text-sm">
