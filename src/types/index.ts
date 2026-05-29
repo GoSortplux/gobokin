@@ -570,6 +570,20 @@ export interface Ticket {
   remainingTickets?: number;
   soldQuantity?: number;
   isSoldOut?: boolean;
+  isSalesSuspended?: boolean;
+  salesStatus?: string;
+  salesPauseScope?: string;
+  salesSuspendedAt?: string;
+  salesSuspendedBy?: string;
+  salesSuspensionReason?: string;
+  salesResumeAt?: string;
+  salesMessage?: string;
+  salesSuspensionDetails?: {
+    reason: string;
+    pauseScope: string;
+    resumeAt?: string;
+    suspendedAt?: string;
+  };
   availabilityStatus?: string;
   maxPerOrder: number;
   salesStart?: string;
@@ -612,6 +626,19 @@ export interface Event {
   speakers?: Speaker[];
   agenda?: AgendaItem[];
   registrationFields?: RegistrationField[];
+  isRegistrationSuspended?: boolean;
+  registrationStatus?: string;
+  registrationPauseScope?: string;
+  registrationSuspendedAt?: string;
+  registrationSuspendedBy?: string;
+  registrationSuspensionReason?: string;
+  registrationResumeAt?: string;
+  registrationSuspensionDetails?: {
+    reason: string;
+    pauseScope: string;
+    resumeAt?: string;
+    suspendedAt?: string;
+  };
   slug: string;
   isPublished: boolean;
   isPublic: boolean;
