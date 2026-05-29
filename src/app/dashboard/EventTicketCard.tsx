@@ -11,12 +11,14 @@ import {
   Download,
   ExternalLink,
   Ticket as TicketIcon,
-  Clock
+  Clock,
+  RotateCcw
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "@/services/api";
 import Swal from "@/utils/sweetalert";
 import useOnClickOutside from "@/hooks/useOnClickOutside";
+import RefundRequestModal from "@/components/RefundRequestModal";
 
 interface Registration {
   id: string;
@@ -44,6 +46,7 @@ interface EventTicketCardProps {
 
 const EventTicketCard: React.FC<EventTicketCardProps> = ({ registration, onViewDetails }) => {
   const [showCalendarOptions, setShowCalendarOptions] = useState(false);
+  const [showRefundModal, setShowRefundModal] = useState(false);
   const calendarRef = useRef<HTMLDivElement>(null);
   useOnClickOutside(calendarRef, () => setShowCalendarOptions(false));
 
@@ -82,6 +85,9 @@ const EventTicketCard: React.FC<EventTicketCardProps> = ({ registration, onViewD
 
   const isPaid = registration.paymentStatus === 'PAID';
   const eventDate = new Date(registration.event.startDate);
+  const hasStarted = eventDate < new Date();
+  const isFree = Number(registration.ticket.price) === 0;
+  const canRequestRefund = !hasStarted && !isFree && isPaid;
 
   return (
     <div
@@ -166,6 +172,19 @@ const EventTicketCard: React.FC<EventTicketCardProps> = ({ registration, onViewD
           </div>
 
           <div className="flex items-center gap-2">
+            {canRequestRefund && (
+               <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowRefundModal(true);
+                }}
+                className="w-10 h-10 rounded-xl bg-red-50 text-red-400 hover:text-red-600 hover:bg-red-100 transition-all flex items-center justify-center border border-red-100"
+                title="Request Refund"
+              >
+                <RotateCcw size={18} />
+              </button>
+            )}
+
             <div className="relative" ref={calendarRef}>
               <button
                 onClick={(e) => {
@@ -222,6 +241,14 @@ const EventTicketCard: React.FC<EventTicketCardProps> = ({ registration, onViewD
       {/* Ticket Tear-off Effect */}
       <div className="absolute right-0 top-1/2 -translate-y-1/2 h-8 w-4 bg-gray-100 rounded-l-full border-y border-l border-gray-200/50" />
       <div className="absolute left-0 top-1/2 -translate-y-1/2 h-8 w-4 bg-gray-100 rounded-r-full border-y border-r border-gray-200/50" />
+
+      {showRefundModal && (
+        <RefundRequestModal
+          registrationId={registration.id}
+          onClose={() => setShowRefundModal(false)}
+          onSuccess={() => {}}
+        />
+      )}
     </div>
   );
 };

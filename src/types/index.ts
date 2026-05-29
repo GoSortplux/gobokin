@@ -636,6 +636,14 @@ export interface Event {
   totalRevenue?: number;
 }
 
+export interface Transaction {
+  id?: string;
+  type: 'TICKET_SALE' | 'WITHDRAWAL' | 'REFUND' | string;
+  amount: number;
+  status: string;
+  createdAt: string;
+}
+
 export interface FinanceSummary {
   wallet: Wallet;
   totals: {
@@ -644,7 +652,7 @@ export interface FinanceSummary {
     netAmount: number;
   };
   transactionCount: number;
-  recentTransactions: unknown[];
+  recentTransactions: Transaction[];
 }
 
 export interface EventSummary {
@@ -712,4 +720,56 @@ export interface Analytics {
   avgOrderValue?: number;
   groupRegistrations?: number;
   ticketBreakdown?: { name: string; value: number; color: string }[];
+}
+
+export interface Registration {
+  id: string;
+  orderId: string;
+  isLeader: boolean;
+  groupId: string;
+  ticketNumber: string;
+  attendeeData: {
+    fullName: string;
+    email: string;
+    phone?: string;
+    [key: string]: unknown;
+  };
+  pricePaid: number;
+  paymentStatus: string;
+  qrCodeUrl: string;
+  checkInStatus: boolean;
+  checkedInAt: string | null;
+  checkedInBy?: {
+    fullName: string;
+    email: string;
+    role: string;
+  };
+  event: {
+    id: string;
+    title: string;
+    startDate: string;
+    location: string;
+    bannerUrl: string;
+    category?: string;
+  };
+  ticket: {
+    id: string;
+    name: string;
+    type: string;
+    price: number;
+  };
+  createdAt: string;
+}
+
+export type RefundStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'COMPLETED';
+
+export interface RefundRequest {
+  id: string;
+  registrationId: string;
+  reason: string;
+  status: RefundStatus;
+  adminNotes?: string;
+  resolvedAt?: string;
+  createdAt: string;
+  registration: Registration;
 }

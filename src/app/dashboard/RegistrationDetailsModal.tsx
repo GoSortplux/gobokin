@@ -1,9 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { X, Calendar, MapPin, Ticket, User, Mail, Phone, Info, Clock, ExternalLink } from "lucide-react";
+import { X, Calendar, MapPin, Ticket, User, Mail, Phone, Info, Clock, ExternalLink, RotateCcw } from "lucide-react";
 import api from "@/services/api";
 import { Event } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
+import RefundRequestModal from "@/components/RefundRequestModal";
 import Image from "next/image";
 import { format } from "date-fns";
 
@@ -15,6 +16,7 @@ interface RegistrationDetailsModalProps {
 const RegistrationDetailsModal: React.FC<RegistrationDetailsModalProps> = ({ registration, onClose }) => {
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showRefundModal, setShowRefundModal] = useState(false);
 
   useEffect(() => {
     const fetchEventDetails = async () => {
@@ -34,6 +36,11 @@ const RegistrationDetailsModal: React.FC<RegistrationDetailsModalProps> = ({ reg
   }, [registration]);
 
   if (!registration) return null;
+
+  const eventDate = new Date(registration.event.startDate);
+  const hasStarted = eventDate < new Date();
+  const isFree = Number(registration.ticket.price) === 0;
+  const canRequestRefund = !hasStarted && !isFree && registration.paymentStatus === 'PAID';
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -165,13 +172,25 @@ const RegistrationDetailsModal: React.FC<RegistrationDetailsModalProps> = ({ reg
                       </p>
                    </div>
 
-                   <div className="w-full pt-8 border-t border-gray-100 flex gap-4">
-                      <button className="flex-1 bg-primary text-white font-black py-4 rounded-2xl text-xs uppercase tracking-widest shadow-xl shadow-primary/20 hover:brightness-110 transition-all">
-                        Download PDF
-                      </button>
-                      <button className="flex-1 bg-gray-50 text-gray-900 font-black py-4 rounded-2xl text-xs uppercase tracking-widest border border-gray-100 hover:bg-gray-100 transition-all">
-                        Share Ticket
-                      </button>
+                   <div className="w-full pt-8 border-t border-gray-100 space-y-3">
+                      <div className="flex gap-4">
+                        <button className="flex-1 bg-primary text-white font-black py-4 rounded-2xl text-xs uppercase tracking-widest shadow-xl shadow-primary/20 hover:brightness-110 transition-all">
+                          Download PDF
+                        </button>
+                        <button className="flex-1 bg-gray-50 text-gray-900 font-black py-4 rounded-2xl text-xs uppercase tracking-widest border border-gray-100 hover:bg-gray-100 transition-all">
+                          Share Ticket
+                        </button>
+                      </div>
+
+                      {canRequestRefund && (
+                        <button
+                          onClick={() => setShowRefundModal(true)}
+                          className="w-full bg-red-50 text-red-600 font-black py-4 rounded-2xl text-xs uppercase tracking-widest border border-red-100 hover:bg-red-100 transition-all flex items-center justify-center gap-2"
+                        >
+                          <RotateCcw size={14} />
+                          Request Refund
+                        </button>
+                      )}
                    </div>
                 </div>
               </div>
@@ -179,6 +198,17 @@ const RegistrationDetailsModal: React.FC<RegistrationDetailsModalProps> = ({ reg
           </div>
         </div>
       </div>
+
+      {showRefundModal && (
+        <RefundRequestModal
+          registrationId={registration.id}
+          onClose={() => setShowRefundModal(false)}
+          onSuccess={() => {
+            // Success alert is handled in the modal
+            onClose();
+          }}
+        />
+      )}
     </div>
   );
 };

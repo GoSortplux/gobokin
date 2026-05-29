@@ -1,5 +1,6 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   Wallet,
@@ -9,27 +10,50 @@ import {
   CreditCard,
   History,
   ShieldCheck,
-  PlusCircle,
   AlertCircle,
   Banknote,
   MoreVertical,
   CheckCircle2,
   Filter,
-  Ticket
+  Ticket,
+  RotateCcw,
+  Clock
 } from "lucide-react";
 import api from "@/services/api";
-import { FinanceSummary } from "@/types";
+import { FinanceSummary, RefundRequest, Transaction } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
+import ProcessRefundModal from "@/components/ProcessRefundModal";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 
-const FinanceDashboard = () => {
+const FinanceDashboardContent = () => {
+  const searchParams = useSearchParams();
   const [summary, setSummary] = useState<FinanceSummary | null>(null);
+  const [refundRequests, setRefundRequests] = useState<RefundRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeView, setActiveView] = useState<'transactions' | 'refunds'>('transactions');
+  const [selectedRequest, setSelectedRequest] = useState<RefundRequest | null>(null);
+
+  useEffect(() => {
+    const view = searchParams.get("view");
+    if (view === "refunds" || view === "transactions") {
+      setActiveView(view);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     fetchFinanceData();
+    fetchRefundRequests();
   }, []);
+
+  const fetchRefundRequests = async () => {
+    try {
+      const response = await api.get("/events/my-organizer-profile/refund-requests");
+      setRefundRequests(response.data.data);
+    } catch (error) {
+      console.error("Failed to fetch refund requests:", error);
+    }
+  };
 
   const fetchFinanceData = async () => {
     try {
@@ -174,65 +198,151 @@ const FinanceDashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-         {/* Transaction History */}
          <div className="lg:col-span-2 space-y-6">
             <div className="flex items-center justify-between">
-               <h3 className="text-2xl font-black text-gray-900 tracking-tight">Recent Transactions</h3>
+               <div className="flex items-center p-1 bg-gray-50 rounded-2xl border border-gray-100">
+                 <button
+                   onClick={() => setActiveView('transactions')}
+                   className={`px-6 py-2.5 rounded-xl text-sm font-black transition-all ${
+                     activeView === 'transactions' ? 'bg-white text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'
+                   }`}
+                 >
+                   Transactions
+                 </button>
+                 <button
+                   onClick={() => setActiveView('refunds')}
+                   className={`px-6 py-2.5 rounded-xl text-sm font-black transition-all flex items-center gap-2 ${
+                     activeView === 'refunds' ? 'bg-white text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'
+                   }`}
+                 >
+                   Refund Requests
+                   {refundRequests.filter(r => r.status === 'PENDING').length > 0 && (
+                     <span className="w-5 h-5 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center animate-pulse">
+                       {refundRequests.filter(r => r.status === 'PENDING').length}
+                     </span>
+                   )}
+                 </button>
+               </div>
+
                <div className="flex items-center gap-2">
                   <button className="p-2.5 bg-white rounded-xl border border-gray-100 text-gray-400 hover:text-primary transition-all">
                     <Filter size={18} />
                   </button>
-                  <button className="text-primary text-sm font-bold hover:underline px-2">View All History</button>
                </div>
             </div>
 
-            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-               {summary?.recentTransactions && summary.recentTransactions.length > 0 ? (
-                 <div className="divide-y divide-gray-50">
-                    {summary.recentTransactions.map((tx, idx) => (
-                      <div key={idx} className="p-6 flex items-center justify-between hover:bg-gray-50 transition-colors group">
-                         <div className="flex items-center gap-5">
-                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm ${
-                              tx.type === 'TICKET_SALE' ? 'bg-blue-50 text-blue-600' : 'bg-emerald-50 text-emerald-600'
-                            }`}>
-                               {tx.type === 'TICKET_SALE' ? <Ticket size={24} /> : <Banknote size={24} />}
-                            </div>
-                            <div>
-                               <p className="font-bold text-gray-900 group-hover:text-primary transition-colors">{tx.type.replace('_', ' ')}</p>
-                               <p className="text-xs text-gray-500 font-medium flex items-center gap-2">
-                                  <History size={12} />
-                                  {new Date(tx.createdAt).toLocaleDateString()} at {new Date(tx.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                               </p>
-                            </div>
-                         </div>
-                         <div className="flex items-center gap-8">
-                            <div className="text-right">
-                               <p className={`font-black text-lg ${tx.type === 'WITHDRAWAL' ? 'text-red-500' : 'text-emerald-600'}`}>
-                                  {tx.type === 'WITHDRAWAL' ? '-' : '+'}₦{(tx.amount || 0).toLocaleString()}
-                               </p>
-                               <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
-                                  {tx.status}
-                               </span>
-                            </div>
-                            <button className="p-2 text-gray-300 hover:text-primary transition-all">
-                               <MoreVertical size={20} />
-                            </button>
-                         </div>
+            {activeView === 'transactions' ? (
+              <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden animate-in fade-in slide-in-from-left-4 duration-500">
+                 {summary?.recentTransactions && summary.recentTransactions.length > 0 ? (
+                   <div className="divide-y divide-gray-50">
+                    {summary.recentTransactions.map((tx: Transaction, idx: number) => (
+                      <div key={tx.id || idx} className="p-6 flex items-center justify-between hover:bg-gray-50 transition-colors group">
+                           <div className="flex items-center gap-5">
+                              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm ${
+                                tx.type === 'TICKET_SALE' ? 'bg-blue-50 text-blue-600' : 'bg-emerald-50 text-emerald-600'
+                              }`}>
+                                 {tx.type === 'TICKET_SALE' ? <Ticket size={24} /> : <Banknote size={24} />}
+                              </div>
+                              <div>
+                               <p className="font-bold text-gray-900 group-hover:text-primary transition-colors">{(tx.type || '').replace('_', ' ')}</p>
+                                 <p className="text-xs text-gray-500 font-medium flex items-center gap-2">
+                                    <History size={12} />
+                                    {new Date(tx.createdAt).toLocaleDateString()} at {new Date(tx.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                 </p>
+                              </div>
+                           </div>
+                           <div className="flex items-center gap-8">
+                              <div className="text-right">
+                                 <p className={`font-black text-lg ${tx.type === 'WITHDRAWAL' ? 'text-red-500' : 'text-emerald-600'}`}>
+                                    {tx.type === 'WITHDRAWAL' ? '-' : '+'}₦{(tx.amount || 0).toLocaleString()}
+                                 </p>
+                                 <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
+                                    {tx.status}
+                                 </span>
+                              </div>
+                              <button className="p-2 text-gray-300 hover:text-primary transition-all">
+                                 <MoreVertical size={20} />
+                              </button>
+                           </div>
+                        </div>
+                      ))}
+                   </div>
+                 ) : (
+                   <div className="p-20 text-center space-y-4">
+                      <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto text-gray-300">
+                         <History size={32} />
                       </div>
-                    ))}
-                 </div>
-               ) : (
-                 <div className="p-20 text-center space-y-4">
-                    <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto text-gray-300">
-                       <History size={32} />
-                    </div>
-                    <div>
-                       <h4 className="text-lg font-black text-gray-900">No transactions yet</h4>
-                       <p className="text-gray-500 font-medium max-w-xs mx-auto">All your ticket sales and withdrawal requests will appear here once your event starts selling.</p>
-                    </div>
-                 </div>
-               )}
-            </div>
+                      <div>
+                         <h4 className="text-lg font-black text-gray-900">No transactions yet</h4>
+                         <p className="text-gray-500 font-medium max-w-xs mx-auto">All your ticket sales and withdrawal requests will appear here once your event starts selling.</p>
+                      </div>
+                   </div>
+                 )}
+              </div>
+            ) : (
+              <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden animate-in fade-in slide-in-from-right-4 duration-500">
+                 {refundRequests && refundRequests.length > 0 ? (
+                   <div className="divide-y divide-gray-50">
+                      {refundRequests.map((req) => (
+                        <div key={req.id} className="p-6 flex items-center justify-between hover:bg-gray-50 transition-colors group">
+                           <div className="flex items-center gap-5">
+                              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm ${
+                                req.status === 'PENDING' ? 'bg-amber-50 text-amber-600' :
+                                req.status === 'APPROVED' || req.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600' :
+                                'bg-red-50 text-red-600'
+                              }`}>
+                                 {req.status === 'PENDING' ? <Clock size={24} /> : <RotateCcw size={24} />}
+                              </div>
+                              <div>
+                                 <div className="flex items-center gap-2">
+                                   <p className="font-bold text-gray-900">{req.registration.attendeeData.fullName}</p>
+                                   <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${
+                                      req.status === 'PENDING' ? 'bg-amber-100 text-amber-700' :
+                                      req.status === 'APPROVED' || req.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-700' :
+                                      'bg-red-100 text-red-700'
+                                   }`}>
+                                      {req.status}
+                                   </span>
+                                 </div>
+                                 <p className="text-xs text-gray-500 font-medium flex items-center gap-2">
+                                    {req.registration.event.title} • Ticket: {req.registration.ticketNumber}
+                                 </p>
+                              </div>
+                           </div>
+                           <div className="flex items-center gap-8">
+                              <div className="text-right">
+                                 <p className="font-black text-lg text-gray-900">
+                                    ₦{req.registration.pricePaid.toLocaleString()}
+                                 </p>
+                                 <p className="text-[10px] text-gray-400 font-medium">
+                                    {new Date(req.createdAt).toLocaleDateString()}
+                                 </p>
+                              </div>
+                              {req.status === 'PENDING' && (
+                                <button
+                                  onClick={() => setSelectedRequest(req)}
+                                  className="bg-primary text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl shadow-lg shadow-primary/10 hover:brightness-110 transition-all"
+                                >
+                                  Process
+                                </button>
+                              )}
+                           </div>
+                        </div>
+                      ))}
+                   </div>
+                 ) : (
+                   <div className="p-20 text-center space-y-4">
+                      <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto text-gray-300">
+                         <RotateCcw size={32} />
+                      </div>
+                      <div>
+                         <h4 className="text-lg font-black text-gray-900">No refund requests</h4>
+                         <p className="text-gray-500 font-medium max-w-xs mx-auto">Guest refund requests will appear here for your review and processing.</p>
+                      </div>
+                   </div>
+                 )}
+              </div>
+            )}
          </div>
 
          {/* Sidebar Tools */}
@@ -294,8 +404,25 @@ const FinanceDashboard = () => {
             </div>
          </div>
       </div>
+
+      {selectedRequest && (
+        <ProcessRefundModal
+          request={selectedRequest}
+          onClose={() => setSelectedRequest(null)}
+          onSuccess={() => {
+            fetchRefundRequests();
+            fetchFinanceData();
+          }}
+        />
+      )}
     </div>
   );
 };
+
+const FinanceDashboard = () => (
+  <Suspense fallback={<div className="h-full flex items-center justify-center"><CustomLoader /></div>}>
+    <FinanceDashboardContent />
+  </Suspense>
+);
 
 export default FinanceDashboard;

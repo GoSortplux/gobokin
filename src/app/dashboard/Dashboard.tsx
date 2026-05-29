@@ -5,7 +5,8 @@ import BookingsView from "./BookingsView";
 import SettingsView from "./SettingsView";
 import ReservationsList from "@/components/ReservationsList";
 import EventsView from "./EventsView";
-import { Calendar, Ticket, Clock, Settings } from "lucide-react";
+import RefundsView from "./RefundsView";
+import { Calendar, Ticket, Clock, Settings, History } from "lucide-react";
 
 const DashboardContent = () => {
   const searchParams = useSearchParams();
@@ -13,7 +14,7 @@ const DashboardContent = () => {
 
   useEffect(() => {
     const tab = searchParams.get("tab");
-    if (tab && ["bookings", "reservations", "events", "settings"].includes(tab)) {
+    if (tab && ["bookings", "reservations", "events", "refunds", "settings"].includes(tab)) {
       setActiveTab(tab);
     }
   }, [searchParams]);
@@ -26,6 +27,7 @@ const DashboardContent = () => {
               { id: "bookings", label: "My Bookings", icon: Calendar, color: "bg-primary", shadow: "shadow-primary/20" },
               { id: "reservations", label: "My Reservations", icon: Clock, color: "bg-amber-600", shadow: "shadow-amber-600/20" },
               { id: "events", label: "My Events", icon: Ticket, color: "bg-emerald-600", shadow: "shadow-emerald-600/20" },
+              { id: "refunds", label: "Refunds", icon: History, color: "bg-red-600", shadow: "shadow-red-600/20" },
               { id: "settings", label: "Profile Settings", icon: Settings, color: "bg-gray-800", shadow: "shadow-gray-800/20" },
             ].map((tab) => (
               <button
@@ -47,6 +49,7 @@ const DashboardContent = () => {
           {activeTab === "bookings" && <BookingsView />}
           {activeTab === "reservations" && <ReservationsList />}
           {activeTab === "events" && <EventsView />}
+          {activeTab === "refunds" && <RefundsView />}
           {activeTab === "settings" && <SettingsView />}
         </main>
       </div>
