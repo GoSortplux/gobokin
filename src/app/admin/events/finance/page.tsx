@@ -11,7 +11,6 @@ import {
   CheckCircle2,
   XCircle,
   Search,
-  Filter
 } from "lucide-react";
 import api from "@/services/api";
 import CustomLoader from "@/components/CustomLoader";
@@ -24,6 +23,7 @@ const FinancePage = () => {
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [withdrawFilter, setWithdrawFilter] = useState("PENDING");
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     if (activeTab === 'summary') {
@@ -116,9 +116,24 @@ const FinancePage = () => {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-black text-gray-900 tracking-tight uppercase italic">Finance <span className="text-primary not-italic">Dashboard</span></h1>
-        <p className="text-gray-500 font-medium">Manage platform revenue and process organizer withdrawals.</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-black text-gray-900 tracking-tight uppercase italic">Finance <span className="text-primary not-italic">Dashboard</span></h1>
+          <p className="text-gray-500 font-medium">Manage platform revenue and process organizer withdrawals.</p>
+        </div>
+
+        {activeTab === 'withdrawals' && (
+          <div className="relative w-full md:w-80">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <input
+              type="text"
+              placeholder="Search by name or email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm shadow-sm"
+            />
+          </div>
+        )}
       </div>
 
       {/* Tabs */}
@@ -252,7 +267,14 @@ const FinancePage = () => {
                     <tr>
                       <td colSpan={6} className="px-8 py-20 text-center"><CustomLoader /></td>
                     </tr>
-                  ) : requests.length > 0 ? requests.filter(r => withdrawFilter === "ALL" || r.status === withdrawFilter).map((req) => (
+                  ) : requests.length > 0 ? requests.filter(r => {
+                    const matchesFilter = withdrawFilter === "ALL" || r.status === withdrawFilter;
+                    const matchesSearch =
+                      r.organizerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      r.organizerEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      r.organizerId?.toLowerCase().includes(searchTerm.toLowerCase());
+                    return matchesFilter && matchesSearch;
+                  }).map((req) => (
                     <tr key={req.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-8 py-6">
                         <p className="font-bold text-gray-900">{req.organizerName || "ID: " + req.organizerId.slice(0,8)}</p>

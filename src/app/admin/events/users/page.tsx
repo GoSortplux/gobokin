@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Briefcase, Globe, FileText, AlertCircle, Clock, MoreVertical, Search as SearchIcon } from 'lucide-react';
+import { Briefcase, Globe, FileText, AlertCircle, Clock, MoreVertical, Search } from 'lucide-react';
 import api from '@/services/api';
 import Swal from '@/utils/sweetalert';
 import { translateError } from '@/utils/errors';
@@ -14,6 +14,7 @@ const UserManagementPage = () => {
   // Applications state
   const [applications, setApplications] = useState<OrganizerApplication[]>([]);
   const [appFilter, setAppFilter] = useState<"ALL" | "PENDING" | "APPROVED" | "REJECTED">("PENDING");
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetchApplications();
@@ -58,7 +59,14 @@ const UserManagementPage = () => {
     }
   };
 
-  const filteredApps = applications.filter(app => appFilter === "ALL" || app.status === appFilter);
+  const filteredApps = applications.filter(app => {
+    const matchesFilter = appFilter === "ALL" || app.status === appFilter;
+    const matchesSearch =
+      app.organizerId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      app.data.portfolio?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      app.data.experience?.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
 
   return (
     <div className="p-6 space-y-6">
@@ -66,6 +74,17 @@ const UserManagementPage = () => {
         <div>
           <h1 className="text-2xl font-black text-gray-900 tracking-tight uppercase italic">User <span className="text-primary not-italic">Management</span></h1>
           <p className="text-gray-500 text-sm font-medium mt-1">Review and verify organizer applications.</p>
+        </div>
+
+        <div className="relative w-full md:w-96">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+          <input
+            type="text"
+            placeholder="Search by ID or portfolio..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm shadow-sm"
+          />
         </div>
       </div>
 
@@ -187,7 +206,7 @@ const UserManagementPage = () => {
         ) : (
           <div className="bg-white rounded-[3rem] p-20 text-center border border-gray-100 shadow-sm">
              <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300">
-                <SearchIcon size={48} />
+                <Search size={48} />
              </div>
              <h3 className="text-2xl font-black text-gray-900 mb-2">No applications found</h3>
              <p className="text-gray-500 max-w-sm mx-auto">There are no organizer applications matching your current criteria.</p>

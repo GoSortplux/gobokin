@@ -48,7 +48,7 @@ const SystemSettings = () => {
         const res = await api.get("/events/admin/config");
         setConfig(res.data.data || []);
       } else if (activeTab === 'categories') {
-        const res = await api.get("/events/categories");
+        const res = await api.get("/events/utils/categories");
         setCategories(res.data.data || []);
       } else if (activeTab === 'packages') {
         const res = await api.get("/events/admin/packages");
