@@ -238,7 +238,7 @@ const SystemSettings = () => {
           <div className="grid grid-cols-1 gap-3">
             {categories.map((cat: any, i: number) => (
               <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl group">
-                <span className="text-sm font-bold text-gray-700">{cat.name}</span>
+                <span className="text-sm font-bold text-black-900">{cat.name}</span>
                 <button
                   onClick={() => deleteCategory(cat.name)}
                   className="p-2 text-gray-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
