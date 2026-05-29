@@ -350,6 +350,21 @@ export interface SubscriptionRule {
   updatedAt?: string;
 }
 
+export interface PackageRule {
+  ruleKey: string;
+  ruleValue: string;
+}
+
+export interface SubscriptionPackage {
+  id: string;
+  name: string;
+  price: number;
+  discountPercentage: number;
+  durationDays: number;
+  type: string;
+  rules: PackageRule[];
+}
+
 export interface LicenseTier {
   _id: string;
   name: string;
