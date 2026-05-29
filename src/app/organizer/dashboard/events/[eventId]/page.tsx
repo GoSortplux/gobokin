@@ -5,6 +5,8 @@ import Link from "next/link";
 import {
   ArrowLeft,
   Calendar,
+  PlayCircle,
+  PauseCircle,
   MapPin,
   Users,
   TrendingUp,
@@ -41,6 +43,7 @@ import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 import AssignStaffModal from "@/components/organizer/AssignStaffModal";
 import WalkInRegistrationModal from "@/components/organizer/WalkInRegistrationModal";
+import SuspendModal from "@/components/organizer/SuspendModal";
 
 const EventDetails = () => {
   const { user } = useAuth();
@@ -57,6 +60,8 @@ const EventDetails = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [isStaffModalOpen, setIsStaffModalOpen] = useState(false);
   const [isWalkInModalOpen, setIsWalkInModalOpen] = useState(false);
+  const [isSuspendModalOpen, setIsSuspendModalOpen] = useState(false);
+  const [suspendConfig, setSuspendConfig] = useState<{ type: "event" | "ticket"; title: string; ticketId?: string }>({ type: "event", title: "" });
   const [isActionLoading, setIsActionLoading] = useState(false);
 
   useEffect(() => {
@@ -192,6 +197,88 @@ const EventDetails = () => {
     }
   };
 
+  const handleSuspendRegistration = async (data: { reason: string; pauseScope: string; resumeAt?: string }) => {
+    try {
+      setIsActionLoading(true);
+      Swal.showLoading();
+      await api.post(`/events/${eventId}/registration/suspend`, data);
+      Swal.fire('Suspended!', 'Registration has been suspended.', 'success');
+      const eventRes = await api.get(`/events/${eventId}`);
+      setEvent(eventRes.data.data);
+    } catch (error) {
+      Swal.fire('Error', translateError(error), 'error');
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const handleResumeRegistration = async () => {
+    const result = await Swal.fire({
+      title: 'Resume Registration?',
+      text: 'This will allow attendees to register for your event again.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Resume',
+      confirmButtonColor: '#10b981',
+    });
+
+    if (result.isConfirmed) {
+      try {
+        setIsActionLoading(true);
+        Swal.showLoading();
+        await api.post(`/events/${eventId}/registration/resume`);
+        Swal.fire('Resumed!', 'Registration is now active.', 'success');
+        const eventRes = await api.get(`/events/${eventId}`);
+        setEvent(eventRes.data.data);
+      } catch (error) {
+        Swal.fire('Error', translateError(error), 'error');
+      } finally {
+        setIsActionLoading(false);
+      }
+    }
+  };
+
+  const handleSuspendTicketSales = async (ticketId: string, data: { reason: string; pauseScope: string; resumeAt?: string }) => {
+    try {
+      setIsActionLoading(true);
+      Swal.showLoading();
+      await api.post(`/events/${eventId}/tickets/${ticketId}/suspend-sales`, data);
+      Swal.fire('Suspended!', 'Ticket sales have been suspended.', 'success');
+      const eventRes = await api.get(`/events/${eventId}`);
+      setEvent(eventRes.data.data);
+    } catch (error) {
+      Swal.fire('Error', translateError(error), 'error');
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const handleResumeTicketSales = async (ticketId: string) => {
+    const result = await Swal.fire({
+      title: 'Resume Sales?',
+      text: 'This will make this ticket category available for purchase again.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Resume',
+      confirmButtonColor: '#10b981',
+    });
+
+    if (result.isConfirmed) {
+      try {
+        setIsActionLoading(true);
+        Swal.showLoading();
+        await api.post(`/events/${eventId}/tickets/${ticketId}/resume-sales`);
+        Swal.fire('Resumed!', 'Ticket sales are now active.', 'success');
+        const eventRes = await api.get(`/events/${eventId}`);
+        setEvent(eventRes.data.data);
+      } catch (error) {
+        Swal.fire('Error', translateError(error), 'error');
+      } finally {
+        setIsActionLoading(false);
+      }
+    }
+  };
+
   const handleBroadcast = async () => {
     const { value: message, isConfirmed } = await Swal.fire({
       title: 'Broadcast Message',
@@ -273,6 +360,19 @@ const EventDetails = () => {
 
   return (
     <div className="space-y-8 pb-12">
+      <SuspendModal
+        isOpen={isSuspendModalOpen}
+        onClose={() => setIsSuspendModalOpen(false)}
+        title={suspendConfig.title}
+        type={suspendConfig.type}
+        onConfirm={async (data) => {
+          if (suspendConfig.type === "event") {
+            await handleSuspendRegistration(data);
+          } else if (suspendConfig.ticketId) {
+            await handleSuspendTicketSales(suspendConfig.ticketId, data);
+          }
+        }}
+      />
       {/* Top Navigation */}
       <div className="flex items-center justify-between px-2">
         <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-500 hover:text-primary transition-colors font-bold group">
@@ -738,13 +838,63 @@ const EventDetails = () => {
 
             {activeTab === "tickets" && (
               <div className="space-y-8 animate-in fade-in duration-500">
-                 <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-black text-gray-900">Available Tickets</h3>
-                    <button className="flex items-center gap-2 text-primary font-bold text-sm bg-blue-50 px-4 py-2 rounded-xl hover:bg-blue-100 transition-colors">
-                      <Plus size={16} />
-                      Add Ticket Type
-                    </button>
+                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <h3 className="text-lg font-black text-gray-900">Ticket Management</h3>
+                      <p className="text-xs text-gray-500 font-medium mt-1">Configure sales, availability, and suspension status.</p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-3">
+                      {!isStaff && (
+                        <>
+                          {event.isRegistrationSuspended ? (
+                            <button
+                              onClick={handleResumeRegistration}
+                              disabled={isActionLoading}
+                              className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 font-bold text-xs rounded-xl border border-emerald-100 hover:bg-emerald-600 hover:text-white transition-all"
+                            >
+                              <PlayCircle size={14} />
+                              Resume All Registration
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                setSuspendConfig({ type: "event", title: "Suspend All Registration" });
+                                setIsSuspendModalOpen(true);
+                              }}
+                              disabled={isActionLoading}
+                              className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-600 font-bold text-xs rounded-xl border border-amber-100 hover:bg-amber-600 hover:text-white transition-all"
+                            >
+                              <PauseCircle size={14} />
+                              Suspend All Registration
+                            </button>
+                          )}
+                        </>
+                      )}
+                      <button className="flex items-center gap-2 text-primary font-bold text-xs bg-blue-50 px-4 py-2 rounded-xl hover:bg-blue-100 transition-colors border border-blue-100">
+                        <Plus size={14} />
+                        Add Ticket Type
+                      </button>
+                    </div>
                  </div>
+
+                 {event.isRegistrationSuspended && (
+                    <div className="p-4 bg-amber-50 border border-amber-100 rounded-2xl flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-amber-600 shadow-sm shrink-0">
+                        <AlertCircle size={20} />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs font-black text-amber-700 uppercase tracking-widest">Global Registration Suspended</p>
+                          <span className="px-2 py-0.5 rounded-md bg-amber-200 text-amber-800 text-[9px] font-black uppercase tracking-widest">ACTIVE</span>
+                        </div>
+                        <p className="text-xs text-amber-600/80 font-medium mt-1 leading-relaxed">
+                          Reason: {event.registrationSuspensionDetails?.reason || "N/A"} •
+                          Scope: {event.registrationSuspensionDetails?.pauseScope?.replace('_', ' ') || "ALL CHANNELS"}
+                          {event.registrationSuspensionDetails?.resumeAt && ` • Resumes: ${new Date(event.registrationSuspensionDetails.resumeAt).toLocaleString()}`}
+                        </p>
+                      </div>
+                    </div>
+                 )}
 
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {event.tickets && event.tickets.length > 0 ? (
@@ -753,7 +903,7 @@ const EventDetails = () => {
                            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
 
                            <div className="flex items-center justify-between mb-6 relative z-10">
-                              <div className="flex items-center gap-3">
+                              <div className="flex flex-wrap items-center gap-3">
                                  <div className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${ticket.type === 'FREE' ? 'bg-gray-100 text-gray-600' : 'bg-emerald-100 text-emerald-700'}`}>
                                     {ticket.type}
                                  </div>
@@ -762,13 +912,49 @@ const EventDetails = () => {
                                       OFFLINE
                                    </div>
                                  )}
+                                 {ticket.isSalesSuspended && (
+                                   <div className="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest bg-rose-100 text-rose-700">
+                                      SUSPENDED
+                                   </div>
+                                 )}
                               </div>
-                              <button className="text-gray-400 hover:text-primary transition-colors">
-                                 <MoreVertical size={20} />
-                              </button>
+                              {!isStaff && (
+                                <div className="flex items-center gap-2">
+                                  {ticket.isSalesSuspended ? (
+                                    <button
+                                      onClick={() => handleResumeTicketSales(ticket.id!)}
+                                      disabled={isActionLoading}
+                                      className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
+                                      title="Resume Sales"
+                                    >
+                                      <PlayCircle size={20} />
+                                    </button>
+                                  ) : (
+                                    <button
+                                      onClick={() => {
+                                        setSuspendConfig({ type: "ticket", title: `Suspend ${ticket.name}`, ticketId: ticket.id });
+                                        setIsSuspendModalOpen(true);
+                                      }}
+                                      disabled={isActionLoading}
+                                      className="p-2 text-amber-600 hover:bg-amber-50 rounded-xl transition-all"
+                                      title="Suspend Sales"
+                                    >
+                                      <PauseCircle size={20} />
+                                    </button>
+                                  )}
+                                  <button className="p-2 text-gray-400 hover:text-primary transition-colors">
+                                    <MoreVertical size={20} />
+                                  </button>
+                                </div>
+                              )}
                            </div>
 
                            <h4 className="font-black text-gray-900 text-2xl mb-2 relative z-10">{ticket.name}</h4>
+                           {ticket.isSalesSuspended && (
+                             <p className="text-[10px] text-rose-600 font-bold uppercase tracking-widest mb-4 bg-rose-50 px-3 py-1 rounded-lg w-fit">
+                                Reason: {ticket.salesSuspensionDetails?.reason || "N/A"}
+                             </p>
+                           )}
                            <p className="text-gray-500 text-sm mb-6 line-clamp-2">{ticket.description || "No description provided."}</p>
 
                            <div className="flex items-baseline gap-1 mb-8 relative z-10">
