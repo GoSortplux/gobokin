@@ -54,7 +54,7 @@ const EventDetails = () => {
   const isStaff = user?.role?.includes('organizer-staff');
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [staff, setStaff] = useState<StaffMember[]>([]);
-  const [attendees, setAttendees] = useState<{ id?: string; attendeeName?: string; attendeeEmail?: string; ticketName?: string; ticketNumber?: string; status?: string; checkInStatus?: boolean; createdAt: string; attendeeData?: Record<string, string> }[]>([]);;
+  const [attendees, setAttendees] = useState<{ id?: string; attendeeName?: string; attendeeEmail?: string; ticketName?: string; ticketNumber?: string; status?: string; checkInStatus?: boolean; createdAt: string; attendeeData?: Record<string, string>; checkedInBy?: { fullName: string; email: string } }[]>([]);;
   const [loading, setLoading] = useState(true);
   const [attendeesLoading, setAttendeesLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
@@ -144,7 +144,8 @@ const EventDetails = () => {
                 ticketName: reg.ticketId?.name || order.ticketName || "Standard Entry",
                 ticketNumber: reg.ticketNumber || `ORD-${order.id?.slice(0, 8)}`,
                 status: reg.paymentStatus || order.status || "PAID",
-                createdAt: reg.createdAt || order.createdAt
+                createdAt: reg.createdAt || order.createdAt,
+                checkedInBy: reg.checkedInBy
               }));
             });
           }
@@ -1091,6 +1092,7 @@ const EventDetails = () => {
                                   <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Attendee</th>
                                   <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Ticket Details</th>
                                   <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
+                                  <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Checked In By</th>
                                   <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Registered At</th>
                                   <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>
                                </tr>
@@ -1128,6 +1130,16 @@ const EventDetails = () => {
                                               </span>
                                             )}
                                          </div>
+                                      </td>
+                                      <td className="px-6 py-6">
+                                         {attendee.checkedInBy ? (
+                                           <div className="flex flex-col">
+                                              <p className="text-sm font-bold text-gray-700">{attendee.checkedInBy.fullName}</p>
+                                              <p className="text-[10px] text-gray-400 font-medium">{attendee.checkedInBy.email}</p>
+                                           </div>
+                                         ) : (
+                                           <span className="text-xs text-gray-400 italic">Not checked in</span>
+                                         )}
                                       </td>
                                       <td className="px-6 py-6">
                                          <p className="text-[11px] font-bold text-gray-600">{new Date(attendee.createdAt).toLocaleDateString()}</p>
@@ -1183,7 +1195,8 @@ const EventDetails = () => {
                                                             ticketName: reg.ticketId?.name || order.ticketName || "Standard Entry",
                                                             ticketNumber: reg.ticketNumber || `ORD-${order.id?.slice(0, 8)}`,
                                                             status: reg.paymentStatus || order.status || "PAID",
-                                                            createdAt: reg.createdAt || order.createdAt
+                                                            createdAt: reg.createdAt || order.createdAt,
+                                                            checkedInBy: reg.checkedInBy
                                                           }));
                                                         });
                                                       }
@@ -1272,7 +1285,8 @@ const EventDetails = () => {
                         ticketName: reg.ticketId?.name || order.ticketName || "Standard Entry",
                         ticketNumber: reg.ticketNumber || `ORD-${order.id?.slice(0, 8)}`,
                         status: reg.paymentStatus || order.status || "PAID",
-                        createdAt: reg.createdAt || order.createdAt
+                        createdAt: reg.createdAt || order.createdAt,
+                        checkedInBy: reg.checkedInBy
                       }));
                     });
                   }
