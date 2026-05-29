@@ -120,6 +120,24 @@ const SystemSettings = () => {
     }
   };
 
+  const addRule = () => {
+    setFormData({
+      ...formData,
+      rules: [...formData.rules, { ruleKey: "", ruleValue: "" }]
+    });
+  };
+
+  const removeRule = (index: number) => {
+    const newRules = formData.rules.filter((_, i) => i !== index);
+    setFormData({ ...formData, rules: newRules });
+  };
+
+  const updateRule = (index: number, key: 'ruleKey' | 'ruleValue', value: string) => {
+    const newRules = [...formData.rules];
+    newRules[index][key] = value;
+    setFormData({ ...formData, rules: newRules });
+  };
+
   return (
     <div className="space-y-8 max-w-6xl">
       <div>
@@ -284,8 +302,8 @@ const SystemSettings = () => {
           </div>
 
           {isModalOpen && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-              <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
+              <div className="bg-white w-full max-w-2xl my-8 rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
                 <div className="p-8 border-b border-gray-100 flex items-center justify-between">
                   <h3 className="text-2xl font-black text-gray-900 tracking-tight">New Package</h3>
                   <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-all">
@@ -293,16 +311,28 @@ const SystemSettings = () => {
                   </button>
                 </div>
                 <form onSubmit={handlePackageSubmit} className="p-8 space-y-6">
-                   <div className="space-y-2">
-                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Package Name</label>
-                     <input
-                       type="text"
-                       required
-                       className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all"
-                       value={formData.name}
-                       onChange={e => setFormData({...formData, name: e.target.value})}
-                     />
+                   <div className="grid grid-cols-2 gap-6">
+                     <div className="space-y-2">
+                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Package Name</label>
+                       <input
+                         type="text"
+                         required
+                         className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all"
+                         value={formData.name}
+                         onChange={e => setFormData({...formData, name: e.target.value})}
+                       />
+                     </div>
+                     <div className="space-y-2">
+                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Discount Percentage (%)</label>
+                       <input
+                         type="number"
+                         className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all"
+                         value={formData.discountPercentage}
+                         onChange={e => setFormData({...formData, discountPercentage: Number(e.target.value)})}
+                       />
+                     </div>
                    </div>
+
                    <div className="grid grid-cols-2 gap-6">
                      <div className="space-y-2">
                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Price (NGN)</label>
@@ -325,6 +355,49 @@ const SystemSettings = () => {
                        />
                      </div>
                    </div>
+
+                   <div className="space-y-4">
+                     <div className="flex items-center justify-between">
+                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Package Rules</label>
+                       <button
+                         type="button"
+                         onClick={addRule}
+                         className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-1 hover:underline"
+                       >
+                         <Plus size={12} /> Add Rule
+                       </button>
+                     </div>
+                     <div className="space-y-3">
+                       {formData.rules.map((rule, index) => (
+                         <div key={index} className="flex gap-3 items-center">
+                           <input
+                             type="text"
+                             placeholder="Rule Key (e.g. MAX_GUESTS)"
+                             className="flex-1 px-5 py-3 bg-gray-50 border-none rounded-2xl text-sm font-bold"
+                             value={rule.ruleKey}
+                             onChange={e => updateRule(index, 'ruleKey', e.target.value)}
+                           />
+                           <input
+                             type="text"
+                             placeholder="Value"
+                             className="flex-1 px-5 py-3 bg-gray-50 border-none rounded-2xl text-sm font-bold"
+                             value={rule.ruleValue}
+                             onChange={e => updateRule(index, 'ruleValue', e.target.value)}
+                           />
+                           {formData.rules.length > 1 && (
+                             <button
+                               type="button"
+                               onClick={() => removeRule(index)}
+                               className="p-3 text-gray-400 hover:text-rose-600 transition-all"
+                             >
+                               <Trash2 size={18} />
+                             </button>
+                           )}
+                         </div>
+                       ))}
+                     </div>
+                   </div>
+
                    <button className="w-full bg-primary text-white font-black py-5 rounded-2xl hover:bg-opacity-90 transition-all shadow-xl shadow-primary/20 uppercase tracking-widest text-sm">
                      Create Subscription Package
                    </button>
