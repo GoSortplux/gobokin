@@ -846,7 +846,7 @@ const EventDetails = () => {
                     <div className="flex flex-wrap items-center gap-3">
                       {!isStaff && (
                         <>
-                          {event.isRegistrationSuspended ? (
+                          {(event.isRegistrationSuspended || event.availabilityStatus === 'SALES_PAUSED') ? (
                             <button
                               onClick={handleResumeRegistration}
                               disabled={isActionLoading}
@@ -877,7 +877,7 @@ const EventDetails = () => {
                     </div>
                  </div>
 
-                 {event.isRegistrationSuspended && (
+                 {(event.isRegistrationSuspended || event.availabilityStatus === 'SALES_PAUSED') && (
                     <div className="p-4 bg-amber-50 border border-amber-100 rounded-2xl flex items-start gap-4">
                       <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-amber-600 shadow-sm shrink-0">
                         <AlertCircle size={20} />
@@ -888,9 +888,9 @@ const EventDetails = () => {
                           <span className="px-2 py-0.5 rounded-md bg-amber-200 text-amber-800 text-[9px] font-black uppercase tracking-widest">ACTIVE</span>
                         </div>
                         <p className="text-xs text-amber-600/80 font-medium mt-1 leading-relaxed">
-                          Reason: {event.registrationSuspensionDetails?.reason || "N/A"} •
-                          Scope: {event.registrationSuspensionDetails?.pauseScope?.replace('_', ' ') || "ALL CHANNELS"}
-                          {event.registrationSuspensionDetails?.resumeAt && ` • Resumes: ${new Date(event.registrationSuspensionDetails.resumeAt).toLocaleString()}`}
+                          Reason: {event.registrationSuspensionReason || event.registrationSuspensionDetails?.reason || "N/A"} •
+                          Scope: {(event.registrationPauseScope || event.registrationSuspensionDetails?.pauseScope)?.replace('_', ' ') || "ALL CHANNELS"}
+                          {(event.registrationResumeAt || event.registrationSuspensionDetails?.resumeAt) && ` • Resumes: ${new Date(event.registrationResumeAt || event.registrationSuspensionDetails!.resumeAt!).toLocaleString()}`}
                         </p>
                       </div>
                     </div>
@@ -912,7 +912,7 @@ const EventDetails = () => {
                                       OFFLINE
                                    </div>
                                  )}
-                                 {ticket.isSalesSuspended && (
+                                 {(ticket.isSalesSuspended || ticket.salesStatus === 'PAUSED' || ticket.availabilityStatus === 'SALES_PAUSED') && (
                                    <div className="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest bg-rose-100 text-rose-700">
                                       SUSPENDED
                                    </div>
@@ -920,7 +920,7 @@ const EventDetails = () => {
                               </div>
                               {!isStaff && (
                                 <div className="flex items-center gap-2">
-                                  {ticket.isSalesSuspended ? (
+                                  {(ticket.isSalesSuspended || ticket.salesStatus === 'PAUSED' || ticket.availabilityStatus === 'SALES_PAUSED') ? (
                                     <button
                                       onClick={() => handleResumeTicketSales(ticket.id!)}
                                       disabled={isActionLoading}
@@ -950,9 +950,9 @@ const EventDetails = () => {
                            </div>
 
                            <h4 className="font-black text-gray-900 text-2xl mb-2 relative z-10">{ticket.name}</h4>
-                           {ticket.isSalesSuspended && (
+                           {(ticket.isSalesSuspended || ticket.salesStatus === 'PAUSED' || ticket.availabilityStatus === 'SALES_PAUSED') && (
                              <p className="text-[10px] text-rose-600 font-bold uppercase tracking-widest mb-4 bg-rose-50 px-3 py-1 rounded-lg w-fit">
-                                Reason: {ticket.salesSuspensionDetails?.reason || "N/A"}
+                                Reason: {ticket.salesSuspensionReason || ticket.salesMessage || ticket.salesSuspensionDetails?.reason || "N/A"}
                              </p>
                            )}
                            <p className="text-gray-500 text-sm mb-6 line-clamp-2">{ticket.description || "No description provided."}</p>

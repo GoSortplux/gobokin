@@ -571,6 +571,13 @@ export interface Ticket {
   soldQuantity?: number;
   isSoldOut?: boolean;
   isSalesSuspended?: boolean;
+  salesStatus?: string;
+  salesPauseScope?: string;
+  salesSuspendedAt?: string;
+  salesSuspendedBy?: string;
+  salesSuspensionReason?: string;
+  salesResumeAt?: string;
+  salesMessage?: string;
   salesSuspensionDetails?: {
     reason: string;
     pauseScope: string;
@@ -620,6 +627,12 @@ export interface Event {
   agenda?: AgendaItem[];
   registrationFields?: RegistrationField[];
   isRegistrationSuspended?: boolean;
+  registrationStatus?: string;
+  registrationPauseScope?: string;
+  registrationSuspendedAt?: string;
+  registrationSuspendedBy?: string;
+  registrationSuspensionReason?: string;
+  registrationResumeAt?: string;
   registrationSuspensionDetails?: {
     reason: string;
     pauseScope: string;
