@@ -336,16 +336,16 @@ const HostEventPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-24 pb-20 px-4">
-      <div className="max-w-[1600px] mx-auto">
+    <div className="min-h-screen bg-white pt-24 pb-20 px-4 md:px-6">
+      <div className="max-w-[1500px] mx-auto">
         {/* Header */}
-        <div className="mb-12 flex flex-col md:flex-row md:items-center justify-between gap-8 px-4">
-          <div>
-            <h1 className="text-5xl font-black text-primary tracking-tight leading-none mb-3 uppercase">Host Your Vision</h1>
-            <p className="text-gray-500 font-medium text-lg">Bring your event to life in 4 simple steps.</p>
+        <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="space-y-1">
+            <h1 className="text-4xl md:text-5xl font-semibold text-gray-900 tracking-tight">Host an Event</h1>
+            <p className="text-gray-500 text-lg">Define your vision in four simple steps.</p>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <button
               onClick={() => {
                 if (window.innerWidth < 1024) {
@@ -354,218 +354,215 @@ const HostEventPage = () => {
                   setShowPreview(!showPreview);
                 }
               }}
-              className="flex items-center gap-2.5 bg-white text-gray-500 font-black px-6 py-4 rounded-2xl border border-gray-100 shadow-sm hover:bg-gray-50 hover:text-primary transition-all text-[10px] uppercase tracking-[0.2em]"
+              className="flex items-center gap-2 px-5 py-3 rounded-xl border border-gray-200 text-gray-600 font-medium hover:bg-gray-50 transition-all text-sm"
             >
-              <Eye size={16} />
-              <span className="hidden sm:inline">{showPreview ? "Hide Preview" : "Show Preview"}</span>
-              <span className="sm:hidden">Preview</span>
+              <Eye size={18} />
+              <span>{showPreview ? "Hide Preview" : "Show Preview"}</span>
             </button>
           </div>
         </div>
 
-        {/* Step Indicator */}
-        <div className="flex items-center justify-between bg-white p-6 rounded-[2.5rem] shadow-sm border border-gray-100 mb-10 px-4 md:px-10 overflow-x-auto no-scrollbar">
-          {steps.map((step) => (
-            <div key={step.id} className="flex flex-col items-center gap-3 group relative">
-              <div
-                className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 ${
-                  currentStep === step.id
-                    ? "bg-primary text-white shadow-xl shadow-primary/30 scale-110"
-                    : currentStep > step.id
-                    ? "bg-secondary/10 text-secondary border border-secondary/20"
-                    : "bg-gray-50 text-gray-300 border border-gray-100"
-                }`}
+        {/* Minimal Step Indicator */}
+        <div className="flex items-center gap-4 mb-12 overflow-x-auto no-scrollbar pb-2">
+          {steps.map((step, idx) => (
+            <React.Fragment key={step.id}>
+              <button
+                onClick={() => idx + 1 < currentStep && setCurrentStep(idx + 1)}
+                className="flex items-center gap-3 shrink-0"
               >
-                <step.icon size={24} strokeWidth={currentStep === step.id ? 3 : 2} />
-                {currentStep > step.id && (
-                  <div className="absolute -top-1 -right-1 bg-secondary text-white rounded-full p-1 border-2 border-white">
-                    <CheckCircle2 size={12} strokeWidth={4} />
-                  </div>
-                )}
-              </div>
-              <span className={`text-[10px] font-black uppercase tracking-widest ${
-                currentStep === step.id ? "text-primary" : "text-gray-400"
-              }`}>
-                {step.title}
-              </span>
-            </div>
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
+                    currentStep === step.id
+                      ? "bg-primary text-white"
+                      : currentStep > step.id
+                      ? "bg-primary/10 text-primary"
+                      : "bg-gray-100 text-gray-400"
+                  }`}
+                >
+                  {currentStep > step.id ? <CheckCircle2 size={18} /> : step.id}
+                </div>
+                <span className={`text-sm font-medium whitespace-nowrap ${currentStep === step.id ? "text-gray-900" : "text-gray-400"}`}>
+                  {step.title}
+                </span>
+              </button>
+              {idx < steps.length - 1 && (
+                <div className="w-8 h-px bg-gray-200 shrink-0" />
+              )}
+            </React.Fragment>
           ))}
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-10 items-start">
+        <div className="flex flex-col lg:flex-row gap-12 items-start">
         {/* Form Container */}
-        <div className="flex-1 bg-white rounded-[3rem] shadow-2xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
+        <div className="flex-1 w-full max-w-4xl">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="p-8 md:p-10 lg:p-12">
             {currentStep === 1 && (
-              <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Event Title</label>
+              <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700 ml-1">Event Title</label>
                     <input
                       type="text"
-                      placeholder="e.g., Summer Music Festival"
-                      className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
+                      placeholder="What is your event called?"
+                      className="w-full px-5 py-4 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-gray-400 shadow-sm"
                       value={formData.basicInfo.title}
                       onChange={(e) => handleChange("basicInfo", "title", e.target.value)}
                     />
                   </div>
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Category</label>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700 ml-1">Category</label>
                     <div className="relative">
                       <select
-                        className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold appearance-none outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 shadow-sm"
+                        className="w-full px-5 py-4 bg-white border border-gray-200 rounded-xl text-sm font-medium appearance-none outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-sm"
                         value={formData.basicInfo.category}
                         onChange={(e) => handleChange("basicInfo", "category", e.target.value)}
                       >
-                        <option value="">Select Category</option>
+                        <option value="">Select a category</option>
                         {categories.map((cat, idx) => (
                           <option key={idx} value={cat}>{cat}</option>
                         ))}
                       </select>
-                      <ChevronDown size={20} className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                      <ChevronDown size={18} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                     </div>
                   </div>
-                  <div className="space-y-3 md:col-span-2">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Keywords / Tags</label>
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-sm font-semibold text-gray-700 ml-1">Search Keywords</label>
                     <input
                       type="text"
-                      placeholder="Music, Festival, Outdoor, Fun (comma separated)"
-                      className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
+                      placeholder="Add tags separated by commas (e.g. Music, Outdoor)"
+                      className="w-full px-5 py-4 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-gray-400 shadow-sm"
                       value={formData.basicInfo.tags}
                       onChange={(e) => handleChange("basicInfo", "tags", e.target.value)}
                     />
                   </div>
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Start Date & Time</label>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700 ml-1">Starts On</label>
                     <input
                       type="datetime-local"
-                      className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
+                      className="w-full px-5 py-4 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all shadow-sm"
                       value={formData.basicInfo.startDate}
                       onChange={(e) => handleChange("basicInfo", "startDate", e.target.value)}
                     />
                   </div>
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">End Date & Time</label>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700 ml-1">Ends On</label>
                     <input
                       type="datetime-local"
-                      className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
+                      className="w-full px-5 py-4 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all shadow-sm"
                       value={formData.basicInfo.endDate}
                       onChange={(e) => handleChange("basicInfo", "endDate", e.target.value)}
                     />
                   </div>
                 </div>
 
-                <div className="pt-10 border-t border-gray-100 space-y-8">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Event Format</label>
-                  <div className="grid grid-cols-3 gap-4">
-                    {["PHYSICAL", "ONLINE", "HYBRID"].map((type) => (
-                      <button
-                        key={type}
-                        type="button"
-                        onClick={() => handleChange("basicInfo", "type", type)}
-                        className={`py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest border-2 transition-all ${
-                          formData.basicInfo.type === type
-                            ? "bg-primary text-white border-primary shadow-lg shadow-primary/20"
-                            : "bg-white text-gray-400 border-gray-100 hover:bg-gray-50"
-                        }`}
-                      >
-                        {type}
-                      </button>
-                    ))}
+                <div className="pt-8 border-t border-gray-100 space-y-8">
+                  <div className="space-y-4">
+                    <label className="text-sm font-semibold text-gray-700 ml-1">Event Format</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        {["PHYSICAL", "ONLINE", "HYBRID"].map((type) => (
+                        <button
+                            key={type}
+                            type="button"
+                            onClick={() => handleChange("basicInfo", "type", type)}
+                            className={`py-3 px-4 rounded-xl text-xs font-semibold uppercase tracking-wider border-2 transition-all ${
+                            formData.basicInfo.type === type
+                                ? "bg-gray-900 text-white border-gray-900 shadow-md shadow-gray-200"
+                                : "bg-white text-gray-500 border-gray-100 hover:border-gray-200"
+                            }`}
+                        >
+                            {type}
+                        </button>
+                        ))}
+                    </div>
                   </div>
 
                   {formData.basicInfo.type !== "ONLINE" && (
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Venue Address</label>
-                      <div className="relative">
-                        <MapPin size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-primary" />
-                        <input
-                          type="text"
-                          placeholder="Street, City, State"
-                          className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
-                          value={formData.basicInfo.location}
-                          onChange={(e) => handleChange("basicInfo", "location", e.target.value)}
-                        />
-                      </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-gray-700 ml-1">Venue Location</label>
+                      <input
+                        type="text"
+                        placeholder="Street address, City, State"
+                        className="w-full px-5 py-4 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all shadow-sm"
+                        value={formData.basicInfo.location}
+                        onChange={(e) => handleChange("basicInfo", "location", e.target.value)}
+                      />
                     </div>
                   )}
 
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Max Capacity</label>
-                    <div className="relative">
-                      <Users size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-primary" />
-                      <input
-                        type="number"
-                        placeholder="0"
-                        className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
-                        value={formData.basicInfo.capacity}
-                        onChange={(e) => handleChange("basicInfo", "capacity", parseInt(e.target.value) || 0)}
-                      />
-                    </div>
+                  <div className="space-y-2 max-w-xs">
+                    <label className="text-sm font-semibold text-gray-700 ml-1">Attendee Capacity</label>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      className="w-full px-5 py-4 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:border-primary focus:ring-1 focus:ring-primary outline-none shadow-sm"
+                      value={formData.basicInfo.capacity}
+                      onChange={(e) => handleChange("basicInfo", "capacity", parseInt(e.target.value) || 0)}
+                    />
                   </div>
                 </div>
               </div>
             )}
 
             {currentStep === 2 && (
-              <div className="space-y-12 animate-in fade-in duration-500">
-                <div className="flex items-center justify-between">
+              <div className="space-y-10 animate-in fade-in duration-500">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-gray-50 pb-8">
                   <div>
-                    <h3 className="text-2xl font-black text-gray-900 tracking-tight">Speakers & Guests</h3>
-                    <p className="text-sm text-gray-400 font-medium">Add people who will be speaking or performing.</p>
+                    <h3 className="text-2xl font-semibold text-gray-900 tracking-tight">Speakers & Guests</h3>
+                    <p className="text-gray-500 font-medium">Add people who will be speaking or performing.</p>
                   </div>
                   <button
                     onClick={addSpeaker}
-                    className="flex items-center gap-3 bg-gray-900 text-white font-black px-8 py-5 rounded-3xl hover:bg-black transition-all shadow-xl shadow-gray-900/20 text-[10px] uppercase tracking-widest"
+                    className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white font-semibold rounded-xl hover:bg-black transition-all text-sm shadow-lg shadow-gray-200"
                   >
                     <Plus size={18} />
-                    Add Speaker
+                    <span>Add Speaker</span>
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {formData.speakers.map((speaker, idx) => (
-                    <div key={idx} className="p-8 bg-gray-50 rounded-[2.5rem] space-y-6 relative group border border-transparent hover:border-primary/10 hover:bg-white transition-all">
+                    <div key={idx} className="p-6 bg-white rounded-2xl border border-gray-200 space-y-5 relative group hover:border-primary/30 transition-all shadow-sm">
                       <button
                         onClick={() => removeSpeaker(idx)}
-                        className="absolute top-6 right-6 text-gray-300 hover:text-rose-500 transition-colors"
+                        className="absolute top-4 right-4 text-gray-400 hover:text-rose-500 transition-colors"
                       >
-                        <Trash2 size={20} />
+                        <Trash2 size={18} />
                       </button>
-                      <div className="space-y-4">
+                      <div className="space-y-3">
                         <input
                           type="text"
-                          placeholder="Speaker Name"
-                          className="w-full p-5 bg-white border border-gray-300 rounded-2xl text-sm font-bold outline-none focus:border-primary shadow-sm"
+                          placeholder="Full Name"
+                          className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
                           value={speaker.name}
                           onChange={(e) => updateSpeaker(idx, "name", e.target.value)}
                         />
                         <input
                           type="text"
-                          placeholder="Job Title / Organization"
-                          className="w-full p-5 bg-white border border-gray-300 rounded-2xl text-sm font-bold outline-none focus:border-primary shadow-sm"
+                          placeholder="Position / Title"
+                          className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
                           value={speaker.title}
                           onChange={(e) => updateSpeaker(idx, "title", e.target.value)}
                         />
                         <textarea
-                          placeholder="Short bio..."
+                          placeholder="Short bio about the speaker..."
                           rows={3}
-                          className="w-full p-5 bg-white border border-gray-300 rounded-2xl text-sm font-bold outline-none focus:border-primary resize-none shadow-sm"
+                          className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all resize-none"
                           value={speaker.bio}
                           onChange={(e) => updateSpeaker(idx, "bio", e.target.value)}
                         />
                       </div>
-                      <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10">
-                        <p className="text-[10px] font-black text-primary uppercase tracking-widest leading-relaxed">
-                          Image upload will be available in the organizer dashboard.
+                      <div className="px-3 py-2 bg-gray-50 rounded-lg">
+                        <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest leading-relaxed">
+                          Image upload is enabled after registration.
                         </p>
                       </div>
                     </div>
                   ))}
                   {formData.speakers.length === 0 && (
-                    <div className="md:col-span-2 py-20 bg-gray-50 rounded-[3rem] border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-300">
-                      <Users size={48} strokeWidth={1} />
-                      <p className="text-xs font-black uppercase tracking-[0.3em] mt-4">No speakers added yet</p>
+                    <div className="md:col-span-2 py-16 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-100 flex flex-col items-center justify-center text-gray-400">
+                      <Users size={40} strokeWidth={1.5} />
+                      <p className="text-sm font-medium mt-4">No speakers added yet</p>
                     </div>
                   )}
                 </div>
@@ -573,76 +570,61 @@ const HostEventPage = () => {
             )}
 
             {currentStep === 3 && (
-              <div className="space-y-12 animate-in fade-in duration-500">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="p-8 bg-gray-50 rounded-[2.5rem] flex items-center justify-between gap-6">
-                    <div className="flex items-center gap-5">
-                      <div className="w-12 h-12 rounded-2xl bg-white text-secondary flex items-center justify-center shadow-sm border border-gray-100">
-                        <Calendar size={24} />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-black text-gray-900 uppercase tracking-widest">Agenda Mode</h4>
-                        <p className="text-[10px] text-gray-400 font-medium">Enable session schedule</p>
-                      </div>
+              <div className="space-y-8 animate-in fade-in duration-500">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="p-6 bg-white rounded-2xl border border-gray-200 flex items-center justify-between gap-6 hover:bg-gray-50/50 transition-colors">
+                    <div className="space-y-1">
+                        <h4 className="text-sm font-semibold text-gray-900">Agenda Mode</h4>
+                        <p className="text-xs text-gray-500">Enable session schedule</p>
                     </div>
                     <button
                       onClick={() => handleChange("basicInfo", "agendaEnabled", !formData.basicInfo.agendaEnabled)}
-                      className={`w-14 h-8 rounded-full transition-all relative ${formData.basicInfo.agendaEnabled ? "bg-secondary" : "bg-gray-200"}`}
+                      className={`w-12 h-7 rounded-full transition-all relative ${formData.basicInfo.agendaEnabled ? "bg-primary" : "bg-gray-200"}`}
                     >
-                      <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${formData.basicInfo.agendaEnabled ? "left-7" : "left-1"}`} />
+                      <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all ${formData.basicInfo.agendaEnabled ? "left-6" : "left-1"}`} />
                     </button>
                   </div>
 
-                  <div className="p-8 bg-gray-50 rounded-[2.5rem] flex items-center justify-between gap-6">
-                    <div className="flex items-center gap-5">
-                      <div className="w-12 h-12 rounded-2xl bg-white text-primary flex items-center justify-center shadow-sm border border-gray-100">
-                        <Globe size={24} />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-black text-gray-900 uppercase tracking-widest">Public Listing</h4>
-                        <p className="text-[10px] text-gray-400 font-medium">Visible to everyone</p>
-                      </div>
+                  <div className="p-6 bg-white rounded-2xl border border-gray-200 flex items-center justify-between gap-6 hover:bg-gray-50/50 transition-colors">
+                    <div className="space-y-1">
+                        <h4 className="text-sm font-semibold text-gray-900">Public Listing</h4>
+                        <p className="text-xs text-gray-500">Visible to everyone</p>
                     </div>
                     <button
                       onClick={() => handleChange("basicInfo", "isPublic", !formData.basicInfo.isPublic)}
-                      className={`w-14 h-8 rounded-full transition-all relative ${formData.basicInfo.isPublic ? "bg-primary" : "bg-gray-200"}`}
+                      className={`w-12 h-7 rounded-full transition-all relative ${formData.basicInfo.isPublic ? "bg-primary" : "bg-gray-200"}`}
                     >
-                      <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${formData.basicInfo.isPublic ? "left-7" : "left-1"}`} />
+                      <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all ${formData.basicInfo.isPublic ? "left-6" : "left-1"}`} />
                     </button>
                   </div>
 
-                  <div className="p-8 bg-gray-50 rounded-[2.5rem] md:col-span-2 space-y-6">
-                    <div className="flex items-center gap-5">
-                      <div className="w-12 h-12 rounded-2xl bg-white text-amber-500 flex items-center justify-center shadow-sm border border-gray-100">
-                        <Sparkles size={24} />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-black text-gray-900 uppercase tracking-widest">Registration Mode</h4>
-                        <p className="text-[10px] text-gray-400 font-medium">How do guests register?</p>
-                      </div>
+                  <div className="p-8 bg-gray-50/50 rounded-2xl border border-gray-100 md:col-span-2 space-y-6">
+                    <div className="space-y-1">
+                        <h4 className="text-sm font-semibold text-gray-900">Registration Mode</h4>
+                        <p className="text-xs text-gray-500">Choose how guest data is captured.</p>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <button
                         onClick={() => handleChange("registration", "mode", "FULL_DETAILS")}
-                        className={`p-6 rounded-3xl text-left border-2 transition-all ${
+                        className={`p-6 rounded-2xl text-left border-2 transition-all ${
                           formData.registration.mode === "FULL_DETAILS"
-                            ? "bg-white border-primary shadow-xl shadow-primary/10"
-                            : "bg-gray-100/50 border-transparent text-gray-400"
+                            ? "bg-white border-primary shadow-sm ring-4 ring-primary/5"
+                            : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"
                         }`}
                       >
-                        <p className="text-[10px] font-black uppercase tracking-widest mb-2">Full Details</p>
-                        <p className="text-[11px] font-medium leading-relaxed">Collect information for every single attendee in an order.</p>
+                        <p className="text-xs font-bold uppercase tracking-wider mb-2">Full Details</p>
+                        <p className="text-xs text-gray-500 font-medium leading-relaxed">Collect information for every single attendee in an order.</p>
                       </button>
                       <button
                         onClick={() => handleChange("registration", "mode", "BASIC_QUANTITY")}
-                        className={`p-6 rounded-3xl text-left border-2 transition-all ${
+                        className={`p-6 rounded-2xl text-left border-2 transition-all ${
                           formData.registration.mode === "BASIC_QUANTITY"
-                            ? "bg-white border-primary shadow-xl shadow-primary/10"
-                            : "bg-gray-100/50 border-transparent text-gray-400"
+                            ? "bg-white border-primary shadow-sm ring-4 ring-primary/5"
+                            : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"
                         }`}
                       >
-                        <p className="text-[10px] font-black uppercase tracking-widest mb-2">Basic Quantity</p>
-                        <p className="text-[11px] font-medium leading-relaxed">Only collect the buyer's information, regardless of quantity.</p>
+                        <p className="text-xs font-bold uppercase tracking-wider mb-2">Basic Quantity</p>
+                        <p className="text-xs text-gray-500 font-medium leading-relaxed">Only collect the buyer's information, regardless of quantity.</p>
                       </button>
                     </div>
                   </div>
@@ -651,29 +633,28 @@ const HostEventPage = () => {
             )}
 
             {currentStep === 4 && (
-              <div className="space-y-12 animate-in fade-in duration-500">
+              <div className="space-y-10 animate-in fade-in duration-500">
                 <div className="space-y-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-gray-50 text-secondary flex items-center justify-center shadow-sm border border-gray-100">
-                      <FileText size={24} />
-                    </div>
-                    <h3 className="text-2xl font-black text-gray-900 tracking-tight">Tell Your Story</h3>
+                    <h3 className="text-2xl font-semibold text-gray-900 tracking-tight">Detailed Description</h3>
                   </div>
                   <textarea
                     rows={12}
-                    placeholder="Provide a detailed description of your event. What can attendees expect? What's the main attraction?"
-                    className="w-full p-8 bg-white border border-gray-300 rounded-[2.5rem] text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 transition-all outline-none min-h-[300px] shadow-sm"
+                    placeholder="Share the story of your event. What can attendees expect? Mention key highlights, atmosphere, and why they shouldn't miss it."
+                    className="w-full p-6 bg-white border border-gray-200 rounded-2xl text-sm font-medium focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none min-h-[300px] shadow-sm"
                     value={formData.basicInfo.description}
                     onChange={(e) => handleChange("basicInfo", "description", e.target.value)}
                   />
                 </div>
 
-                <div className="bg-amber-50 border border-amber-100 p-8 rounded-[2rem] flex items-start gap-6">
-                  <Zap className="text-amber-500 shrink-0 mt-1" size={24} />
+                <div className="bg-primary/5 border border-primary/10 p-8 rounded-2xl flex items-start gap-5">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <Zap className="text-primary" size={20} />
+                  </div>
                   <div className="space-y-2">
-                    <h4 className="font-black text-amber-900 text-sm uppercase tracking-widest">One Final Step</h4>
-                    <p className="text-xs text-amber-800 font-medium leading-relaxed">
-                      You've successfully outlined your event! To protect your vision and start selling tickets, we need you to create an account and a quick organizer profile. Your progress will be saved automatically.
+                    <h4 className="font-semibold text-gray-900 text-base">Almost there!</h4>
+                    <p className="text-sm text-gray-600 font-medium leading-relaxed">
+                      Your event outline is ready. Next, we&apos;ll help you create your organizer profile to finalize ticketing and launch. Your progress is saved automatically.
                     </p>
                   </div>
                 </div>
@@ -681,25 +662,28 @@ const HostEventPage = () => {
             )}
           </div>
 
-          {/* Footer Actions */}
-          <div className="bg-gray-50 px-8 py-10 md:px-12 flex items-center justify-between border-t border-gray-100">
+          </div>
+          </div>
+
+          {/* Minimalist Action Footer */}
+          <div className="mt-12 flex items-center justify-between">
             <button
               onClick={() => setCurrentStep(prev => prev - 1)}
               disabled={currentStep === 1}
-              className={`flex items-center gap-3 font-black text-[10px] uppercase tracking-widest px-10 py-5 rounded-3xl border-2 border-gray-200 transition-all ${
-                currentStep === 1 ? "opacity-0 invisible" : "bg-white text-gray-400 hover:text-gray-900 hover:border-gray-900"
+              className={`flex items-center gap-2 px-6 py-4 rounded-xl border border-gray-200 text-gray-600 font-semibold transition-all hover:bg-gray-50 ${
+                currentStep === 1 ? "opacity-0 invisible" : ""
               }`}
             >
-              <ArrowLeft size={16} />
-              Back
+              <ArrowLeft size={18} />
+              <span>Back</span>
             </button>
 
             <button
               onClick={handleNext}
-              className="flex items-center gap-4 bg-primary text-white font-black px-14 py-6 rounded-[2.5rem] hover:bg-opacity-90 transition-all shadow-xl shadow-primary/30 uppercase tracking-[0.2em] text-[11px] group"
+              className="flex items-center gap-3 bg-primary text-white font-semibold px-10 py-4 rounded-xl hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95"
             >
-              {currentStep === 4 ? "Register to Finalize Event" : "Next Step"}
-              <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform duration-500" />
+              <span>{currentStep === 4 ? "Register to Finalize Event" : "Next Step"}</span>
+              <ArrowRight size={18} />
             </button>
           </div>
         </div>
