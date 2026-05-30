@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import api from "@/services/api";
@@ -18,6 +18,23 @@ const ApplyOrganizer = () => {
     portfolio: "",
     references: "",
   });
+
+  useEffect(() => {
+    const isHostingResume = localStorage.getItem("gobokin_host_event_resume");
+    if (isHostingResume === "true") {
+        const savedDraft = localStorage.getItem("gobokin_hosting_draft");
+        if (savedDraft) {
+            try {
+                const draft = JSON.parse(savedDraft);
+                if (draft.basicInfo?.description) {
+                    setFormData(prev => ({ ...prev, bio: draft.basicInfo.description }));
+                }
+            } catch (e) {
+                console.error("Failed to parse hosting draft:", e);
+            }
+        }
+    }
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -51,13 +68,20 @@ const ApplyOrganizer = () => {
       try {
         const refreshRes = await api.post('/auth/refresh-token');
         if (refreshRes.data?.data?.accessToken) {
-          updateToken(refreshRes.data.data.accessToken);
+          updateToken(refreshRes.data.data.accessToken, null); // Skip automatic redirect
         }
       } catch (e) {
         console.error("Token refresh failed", e);
       }
 
-      router.push("/dashboard");
+      const isHostingResume = localStorage.getItem("gobokin_host_event_resume");
+      if (isHostingResume === "true") {
+          localStorage.setItem("gobokin_event_creation_draft_auto_resume", "true");
+          localStorage.removeItem("gobokin_host_event_resume");
+          router.push("/organizer/dashboard/events/create");
+      } else {
+          router.push("/dashboard");
+      }
     } catch (error) {
       console.error("Failed to apply as organizer:", error);
       Swal.fire("Error", translateError(error), "error");

@@ -66,7 +66,11 @@ const RegisterPage = () => {
       });
 
       if (accessToken && user) {
-        login(accessToken, user as User, '/auth/verify-email');
+        // Check for returnUrl in localStorage
+        const returnUrl = localStorage.getItem('returnUrl');
+        if (returnUrl) localStorage.removeItem('returnUrl');
+        const redirectPath = returnUrl || '/auth/verify-email';
+        login(accessToken, user as User, redirectPath);
       } else {
         router.push('/auth/login');
       }

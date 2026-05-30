@@ -596,6 +596,33 @@ const CreateEvent = () => {
 
   // Load draft on mount
   useEffect(() => {
+    const autoResume = localStorage.getItem(AUTOSAVE_KEY + "_auto_resume");
+    const hostingDraft = localStorage.getItem("gobokin_hosting_draft");
+
+    if (autoResume === "true" && hostingDraft) {
+        try {
+            const draft = JSON.parse(hostingDraft);
+            if (draft.basicInfo) setBasicInfo(prev => ({ ...prev, ...draft.basicInfo }));
+            if (draft.speakers) setSpeakers(draft.speakers);
+            if (draft.registration) setRegistration(prev => ({ ...prev, ...draft.registration }));
+
+            // For hosting draft resume, we jump to step 1, sub-step 5 (Media)
+            setCurrentStep(1);
+            setSubStep(5);
+
+            localStorage.removeItem(AUTOSAVE_KEY + "_auto_resume");
+            localStorage.removeItem("gobokin_hosting_draft");
+
+            Swal.toast.fire({
+                icon: "success",
+                title: "Progress resumed from hosting flow",
+            });
+            return;
+        } catch (e) {
+            console.error("Failed to parse hosting draft for auto-resume:", e);
+        }
+    }
+
     const savedDraft = localStorage.getItem(AUTOSAVE_KEY);
     if (savedDraft) {
       try {

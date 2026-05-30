@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
 import {
   Calendar,
   Search,
@@ -57,6 +58,7 @@ const CATEGORY_ICONS: Record<string, any> = {
 const EventDiscoveryContent = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { user } = useAuth();
   const [discoveryData, setDiscoveryData] = useState<DiscoveryData>({
     featured: [],
     upcoming: [],
@@ -500,7 +502,7 @@ const EventDiscoveryContent = () => {
 
                <div className="flex items-center gap-3 mt-2">
                   <Link
-                    href="/apply-organizer"
+                    href={user?.role?.includes('organizer') ? "/organizer/dashboard/events/create" : "/host-event"}
                     className="bg-primary text-white px-6 py-3 rounded-xl text-sm font-semibold uppercase tracking-widest hover:scale-105 transition-all shadow-md shadow-primary/10"
                   >
                     Host an Event
