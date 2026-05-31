@@ -23,7 +23,7 @@ import {
   Zap,
   UploadCloud,
   Upload,
-  XCircle,
+  XCircle, X,
   Settings,
   Percent,
   Coins,
@@ -396,7 +396,7 @@ const EditEvent = () => {
     mode: "FULL_DETAILS" as RegistrationMode,
     isGroupingEnabled: false,
     enforceUniqueGroupNames: true,
-    fields: [] as { name: string; label: string; type: string; required: boolean; isPerAttendee: boolean }[],
+    fields: [] as { name: string; label: string; type: string; required: boolean; isPerAttendee: boolean; options?: string[] }[],
   });
 
   // Fetch Event Data
@@ -632,6 +632,56 @@ const EditEvent = () => {
     }));
   };
 
+  const addField = () => {
+    setRegistration({
+      ...registration,
+      fields: [...registration.fields, {
+        name: "",
+        label: "",
+        type: "text",
+        required: false,
+        isPerAttendee: registration.isGroupingEnabled ? true : false,
+        options: []
+      }]
+    });
+  };
+
+  const removeField = (index: number) => {
+    if (index > 1) { // Don't remove Name and Email
+      const newFields = [...registration.fields];
+      newFields.splice(index, 1);
+      setRegistration({ ...registration, fields: newFields });
+    }
+  };
+
+  const updateField = (index: number, field: string, value: any) => {
+    const newFields = [...registration.fields];
+    newFields[index] = { ...newFields[index], [field]: value };
+    setRegistration({ ...registration, fields: newFields });
+  };
+
+  const addFieldOption = (fieldIdx: number) => {
+    const newFields = [...registration.fields];
+    const currentOptions = newFields[fieldIdx].options || [];
+    newFields[fieldIdx] = { ...newFields[fieldIdx], options: [...currentOptions, ""] };
+    setRegistration({ ...registration, fields: newFields });
+  };
+
+  const updateFieldOption = (fieldIdx: number, optionIdx: number, value: string) => {
+    const newFields = [...registration.fields];
+    const newOptions = [...(newFields[fieldIdx].options || [])];
+    newOptions[optionIdx] = value;
+    newFields[fieldIdx] = { ...newFields[fieldIdx], options: newOptions };
+    setRegistration({ ...registration, fields: newFields });
+  };
+
+  const removeFieldOption = (fieldIdx: number, optionIdx: number) => {
+    const newFields = [...registration.fields];
+    const newOptions = (newFields[fieldIdx].options || []).filter((_, i) => i !== optionIdx);
+    newFields[fieldIdx] = { ...newFields[fieldIdx], options: newOptions };
+    setRegistration({ ...registration, fields: newFields });
+  };
+
   const addQuantityDiscount = (ticketId: string) => {
     setTickets(tickets.map(t => {
       if (t.id === ticketId) {
@@ -834,7 +884,14 @@ const EditEvent = () => {
         registrationMode: registration.mode,
         isGroupingEnabled: registration.isGroupingEnabled,
         enforceUniqueGroupNames: registration.enforceUniqueGroupNames,
-        registrationFields: registration.fields,
+        registrationFields: registration.fields.map(f => ({
+          name: f.name || f.label.toLowerCase().replace(/\s+/g, '-'),
+          label: f.label,
+          type: f.type,
+          required: f.required,
+          isPerAttendee: f.isPerAttendee,
+          options: (f.type === 'select' || f.type === 'checkbox') ? f.options : undefined
+        })),
         bannerUrl: mediaInfo.bannerUrl,
         mediaUrls: mediaInfo.mediaUrls,
       };
@@ -1173,6 +1230,167 @@ const EditEvent = () => {
                                     <option value="BASIC_QUANTITY">Basic Quantity</option>
                                 </select>
                              </div>
+                             <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                   <Users size={12} />
+                                   Grouping
+                                </label>
+                                <div className="flex items-center justify-between">
+                                   <span className="text-sm font-bold text-gray-700">Allow Grouping</span>
+                                   <button
+                                      onClick={() => {
+                                         const newGroupingEnabled = !registration.isGroupingEnabled;
+                                         setRegistration(prev => ({
+                                            ...prev,
+                                            isGroupingEnabled: newGroupingEnabled,
+                                            fields: newGroupingEnabled
+                                               ? prev.fields
+                                               : prev.fields.map((f, i) => f.name === "full-name" || f.name === "email" ? f : ({ ...f, isPerAttendee: false }))
+                                         }));
+                                      }}
+                                      className={`w-14 h-8 rounded-full transition-all relative ${registration.isGroupingEnabled ? 'bg-primary' : 'bg-gray-300'}`}
+                                   >
+                                      <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${registration.isGroupingEnabled ? 'left-7' : 'left-1'}`} />
+                                   </button>
+                                </div>
+                             </div>
+                             {registration.isGroupingEnabled && (
+                                <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
+                                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                      <Users size={12} />
+                                      Unique Names
+                                   </label>
+                                   <div className="flex items-center justify-between">
+                                      <span className="text-sm font-bold text-gray-700">Enforce Unique Names</span>
+                                      <button
+                                         onClick={() => setRegistration(prev => ({ ...prev, enforceUniqueGroupNames: !prev.enforceUniqueGroupNames }))}
+                                         className={`w-14 h-8 rounded-full transition-all relative ${registration.enforceUniqueGroupNames ? 'bg-primary' : 'bg-gray-300'}`}
+                                      >
+                                         <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${registration.enforceUniqueGroupNames ? 'left-7' : 'left-1'}`} />
+                                      </button>
+                                   </div>
+                                </div>
+                             )}
+                          </div>
+                       </div>
+
+                       {/* Section 9: Registration Fields */}
+                       <div className="space-y-10">
+                          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-gray-100 pb-10">
+                             <div>
+                                <h3 className="text-3xl font-black text-gray-900 tracking-tight">Intelligence Gathering</h3>
+                                <p className="text-sm text-gray-500 font-medium">Capture custom data points from your attendees.</p>
+                             </div>
+                             <button
+                               onClick={addField}
+                               className="flex items-center gap-3 bg-gray-900 text-white font-black px-8 py-5 rounded-3xl hover:bg-black transition-all shadow-2xl shadow-gray-900/20 text-[10px] uppercase tracking-[0.2em]"
+                             >
+                               <Plus size={18} />
+                               Add Dynamic Field
+                             </button>
+                          </div>
+
+                          <div className="grid grid-cols-1 gap-6">
+                             {registration.fields.map((field, idx) => (
+                                <div key={idx} className="flex flex-col lg:flex-row items-center gap-6 lg:gap-10 p-8 bg-gray-50 rounded-[3rem] group relative border border-transparent hover:border-primary/10 hover:bg-white transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50">
+                                   <div className="flex-1 w-full space-y-3">
+                                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Label Name</label>
+                                      <input
+                                         type="text"
+                                         placeholder="e.g., T-Shirt Size"
+                                         className="w-full p-5 bg-white border border-gray-300 rounded-2xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
+                                         value={field.label}
+                                         onChange={(e) => updateField(idx, "label", e.target.value)}
+                                         disabled={field.name === "full-name" || field.name === "email"}
+                                      />
+                                   </div>
+                                   <div className="w-full lg:w-56 space-y-3">
+                                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Input Archetype</label>
+                                      <div className="relative">
+                                         <select
+                                            className="w-full p-5 bg-white border border-gray-300 rounded-2xl text-sm font-bold appearance-none outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all shadow-sm"
+                                            value={field.type}
+                                            onChange={(e) => updateField(idx, "type", e.target.value)}
+                                            disabled={field.name === "full-name" || field.name === "email"}
+                                         >
+                                            <option value="text">Standard Text</option>
+                                            <option value="number">Numeric Only</option>
+                                            <option value="select">Dropdown Menu</option>
+                                            <option value="checkbox">Multi-Selection</option>
+                                         </select>
+                                         <ChevronDown size={16} className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none" />
+                                      </div>
+                                   </div>
+                                   <div className="flex items-center gap-10 px-6 h-20 bg-white/50 rounded-2xl border border-gray-50">
+                                      <label className="flex items-center gap-3 cursor-pointer group/toggle">
+                                         <input
+                                            type="checkbox"
+                                            checked={field.required}
+                                            onChange={(e) => updateField(idx, "required", e.target.checked)}
+                                            className="w-6 h-6 rounded-lg border-gray-200 text-primary cursor-pointer shadow-sm transition-all"
+                                            disabled={field.name === "full-name" || field.name === "email"}
+                                         />
+                                         <span className="text-[10px] font-black text-gray-400 group-hover/toggle:text-gray-900 uppercase tracking-widest transition-colors">Mandatory</span>
+                                      </label>
+                                      <label
+                                         className={`flex items-center gap-3 group/toggle ${!registration.isGroupingEnabled && field.name !== "full-name" && field.name !== "email" ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+                                         title={!registration.isGroupingEnabled && field.name !== "full-name" && field.name !== "email" ? "Enable 'Allow Grouping' to collect details per attendee" : ""}
+                                      >
+                                         <input
+                                            type="checkbox"
+                                            checked={field.isPerAttendee}
+                                            onChange={(e) => updateField(idx, "isPerAttendee", e.target.checked)}
+                                            className="w-6 h-6 rounded-lg border-gray-200 text-primary cursor-pointer shadow-sm transition-all"
+                                            disabled={field.name === "full-name" || field.name === "email"}
+                                         />
+                                         <span className="text-[10px] font-black text-gray-400 group-hover/toggle:text-gray-900 uppercase tracking-widest transition-colors">Per Attendee</span>
+                                      </label>
+                                   </div>
+                                   {field.name !== "full-name" && field.name !== "email" && (
+                                      <button
+                                         onClick={() => removeField(idx)}
+                                         className="w-14 h-14 bg-white text-gray-300 hover:text-secondary rounded-2xl flex items-center justify-center shadow-sm hover:shadow-xl hover:scale-110 transition-all border border-gray-100 shrink-0"
+                                      >
+                                         <Trash2 size={20} />
+                                      </button>
+                                   )}
+                                </div>
+                                {(field.type === 'select' || field.type === 'checkbox') && (
+                                    <div className="bg-white/40 rounded-[2rem] p-6 border border-gray-100 mt-2 ml-4 mr-4 space-y-4">
+                                        <div className="flex items-center justify-between px-2">
+                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Options Management</p>
+                                            <button
+                                                onClick={() => addFieldOption(idx)}
+                                                className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline flex items-center gap-1.5"
+                                            >
+                                                <Plus size={12} strokeWidth={3} /> Add Choice
+                                            </button>
+                                        </div>
+                                        <div className="flex flex-wrap gap-3">
+                                            {(field.options || []).map((opt, oIdx) => (
+                                                <div key={oIdx} className="flex items-center gap-2 bg-white p-2 pl-4 rounded-xl border border-gray-100 shadow-sm group/opt transition-all hover:border-primary/30">
+                                                    <input
+                                                        type="text"
+                                                        value={opt}
+                                                        onChange={(e) => updateFieldOption(idx, oIdx, e.target.value)}
+                                                        placeholder={`Choice ${oIdx + 1}`}
+                                                        className="bg-transparent border-none outline-none text-xs font-bold text-gray-700 w-24"
+                                                    />
+                                                    <button
+                                                        onClick={() => removeFieldOption(idx, oIdx)}
+                                                        className="w-6 h-6 rounded-lg flex items-center justify-center text-gray-300 hover:bg-secondary/10 hover:text-secondary transition-all"
+                                                    >
+                                                        <X size={14} strokeWidth={3} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            {(field.options || []).length === 0 && (
+                                                <p className="text-[10px] text-gray-400 italic px-2">No choices added yet. Attendees will see an empty list.</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                             ))}
                           </div>
                        </div>
                     </div>

@@ -32,7 +32,7 @@ import {
   UploadCloud,
   Upload,
   Coins,
-  History,
+  History, X,
   MousePointer2,
   XCircle,
   Settings,
@@ -424,7 +424,7 @@ const CreateEvent = () => {
     fields: [
       { name: "full-name", label: "Full Name", type: "text", required: true, isPerAttendee: true },
       { name: "email", label: "Email Address", type: "text", required: true, isPerAttendee: true },
-    ] as { name: string; label: string; type: string; required: boolean; isPerAttendee: boolean }[],
+    ] as { name: string; label: string; type: string; required: boolean; isPerAttendee: boolean; options?: string[] }[],
   });
 
   // Persistence Logic
@@ -486,7 +486,8 @@ const CreateEvent = () => {
           label: f.label,
           type: f.type,
           required: f.required,
-          isPerAttendee: f.isPerAttendee
+          isPerAttendee: f.isPerAttendee,
+          options: (f.type === 'select' || f.type === 'checkbox') ? f.options : undefined
         })),
         bannerUrl: mediaInfo.bannerUrl || undefined,
         mediaUrls: mediaInfo.mediaUrls,
@@ -921,7 +922,14 @@ const CreateEvent = () => {
   const addField = () => {
     setRegistration({
       ...registration,
-      fields: [...registration.fields, { name: "", label: "", type: "text", required: false, isPerAttendee: false }]
+      fields: [...registration.fields, {
+        name: "",
+        label: "",
+        type: "text",
+        required: false,
+        isPerAttendee: registration.isGroupingEnabled ? true : false,
+        options: []
+      }]
     });
   };
 
@@ -933,9 +941,31 @@ const CreateEvent = () => {
     }
   };
 
-  const updateField = (index: number, field: string, value: string | boolean) => {
+  const updateField = (index: number, field: string, value: any) => {
     const newFields = [...registration.fields];
     newFields[index] = { ...newFields[index], [field]: value };
+    setRegistration({ ...registration, fields: newFields });
+  };
+
+  const addFieldOption = (fieldIdx: number) => {
+    const newFields = [...registration.fields];
+    const currentOptions = newFields[fieldIdx].options || [];
+    newFields[fieldIdx] = { ...newFields[fieldIdx], options: [...currentOptions, ""] };
+    setRegistration({ ...registration, fields: newFields });
+  };
+
+  const updateFieldOption = (fieldIdx: number, optionIdx: number, value: string) => {
+    const newFields = [...registration.fields];
+    const newOptions = [...(newFields[fieldIdx].options || [])];
+    newOptions[optionIdx] = value;
+    newFields[fieldIdx] = { ...newFields[fieldIdx], options: newOptions };
+    setRegistration({ ...registration, fields: newFields });
+  };
+
+  const removeFieldOption = (fieldIdx: number, optionIdx: number) => {
+    const newFields = [...registration.fields];
+    const newOptions = (newFields[fieldIdx].options || []).filter((_, i) => i !== optionIdx);
+    newFields[fieldIdx] = { ...newFields[fieldIdx], options: newOptions };
     setRegistration({ ...registration, fields: newFields });
   };
 
@@ -972,7 +1002,8 @@ const CreateEvent = () => {
           label: f.label,
           type: f.type,
           required: f.required,
-          isPerAttendee: f.isPerAttendee
+          isPerAttendee: f.isPerAttendee,
+          options: (f.type === 'select' || f.type === 'checkbox') ? f.options : undefined
         })),
       };
 
@@ -1592,7 +1623,16 @@ const CreateEvent = () => {
                                 <div className="flex items-center justify-between">
                                    <span className="text-sm font-bold text-gray-700">Allow Grouping</span>
                                    <button
-                                      onClick={() => setRegistration(prev => ({ ...prev, isGroupingEnabled: !prev.isGroupingEnabled }))}
+                                      onClick={() => {
+                                         const newGroupingEnabled = !registration.isGroupingEnabled;
+                                         setRegistration(prev => ({
+                                            ...prev,
+                                            isGroupingEnabled: newGroupingEnabled,
+                                            fields: newGroupingEnabled
+                                               ? prev.fields
+                                               : prev.fields.map((f, i) => f.name === "full-name" || f.name === "email" ? f : ({ ...f, isPerAttendee: false }))
+                                         }));
+                                      }}
                                       className={`w-14 h-8 rounded-full transition-all relative ${registration.isGroupingEnabled ? 'bg-primary' : 'bg-gray-300'}`}
                                    >
                                       <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${registration.isGroupingEnabled ? 'left-7' : 'left-1'}`} />
@@ -1646,7 +1686,7 @@ const CreateEvent = () => {
                                          className="w-full p-5 bg-white border border-gray-300 rounded-2xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
                                          value={field.label}
                                          onBlur={handleBlur} onChange={(e) => updateField(idx, "label", e.target.value)}
-                                         disabled={idx < 2}
+                                         disabled={field.name === "full-name" || field.name === "email"}
                                       />
                                    </div>
                                    <div className="w-full lg:w-56 space-y-3">
@@ -1656,7 +1696,7 @@ const CreateEvent = () => {
                                             className="w-full p-5 bg-white border border-gray-300 rounded-2xl text-sm font-bold appearance-none outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all shadow-sm"
                                             value={field.type}
                                             onBlur={handleBlur} onChange={(e) => updateField(idx, "type", e.target.value)}
-                                            disabled={idx < 2}
+                                            disabled={field.name === "full-name" || field.name === "email"}
                                          >
                                             <option value="text">Standard Text</option>
                                             <option value="number">Numeric Only</option>
@@ -1673,30 +1713,75 @@ const CreateEvent = () => {
                                             checked={field.required}
                                             onBlur={handleBlur} onChange={(e) => updateField(idx, "required", e.target.checked)}
                                             className="w-6 h-6 rounded-lg border-gray-200 text-primary cursor-pointer shadow-sm transition-all"
-                                            disabled={idx < 2}
+                                            disabled={field.name === "full-name" || field.name === "email"}
                                          />
                                          <span className="text-[10px] font-black text-gray-400 group-hover/toggle:text-gray-900 uppercase tracking-widest transition-colors">Mandatory</span>
                                       </label>
-                                      <label className="flex items-center gap-3 cursor-pointer group/toggle">
+                                      <label
+                                         className={`flex items-center gap-3 group/toggle ${!registration.isGroupingEnabled && field.name !== "full-name" && field.name !== "email" ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+                                         title={!registration.isGroupingEnabled && field.name !== "full-name" && field.name !== "email" ? "Enable 'Allow Grouping' to collect details per attendee" : ""}
+                                      >
                                          <input
                                             type="checkbox"
                                             checked={field.isPerAttendee}
                                             onBlur={handleBlur} onChange={(e) => updateField(idx, "isPerAttendee", e.target.checked)}
                                             className="w-6 h-6 rounded-lg border-gray-200 text-primary cursor-pointer shadow-sm transition-all"
-                                            disabled={idx < 2}
+                                            disabled={field.name === "full-name" || field.name === "email"}
                                          />
-                                         <span className="text-[10px] font-black text-gray-400 group-hover/toggle:text-gray-900 uppercase tracking-widest transition-colors">Granular</span>
+                                         <span className="text-[10px] font-black text-gray-400 group-hover/toggle:text-gray-900 uppercase tracking-widest transition-colors">Per Attendee</span>
                                       </label>
                                    </div>
-                                   {idx >= 2 && (
+                                   {field.name !== "full-name" && field.name !== "email" && (
                                       <button
                                          onClick={() => removeField(idx)}
-                                         className="w-14 h-14 bg-white text-gray-300 hover:text-secondary rounded-2xl flex items-center justify-center shadow-sm hover:shadow-xl hover:scale-110 transition-all border border-gray-100"
+                                         className="w-14 h-14 bg-white text-gray-300 hover:text-secondary rounded-2xl flex items-center justify-center shadow-sm hover:shadow-xl hover:scale-110 transition-all border border-gray-100 shrink-0"
                                       >
                                          <Trash2 size={20} />
                                       </button>
                                    )}
                                 </div>
+                                {(field.type === 'select' || field.type === 'checkbox') && (
+                                    <div className="bg-white/40 rounded-[2rem] p-6 border border-gray-100 mt-2 ml-4 mr-4 space-y-4">
+                                        <div className="flex items-center justify-between px-2">
+                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Options Management</p>
+                                            <button
+                                                onClick={() => {
+                                                    addFieldOption(idx);
+                                                    handleBlur();
+                                                }}
+                                                className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline flex items-center gap-1.5"
+                                            >
+                                                <Plus size={12} strokeWidth={3} /> Add Choice
+                                            </button>
+                                        </div>
+                                        <div className="flex flex-wrap gap-3">
+                                            {(field.options || []).map((opt, oIdx) => (
+                                                <div key={oIdx} className="flex items-center gap-2 bg-white p-2 pl-4 rounded-xl border border-gray-100 shadow-sm group/opt transition-all hover:border-primary/30">
+                                                    <input
+                                                        type="text"
+                                                        value={opt}
+                                                        onBlur={handleBlur}
+                                                        onChange={(e) => updateFieldOption(idx, oIdx, e.target.value)}
+                                                        placeholder={`Choice ${oIdx + 1}`}
+                                                        className="bg-transparent border-none outline-none text-xs font-bold text-gray-700 w-24"
+                                                    />
+                                                    <button
+                                                        onClick={() => {
+                                                            removeFieldOption(idx, oIdx);
+                                                            handleBlur();
+                                                        }}
+                                                        className="w-6 h-6 rounded-lg flex items-center justify-center text-gray-300 hover:bg-secondary/10 hover:text-secondary transition-all"
+                                                    >
+                                                        <X size={14} strokeWidth={3} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            {(field.options || []).length === 0 && (
+                                                <p className="text-[10px] text-gray-400 italic px-2">No choices added yet. Attendees will see an empty list.</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
                              ))}
                           </div>
                        </div>
