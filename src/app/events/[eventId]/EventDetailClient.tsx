@@ -114,7 +114,10 @@ const EventDetailClient = () => {
     try {
       setIsBookmarking(true);
       const response = await api.post(`/events/${eventId}/bookmark`);
-      const { isBookmarked } = response.data.data;
+
+      // Handle both nested and flat response structures
+      const data = response.data.data || response.data;
+      const isBookmarked = data.bookmarked !== undefined ? data.bookmarked : data.isBookmarked;
 
       setEvent(prev => prev ? { ...prev, isBookmarked } : null);
 

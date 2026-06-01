@@ -291,7 +291,11 @@ const EventDiscoveryContent = () => {
       try {
         setIsBookmarking(true);
         const response = await api.post(`/events/${event.id}/bookmark`);
-        const { isBookmarked: newStatus } = response.data.data;
+
+        // Handle both nested and flat response structures
+        const data = response.data.data || response.data;
+        const newStatus = data.bookmarked !== undefined ? data.bookmarked : data.isBookmarked;
+
         setIsBookmarked(newStatus);
 
         Swal.toast.fire({
