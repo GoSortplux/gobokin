@@ -1677,7 +1677,8 @@ const CreateEvent = () => {
 
                           <div className="grid grid-cols-1 gap-6">
                              {registration.fields.map((field, idx) => (
-                                <div key={idx} className="flex flex-col lg:flex-row items-center gap-6 lg:gap-10 p-8 bg-gray-50 rounded-[3rem] group relative border border-transparent hover:border-primary/10 hover:bg-white transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50">
+                                <React.Fragment key={idx}>
+                                <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-10 p-8 bg-gray-50 rounded-[3rem] group relative border border-transparent hover:border-primary/10 hover:bg-white transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50">
                                    <div className="flex-1 w-full space-y-3">
                                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Label Name</label>
                                       <input
@@ -1740,7 +1741,7 @@ const CreateEvent = () => {
                                       </button>
                                    )}
                                 </div>
-                              {(field.type === 'select' || field.type === 'checkbox') && (
+                                {(field.type === 'select' || field.type === 'checkbox') && (
                                     <div className="bg-white/40 rounded-[2rem] p-6 border border-gray-100 mt-2 ml-4 mr-4 space-y-4">
                                         <div className="flex items-center justify-between px-2">
                                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Options Management</p>
@@ -1782,6 +1783,7 @@ const CreateEvent = () => {
                                         </div>
                                     </div>
                                 )}
+                                </React.Fragment>
                              ))}
                           </div>
                        </div>
