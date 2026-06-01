@@ -672,6 +672,8 @@ export interface Event {
   registrationMode: RegistrationMode;
   isGroupingEnabled: boolean;
   enforceUniqueGroupNames: boolean;
+  isBookmarked?: boolean;
+  bookmarkedAt?: string;
   createdAt: string;
   updatedAt: string;
   organizer?: Organizer;

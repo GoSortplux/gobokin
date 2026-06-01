@@ -12,6 +12,7 @@ import {
   PlusCircle,
   LayoutGrid,
   ChevronRight,
+  Heart,
   TrendingUp,
   CheckCircle2,
   X,
@@ -36,11 +37,18 @@ import { Event } from "@/types";
 import { motion, AnimatePresence } from "framer-motion";
 import useOnClickOutside from "@/hooks/useOnClickOutside";
 import Swal from "@/utils/sweetalert";
+import LoginRequiredModal from "@/components/auth/LoginRequiredModal";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import NextArrow from "@/components/NextArrow";
+import PrevArrow from "@/components/PrevArrow";
 
 interface DiscoveryData {
   featured: Event[];
   upcoming: Event[];
   nearby: Event[];
+  bookmarks: Event[];
   byCategory: Record<string, Event[]>;
 }
 
@@ -63,8 +71,10 @@ const EventDiscoveryContent = () => {
     featured: [],
     upcoming: [],
     nearby: [],
+    bookmarks: [],
     byCategory: {}
   });
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
   const [heroBannerImage, setHeroBannerImage] = useState<string | null>(null);
   const [searchResults, setSearchResults] = useState<Event[]>([]);
@@ -108,11 +118,23 @@ const EventDiscoveryContent = () => {
 
       const response = await api.get("/events/discovery", { params });
       const data = response.data.data;
+
+      let bookmarks: Event[] = [];
+      if (user) {
+        try {
+          const bookmarkRes = await api.get("/events/my-bookmarks");
+          bookmarks = bookmarkRes.data.data || [];
+        } catch (err) {
+          console.error("Failed to fetch bookmarks:", err);
+        }
+      }
+
       if (data) {
         setDiscoveryData({
           featured: data.featured || [],
           upcoming: data.upcoming || [],
           nearby: data.nearby || [], // Assuming the API might return nearby
+          bookmarks,
           byCategory: data.byCategory || {}
         });
 
@@ -137,7 +159,7 @@ const EventDiscoveryContent = () => {
     } catch (error) {
       console.error("Failed to fetch discovery events:", error);
     }
-  }, [coords]);
+  }, [coords, user]);
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -217,8 +239,10 @@ const EventDiscoveryContent = () => {
     );
   };
 
-  const EventCard = ({ event, variant }: { event: Event, variant: 'featured' | 'standard' }) => {
+  const EventCard = ({ event, variant, className }: { event: Event, variant: 'featured' | 'standard', className?: string }) => {
     const [showCalendarOptions, setShowCalendarOptions] = useState(false);
+    const [isBookmarking, setIsBookmarking] = useState(false);
+    const [isBookmarked, setIsBookmarked] = useState(event.isBookmarked || false);
     const calendarRef = React.useRef<HTMLDivElement>(null);
     useOnClickOutside(calendarRef, () => setShowCalendarOptions(false));
 
@@ -255,11 +279,41 @@ const EventDiscoveryContent = () => {
       }
     };
 
+    const handleToggleBookmark = async (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (!user) {
+        setShowLoginModal(true);
+        return;
+      }
+
+      try {
+        setIsBookmarking(true);
+        const response = await api.post(`/events/${event.id}/bookmark`);
+        const { isBookmarked: newStatus } = response.data.data;
+        setIsBookmarked(newStatus);
+
+        Swal.toast.fire({
+          icon: 'success',
+          title: newStatus ? 'Event bookmarked' : 'Bookmark removed',
+          timer: 2000
+        });
+
+        // Optionally refresh bookmarks list if it's the bookmarks section
+        // For simplicity, we just update the local state of the card
+      } catch (error) {
+        console.error("Failed to toggle bookmark:", error);
+      } finally {
+        setIsBookmarking(false);
+      }
+    };
+
     return (
     <div
       className={`bg-white border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-all duration-500 group relative ${
         variant === 'featured' ? 'rounded-2xl' : 'rounded-xl'
-      }`}
+      } ${className || ""}`}
     >
       <Link href={`/events/${event.id}`} className="block">
       <div className={`relative w-full overflow-hidden ${variant === 'featured' ? 'h-64' : 'h-48'}`}>
@@ -279,6 +333,18 @@ const EventDiscoveryContent = () => {
             </span>
           </div>
           <div className="flex flex-col items-end gap-2">
+            <button
+              onClick={handleToggleBookmark}
+              disabled={isBookmarking}
+              className={`w-8 h-8 rounded-xl flex items-center justify-center shadow-md backdrop-blur-md transition-all ${
+                isBookmarked
+                  ? 'bg-red-500 text-white shadow-red-500/20'
+                  : 'bg-white/90 text-gray-400 hover:text-red-500'
+              } disabled:opacity-50`}
+              title={isBookmarked ? "Remove Bookmark" : "Bookmark Event"}
+            >
+              <Heart size={14} className={isBookmarked ? "fill-current" : ""} />
+            </button>
             {event.isFeatured && (
               <div className="w-8 h-8 bg-amber-400 text-white rounded-xl flex items-center justify-center shadow-md">
                 <Sparkles size={14} className="fill-current" />
@@ -482,6 +548,11 @@ const EventDiscoveryContent = () => {
 
   return (
     <div className="min-h-screen bg-white pt-24 pb-20">
+      <LoginRequiredModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+      />
+
       {/* Hero Section - Immersive & Minimal */}
       <section className="container mx-auto px-4 mb-12">
         <div className="bg-gray-950 border border-gray-800 rounded-2xl p-8 lg:py-10 lg:px-12 text-white relative overflow-hidden shadow-sm min-h-[320px] flex items-center">
@@ -741,6 +812,56 @@ const EventDiscoveryContent = () => {
                     </div>
                  </div>
               ))}
+
+              {/* Bookmarks Section - At the bottom with Slider */}
+              {discoveryData?.bookmarks?.length > 0 && (
+                <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 mt-20">
+                  <div className="flex items-center justify-between mb-8 border-b border-gray-100 pb-5 relative">
+                     <div>
+                        <h2 className="text-2xl font-semibold text-gray-900 tracking-tighter flex items-center gap-3">
+                          <Heart className="text-red-500 fill-red-500" size={24} />
+                          My Bookmarks
+                        </h2>
+                        <p className="text-gray-400 font-semibold mt-1 uppercase tracking-widest text-[10px]">Events you have saved for later</p>
+                     </div>
+                  </div>
+
+                  <div className="relative group px-2">
+                    <Slider
+                      dots={false}
+                      infinite={discoveryData.bookmarks.length > 3}
+                      speed={500}
+                      slidesToShow={3}
+                      slidesToScroll={1}
+                      arrows={true}
+                      nextArrow={<div className="absolute -top-16 right-0"><NextArrow /></div>}
+                      prevArrow={<div className="absolute -top-16 right-12"><PrevArrow /></div>}
+                      responsive={[
+                        {
+                          breakpoint: 1280,
+                          settings: {
+                            slidesToShow: 2,
+                            infinite: discoveryData.bookmarks.length > 2,
+                          }
+                        },
+                        {
+                          breakpoint: 768,
+                          settings: {
+                            slidesToShow: 1,
+                            infinite: discoveryData.bookmarks.length > 1,
+                          }
+                        }
+                      ]}
+                    >
+                      {discoveryData.bookmarks.map(event => (
+                        <div key={event.id} className="px-3 pb-8">
+                          {renderEventCard(event, 'standard')}
+                        </div>
+                      ))}
+                    </Slider>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </main>

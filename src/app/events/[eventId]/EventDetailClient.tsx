@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
+import { useAuth } from "@/context/AuthContext";
+import LoginRequiredModal from "@/components/auth/LoginRequiredModal";
 import {
   Calendar,
   MapPin,
@@ -30,8 +32,11 @@ import { translateError } from "@/utils/errors";
 const EventDetailClient = () => {
   const { eventId } = useParams();
   const router = useRouter();
+  const { user } = useAuth();
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isBookmarking, setIsBookmarking] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<TicketType | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState("overview");
@@ -100,11 +105,42 @@ const EventDetailClient = () => {
     }
   };
 
+  const handleToggleBookmark = async () => {
+    if (!user) {
+      setShowLoginModal(true);
+      return;
+    }
+
+    try {
+      setIsBookmarking(true);
+      const response = await api.post(`/events/${eventId}/bookmark`);
+      const { isBookmarked } = response.data.data;
+
+      setEvent(prev => prev ? { ...prev, isBookmarked } : null);
+
+      Swal.toast.fire({
+        icon: 'success',
+        title: isBookmarked ? 'Event bookmarked' : 'Bookmark removed',
+        timer: 2000
+      });
+    } catch (error) {
+      console.error("Failed to toggle bookmark:", error);
+      Swal.fire("Error", translateError(error), "error");
+    } finally {
+      setIsBookmarking(false);
+    }
+  };
+
   if (loading) return <div className="min-h-screen pt-32 flex items-center justify-center bg-gray-50"><CustomLoader /></div>;
   if (!event) return <div className="p-20 text-center bg-gray-50"><h3 className="text-xl font-semibold">Event not found</h3></div>;
 
   return (
     <div className="min-h-screen bg-white pt-24 pb-24">
+      <LoginRequiredModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+      />
+
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Breadcrumbs - Minimal Luma style */}
         <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-8 overflow-x-auto no-scrollbar whitespace-nowrap">
@@ -459,8 +495,17 @@ const EventDetailClient = () => {
                            <CalendarPlus size={14} className="group-hover:scale-110 transition-transform" />
                            Save Date
                         </button>
-                        <button className="p-3 bg-white border-2 border-gray-100 rounded-xl text-gray-400 hover:text-red-500 hover:border-red-100 transition-all">
-                           <Heart size={18} />
+                        <button
+                          onClick={handleToggleBookmark}
+                          disabled={isBookmarking}
+                          className={`p-3 bg-white border-2 rounded-xl transition-all ${
+                            event.isBookmarked
+                              ? 'text-red-500 border-red-100 bg-red-50'
+                              : 'text-gray-400 border-gray-100 hover:text-red-500 hover:border-red-100'
+                          } disabled:opacity-50`}
+                          title={event.isBookmarked ? "Remove Bookmark" : "Bookmark Event"}
+                        >
+                           <Heart size={18} className={event.isBookmarked ? "fill-current" : ""} />
                         </button>
                         <button className="p-3 bg-white border-2 border-gray-100 rounded-xl text-gray-400 hover:text-primary hover:border-blue-100 transition-all">
                            <Share2 size={18} />
