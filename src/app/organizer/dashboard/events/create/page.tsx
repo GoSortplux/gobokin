@@ -1740,7 +1740,7 @@ const CreateEvent = () => {
                                       </button>
                                    )}
                                 </div>
-                                {(field.type === 'select' || field.type === 'checkbox') && (
+                              {(field.type === 'select' || field.type === 'checkbox') && (
                                     <div className="bg-white/40 rounded-[2rem] p-6 border border-gray-100 mt-2 ml-4 mr-4 space-y-4">
                                         <div className="flex items-center justify-between px-2">
                                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Options Management</p>
