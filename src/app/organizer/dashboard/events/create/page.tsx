@@ -934,7 +934,8 @@ const CreateEvent = () => {
   };
 
   const removeField = (index: number) => {
-    if (index > 1) { // Don't remove Name and Email
+    const field = registration.fields[index];
+    if (field && field.name !== "full-name" && field.name !== "email") {
       const newFields = [...registration.fields];
       newFields.splice(index, 1);
       setRegistration({ ...registration, fields: newFields });

@@ -158,9 +158,6 @@ const RegistrationForm = () => {
   if (loading) return <div className="min-h-screen pt-32 flex items-center justify-center bg-gray-50"><CustomLoader /></div>;
   if (!event || !ticket) return <div className="p-20 text-center bg-gray-50"><h3 className="text-xl font-bold">Registration data missing</h3></div>;
 
-  const perAttendeeFields = event.registrationFields?.filter(f => f.isPerAttendee) || [];
-  const sharedFields = event.registrationFields?.filter(f => !f.isPerAttendee) || [];
-
   return (
     <div className="min-h-screen bg-gray-50 pt-24 pb-24">
       <div className="container mx-auto px-4 max-w-4xl">
@@ -192,105 +189,66 @@ const RegistrationForm = () => {
 
           <div className="p-8 lg:p-12">
             <form onSubmit={handleSubmit} className="space-y-12">
-
-              {/* Shared Registration Fields */}
-              {sharedFields.length > 0 && (
-                <div className="space-y-6">
-                  <h3 className="text-xl font-black text-gray-900 border-l-4 border-primary pl-4 uppercase tracking-tight">Additional Information</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {sharedFields.map((field) => (
-                      <div key={field.name} className="space-y-2">
-                        <label className="text-sm font-bold text-gray-700">{field.label} {field.required && <span className="text-red-500">*</span>}</label>
-                        {field.type === 'text' || field.type === 'number' ? (
-                          <input
-                            type={field.type}
-                            required={field.required}
-                            className="w-full p-4 bg-gray-50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 transition-all"
-                            value={sharedData[field.name] || ""}
-                            onChange={(e) => handleSharedChange(field.name, e.target.value)}
-                          />
-                        ) : field.type === 'select' ? (
-                          <select
-                            required={field.required}
-                            className="w-full p-4 bg-gray-50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 transition-all"
-                            value={sharedData[field.name] || ""}
-                            onChange={(e) => handleSharedChange(field.name, e.target.value)}
-                          >
-                             <option value="">Select an option</option>
-                             {field.options?.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                          </select>
-                        ) : (
-                          <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl">
-                             <input
-                              type="checkbox"
-                              checked={sharedData[field.name] || false}
-                              onChange={(e) => handleSharedChange(field.name, e.target.checked)}
-                              className="w-5 h-5 rounded border-gray-300 text-primary"
-                             />
-                             <span className="text-sm font-medium text-gray-700">{field.label}</span>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Attendee Fields */}
               <div className="space-y-8">
-                 <h3 className="text-xl font-black text-gray-900 border-l-4 border-primary pl-4 uppercase tracking-tight">Attendee Information</h3>
-
                  {attendees.map((attendee, index) => (
                     <div key={index} className="p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100 space-y-6 animate-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: `${index * 100}ms` }}>
                        <div className="flex items-center gap-3 mb-2">
                           <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-primary font-black">
                             {index + 1}
                           </div>
-                          <h4 className="font-black text-gray-900">Attendee #{index + 1}</h4>
+                          <h4 className="font-black text-gray-900">Attendee #{index + 1} Details</h4>
                        </div>
 
                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          {/* Standard fields included in registrationFields usually */}
-                          {perAttendeeFields.map((field) => (
-                            <div key={field.name} className="space-y-2">
-                              <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">{field.label} {field.required && <span className="text-red-500">*</span>}</label>
-                              <div className="relative">
-                                 {field.name === 'full-name' && <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />}
-                                 {field.name === 'email' && <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />}
-                                 {field.name === 'phone' && <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />}
+                          {(event.registrationFields || []).map((field) => {
+                            // Logic:
+                            // 1. If field is per-attendee, show for all attendees.
+                            // 2. If field is NOT per-attendee, show ONLY for the first attendee (index 0).
+                            if (!field.isPerAttendee && index !== 0) return null;
 
-                                 {field.type === 'text' || field.type === 'number' ? (
-                                    <input
-                                      type={field.type}
-                                      required={field.required}
-                                      className={`w-full p-4 bg-white border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 transition-all ${['full-name', 'email', 'phone'].includes(field.name) ? 'pl-12' : ''}`}
-                                      value={attendees[index][field.name] || ""}
-                                      onChange={(e) => handleAttendeeChange(index, field.name, e.target.value)}
-                                    />
-                                  ) : field.type === 'select' ? (
-                                    <select
-                                      required={field.required}
-                                      className="w-full p-4 bg-white border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 transition-all"
-                                      value={attendees[index][field.name] || ""}
-                                      onChange={(e) => handleAttendeeChange(index, field.name, e.target.value)}
-                                    >
-                                       <option value="">Select an option</option>
-                                       {field.options?.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                    </select>
-                                  ) : (
-                                    <div className="flex items-center gap-3 p-4 bg-white border border-gray-100 rounded-2xl">
-                                       <input
-                                        type="checkbox"
-                                        checked={attendees[index][field.name] || false}
-                                        onChange={(e) => handleAttendeeChange(index, field.name, e.target.checked)}
-                                        className="w-5 h-5 rounded border-gray-300 text-primary"
-                                       />
-                                       <span className="text-sm font-medium text-gray-700">{field.label}</span>
-                                    </div>
-                                  )}
+                            return (
+                              <div key={field.name} className="space-y-2">
+                                <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">
+                                  {field.label} {field.required && <span className="text-red-500">*</span>}
+                                </label>
+                                <div className="relative">
+                                   {field.name === 'full-name' && <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />}
+                                   {field.name === 'email' && <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />}
+                                   {field.name === 'phone' && <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />}
+
+                                   {field.type === 'text' || field.type === 'number' ? (
+                                      <input
+                                        type={field.type}
+                                        required={field.required}
+                                        className={`w-full p-4 bg-white border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 transition-all ${['full-name', 'email', 'phone'].includes(field.name) ? 'pl-12' : ''}`}
+                                        value={field.isPerAttendee ? attendees[index][field.name] || "" : sharedData[field.name] || ""}
+                                        onChange={(e) => field.isPerAttendee ? handleAttendeeChange(index, field.name, e.target.value) : handleSharedChange(field.name, e.target.value)}
+                                      />
+                                    ) : field.type === 'select' ? (
+                                      <select
+                                        required={field.required}
+                                        className="w-full p-4 bg-white border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 transition-all"
+                                        value={field.isPerAttendee ? attendees[index][field.name] || "" : sharedData[field.name] || ""}
+                                        onChange={(e) => field.isPerAttendee ? handleAttendeeChange(index, field.name, e.target.value) : handleSharedChange(field.name, e.target.value)}
+                                      >
+                                         <option value="">Select an option</option>
+                                         {field.options?.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                      </select>
+                                    ) : (
+                                      <div className="flex items-center gap-3 p-4 bg-white border border-gray-100 rounded-2xl">
+                                         <input
+                                          type="checkbox"
+                                          checked={field.isPerAttendee ? attendees[index][field.name] || false : sharedData[field.name] || false}
+                                          onChange={(e) => field.isPerAttendee ? handleAttendeeChange(index, field.name, e.target.checked) : handleSharedChange(field.name, e.target.checked)}
+                                          className="w-5 h-5 rounded border-gray-300 text-primary"
+                                         />
+                                         <span className="text-sm font-medium text-gray-700">{field.label}</span>
+                                      </div>
+                                    )}
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                        </div>
                     </div>
                  ))}
