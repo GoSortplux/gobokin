@@ -1782,7 +1782,7 @@ const CreateEvent = () => {
                              {registration.fields.map((field, idx) => (
                                 <React.Fragment key={idx}>
                                 <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-8 p-6 bg-gray-50 rounded-[2.5rem] group relative border border-transparent hover:border-primary/10 hover:bg-white transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50">
-                                   <div className="flex-1 w-full space-y-2">
+                                   <div className="flex-[2] w-full space-y-2">
                                       <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Field Label</label>
                                       <input
                                          type="text"
@@ -1792,7 +1792,7 @@ const CreateEvent = () => {
                                          onBlur={handleBlur} onChange={(e) => updateField(idx, "label", e.target.value)}
                                       />
                                    </div>
-                                   <div className="w-full lg:w-40 space-y-2">
+                                   <div className="flex-1 w-full lg:min-w-[200px] space-y-2">
                                       <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Input Type</label>
                                       <div className="relative">
                                          <select

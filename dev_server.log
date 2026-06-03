@@ -1,0 +1,15 @@
+
+> gobokin-app@0.1.0 dev
+> next dev
+
+ ⚠ Port 3000 is in use by an unknown process, using available port 3003 instead.
+   ▲ Next.js 15.5.9
+   - Local:        http://localhost:3003
+   - Network:      http://192.168.0.2:3003
+
+ ✓ Starting...
+ ✓ Ready in 3.3s
+ ○ Compiling /organizer/dashboard/events/create ...
+ ✓ Compiled /organizer/dashboard/events/create in 7.6s (1855 modules)
+ GET /organizer/dashboard/events/create 200 in 9594ms
+ GET /organizer/dashboard/events/create 200 in 130ms
