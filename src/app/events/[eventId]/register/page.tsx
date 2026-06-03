@@ -348,7 +348,7 @@ const RegistrationForm = () => {
                                         value={field.isPerAttendee ? attendees[index][field.name] || "" : sharedData[field.name] || ""}
                                         onChange={(e) => field.isPerAttendee ? handleAttendeeChange(index, field, e.target.value) : handleSharedChange(field, e.target.value)}
                                       >
-                                         <option value="">Select an option</option>
+                                         <option value="">Please select...</option>
                                          {field.source === 'COUNTRIES' ? (
                                             countries.map((c) => (
                                               <option key={c._id} value={c._id}>{c.name}</option>

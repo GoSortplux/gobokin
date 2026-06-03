@@ -1781,34 +1781,34 @@ const CreateEvent = () => {
                           <div className="grid grid-cols-1 gap-6">
                              {registration.fields.map((field, idx) => (
                                 <React.Fragment key={idx}>
-                                <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-10 p-8 bg-gray-50 rounded-[3rem] group relative border border-transparent hover:border-primary/10 hover:bg-white transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50">
-                                   <div className="flex-1 w-full space-y-3">
-                                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Label Name</label>
+                                <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-8 p-6 bg-gray-50 rounded-[2.5rem] group relative border border-transparent hover:border-primary/10 hover:bg-white transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50">
+                                   <div className="flex-1 w-full space-y-2">
+                                      <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Field Label</label>
                                       <input
                                          type="text"
-                                         placeholder="e.g., T-Shirt Size"
-                                         className="w-full p-5 bg-white border border-gray-300 rounded-2xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
+                                         placeholder="e.g., Job Title"
+                                         className="w-full p-3.5 bg-white border border-gray-200 rounded-xl text-[11px] font-bold focus:border-primary transition-all outline-none"
                                          value={field.label}
                                          onBlur={handleBlur} onChange={(e) => updateField(idx, "label", e.target.value)}
                                       />
                                    </div>
-                                   <div className="w-full lg:w-56 space-y-3">
-                                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Input Archetype</label>
+                                   <div className="w-full lg:w-40 space-y-2">
+                                      <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Input Type</label>
                                       <div className="relative">
                                          <select
-                                            className="w-full p-5 bg-white border border-gray-300 rounded-2xl text-sm font-bold appearance-none outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all shadow-sm"
+                                            className="w-full p-3.5 bg-white border border-gray-200 rounded-xl text-[11px] font-bold appearance-none outline-none focus:border-primary transition-all"
                                             value={field.type}
                                             onBlur={handleBlur} onChange={(e) => updateField(idx, "type", e.target.value)}
                                          >
-                                            <option value="text">Standard Text</option>
-                                            <option value="number">Numeric Only</option>
-                                            <option value="select">Dropdown Menu</option>
-                                            <option value="checkbox">Multi-Selection</option>
+                                            <option value="text">Text</option>
+                                            <option value="number">Number</option>
+                                            <option value="select">Dropdown</option>
+                                            <option value="checkbox">Checkbox</option>
                                          </select>
-                                         <ChevronDown size={16} className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none" />
+                                         <ChevronDown size={14} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                                       </div>
                                    </div>
-                                   <div className="flex items-center gap-10 px-6 h-20 bg-white/50 rounded-2xl border border-gray-50">
+                                   <div className="flex items-center gap-8 px-6 h-16 bg-white/50 rounded-xl border border-gray-100">
                                       <label className="flex items-center gap-3 cursor-pointer group/toggle">
                                          <input
                                             type="checkbox"
@@ -1855,13 +1855,13 @@ const CreateEvent = () => {
                                    </button>
                                 </div>
                                 {(field.type === 'select' || field.type === 'checkbox') && (
-                                    <div className="bg-white/40 rounded-[2rem] p-6 border border-gray-100 mt-2 ml-4 mr-4 space-y-6">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <div className="space-y-3">
-                                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Data Source</label>
+                                    <div className="bg-gray-50/50 rounded-[2rem] p-6 border border-gray-100 mt-2 ml-4 mr-4 space-y-5">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                            <div className="space-y-2">
+                                                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Choice Source</label>
                                                 <div className="relative">
                                                     <select
-                                                        className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-xs font-bold appearance-none outline-none focus:border-primary transition-all shadow-sm"
+                                                        className="w-full p-3.5 bg-white border border-gray-200 rounded-xl text-xs font-bold appearance-none outline-none focus:border-primary transition-all"
                                                         value={field.source || ""}
                                                         onBlur={handleBlur}
                                                         onChange={(e) => {
@@ -1872,26 +1872,26 @@ const CreateEvent = () => {
                                                             }
                                                         }}
                                                     >
-                                                        <option value="">Static (Manual Options)</option>
-                                                        <option value="COUNTRIES">Countries</option>
-                                                        <option value="STATES">States</option>
-                                                        <option value="LGAS">Local Government Areas (LGAs)</option>
+                                                        <option value="">Manual Entry</option>
+                                                        <option value="COUNTRIES">Automatic: Countries</option>
+                                                        <option value="STATES">Automatic: States</option>
+                                                        <option value="LGAS">Automatic: LGAs</option>
                                                     </select>
-                                                    <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none" />
+                                                    <ChevronDown size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                                                 </div>
                                             </div>
 
                                             {field.source && (
-                                                <div className="space-y-3">
-                                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Depends On (Optional)</label>
+                                                <div className="space-y-2">
+                                                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Link to Field</label>
                                                     <div className="relative">
                                                         <select
-                                                            className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-xs font-bold appearance-none outline-none focus:border-primary transition-all shadow-sm"
+                                                            className="w-full p-3.5 bg-white border border-gray-200 rounded-xl text-xs font-bold appearance-none outline-none focus:border-primary transition-all"
                                                             value={field.dependsOn || ""}
                                                             onBlur={handleBlur}
                                                             onChange={(e) => updateField(idx, "dependsOn", e.target.value || undefined)}
                                                         >
-                                                            <option value="">None</option>
+                                                            <option value="">Independent</option>
                                                             {registration.fields
                                                                 .filter((f, i) => i !== idx && (f.type === 'select' || f.type === 'text'))
                                                                 .map((f, i) => (
@@ -1901,16 +1901,16 @@ const CreateEvent = () => {
                                                                 ))
                                                             }
                                                         </select>
-                                                        <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none" />
+                                                        <ChevronDown size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                                                     </div>
                                                 </div>
                                             )}
                                         </div>
 
-                                        <div className="space-y-4">
-                                            <div className="flex items-center justify-between px-2">
-                                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                                                    {field.source ? "Dynamic Configuration" : "Manual Options"}
+                                        <div className="space-y-3">
+                                            <div className="flex items-center justify-between px-1">
+                                                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                                                    {field.source ? "Auto-Managed" : "Your Options"}
                                                 </p>
                                                 {!field.source && (
                                                     <button
@@ -1918,46 +1918,46 @@ const CreateEvent = () => {
                                                             addFieldOption(idx);
                                                             handleBlur();
                                                         }}
-                                                        className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline flex items-center gap-1.5"
+                                                        className="text-[9px] font-black text-primary uppercase tracking-widest hover:underline flex items-center gap-1"
                                                     >
-                                                        <Plus size={12} strokeWidth={3} /> Add Choice
+                                                        <Plus size={10} strokeWidth={3} /> Add
                                                     </button>
                                                 )}
                                             </div>
-                                            <div className="flex flex-wrap gap-3">
+                                            <div className="flex flex-wrap gap-2.5">
                                                 {field.source ? (
-                                                    <div className="flex items-center gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10 w-full">
-                                                        <Info size={16} className="text-primary shrink-0" />
-                                                        <p className="text-[10px] font-medium text-primary leading-relaxed">
-                                                            This field is automatically populated from the <strong>{field.source}</strong> database.
-                                                            {field.dependsOn && <span> It will filter based on the selection in <strong>{field.dependsOn}</strong>.</span>}
+                                                    <div className="flex items-center gap-2.5 p-3.5 bg-primary/5 rounded-xl border border-primary/10 w-full">
+                                                        <Info size={14} className="text-primary shrink-0" />
+                                                        <p className="text-[9px] font-semibold text-primary/80 leading-relaxed uppercase tracking-wider">
+                                                            Pops from {field.source}.
+                                                            {field.dependsOn && <span> Linked to {field.dependsOn}.</span>}
                                                         </p>
                                                     </div>
                                                 ) : (
                                                     <>
                                                         {(field.options || []).map((opt, oIdx) => (
-                                                            <div key={oIdx} className="flex items-center gap-2 bg-white p-2 pl-4 rounded-xl border border-gray-100 shadow-sm group/opt transition-all hover:border-primary/30">
+                                                            <div key={oIdx} className="flex items-center gap-1.5 bg-white p-1.5 pl-3 rounded-lg border border-gray-100 shadow-sm group/opt transition-all hover:border-primary/20">
                                                                 <input
                                                                     type="text"
                                                                     value={opt}
                                                                     onBlur={handleBlur}
                                                                     onChange={(e) => updateFieldOption(idx, oIdx, e.target.value)}
-                                                                    placeholder={`Choice ${oIdx + 1}`}
-                                                                    className="bg-transparent border-none outline-none text-xs font-bold text-gray-700 w-24"
+                                                                    placeholder="Option"
+                                                                    className="bg-transparent border-none outline-none text-[10px] font-bold text-gray-600 w-20"
                                                                 />
                                                                 <button
                                                                     onClick={() => {
                                                                         removeFieldOption(idx, oIdx);
                                                                         handleBlur();
                                                                     }}
-                                                                    className="w-6 h-6 rounded-lg flex items-center justify-center text-gray-300 hover:bg-secondary/10 hover:text-secondary transition-all"
+                                                                    className="w-5 h-5 rounded flex items-center justify-center text-gray-300 hover:text-secondary transition-all"
                                                                 >
-                                                                    <X size={14} strokeWidth={3} />
+                                                                    <X size={12} strokeWidth={3} />
                                                                 </button>
                                                             </div>
                                                         ))}
                                                         {(field.options || []).length === 0 && (
-                                                            <p className="text-[10px] text-gray-400 italic px-2">No manual choices added. Please add at least one choice or select a data source.</p>
+                                                            <p className="text-[9px] text-gray-400 italic px-1">Add options for your guests to select.</p>
                                                         )}
                                                     </>
                                                 )}
