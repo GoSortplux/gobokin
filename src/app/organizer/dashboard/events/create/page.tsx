@@ -1854,58 +1854,114 @@ const CreateEvent = () => {
                                       <Trash2 size={20} />
                                    </button>
                                 </div>
-                                {(field.type === 'select' || field.type === 'checkbox' || !!field.source) && (
-                                    <div className="bg-white/40 rounded-[2rem] p-6 border border-gray-100 mt-2 ml-4 mr-4 space-y-4">
-                                        <div className="flex items-center justify-between px-2">
-                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Options Management</p>
-                                            {!field.source && (
-                                              <button
-                                                  onClick={() => {
-                                                      addFieldOption(idx);
-                                                      handleBlur();
-                                                  }}
-                                                  className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline flex items-center gap-1.5"
-                                              >
-                                                  <Plus size={12} strokeWidth={3} /> Add Choice
-                                              </button>
+                                {(field.type === 'select' || field.type === 'checkbox') && (
+                                    <div className="bg-white/40 rounded-[2rem] p-6 border border-gray-100 mt-2 ml-4 mr-4 space-y-6">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="space-y-3">
+                                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Data Source</label>
+                                                <div className="relative">
+                                                    <select
+                                                        className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-xs font-bold appearance-none outline-none focus:border-primary transition-all shadow-sm"
+                                                        value={field.source || ""}
+                                                        onBlur={handleBlur}
+                                                        onChange={(e) => {
+                                                            const newSource = e.target.value || undefined;
+                                                            updateField(idx, "source", newSource);
+                                                            if (newSource) {
+                                                                updateField(idx, "options", []);
+                                                            }
+                                                        }}
+                                                    >
+                                                        <option value="">Static (Manual Options)</option>
+                                                        <option value="COUNTRIES">Countries</option>
+                                                        <option value="STATES">States</option>
+                                                        <option value="LGAS">Local Government Areas (LGAs)</option>
+                                                    </select>
+                                                    <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none" />
+                                                </div>
+                                            </div>
+
+                                            {field.source && (
+                                                <div className="space-y-3">
+                                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Depends On (Optional)</label>
+                                                    <div className="relative">
+                                                        <select
+                                                            className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-xs font-bold appearance-none outline-none focus:border-primary transition-all shadow-sm"
+                                                            value={field.dependsOn || ""}
+                                                            onBlur={handleBlur}
+                                                            onChange={(e) => updateField(idx, "dependsOn", e.target.value || undefined)}
+                                                        >
+                                                            <option value="">None</option>
+                                                            {registration.fields
+                                                                .filter((f, i) => i !== idx && (f.type === 'select' || f.type === 'text'))
+                                                                .map((f, i) => (
+                                                                    <option key={i} value={f.name || f.label.toLowerCase().replace(/\s+/g, '-')}>
+                                                                        {f.label || `Field ${i + 1}`}
+                                                                    </option>
+                                                                ))
+                                                            }
+                                                        </select>
+                                                        <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none" />
+                                                    </div>
+                                                </div>
                                             )}
                                         </div>
-                                        <div className="flex flex-wrap gap-3">
-                                            {field.source ? (
-                                              <div className="flex items-center gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10 w-full">
-                                                <Info size={16} className="text-primary shrink-0" />
-                                                <p className="text-[10px] font-medium text-primary leading-relaxed">
-                                                  This field is automatically managed. Attendees will be able to select from a comprehensive list of {field.source === 'COUNTRIES' ? 'Countries' : field.source === 'STATES' ? 'States' : 'Local Government Areas'}.
+
+                                        <div className="space-y-4">
+                                            <div className="flex items-center justify-between px-2">
+                                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                                    {field.source ? "Dynamic Configuration" : "Manual Options"}
                                                 </p>
-                                              </div>
-                                            ) : (
-                                              <>
-                                                {(field.options || []).map((opt, oIdx) => (
-                                                    <div key={oIdx} className="flex items-center gap-2 bg-white p-2 pl-4 rounded-xl border border-gray-100 shadow-sm group/opt transition-all hover:border-primary/30">
-                                                        <input
-                                                            type="text"
-                                                            value={opt}
-                                                            onBlur={handleBlur}
-                                                            onChange={(e) => updateFieldOption(idx, oIdx, e.target.value)}
-                                                            placeholder={`Choice ${oIdx + 1}`}
-                                                            className="bg-transparent border-none outline-none text-xs font-bold text-gray-700 w-24"
-                                                        />
-                                                        <button
-                                                            onClick={() => {
-                                                                removeFieldOption(idx, oIdx);
-                                                                handleBlur();
-                                                            }}
-                                                            className="w-6 h-6 rounded-lg flex items-center justify-center text-gray-300 hover:bg-secondary/10 hover:text-secondary transition-all"
-                                                        >
-                                                            <X size={14} strokeWidth={3} />
-                                                        </button>
-                                                    </div>
-                                                ))}
-                                                {(field.options || []).length === 0 && (
-                                                    <p className="text-[10px] text-gray-400 italic px-2">No choices added yet. Attendees will see an empty list.</p>
+                                                {!field.source && (
+                                                    <button
+                                                        onClick={() => {
+                                                            addFieldOption(idx);
+                                                            handleBlur();
+                                                        }}
+                                                        className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline flex items-center gap-1.5"
+                                                    >
+                                                        <Plus size={12} strokeWidth={3} /> Add Choice
+                                                    </button>
                                                 )}
-                                              </>
-                                            )}
+                                            </div>
+                                            <div className="flex flex-wrap gap-3">
+                                                {field.source ? (
+                                                    <div className="flex items-center gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10 w-full">
+                                                        <Info size={16} className="text-primary shrink-0" />
+                                                        <p className="text-[10px] font-medium text-primary leading-relaxed">
+                                                            This field is automatically populated from the <strong>{field.source}</strong> database.
+                                                            {field.dependsOn && <span> It will filter based on the selection in <strong>{field.dependsOn}</strong>.</span>}
+                                                        </p>
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        {(field.options || []).map((opt, oIdx) => (
+                                                            <div key={oIdx} className="flex items-center gap-2 bg-white p-2 pl-4 rounded-xl border border-gray-100 shadow-sm group/opt transition-all hover:border-primary/30">
+                                                                <input
+                                                                    type="text"
+                                                                    value={opt}
+                                                                    onBlur={handleBlur}
+                                                                    onChange={(e) => updateFieldOption(idx, oIdx, e.target.value)}
+                                                                    placeholder={`Choice ${oIdx + 1}`}
+                                                                    className="bg-transparent border-none outline-none text-xs font-bold text-gray-700 w-24"
+                                                                />
+                                                                <button
+                                                                    onClick={() => {
+                                                                        removeFieldOption(idx, oIdx);
+                                                                        handleBlur();
+                                                                    }}
+                                                                    className="w-6 h-6 rounded-lg flex items-center justify-center text-gray-300 hover:bg-secondary/10 hover:text-secondary transition-all"
+                                                                >
+                                                                    <X size={14} strokeWidth={3} />
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                        {(field.options || []).length === 0 && (
+                                                            <p className="text-[10px] text-gray-400 italic px-2">No manual choices added. Please add at least one choice or select a data source.</p>
+                                                        )}
+                                                    </>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 )}

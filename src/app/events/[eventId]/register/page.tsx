@@ -49,15 +49,21 @@ const RegistrationForm = () => {
         const eventData = response.data.data as Event;
         setEvent(eventData);
 
-        // Fetch initial dynamic data
-        const hasCountries = eventData.registrationFields?.some(f => f.source === 'COUNTRIES');
-        if (hasCountries) {
-          try {
-            const countriesRes = await api.get('/locations/countries');
-            setCountries(countriesRes.data.data || []);
-          } catch (err) {
-            console.error("Failed to fetch countries:", err);
+        // Fetch initial dynamic data for fields that don't depend on anything
+        const independentDynamicFields = (eventData.registrationFields || []).filter(f => f.source && !f.dependsOn);
+
+        for (const field of independentDynamicFields) {
+          if (field.source === 'COUNTRIES') {
+            try {
+              const countriesRes = await api.get('/locations/countries');
+              // Filter out invalid/empty data
+              const filteredCountries = (countriesRes.data.data || []).filter((c: any) => c && c.name && c._id);
+              setCountries(filteredCountries);
+            } catch (err) {
+              console.error("Failed to fetch countries:", err);
+            }
           }
+          // Add other independent sources here if they exist in the future
         }
 
         const selectedTicket = eventData.tickets?.find(t => t.id === ticketId);
@@ -123,14 +129,18 @@ const RegistrationForm = () => {
     if (field.source === 'STATES' && !states[parentValue]) {
       try {
         const res = await api.get(`/locations/states/${parentValue}`);
-        setStates(prev => ({ ...prev, [parentValue]: res.data.data }));
+        // Filter out invalid/empty data
+        const filteredStates = (res.data.data || []).filter((s: any) => s && s.name && s._id);
+        setStates(prev => ({ ...prev, [parentValue]: filteredStates }));
       } catch (err) {
         console.error("Failed to fetch states:", err);
       }
     } else if (field.source === 'LGAS' && !lgas[parentValue]) {
       try {
         const res = await api.get(`/locations/lgas/${parentValue}`);
-        setLgas(prev => ({ ...prev, [parentValue]: res.data.data }));
+        // Filter out invalid/empty data
+        const filteredLgas = (res.data.data || []).filter((l: any) => l && l.name && l._id);
+        setLgas(prev => ({ ...prev, [parentValue]: filteredLgas }));
       } catch (err) {
         console.error("Failed to fetch LGAs:", err);
       }
@@ -158,10 +168,8 @@ const RegistrationForm = () => {
     setAttendees(newAttendees);
 
     // Fetch dependent data if needed
-    const dependentField = (event?.registrationFields || []).find(f => f.dependsOn === fieldName);
-    if (dependentField) {
-      fetchDependentData(dependentField, value);
-    }
+    const dependentFields = (event?.registrationFields || []).filter(f => f.dependsOn === fieldName);
+    dependentFields.forEach(f => fetchDependentData(f, value));
   };
 
   const handleSharedChange = (field: RegistrationField, value: any) => {
@@ -182,11 +190,24 @@ const RegistrationForm = () => {
       return newShared;
     });
 
+    // Reset dependent fields in attendees as well
+    setAttendees(prevAttendees => prevAttendees.map(att => {
+        const newAtt = { ...att };
+        const resetAttDependents = (name: string) => {
+            (event?.registrationFields || []).forEach(f => {
+                if (f.dependsOn === name && f.isPerAttendee) {
+                    newAtt[f.name] = "";
+                    resetAttDependents(f.name);
+                }
+            });
+        };
+        resetAttDependents(fieldName);
+        return newAtt;
+    }));
+
     // Fetch dependent data if needed
-    const dependentField = (event?.registrationFields || []).find(f => f.dependsOn === fieldName);
-    if (dependentField) {
-      fetchDependentData(dependentField, value);
-    }
+    const dependentFields = (event?.registrationFields || []).filter(f => f.dependsOn === fieldName);
+    dependentFields.forEach(f => fetchDependentData(f, value));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
