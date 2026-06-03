@@ -259,7 +259,7 @@ const RegistrationForm = () => {
                                    {field.name === 'email' && <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />}
                                    {field.name === 'phone' && <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />}
 
-                                   {field.type === 'text' || field.type === 'number' ? (
+                                   {(field.type === 'text' || field.type === 'number') && field.name !== 'state' && field.name !== 'lga' ? (
                                       <input
                                         type={field.type}
                                         required={field.required}
@@ -267,7 +267,7 @@ const RegistrationForm = () => {
                                         value={field.isPerAttendee ? attendees[index][field.name] || "" : sharedData[field.name] || ""}
                                         onChange={(e) => field.isPerAttendee ? handleAttendeeChange(index, field.name, e.target.value) : handleSharedChange(field.name, e.target.value)}
                                       />
-                                    ) : field.type === 'select' ? (
+                                    ) : (field.type === 'select' || field.name === 'state' || field.name === 'lga') ? (
                                       <select
                                         required={field.required}
                                         className="w-full p-4 bg-white border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 transition-all"
