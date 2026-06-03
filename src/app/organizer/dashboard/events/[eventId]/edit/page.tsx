@@ -1371,6 +1371,9 @@ const EditEvent = () => {
                                 </button>
                                 {showAddFieldDropdown && (
                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-gray-100 py-3 z-[100] animate-in fade-in zoom-in duration-200">
+                                      {!(registration.fields.some(f => f.source === 'COUNTRIES') &&
+                                         registration.fields.some(f => f.source === 'STATES') &&
+                                         registration.fields.some(f => f.source === 'LGAS')) && (
                                       <button
                                          onClick={() => addField('location')}
                                          className="w-full px-6 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors flex items-center gap-3"
@@ -1378,6 +1381,7 @@ const EditEvent = () => {
                                          <MapPin size={14} />
                                          Location
                                       </button>
+                                      )}
                                       <button
                                          onClick={() => addField('address')}
                                          className="w-full px-6 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors flex items-center gap-3"
@@ -1453,14 +1457,12 @@ const EditEvent = () => {
                                                   <ChevronDown size={16} />
                                                </button>
                                             </div>
-                                            {!isLocationField && (
-                                              <button
-                                                 onClick={() => removeField(idx)}
-                                                 className="w-12 h-12 bg-white text-gray-300 hover:text-secondary rounded-xl flex items-center justify-center shadow-sm border border-gray-100 shrink-0"
-                                              >
-                                                 <Trash2 size={16} />
-                                              </button>
-                                            )}
+                                            <button
+                                               onClick={() => removeField(idx)}
+                                               className="w-12 h-12 bg-white text-gray-300 hover:text-secondary rounded-xl flex items-center justify-center shadow-sm border border-gray-100 shrink-0"
+                                            >
+                                               <Trash2 size={16} />
+                                            </button>
                                          </div>
                                       )}
                                    </div>
@@ -1508,19 +1510,18 @@ const EditEvent = () => {
                                                <ChevronDown size={16} />
                                             </button>
                                          </div>
-                                         {!isLocationField && (
-                                            <button
-                                               onClick={() => removeField(idx)}
-                                               className="w-12 h-12 bg-white text-gray-300 hover:text-secondary rounded-xl flex items-center justify-center shadow-sm border border-gray-100 shrink-0"
-                                            >
-                                               <Trash2 size={16} />
-                                            </button>
-                                         )}
+                                         <button
+                                            onClick={() => removeField(idx)}
+                                            className="w-12 h-12 bg-white text-gray-300 hover:text-secondary rounded-xl flex items-center justify-center shadow-sm border border-gray-100 shrink-0"
+                                         >
+                                            <Trash2 size={16} />
+                                         </button>
                                       </div>
                                    )}
                                 </div>
                                 {(field.type === 'select' || field.type === 'checkbox') && (
                                     <div className="bg-gray-50/50 rounded-[2rem] p-6 border border-gray-100 mt-2 ml-4 mr-4 space-y-5">
+                                        {!isLocationField && (
                                         <div className={`grid gap-5 ${showPreview ? "grid-cols-1 2xl:grid-cols-2" : "grid-cols-1 md:grid-cols-2"}`}>
                                             <div className="space-y-2">
                                                 <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Choice Source</label>
@@ -1569,13 +1570,14 @@ const EditEvent = () => {
                                                 </div>
                                             )}
                                         </div>
+                                        )}
 
                                         <div className="space-y-3">
                                             <div className="flex items-center justify-between px-1">
                                                 <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
                                                     {field.source ? "Auto-Managed" : "Your Options"}
                                                 </p>
-                                                {!field.source && (
+                                                {!field.source && !isLocationField && (
                                                     <button
                                                         onClick={() => addFieldOption(idx)}
                                                         className="text-[9px] font-black text-primary uppercase tracking-widest hover:underline flex items-center gap-1"
