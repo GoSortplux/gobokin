@@ -350,7 +350,6 @@ const EditEvent = () => {
     category: "",
     tags: "",
     isPublic: true,
-    isFeatured: false,
     status: "UPCOMING",
     agendaEnabled: false,
     isWaitlistEnabled: false,
@@ -437,7 +436,6 @@ const EditEvent = () => {
           category: event.category || "",
           tags: (event.tags || []).join(", "),
           isPublic: event.isPublic !== false,
-          isFeatured: !!event.isFeatured,
           status: event.status || "UPCOMING",
           agendaEnabled: !!event.agendaEnabled,
           isWaitlistEnabled: !!event.isWaitlistEnabled,
@@ -970,7 +968,7 @@ const EditEvent = () => {
       };
 
       // Fix: Remove restricted fields
-      const { isFeatured: _isFeatured, status: _status, ...patchPayload } = basePayload as Record<string, unknown>;
+      const { status: _status, ...patchPayload } = basePayload as Record<string, unknown>;
       await api.patch(`/events/${eventId}`, patchPayload);
 
       // 2. Save Tickets (Handle both new and existing)

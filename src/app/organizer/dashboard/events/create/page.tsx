@@ -376,7 +376,6 @@ const CreateEvent = () => {
     tags: "",
     isPublic: true,
     agendaEnabled: false,
-    isFeatured: false,
     status: "UPCOMING",
   });
 
@@ -513,7 +512,7 @@ const CreateEvent = () => {
         }));
       }
 
-      const { isFeatured: _isFeatured, status: _status, ...patchPayload } = basePayload as Record<string, unknown>;
+      const { status: _status, ...patchPayload } = basePayload as Record<string, unknown>;
       // Ensure status is DRAFT if we're autosaving
       (patchPayload as any).status = "DRAFT";
 
@@ -1093,7 +1092,7 @@ const CreateEvent = () => {
       }
 
       // Remove restricted fields from creation payload
-      const { isFeatured: _isFeatured, status: _status, ...creationPayload } = payload as Record<string, unknown>;
+      const { status: _status, ...creationPayload } = payload as Record<string, unknown>;
       const response = await api.post("/events", creationPayload);
       const newEventId = response.data.data.id;
       setEventId(newEventId);
@@ -1621,7 +1620,7 @@ const CreateEvent = () => {
                             <div className="bg-secondary/5 border border-secondary/10 p-6 rounded-[2rem] flex items-start gap-4">
                                 <Info size={18} className="text-secondary shrink-0 mt-0.5" />
                                 <p className="text-[11px] font-medium text-secondary/80 leading-relaxed">
-                                    When Agenda is enabled, you'll be required to add at least one session in the "Schedule" step before publishing your event.
+                                    When Agenda is enabled, you&apos;ll be required to add at least one session in the &quot;Schedule&quot; step before publishing your event.
                                 </p>
                             </div>
                           )}
@@ -1656,21 +1655,6 @@ const CreateEvent = () => {
                                       className={`w-14 h-8 rounded-full transition-all relative ${basicInfo.isPublic ? 'bg-primary' : 'bg-gray-300'}`}
                                    >
                                       <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${basicInfo.isPublic ? 'left-7' : 'left-1'}`} />
-                                   </button>
-                                </div>
-                             </div>
-                             <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                                   <Sparkles size={12} />
-                                   Featured Event
-                                </label>
-                                <div className="flex items-center justify-between">
-                                   <span className="text-sm font-bold text-gray-700">{basicInfo.isFeatured ? 'Promoted' : 'Standard'}</span>
-                                   <button
-                                      onClick={() => setBasicInfo(prev => ({ ...prev, isFeatured: !prev.isFeatured }))}
-                                      className={`w-14 h-8 rounded-full transition-all relative ${basicInfo.isFeatured ? 'bg-secondary' : 'bg-gray-300'}`}
-                                   >
-                                      <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${basicInfo.isFeatured ? 'left-7' : 'left-1'}`} />
                                    </button>
                                 </div>
                              </div>
