@@ -30,6 +30,7 @@ const RegistrationForm = () => {
   const [ticket, setTicket] = useState<TicketType | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [locationData, setLocationData] = useState<any[]>([]);
 
   // Registration data state
   const [attendees, setAttendees] = useState<any[]>([]);
@@ -39,6 +40,15 @@ const RegistrationForm = () => {
     const fetchRegistrationData = async () => {
       try {
         setLoading(true);
+
+        // Fetch locations
+        try {
+          const locResponse = await api.get("/events/utils/locations");
+          setLocationData(locResponse.data.data);
+        } catch (err) {
+          console.error("Failed to fetch locations:", err);
+        }
+
         const response = await api.get(`/events/${eventId}`);
         const eventData = response.data.data as Event;
         setEvent(eventData);
@@ -85,12 +95,25 @@ const RegistrationForm = () => {
 
   const handleAttendeeChange = (index: number, fieldName: string, value: any) => {
     const newAttendees = [...attendees];
-    newAttendees[index] = { ...newAttendees[index], [fieldName]: value };
+    const update: any = { [fieldName]: value };
+
+    // If state changes, reset LGA
+    if (fieldName === 'state') {
+      update['lga'] = "";
+    }
+
+    newAttendees[index] = { ...newAttendees[index], ...update };
     setAttendees(newAttendees);
   };
 
   const handleSharedChange = (fieldName: string, value: any) => {
-    setSharedData(prev => ({ ...prev, [fieldName]: value }));
+    setSharedData(prev => {
+      const update: any = { [fieldName]: value };
+      if (fieldName === 'state') {
+        update['lga'] = "";
+      }
+      return { ...prev, ...update };
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -232,7 +255,17 @@ const RegistrationForm = () => {
                                         onChange={(e) => field.isPerAttendee ? handleAttendeeChange(index, field.name, e.target.value) : handleSharedChange(field.name, e.target.value)}
                                       >
                                          <option value="">Select an option</option>
-                                         {field.options?.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                         {field.name === 'lga' ? (
+                                           (() => {
+                                             const selectedState = field.isPerAttendee ? attendees[index]['state'] : sharedData['state'];
+                                             const stateInfo = locationData.find(loc => loc.name === selectedState);
+                                             return stateInfo?.lgas?.map((lga: string) => (
+                                               <option key={lga} value={lga}>{lga}</option>
+                                             ));
+                                           })()
+                                         ) : (
+                                           field.options?.map(opt => <option key={opt} value={opt}>{opt}</option>)
+                                         )}
                                       </select>
                                     ) : (
                                       <div className="flex items-center gap-3 p-4 bg-white border border-gray-100 rounded-2xl">

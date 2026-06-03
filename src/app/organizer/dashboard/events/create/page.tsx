@@ -2,6 +2,7 @@
 import React, { useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import useOnClickOutside from "@/hooks/useOnClickOutside";
 import {
   ArrowLeft,
   ArrowRight,
@@ -338,6 +339,10 @@ const CreateEvent = () => {
   const [showPreview, setShowPreview] = useState(true);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
+  const [showAddFieldDropdown, setShowAddFieldDropdown] = useState(false);
+  const addFieldDropdownRef = useRef<HTMLDivElement>(null);
+
+  useOnClickOutside(addFieldDropdownRef, () => setShowAddFieldDropdown(false));
 
   // Fetch Categories
   useEffect(() => {
@@ -919,27 +924,75 @@ const CreateEvent = () => {
     }));
   };
 
-  const addField = () => {
-    setRegistration({
-      ...registration,
-      fields: [...registration.fields, {
-        name: "",
-        label: "",
-        type: "text",
-        required: false,
-        isPerAttendee: registration.isGroupingEnabled ? true : false,
-        options: []
-      }]
-    });
+  const addField = (fieldType: 'custom' | 'location' | 'address' = 'custom') => {
+    const isPerAttendee = registration.isGroupingEnabled ? true : false;
+
+    if (fieldType === 'location') {
+      const fetchLocations = async () => {
+        try {
+          const response = await api.get("/events/utils/locations");
+          const states = response.data.data.map((loc: any) => loc.name);
+
+          setRegistration(prev => ({
+            ...prev,
+            fields: [
+              ...prev.fields,
+              {
+                name: "state",
+                label: "State",
+                type: "select",
+                required: true,
+                isPerAttendee,
+                options: states
+              },
+              {
+                name: "lga",
+                label: "LGA",
+                type: "select",
+                required: true,
+                isPerAttendee,
+                options: [] // Initially empty, will be populated on registration page based on state
+              }
+            ]
+          }));
+        } catch (error) {
+          console.error("Failed to fetch locations:", error);
+          Swal.fire("Error", "Failed to fetch locations for the dropdown.", "error");
+        }
+      };
+      fetchLocations();
+    } else if (fieldType === 'address') {
+      setRegistration({
+        ...registration,
+        fields: [...registration.fields, {
+          name: "address",
+          label: "Address",
+          type: "text",
+          required: false,
+          isPerAttendee,
+          options: []
+        }]
+      });
+    } else {
+      setRegistration({
+        ...registration,
+        fields: [...registration.fields, {
+          name: "",
+          label: "",
+          type: "text",
+          required: false,
+          isPerAttendee,
+          options: []
+        }]
+      });
+    }
+    setShowAddFieldDropdown(false);
   };
 
   const removeField = (index: number) => {
-    const field = registration.fields[index];
-    if (field && field.name !== "full-name" && field.name !== "email") {
-      const newFields = [...registration.fields];
-      newFields.splice(index, 1);
-      setRegistration({ ...registration, fields: newFields });
-    }
+    const newFields = [...registration.fields];
+    newFields.splice(index, 1);
+    setRegistration({ ...registration, fields: newFields });
   };
 
   const updateField = (index: number, field: string, value: any) => {
@@ -1631,7 +1684,7 @@ const CreateEvent = () => {
                                             isGroupingEnabled: newGroupingEnabled,
                                             fields: newGroupingEnabled
                                                ? prev.fields
-                                               : prev.fields.map((f, i) => f.name === "full-name" || f.name === "email" ? f : ({ ...f, isPerAttendee: false }))
+                                               : prev.fields.map((f) => ({ ...f, isPerAttendee: false }))
                                          }));
                                       }}
                                       className={`w-14 h-8 rounded-full transition-all relative ${registration.isGroupingEnabled ? 'bg-primary' : 'bg-gray-300'}`}
@@ -1667,13 +1720,40 @@ const CreateEvent = () => {
                                 <h3 className="text-3xl font-black text-gray-900 tracking-tight">Intelligence Gathering</h3>
                                 <p className="text-sm text-gray-500 font-medium">Capture custom data points from your attendees.</p>
                              </div>
-                             <button
-                               onClick={addField}
-                               className="flex items-center gap-3 bg-gray-900 text-white font-black px-8 py-5 rounded-3xl hover:bg-black transition-all shadow-2xl shadow-gray-900/20 text-[10px] uppercase tracking-[0.2em]"
-                             >
-                               <Plus size={18} />
-                               Add Dynamic Field
-                             </button>
+                             <div className="relative" ref={addFieldDropdownRef}>
+                                <button
+                                  onClick={() => setShowAddFieldDropdown(!showAddFieldDropdown)}
+                                  className="flex items-center gap-3 bg-gray-900 text-white font-black px-8 py-5 rounded-3xl hover:bg-black transition-all shadow-2xl shadow-gray-900/20 text-[10px] uppercase tracking-[0.2em]"
+                                >
+                                  <Plus size={18} />
+                                  Add Dynamic Field
+                                </button>
+                                {showAddFieldDropdown && (
+                                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-gray-100 py-3 z-[100] animate-in fade-in zoom-in duration-200">
+                                      <button
+                                         onClick={() => addField('location')}
+                                         className="w-full px-6 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors flex items-center gap-3"
+                                      >
+                                         <MapPin size={14} />
+                                         Location
+                                      </button>
+                                      <button
+                                         onClick={() => addField('address')}
+                                         className="w-full px-6 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors flex items-center gap-3"
+                                      >
+                                         <FileText size={14} />
+                                         Address
+                                      </button>
+                                      <button
+                                         onClick={() => addField('custom')}
+                                         className="w-full px-6 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors flex items-center gap-3"
+                                      >
+                                         <Plus size={14} />
+                                         Empty Field
+                                      </button>
+                                   </div>
+                                )}
+                             </div>
                           </div>
 
                           <div className="grid grid-cols-1 gap-6">
@@ -1688,7 +1768,6 @@ const CreateEvent = () => {
                                          className="w-full p-5 bg-white border border-gray-300 rounded-2xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
                                          value={field.label}
                                          onBlur={handleBlur} onChange={(e) => updateField(idx, "label", e.target.value)}
-                                         disabled={field.name === "full-name" || field.name === "email"}
                                       />
                                    </div>
                                    <div className="w-full lg:w-56 space-y-3">
@@ -1698,7 +1777,6 @@ const CreateEvent = () => {
                                             className="w-full p-5 bg-white border border-gray-300 rounded-2xl text-sm font-bold appearance-none outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all shadow-sm"
                                             value={field.type}
                                             onBlur={handleBlur} onChange={(e) => updateField(idx, "type", e.target.value)}
-                                            disabled={field.name === "full-name" || field.name === "email"}
                                          >
                                             <option value="text">Standard Text</option>
                                             <option value="number">Numeric Only</option>
@@ -1715,32 +1793,28 @@ const CreateEvent = () => {
                                             checked={field.required}
                                             onBlur={handleBlur} onChange={(e) => updateField(idx, "required", e.target.checked)}
                                             className="w-6 h-6 rounded-lg border-gray-200 text-primary cursor-pointer shadow-sm transition-all"
-                                            disabled={field.name === "full-name" || field.name === "email"}
                                          />
                                          <span className="text-[10px] font-black text-gray-400 group-hover/toggle:text-gray-900 uppercase tracking-widest transition-colors">Mandatory</span>
                                       </label>
                                       <label
-                                         className={`flex items-center gap-3 group/toggle ${!registration.isGroupingEnabled && field.name !== "full-name" && field.name !== "email" ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
-                                         title={!registration.isGroupingEnabled && field.name !== "full-name" && field.name !== "email" ? "Enable 'Allow Grouping' to collect details per attendee" : ""}
+                                         className={`flex items-center gap-3 group/toggle ${!registration.isGroupingEnabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+                                         title={!registration.isGroupingEnabled ? "Enable 'Allow Grouping' to collect details per attendee" : ""}
                                       >
                                          <input
                                             type="checkbox"
                                             checked={field.isPerAttendee}
                                             onBlur={handleBlur} onChange={(e) => updateField(idx, "isPerAttendee", e.target.checked)}
                                             className="w-6 h-6 rounded-lg border-gray-200 text-primary cursor-pointer shadow-sm transition-all"
-                                            disabled={field.name === "full-name" || field.name === "email"}
                                          />
                                          <span className="text-[10px] font-black text-gray-400 group-hover/toggle:text-gray-900 uppercase tracking-widest transition-colors">Per Attendee</span>
                                       </label>
                                    </div>
-                                   {field.name !== "full-name" && field.name !== "email" && (
-                                      <button
-                                         onClick={() => removeField(idx)}
-                                         className="w-14 h-14 bg-white text-gray-300 hover:text-secondary rounded-2xl flex items-center justify-center shadow-sm hover:shadow-xl hover:scale-110 transition-all border border-gray-100 shrink-0"
-                                      >
-                                         <Trash2 size={20} />
-                                      </button>
-                                   )}
+                                   <button
+                                      onClick={() => removeField(idx)}
+                                      className="w-14 h-14 bg-white text-gray-300 hover:text-secondary rounded-2xl flex items-center justify-center shadow-sm hover:shadow-xl hover:scale-110 transition-all border border-gray-100 shrink-0"
+                                   >
+                                      <Trash2 size={20} />
+                                   </button>
                                 </div>
                                 {(field.type === 'select' || field.type === 'checkbox') && (
                                     <div className="bg-white/40 rounded-[2rem] p-6 border border-gray-100 mt-2 ml-4 mr-4 space-y-4">
