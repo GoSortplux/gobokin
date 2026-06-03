@@ -1390,78 +1390,87 @@ const EditEvent = () => {
                           <div className="grid grid-cols-1 gap-6">
                              {registration.fields.map((field, idx) => (
                                 <React.Fragment key={idx}>
-                                <div className={`flex items-center gap-6 p-6 bg-gray-50 rounded-[2.5rem] group relative border border-transparent hover:border-primary/10 hover:bg-white transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50 ${showPreview ? "flex-col 2xl:flex-row 2xl:gap-8" : "flex-col lg:flex-row lg:gap-8"}`}>
-                                   <div className="flex-[2] w-full space-y-2">
-                                      <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Field Label</label>
+                                <div className={`flex items-center gap-4 p-5 bg-gray-50 rounded-[2rem] group relative border border-transparent hover:border-primary/10 hover:bg-white transition-all duration-500 hover:shadow-lg hover:shadow-gray-200/50 ${showPreview ? "flex-col 2xl:flex-row 2xl:gap-6" : "flex-col lg:flex-row lg:gap-6"}`}>
+                                   <div className="flex items-center gap-6 px-5 h-14 bg-white/50 rounded-xl border border-gray-100 w-full lg:w-auto shrink-0 order-1">
+                                      <label className="flex items-center gap-2 cursor-pointer group/toggle">
+                                         <input
+                                            type="checkbox"
+                                            checked={field.required}
+                                            disabled={field.source === 'COUNTRIES' || field.source === 'STATES' || field.source === 'LGAS'}
+                                            onBlur={() => saveAllChanges()} onChange={(e) => updateField(idx, "required", e.target.checked)}
+                                            className="w-5 h-5 rounded-lg border-gray-200 text-primary cursor-pointer shadow-sm transition-all"
+                                         />
+                                         <span className="text-[9px] font-black text-gray-400 group-hover/toggle:text-gray-900 uppercase tracking-widest transition-colors">Mandatory</span>
+                                      </label>
+                                      <label
+                                         className={`flex items-center gap-2 group/toggle ${!registration.isGroupingEnabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+                                         title={!registration.isGroupingEnabled ? "Enable 'Allow Grouping' to collect details per attendee" : ""}
+                                      >
+                                         <input
+                                            type="checkbox"
+                                            checked={field.isPerAttendee}
+                                            disabled={field.source === 'COUNTRIES' || field.source === 'STATES' || field.source === 'LGAS'}
+                                            onBlur={() => saveAllChanges()} onChange={(e) => updateField(idx, "isPerAttendee", e.target.checked)}
+                                            className="w-5 h-5 rounded-lg border-gray-200 text-primary cursor-pointer shadow-sm transition-all"
+                                         />
+                                         <span className="text-[9px] font-black text-gray-400 group-hover/toggle:text-gray-900 uppercase tracking-widest transition-colors">Per Attendee</span>
+                                      </label>
+                                   </div>
+
+                                   <div className="flex-1 w-full space-y-1.5 order-2">
+                                      <label className="text-[8px] font-black text-gray-400 uppercase tracking-widest ml-1">Field Label</label>
                                       <input
                                          type="text"
                                          placeholder="e.g., Job Title"
-                                         className="w-full p-3.5 bg-white border border-gray-200 rounded-xl text-[11px] font-bold focus:border-primary transition-all outline-none"
+                                         disabled={field.source === 'COUNTRIES' || field.source === 'STATES' || field.source === 'LGAS'}
+                                         className="w-full p-2.5 bg-white border border-gray-200 rounded-xl text-[11px] font-bold focus:border-primary transition-all outline-none disabled:bg-gray-50 disabled:text-gray-400"
                                          value={field.label}
-                                         onChange={(e) => updateField(idx, "label", e.target.value)}
+                                         onBlur={() => saveAllChanges()} onChange={(e) => updateField(idx, "label", e.target.value)}
                                       />
                                    </div>
-                                   <div className={`flex-1 w-full space-y-2 ${showPreview ? "2xl:min-w-[200px]" : "lg:min-w-[200px]"}`}>
-                                      <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Input Type</label>
+
+                                   <div className={`w-full space-y-1.5 order-3 ${showPreview ? "2xl:w-40" : "lg:w-40"}`}>
+                                      <label className="text-[8px] font-black text-gray-400 uppercase tracking-widest ml-1">Input Type</label>
                                       <div className="relative">
                                          <select
-                                            className="w-full p-3.5 bg-white border border-gray-200 rounded-xl text-[11px] font-bold appearance-none outline-none focus:border-primary transition-all"
+                                            disabled={field.source === 'COUNTRIES' || field.source === 'STATES' || field.source === 'LGAS'}
+                                            className="w-full p-2.5 bg-white border border-gray-200 rounded-xl text-[11px] font-bold appearance-none outline-none focus:border-primary transition-all disabled:bg-gray-50 disabled:text-gray-400"
                                             value={field.type}
-                                            onChange={(e) => updateField(idx, "type", e.target.value)}
+                                            onBlur={() => saveAllChanges()} onChange={(e) => updateField(idx, "type", e.target.value)}
                                          >
                                             <option value="text">Text</option>
                                             <option value="number">Number</option>
                                             <option value="select">Dropdown</option>
                                             <option value="checkbox">Checkbox</option>
                                          </select>
-                                         <ChevronDown size={14} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                         <ChevronDown size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                                       </div>
                                    </div>
-                                   <div className="flex items-center justify-around gap-8 px-6 h-16 bg-white/50 rounded-xl border border-gray-100 w-full lg:w-auto">
-                                      <label className="flex items-center gap-3 cursor-pointer group/toggle">
-                                         <input
-                                            type="checkbox"
-                                            checked={field.required}
-                                            onChange={(e) => updateField(idx, "required", e.target.checked)}
-                                            className="w-6 h-6 rounded-lg border-gray-200 text-primary cursor-pointer shadow-sm transition-all"
-                                         />
-                                         <span className="text-[10px] font-black text-gray-400 group-hover/toggle:text-gray-900 uppercase tracking-widest transition-colors">Mandatory</span>
-                                      </label>
-                                      <label
-                                         className={`flex items-center gap-3 group/toggle ${!registration.isGroupingEnabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
-                                         title={!registration.isGroupingEnabled ? "Enable 'Allow Grouping' to collect details per attendee" : ""}
-                                      >
-                                         <input
-                                            type="checkbox"
-                                            checked={field.isPerAttendee}
-                                            onChange={(e) => updateField(idx, "isPerAttendee", e.target.checked)}
-                                            className="w-6 h-6 rounded-lg border-gray-200 text-primary cursor-pointer shadow-sm transition-all"
-                                         />
-                                         <span className="text-[10px] font-black text-gray-400 group-hover/toggle:text-gray-900 uppercase tracking-widest transition-colors">Per Attendee</span>
-                                      </label>
-                                   </div>
-                                   <div className="flex flex-row lg:flex-col gap-2 shrink-0">
+
+                                   <div className="flex items-center gap-2 shrink-0 order-4 w-full lg:w-auto justify-end">
+                                      <div className="flex gap-1.5">
+                                         <button
+                                            onClick={() => moveField(idx, 'up')}
+                                            disabled={idx === 0}
+                                            className="w-10 h-10 bg-white text-gray-300 hover:text-primary disabled:opacity-30 rounded-xl flex items-center justify-center shadow-sm hover:shadow-md transition-all border border-gray-100"
+                                         >
+                                            <ChevronUp size={16} />
+                                         </button>
+                                         <button
+                                            onClick={() => moveField(idx, 'down')}
+                                            disabled={idx === registration.fields.length - 1}
+                                            className="w-10 h-10 bg-white text-gray-300 hover:text-primary disabled:opacity-30 rounded-xl flex items-center justify-center shadow-sm hover:shadow-md transition-all border border-gray-100"
+                                         >
+                                            <ChevronDown size={16} />
+                                         </button>
+                                      </div>
                                       <button
-                                         onClick={() => moveField(idx, 'up')}
-                                         disabled={idx === 0}
-                                         className="w-12 h-12 bg-white text-gray-300 hover:text-primary disabled:opacity-30 rounded-xl flex items-center justify-center shadow-sm hover:shadow-lg transition-all border border-gray-100"
+                                         onClick={() => removeField(idx)}
+                                         className="w-10 h-10 bg-white text-gray-300 hover:text-secondary rounded-xl flex items-center justify-center shadow-sm hover:shadow-md hover:scale-105 transition-all border border-gray-100"
                                       >
-                                         <ChevronUp size={20} />
-                                      </button>
-                                      <button
-                                         onClick={() => moveField(idx, 'down')}
-                                         disabled={idx === registration.fields.length - 1}
-                                         className="w-12 h-12 bg-white text-gray-300 hover:text-primary disabled:opacity-30 rounded-xl flex items-center justify-center shadow-sm hover:shadow-lg transition-all border border-gray-100"
-                                      >
-                                         <ChevronDown size={20} />
+                                         <Trash2 size={16} />
                                       </button>
                                    </div>
-                                   <button
-                                      onClick={() => removeField(idx)}
-                                      className="w-14 h-14 bg-white text-gray-300 hover:text-secondary rounded-2xl flex items-center justify-center shadow-sm hover:shadow-xl hover:scale-110 transition-all border border-gray-100 shrink-0"
-                                   >
-                                      <Trash2 size={20} />
-                                   </button>
                                 </div>
                                 {(field.type === 'select' || field.type === 'checkbox') && (
                                     <div className="bg-gray-50/50 rounded-[2rem] p-6 border border-gray-100 mt-2 ml-4 mr-4 space-y-5">
@@ -1472,6 +1481,7 @@ const EditEvent = () => {
                                                     <select
                                                         className="w-full p-3.5 bg-white border border-gray-200 rounded-xl text-xs font-bold appearance-none outline-none focus:border-primary transition-all shadow-sm"
                                                         value={field.source || ""}
+                                                        onBlur={() => saveAllChanges()}
                                                         onChange={(e) => {
                                                             const newSource = e.target.value || undefined;
                                                             updateField(idx, "source", newSource);
@@ -1496,6 +1506,7 @@ const EditEvent = () => {
                                                         <select
                                                             className="w-full p-3.5 bg-white border border-gray-200 rounded-xl text-xs font-bold appearance-none outline-none focus:border-primary transition-all shadow-sm"
                                                             value={field.dependsOn || ""}
+                                                            onBlur={() => saveAllChanges()}
                                                             onChange={(e) => updateField(idx, "dependsOn", e.target.value || undefined)}
                                                         >
                                                             <option value="">Independent</option>
