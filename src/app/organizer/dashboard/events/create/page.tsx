@@ -1781,7 +1781,7 @@ const CreateEvent = () => {
                           <div className="grid grid-cols-1 gap-6">
                              {registration.fields.map((field, idx) => (
                                 <React.Fragment key={idx}>
-                                <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-8 p-6 bg-gray-50 rounded-[2.5rem] group relative border border-transparent hover:border-primary/10 hover:bg-white transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50">
+                                <div className={`flex items-center gap-6 p-6 bg-gray-50 rounded-[2.5rem] group relative border border-transparent hover:border-primary/10 hover:bg-white transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50 ${showPreview ? "flex-col 2xl:flex-row 2xl:gap-8" : "flex-col lg:flex-row lg:gap-8"}`}>
                                    <div className="flex-[2] w-full space-y-2">
                                       <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Field Label</label>
                                       <input
@@ -1792,7 +1792,7 @@ const CreateEvent = () => {
                                          onBlur={handleBlur} onChange={(e) => updateField(idx, "label", e.target.value)}
                                       />
                                    </div>
-                                   <div className="flex-1 w-full lg:min-w-[200px] space-y-2">
+                                   <div className={`flex-1 w-full space-y-2 ${showPreview ? "2xl:min-w-[200px]" : "lg:min-w-[200px]"}`}>
                                       <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Input Type</label>
                                       <div className="relative">
                                          <select
@@ -1808,7 +1808,7 @@ const CreateEvent = () => {
                                          <ChevronDown size={14} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                                       </div>
                                    </div>
-                                   <div className="flex items-center gap-8 px-6 h-16 bg-white/50 rounded-xl border border-gray-100">
+                                   <div className="flex items-center justify-around gap-8 px-6 h-16 bg-white/50 rounded-xl border border-gray-100 w-full lg:w-auto">
                                       <label className="flex items-center gap-3 cursor-pointer group/toggle">
                                          <input
                                             type="checkbox"
@@ -1856,7 +1856,7 @@ const CreateEvent = () => {
                                 </div>
                                 {(field.type === 'select' || field.type === 'checkbox') && (
                                     <div className="bg-gray-50/50 rounded-[2rem] p-6 border border-gray-100 mt-2 ml-4 mr-4 space-y-5">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                        <div className={`grid gap-5 ${showPreview ? "grid-cols-1 2xl:grid-cols-2" : "grid-cols-1 md:grid-cols-2"}`}>
                                             <div className="space-y-2">
                                                 <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Choice Source</label>
                                                 <div className="relative">
