@@ -481,6 +481,8 @@ export interface RegistrationField {
   required: boolean;
   isPerAttendee: boolean;
   options?: string[];
+  source?: string;
+  dependsOn?: string;
 }
 
 export interface OrganizerApplication {

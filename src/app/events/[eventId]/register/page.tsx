@@ -30,7 +30,11 @@ const RegistrationForm = () => {
   const [ticket, setTicket] = useState<TicketType | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [locationData, setLocationData] = useState<any[]>([]);
+
+  // Dynamic data for selects
+  const [countries, setCountries] = useState<{ _id: string; name: string }[]>([]);
+  const [states, setStates] = useState<Record<string, { _id: string; name: string }[]>>({}); // countryId -> states
+  const [lgas, setLgas] = useState<Record<string, { _id: string; name: string }[]>>({}); // stateId -> lgas
 
   // Registration data state
   const [attendees, setAttendees] = useState<any[]>([]);
@@ -45,15 +49,14 @@ const RegistrationForm = () => {
         const eventData = response.data.data as Event;
         setEvent(eventData);
 
-        // Fetch locations only if location fields are present
-        const hasLocationFields = eventData.registrationFields?.some(f => f.name === 'state' || f.name === 'lga');
-        if (hasLocationFields) {
+        // Fetch initial dynamic data
+        const hasCountries = eventData.registrationFields?.some(f => f.source === 'COUNTRIES');
+        if (hasCountries) {
           try {
-            const locResponse = await api.get("/events/utils/locations");
-            setLocationData(locResponse.data.data || []);
+            const countriesRes = await api.get('/locations/countries');
+            setCountries(countriesRes.data.data || []);
           } catch (err) {
-            console.error("Failed to fetch locations:", err);
-            setLocationData([]);
+            console.error("Failed to fetch countries:", err);
           }
         }
 
@@ -114,27 +117,65 @@ const RegistrationForm = () => {
     fetchRegistrationData();
   }, [eventId, ticketId, quantity]);
 
-  const handleAttendeeChange = (index: number, fieldName: string, value: any) => {
+  const fetchDependentData = async (field: RegistrationField, parentValue: string) => {
+    if (!parentValue) return;
+
+    if (field.source === 'STATES' && !states[parentValue]) {
+      try {
+        const res = await api.get(`/locations/states/${parentValue}`);
+        setStates(prev => ({ ...prev, [parentValue]: res.data.data }));
+      } catch (err) {
+        console.error("Failed to fetch states:", err);
+      }
+    } else if (field.source === 'LGAS' && !lgas[parentValue]) {
+      try {
+        const res = await api.get(`/locations/lgas/${parentValue}`);
+        setLgas(prev => ({ ...prev, [parentValue]: res.data.data }));
+      } catch (err) {
+        console.error("Failed to fetch LGAs:", err);
+      }
+    }
+  };
+
+  const handleAttendeeChange = (index: number, field: RegistrationField, value: any) => {
+    const fieldName = field.name;
     const newAttendees = [...attendees];
     const update: any = { [fieldName]: value };
 
-    // If state changes, reset LGA
-    if (fieldName === 'state') {
-      update['lga'] = "";
-    }
+    // Check for dependent fields to reset
+    (event?.registrationFields || []).forEach(f => {
+      if (f.dependsOn === fieldName && f.isPerAttendee) {
+        update[f.name] = "";
+      }
+    });
 
     newAttendees[index] = { ...newAttendees[index], ...update };
     setAttendees(newAttendees);
+
+    // Fetch dependent data if needed
+    const dependentField = (event?.registrationFields || []).find(f => f.dependsOn === fieldName);
+    if (dependentField) {
+      fetchDependentData(dependentField, value);
+    }
   };
 
-  const handleSharedChange = (fieldName: string, value: any) => {
+  const handleSharedChange = (field: RegistrationField, value: any) => {
+    const fieldName = field.name;
     setSharedData(prev => {
       const update: any = { [fieldName]: value };
-      if (fieldName === 'state') {
-        update['lga'] = "";
-      }
+      (event?.registrationFields || []).forEach(f => {
+        if (f.dependsOn === fieldName && !f.isPerAttendee) {
+          update[f.name] = "";
+        }
+      });
       return { ...prev, ...update };
     });
+
+    // Fetch dependent data if needed
+    const dependentField = (event?.registrationFields || []).find(f => f.dependsOn === fieldName);
+    if (dependentField) {
+      fetchDependentData(dependentField, value);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -260,33 +301,39 @@ const RegistrationForm = () => {
                                    {field.name === 'email' && <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />}
                                    {field.name === 'phone' && <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />}
 
-                                   {(field.type === 'text' || field.type === 'number') && field.name !== 'state' && field.name !== 'lga' ? (
+                                   {(field.type === 'text' || field.type === 'number') && !field.source ? (
                                       <input
                                         type={field.type}
                                         required={field.required}
                                         className={`w-full p-4 bg-white border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 transition-all ${['full-name', 'email', 'phone'].includes(field.name) ? 'pl-12' : ''}`}
                                         value={field.isPerAttendee ? attendees[index][field.name] || "" : sharedData[field.name] || ""}
-                                        onChange={(e) => field.isPerAttendee ? handleAttendeeChange(index, field.name, e.target.value) : handleSharedChange(field.name, e.target.value)}
+                                        onChange={(e) => field.isPerAttendee ? handleAttendeeChange(index, field, e.target.value) : handleSharedChange(field, e.target.value)}
                                       />
-                                    ) : (field.type === 'select' || field.name === 'state' || field.name === 'lga') ? (
+                                    ) : (field.type === 'select' || !!field.source) ? (
                                       <select
                                         required={field.required}
                                         className="w-full p-4 bg-white border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 transition-all"
                                         value={field.isPerAttendee ? attendees[index][field.name] || "" : sharedData[field.name] || ""}
-                                        onChange={(e) => field.isPerAttendee ? handleAttendeeChange(index, field.name, e.target.value) : handleSharedChange(field.name, e.target.value)}
+                                        onChange={(e) => field.isPerAttendee ? handleAttendeeChange(index, field, e.target.value) : handleSharedChange(field, e.target.value)}
                                       >
                                          <option value="">Select an option</option>
-                                         {field.name === 'state' ? (
-                                            Array.isArray(locationData) && locationData.map((loc: any) => (
-                                              <option key={loc.name} value={loc.name}>{loc.name}</option>
+                                         {field.source === 'COUNTRIES' ? (
+                                            countries.map((c) => (
+                                              <option key={c._id} value={c._id}>{c.name}</option>
                                             ))
-                                         ) : field.name === 'lga' ? (
+                                         ) : field.source === 'STATES' ? (
                                            (() => {
-                                             const selectedState = field.isPerAttendee ? attendees[index]['state'] : sharedData['state'];
-                                             const stateInfo = Array.isArray(locationData) ? locationData.find(loc => loc.name === selectedState) : null;
-                                             return stateInfo?.lgas?.map((lga: string) => (
-                                               <option key={lga} value={lga}>{lga}</option>
+                                             const parentValue = field.isPerAttendee ? attendees[index][field.dependsOn!] : sharedData[field.dependsOn!];
+                                             return states[parentValue]?.map((s) => (
+                                               <option key={s._id} value={s._id}>{s.name}</option>
                                              ));
+                                           })()
+                                         ) : field.source === 'LGAS' ? (
+                                           (() => {
+                                              const parentValue = field.isPerAttendee ? attendees[index][field.dependsOn!] : sharedData[field.dependsOn!];
+                                              return lgas[parentValue]?.map((l) => (
+                                                <option key={l._id} value={l._id}>{l.name}</option>
+                                              ));
                                            })()
                                          ) : (
                                            field.options?.map(opt => <option key={opt} value={opt}>{opt}</option>)
@@ -297,7 +344,7 @@ const RegistrationForm = () => {
                                          <input
                                           type="checkbox"
                                           checked={field.isPerAttendee ? attendees[index][field.name] || false : sharedData[field.name] || false}
-                                          onChange={(e) => field.isPerAttendee ? handleAttendeeChange(index, field.name, e.target.checked) : handleSharedChange(field.name, e.target.checked)}
+                                          onChange={(e) => field.isPerAttendee ? handleAttendeeChange(index, field, e.target.checked) : handleSharedChange(field, e.target.checked)}
                                           className="w-5 h-5 rounded border-gray-300 text-primary"
                                          />
                                          <span className="text-sm font-medium text-gray-700">{field.label}</span>

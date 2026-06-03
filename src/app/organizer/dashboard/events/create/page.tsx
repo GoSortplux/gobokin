@@ -45,7 +45,7 @@ import axios from "axios";
 import { useEffect } from "react";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
-import { AgendaItem, EventType, RegistrationMode, Speaker, TicketType, Ticket as ITicket } from "@/types";
+import { AgendaItem, EventType, RegistrationMode, RegistrationField, Speaker, TicketType, Ticket as ITicket } from "@/types";
 
 const steps = [
   { id: 1, title: "Event Details", icon: Info },
@@ -430,7 +430,10 @@ const CreateEvent = () => {
     fields: [
       { name: "full-name", label: "Full Name", type: "text", required: true, isPerAttendee: true },
       { name: "email", label: "Email Address", type: "text", required: true, isPerAttendee: true },
-    ] as { name: string; label: string; type: string; required: boolean; isPerAttendee: boolean; options?: string[] }[],
+      { name: "country", label: "Country", type: "select", source: "COUNTRIES", required: true, isPerAttendee: true },
+      { name: "state", label: "State", type: "select", source: "STATES", dependsOn: "country", required: true, isPerAttendee: true },
+      { name: "lga", label: "LGA", type: "select", source: "LGAS", dependsOn: "state", required: true, isPerAttendee: true },
+    ] as (RegistrationField & { id?: string })[],
   });
 
   // Persistence Logic
@@ -493,7 +496,9 @@ const CreateEvent = () => {
           type: f.type,
           required: f.required,
           isPerAttendee: f.isPerAttendee,
-          options: (f.type === 'select' || f.type === 'checkbox') ? f.options : undefined
+          options: (f.type === 'select' || f.type === 'checkbox') && !f.source ? f.options : undefined,
+          source: f.source,
+          dependsOn: f.dependsOn
         })),
         bannerUrl: mediaInfo.bannerUrl || undefined,
         mediaUrls: mediaInfo.mediaUrls,
@@ -934,20 +939,33 @@ const CreateEvent = () => {
         fields: [
           ...prev.fields,
           {
-            name: "state",
-            label: "State",
-            type: "text",
+            name: "country",
+            label: "Country",
+            type: "select",
+            source: "COUNTRIES",
             required: true,
             isPerAttendee,
-            options: [] // Rendered as select dynamically on registration page
+            options: []
+          },
+          {
+            name: "state",
+            label: "State",
+            type: "select",
+            source: "STATES",
+            dependsOn: "country",
+            required: true,
+            isPerAttendee,
+            options: []
           },
           {
             name: "lga",
             label: "LGA",
-            type: "text",
+            type: "select",
+            source: "LGAS",
+            dependsOn: "state",
             required: true,
             isPerAttendee,
-            options: [] // Rendered as select dynamically on registration page based on state
+            options: []
           }
         ]
       }));
@@ -1059,7 +1077,9 @@ const CreateEvent = () => {
           type: f.type,
           required: f.required,
           isPerAttendee: f.isPerAttendee,
-          options: (f.type === 'select' || f.type === 'checkbox') ? f.options : undefined
+          options: (f.type === 'select' || f.type === 'checkbox') && !f.source ? f.options : undefined,
+          source: f.source,
+          dependsOn: f.dependsOn
         })),
       };
 
@@ -1834,11 +1854,11 @@ const CreateEvent = () => {
                                       <Trash2 size={20} />
                                    </button>
                                 </div>
-                                {(field.type === 'select' || field.type === 'checkbox' || field.name === 'state' || field.name === 'lga') && (
+                                {(field.type === 'select' || field.type === 'checkbox' || !!field.source) && (
                                     <div className="bg-white/40 rounded-[2rem] p-6 border border-gray-100 mt-2 ml-4 mr-4 space-y-4">
                                         <div className="flex items-center justify-between px-2">
                                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Options Management</p>
-                                            {(field.name !== 'state' && field.name !== 'lga') && (
+                                            {!field.source && (
                                               <button
                                                   onClick={() => {
                                                       addFieldOption(idx);
@@ -1851,11 +1871,11 @@ const CreateEvent = () => {
                                             )}
                                         </div>
                                         <div className="flex flex-wrap gap-3">
-                                            {(field.name === 'state' || field.name === 'lga') ? (
+                                            {field.source ? (
                                               <div className="flex items-center gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10 w-full">
                                                 <Info size={16} className="text-primary shrink-0" />
                                                 <p className="text-[10px] font-medium text-primary leading-relaxed">
-                                                  This field is automatically managed. Attendees will be able to select from a comprehensive list of Nigerian {field.name === 'state' ? 'States' : 'Local Government Areas'}.
+                                                  This field is automatically managed. Attendees will be able to select from a comprehensive list of {field.source === 'COUNTRIES' ? 'Countries' : field.source === 'STATES' ? 'States' : 'Local Government Areas'}.
                                                 </p>
                                               </div>
                                             ) : (
