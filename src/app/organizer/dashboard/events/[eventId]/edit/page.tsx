@@ -17,6 +17,7 @@ import {
   Image as ImageIcon,
   ShieldCheck,
   Clock,
+  ChevronUp,
   Type,
   FileText,
   Eye,
@@ -695,6 +696,17 @@ const EditEvent = () => {
     const newFields = [...registration.fields];
     newFields.splice(index, 1);
     setRegistration({ ...registration, fields: newFields });
+  };
+
+  const moveField = (index: number, direction: 'up' | 'down') => {
+    const newFields = [...registration.fields];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex >= 0 && targetIndex < newFields.length) {
+      const temp = newFields[index];
+      newFields[index] = newFields[targetIndex];
+      newFields[targetIndex] = temp;
+      setRegistration({ ...registration, fields: newFields });
+    }
   };
 
   const updateField = (index: number, field: string, value: any) => {
@@ -1412,6 +1424,22 @@ const EditEvent = () => {
                                          />
                                          <span className="text-[10px] font-black text-gray-400 group-hover/toggle:text-gray-900 uppercase tracking-widest transition-colors">Per Attendee</span>
                                       </label>
+                                   </div>
+                                   <div className="flex flex-row lg:flex-col gap-2 shrink-0">
+                                      <button
+                                         onClick={() => moveField(idx, 'up')}
+                                         disabled={idx === 0}
+                                         className="w-12 h-12 bg-white text-gray-300 hover:text-primary disabled:opacity-30 rounded-xl flex items-center justify-center shadow-sm hover:shadow-lg transition-all border border-gray-100"
+                                      >
+                                         <ChevronUp size={20} />
+                                      </button>
+                                      <button
+                                         onClick={() => moveField(idx, 'down')}
+                                         disabled={idx === registration.fields.length - 1}
+                                         className="w-12 h-12 bg-white text-gray-300 hover:text-primary disabled:opacity-30 rounded-xl flex items-center justify-center shadow-sm hover:shadow-lg transition-all border border-gray-100"
+                                      >
+                                         <ChevronDown size={20} />
+                                      </button>
                                    </div>
                                    <button
                                       onClick={() => removeField(idx)}
