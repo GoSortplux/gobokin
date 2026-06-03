@@ -140,16 +140,21 @@ const RegistrationForm = () => {
   const handleAttendeeChange = (index: number, field: RegistrationField, value: any) => {
     const fieldName = field.name;
     const newAttendees = [...attendees];
-    const update: any = { [fieldName]: value };
+    const attendee = { ...newAttendees[index] };
+    attendee[fieldName] = value;
 
-    // Check for dependent fields to reset
-    (event?.registrationFields || []).forEach(f => {
-      if (f.dependsOn === fieldName && f.isPerAttendee) {
-        update[f.name] = "";
-      }
-    });
+    // Recursive reset of dependent fields
+    const resetDependents = (name: string) => {
+      (event?.registrationFields || []).forEach(f => {
+        if (f.dependsOn === name && f.isPerAttendee) {
+          attendee[f.name] = "";
+          resetDependents(f.name);
+        }
+      });
+    };
 
-    newAttendees[index] = { ...newAttendees[index], ...update };
+    resetDependents(fieldName);
+    newAttendees[index] = attendee;
     setAttendees(newAttendees);
 
     // Fetch dependent data if needed
@@ -162,13 +167,19 @@ const RegistrationForm = () => {
   const handleSharedChange = (field: RegistrationField, value: any) => {
     const fieldName = field.name;
     setSharedData(prev => {
-      const update: any = { [fieldName]: value };
-      (event?.registrationFields || []).forEach(f => {
-        if (f.dependsOn === fieldName && !f.isPerAttendee) {
-          update[f.name] = "";
-        }
-      });
-      return { ...prev, ...update };
+      const newShared = { ...prev, [fieldName]: value };
+
+      const resetDependents = (name: string) => {
+        (event?.registrationFields || []).forEach(f => {
+          if (f.dependsOn === name && !f.isPerAttendee) {
+            newShared[f.name] = "";
+            resetDependents(f.name);
+          }
+        });
+      };
+
+      resetDependents(fieldName);
+      return newShared;
     });
 
     // Fetch dependent data if needed
