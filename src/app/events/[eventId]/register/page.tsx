@@ -50,9 +50,10 @@ const RegistrationForm = () => {
         if (hasLocationFields) {
           try {
             const locResponse = await api.get("/events/utils/locations");
-            setLocationData(locResponse.data.data);
+            setLocationData(locResponse.data.data || []);
           } catch (err) {
             console.error("Failed to fetch locations:", err);
+            setLocationData([]);
           }
         }
 
@@ -276,13 +277,13 @@ const RegistrationForm = () => {
                                       >
                                          <option value="">Select an option</option>
                                          {field.name === 'state' ? (
-                                            locationData.map((loc: any) => (
+                                            Array.isArray(locationData) && locationData.map((loc: any) => (
                                               <option key={loc.name} value={loc.name}>{loc.name}</option>
                                             ))
                                          ) : field.name === 'lga' ? (
                                            (() => {
                                              const selectedState = field.isPerAttendee ? attendees[index]['state'] : sharedData['state'];
-                                             const stateInfo = locationData.find(loc => loc.name === selectedState);
+                                             const stateInfo = Array.isArray(locationData) ? locationData.find(loc => loc.name === selectedState) : null;
                                              return stateInfo?.lgas?.map((lga: string) => (
                                                <option key={lga} value={lga}>{lga}</option>
                                              ));
