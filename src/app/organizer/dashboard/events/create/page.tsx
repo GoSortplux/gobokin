@@ -1763,36 +1763,75 @@ const CreateEvent = () => {
                           </div>
 
                           <div className="grid grid-cols-1 gap-6">
-                             {registration.fields.map((field, idx) => (
+                             {registration.fields.map((field, idx) => {
+                                const isLocationField = field.source === 'COUNTRIES' || field.source === 'STATES' || field.source === 'LGAS';
+                                return (
                                 <React.Fragment key={idx}>
-                                <div className={`flex items-center gap-6 p-6 bg-gray-50 rounded-[2.5rem] group relative border border-transparent hover:border-primary/10 hover:bg-white transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50 ${showPreview ? "flex-col 2xl:flex-row 2xl:gap-8" : "flex-col lg:flex-row lg:gap-8"}`}>
-                                   <div className="flex-[2] w-full space-y-2">
-                                      <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Field Label</label>
-                                      <input
-                                         type="text"
-                                         placeholder="e.g., Job Title"
-                                         className="w-full p-3.5 bg-white border border-gray-200 rounded-xl text-[11px] font-bold focus:border-primary transition-all outline-none"
-                                         value={field.label}
-                                         onBlur={handleBlur} onChange={(e) => updateField(idx, "label", e.target.value)}
-                                      />
-                                   </div>
-                                   <div className={`flex-1 w-full space-y-2 ${showPreview ? "2xl:min-w-[200px]" : "lg:min-w-[200px]"}`}>
-                                      <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Input Type</label>
-                                      <div className="relative">
-                                         <select
-                                            className="w-full p-3.5 bg-white border border-gray-200 rounded-xl text-[11px] font-bold appearance-none outline-none focus:border-primary transition-all"
-                                            value={field.type}
-                                            onBlur={handleBlur} onChange={(e) => updateField(idx, "type", e.target.value)}
-                                         >
-                                            <option value="text">Text</option>
-                                            <option value="number">Number</option>
-                                            <option value="select">Dropdown</option>
-                                            <option value="checkbox">Checkbox</option>
-                                         </select>
-                                         <ChevronDown size={14} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                <div className={`p-6 bg-gray-50 rounded-[2.5rem] group relative border border-transparent hover:border-primary/10 hover:bg-white transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50 flex flex-col ${showPreview ? "gap-4" : "gap-6 lg:flex-row lg:items-center lg:gap-8"}`}>
+                                   {/* First Section: Label and Type */}
+                                   <div className={`flex items-center gap-4 ${showPreview ? "w-full" : "flex-1 flex-col lg:flex-row lg:gap-8"}`}>
+                                      <div className={`space-y-2 ${showPreview ? "flex-[1.5] min-w-0" : "w-full flex-[2]"}`}>
+                                         <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Field Label</label>
+                                         <input
+                                            type="text"
+                                            placeholder="e.g., Job Title"
+                                            disabled={isLocationField}
+                                            className={`w-full p-3.5 bg-white border border-gray-200 rounded-xl text-[11px] font-bold focus:border-primary transition-all outline-none ${isLocationField ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                            value={field.label}
+                                            onBlur={handleBlur} onChange={(e) => updateField(idx, "label", e.target.value)}
+                                         />
                                       </div>
+                                      <div className={`space-y-2 ${showPreview ? "flex-1 min-w-0" : "w-full flex-1"}`}>
+                                         <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Input Type</label>
+                                         <div className="relative">
+                                            <select
+                                               disabled={isLocationField}
+                                               className={`w-full p-3.5 bg-white border border-gray-200 rounded-xl text-[11px] font-bold appearance-none outline-none focus:border-primary transition-all ${isLocationField ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                               value={field.type}
+                                               onBlur={handleBlur} onChange={(e) => updateField(idx, "type", e.target.value)}
+                                            >
+                                               <option value="text">Text</option>
+                                               <option value="number">Number</option>
+                                               <option value="select">Dropdown</option>
+                                               <option value="checkbox">Checkbox</option>
+                                            </select>
+                                            <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                         </div>
+                                      </div>
+
+                                      {/* Arrows and Trash (on same row when preview is ON) */}
+                                      {showPreview && (
+                                         <div className="flex items-center gap-2 shrink-0 pt-5">
+                                            <div className="flex gap-1">
+                                               <button
+                                                  onClick={() => moveField(idx, 'up')}
+                                                  disabled={idx === 0}
+                                                  className="w-12 h-12 bg-white text-gray-300 hover:text-primary disabled:opacity-30 rounded-xl flex items-center justify-center shadow-sm border border-gray-100"
+                                               >
+                                                  <ChevronUp size={16} />
+                                               </button>
+                                               <button
+                                                  onClick={() => moveField(idx, 'down')}
+                                                  disabled={idx === registration.fields.length - 1}
+                                                  className="w-12 h-12 bg-white text-gray-300 hover:text-primary disabled:opacity-30 rounded-xl flex items-center justify-center shadow-sm border border-gray-100"
+                                               >
+                                                  <ChevronDown size={16} />
+                                               </button>
+                                            </div>
+                                            {!isLocationField && (
+                                              <button
+                                                 onClick={() => removeField(idx)}
+                                                 className="w-12 h-12 bg-white text-gray-300 hover:text-secondary rounded-xl flex items-center justify-center shadow-sm border border-gray-100 shrink-0"
+                                              >
+                                                 <Trash2 size={16} />
+                                              </button>
+                                            )}
+                                         </div>
+                                      )}
                                    </div>
-                                   <div className="flex items-center justify-around gap-8 px-6 h-16 bg-white/50 rounded-xl border border-gray-100 w-full lg:w-auto">
+
+                                   {/* Toggles and Non-Preview actions */}
+                                   <div className={`flex items-center gap-6 ${showPreview ? "justify-start pl-1" : "flex-1 justify-around px-6 h-16 bg-white/50 rounded-xl border border-gray-100"}`}>
                                       <label className="flex items-center gap-3 cursor-pointer group/toggle">
                                          <input
                                             type="checkbox"
@@ -1815,28 +1854,35 @@ const CreateEvent = () => {
                                          <span className="text-[10px] font-black text-gray-400 group-hover/toggle:text-gray-900 uppercase tracking-widest transition-colors">Per Attendee</span>
                                       </label>
                                    </div>
-                                   <div className="flex flex-row lg:flex-col gap-2 shrink-0">
-                                      <button
-                                         onClick={() => moveField(idx, 'up')}
-                                         disabled={idx === 0}
-                                         className="w-12 h-12 bg-white text-gray-300 hover:text-primary disabled:opacity-30 rounded-xl flex items-center justify-center shadow-sm hover:shadow-lg transition-all border border-gray-100"
-                                      >
-                                         <ChevronUp size={20} />
-                                      </button>
-                                      <button
-                                         onClick={() => moveField(idx, 'down')}
-                                         disabled={idx === registration.fields.length - 1}
-                                         className="w-12 h-12 bg-white text-gray-300 hover:text-primary disabled:opacity-30 rounded-xl flex items-center justify-center shadow-sm hover:shadow-lg transition-all border border-gray-100"
-                                      >
-                                         <ChevronDown size={20} />
-                                      </button>
-                                   </div>
-                                   <button
-                                      onClick={() => removeField(idx)}
-                                      className="w-14 h-14 bg-white text-gray-300 hover:text-secondary rounded-2xl flex items-center justify-center shadow-sm hover:shadow-xl hover:scale-110 transition-all border border-gray-100 shrink-0"
-                                   >
-                                      <Trash2 size={20} />
-                                   </button>
+
+                                   {!showPreview && (
+                                      <div className="flex flex-row lg:flex-col gap-2 shrink-0">
+                                         <div className="flex lg:flex-col gap-2">
+                                            <button
+                                               onClick={() => moveField(idx, 'up')}
+                                               disabled={idx === 0}
+                                               className="w-12 h-12 bg-white text-gray-300 hover:text-primary disabled:opacity-30 rounded-xl flex items-center justify-center shadow-sm border border-gray-100"
+                                            >
+                                               <ChevronUp size={16} />
+                                            </button>
+                                            <button
+                                               onClick={() => moveField(idx, 'down')}
+                                               disabled={idx === registration.fields.length - 1}
+                                               className="w-12 h-12 bg-white text-gray-300 hover:text-primary disabled:opacity-30 rounded-xl flex items-center justify-center shadow-sm border border-gray-100"
+                                            >
+                                               <ChevronDown size={16} />
+                                            </button>
+                                         </div>
+                                         {!isLocationField && (
+                                            <button
+                                               onClick={() => removeField(idx)}
+                                               className="w-12 h-12 bg-white text-gray-300 hover:text-secondary rounded-xl flex items-center justify-center shadow-sm border border-gray-100 shrink-0"
+                                            >
+                                               <Trash2 size={16} />
+                                            </button>
+                                         )}
+                                      </div>
+                                   )}
                                 </div>
                                 {(field.type === 'select' || field.type === 'checkbox') && (
                                     <div className="bg-gray-50/50 rounded-[2rem] p-6 border border-gray-100 mt-2 ml-4 mr-4 space-y-5">
@@ -1950,7 +1996,7 @@ const CreateEvent = () => {
                                     </div>
                                 )}
                                 </React.Fragment>
-                             ))}
+                             )})}
                           </div>
                        </div>
                     </div>
