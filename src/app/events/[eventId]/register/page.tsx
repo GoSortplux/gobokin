@@ -41,17 +41,20 @@ const RegistrationForm = () => {
       try {
         setLoading(true);
 
-        // Fetch locations
-        try {
-          const locResponse = await api.get("/events/utils/locations");
-          setLocationData(locResponse.data.data);
-        } catch (err) {
-          console.error("Failed to fetch locations:", err);
-        }
-
         const response = await api.get(`/events/${eventId}`);
         const eventData = response.data.data as Event;
         setEvent(eventData);
+
+        // Fetch locations only if location fields are present
+        const hasLocationFields = eventData.registrationFields?.some(f => f.name === 'state' || f.name === 'lga');
+        if (hasLocationFields) {
+          try {
+            const locResponse = await api.get("/events/utils/locations");
+            setLocationData(locResponse.data.data);
+          } catch (err) {
+            console.error("Failed to fetch locations:", err);
+          }
+        }
 
         const selectedTicket = eventData.tickets?.find(t => t.id === ticketId);
         setTicket(selectedTicket || null);
@@ -76,13 +79,30 @@ const RegistrationForm = () => {
           }
         }
 
-        // Initialize attendees array based on quantity
-        const initialAttendees = Array.from({ length: quantity }, () => ({
-          "full-name": "",
-          "email": "",
-          "phone": "",
-        }));
+        // Initialize attendees array based on quantity and actual fields
+        const initialAttendees = Array.from({ length: quantity }, () => {
+          const attendeeObj: any = {};
+          (eventData.registrationFields || []).forEach(f => {
+            if (f.isPerAttendee) {
+              attendeeObj[f.name] = f.type === 'checkbox' ? false : "";
+            }
+          });
+          // Defensive fallbacks for buyerInfo requirements
+          if (!attendeeObj["full-name"]) attendeeObj["full-name"] = "";
+          if (!attendeeObj["email"]) attendeeObj["email"] = "";
+          return attendeeObj;
+        });
         setAttendees(initialAttendees);
+
+        // Initialize shared data
+        const initialShared: any = {};
+        (eventData.registrationFields || []).forEach(f => {
+          if (!f.isPerAttendee) {
+            initialShared[f.name] = f.type === 'checkbox' ? false : "";
+          }
+        });
+        setSharedData(initialShared);
+
       } catch (error) {
         console.error("Failed to fetch registration data:", error);
         Swal.fire("Error", translateError(error), "error");
@@ -255,7 +275,11 @@ const RegistrationForm = () => {
                                         onChange={(e) => field.isPerAttendee ? handleAttendeeChange(index, field.name, e.target.value) : handleSharedChange(field.name, e.target.value)}
                                       >
                                          <option value="">Select an option</option>
-                                         {field.name === 'lga' ? (
+                                         {field.name === 'state' ? (
+                                            locationData.map((loc: any) => (
+                                              <option key={loc.name} value={loc.name}>{loc.name}</option>
+                                            ))
+                                         ) : field.name === 'lga' ? (
                                            (() => {
                                              const selectedState = field.isPerAttendee ? attendees[index]['state'] : sharedData['state'];
                                              const stateInfo = locationData.find(loc => loc.name === selectedState);

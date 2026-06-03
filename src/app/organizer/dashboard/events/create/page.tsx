@@ -928,39 +928,28 @@ const CreateEvent = () => {
     const isPerAttendee = registration.isGroupingEnabled ? true : false;
 
     if (fieldType === 'location') {
-      const fetchLocations = async () => {
-        try {
-          const response = await api.get("/events/utils/locations");
-          const states = response.data.data.map((loc: any) => loc.name);
-
-          setRegistration(prev => ({
-            ...prev,
-            fields: [
-              ...prev.fields,
-              {
-                name: "state",
-                label: "State",
-                type: "select",
-                required: true,
-                isPerAttendee,
-                options: states
-              },
-              {
-                name: "lga",
-                label: "LGA",
-                type: "select",
-                required: true,
-                isPerAttendee,
-                options: [] // Initially empty, will be populated on registration page based on state
-              }
-            ]
-          }));
-        } catch (error) {
-          console.error("Failed to fetch locations:", error);
-          Swal.fire("Error", "Failed to fetch locations for the dropdown.", "error");
-        }
-      };
-      fetchLocations();
+      setRegistration(prev => ({
+        ...prev,
+        fields: [
+          ...prev.fields,
+          {
+            name: "state",
+            label: "State",
+            type: "select",
+            required: true,
+            isPerAttendee,
+            options: [] // Populated dynamically on registration page
+          },
+          {
+            name: "lga",
+            label: "LGA",
+            type: "select",
+            required: true,
+            isPerAttendee,
+            options: [] // Populated dynamically on registration page based on state
+          }
+        ]
+      }));
     } else if (fieldType === 'address') {
       setRegistration({
         ...registration,
