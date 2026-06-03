@@ -1809,40 +1809,53 @@ const CreateEvent = () => {
                                     <div className="bg-white/40 rounded-[2rem] p-6 border border-gray-100 mt-2 ml-4 mr-4 space-y-4">
                                         <div className="flex items-center justify-between px-2">
                                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Options Management</p>
-                                            <button
-                                                onClick={() => {
-                                                    addFieldOption(idx);
-                                                    handleBlur();
-                                                }}
-                                                className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline flex items-center gap-1.5"
-                                            >
-                                                <Plus size={12} strokeWidth={3} /> Add Choice
-                                            </button>
+                                            {(field.name !== 'state' && field.name !== 'lga') && (
+                                              <button
+                                                  onClick={() => {
+                                                      addFieldOption(idx);
+                                                      handleBlur();
+                                                  }}
+                                                  className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline flex items-center gap-1.5"
+                                              >
+                                                  <Plus size={12} strokeWidth={3} /> Add Choice
+                                              </button>
+                                            )}
                                         </div>
                                         <div className="flex flex-wrap gap-3">
-                                            {(field.options || []).map((opt, oIdx) => (
-                                                <div key={oIdx} className="flex items-center gap-2 bg-white p-2 pl-4 rounded-xl border border-gray-100 shadow-sm group/opt transition-all hover:border-primary/30">
-                                                    <input
-                                                        type="text"
-                                                        value={opt}
-                                                        onBlur={handleBlur}
-                                                        onChange={(e) => updateFieldOption(idx, oIdx, e.target.value)}
-                                                        placeholder={`Choice ${oIdx + 1}`}
-                                                        className="bg-transparent border-none outline-none text-xs font-bold text-gray-700 w-24"
-                                                    />
-                                                    <button
-                                                        onClick={() => {
-                                                            removeFieldOption(idx, oIdx);
-                                                            handleBlur();
-                                                        }}
-                                                        className="w-6 h-6 rounded-lg flex items-center justify-center text-gray-300 hover:bg-secondary/10 hover:text-secondary transition-all"
-                                                    >
-                                                        <X size={14} strokeWidth={3} />
-                                                    </button>
-                                                </div>
-                                            ))}
-                                            {(field.options || []).length === 0 && (
-                                                <p className="text-[10px] text-gray-400 italic px-2">No choices added yet. Attendees will see an empty list.</p>
+                                            {(field.name === 'state' || field.name === 'lga') ? (
+                                              <div className="flex items-center gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10 w-full">
+                                                <Info size={16} className="text-primary shrink-0" />
+                                                <p className="text-[10px] font-medium text-primary leading-relaxed">
+                                                  This field is automatically managed. Attendees will be able to select from a comprehensive list of Nigerian {field.name === 'state' ? 'States' : 'Local Government Areas'}.
+                                                </p>
+                                              </div>
+                                            ) : (
+                                              <>
+                                                {(field.options || []).map((opt, oIdx) => (
+                                                    <div key={oIdx} className="flex items-center gap-2 bg-white p-2 pl-4 rounded-xl border border-gray-100 shadow-sm group/opt transition-all hover:border-primary/30">
+                                                        <input
+                                                            type="text"
+                                                            value={opt}
+                                                            onBlur={handleBlur}
+                                                            onChange={(e) => updateFieldOption(idx, oIdx, e.target.value)}
+                                                            placeholder={`Choice ${oIdx + 1}`}
+                                                            className="bg-transparent border-none outline-none text-xs font-bold text-gray-700 w-24"
+                                                        />
+                                                        <button
+                                                            onClick={() => {
+                                                                removeFieldOption(idx, oIdx);
+                                                                handleBlur();
+                                                            }}
+                                                            className="w-6 h-6 rounded-lg flex items-center justify-center text-gray-300 hover:bg-secondary/10 hover:text-secondary transition-all"
+                                                        >
+                                                            <X size={14} strokeWidth={3} />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                                {(field.options || []).length === 0 && (
+                                                    <p className="text-[10px] text-gray-400 italic px-2">No choices added yet. Attendees will see an empty list.</p>
+                                                )}
+                                              </>
                                             )}
                                         </div>
                                     </div>
