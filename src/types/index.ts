@@ -674,6 +674,7 @@ export interface Event {
   registrationMode: RegistrationMode;
   isGroupingEnabled: boolean;
   enforceUniqueGroupNames: boolean;
+  isWaitlistEnabled?: boolean;
   isBookmarked?: boolean;
   bookmarkedAt?: string;
   createdAt: string;
@@ -821,4 +822,16 @@ export interface RefundRequest {
   resolvedAt?: string;
   createdAt: string;
   registration: Registration;
+}
+
+export interface WaitlistEntry {
+  id: string;
+  eventId: string;
+  ticketTypeId: string;
+  fullName: string;
+  email: string;
+  position: number;
+  status: 'PENDING' | 'NOTIFIED' | 'EXPIRED' | string;
+  createdAt: string;
+  ticketType?: Ticket;
 }

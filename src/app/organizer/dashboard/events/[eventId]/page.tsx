@@ -37,7 +37,7 @@ import {
 import Image from "next/image";
 import api from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
-import { Event, Analytics, StaffMember } from "@/types";
+import { Event, Analytics, StaffMember, WaitlistEntry } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
@@ -55,8 +55,10 @@ const EventDetails = () => {
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [attendees, setAttendees] = useState<{ id?: string; attendeeName?: string; attendeeEmail?: string; ticketName?: string; ticketNumber?: string; status?: string; checkInStatus?: boolean; createdAt: string; attendeeData?: Record<string, string>; checkedInBy?: { fullName: string; email: string } }[]>([]);
+  const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [attendeesLoading, setAttendeesLoading] = useState(false);
+  const [waitlistLoading, setWaitlistLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [isStaffModalOpen, setIsStaffModalOpen] = useState(false);
   const [isWalkInModalOpen, setIsWalkInModalOpen] = useState(false);
@@ -104,6 +106,24 @@ const EventDetails = () => {
         }
       };
       fetchStaff();
+    }
+  }, [activeTab, eventId]);
+
+  useEffect(() => {
+    if (activeTab === "waitlist" && eventId) {
+      const fetchWaitlist = async () => {
+        try {
+          setWaitlistLoading(true);
+          const response = await api.get(`/events/${eventId}/waitlist`);
+          setWaitlist(response.data.data || []);
+        } catch (error) {
+          console.error("Failed to fetch waitlist:", error);
+          setWaitlist([]);
+        } finally {
+          setWaitlistLoading(false);
+        }
+      };
+      fetchWaitlist();
     }
   }, [activeTab, eventId]);
 
@@ -276,6 +296,32 @@ const EventDetails = () => {
         Swal.fire('Error', translateError(error), 'error');
       } finally {
         setIsActionLoading(false);
+      }
+    }
+  };
+
+  const handleNotifyGuest = async (entry: WaitlistEntry) => {
+    const { value: message, isConfirmed } = await Swal.fire({
+      title: 'Notify Waitlisted Guest',
+      text: `Send a direct notification to ${entry.fullName}.`,
+      input: 'textarea',
+      inputPlaceholder: 'Tell them a spot has opened up...',
+      showCancelButton: true,
+      confirmButtonText: 'Send Notification',
+      confirmButtonColor: '#295FA7',
+    });
+
+    if (isConfirmed && message) {
+      try {
+        Swal.showLoading();
+        // Assuming we can use broadcast or a similar notify endpoint
+        await api.post(`/events/${eventId}/broadcast`, {
+          message,
+          recipientEmails: [entry.email]
+        });
+        Swal.fire('Sent!', 'Guest has been notified.', 'success');
+      } catch (error) {
+        Swal.fire('Error', translateError(error), 'error');
       }
     }
   };
@@ -483,7 +529,7 @@ const EventDetails = () => {
       {/* Tabs & Detailed Content */}
       <div className="space-y-6">
          <div className="flex items-center gap-2 bg-white p-1.5 rounded-2xl shadow-sm border border-gray-100 w-fit overflow-x-auto no-scrollbar">
-            {["overview", "schedule", "tickets", "attendees", "staff"].filter(t => !isStaff || t !== "staff").map(tab => (
+            {["overview", "schedule", "tickets", "attendees", "waitlist", "staff"].filter(t => !isStaff || (t !== "staff" && t !== "waitlist")).map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -1052,6 +1098,99 @@ const EventDetails = () => {
                       </div>
                     )}
                  </div>
+              </div>
+            )}
+
+            {activeTab === "waitlist" && (
+              <div className="space-y-8 animate-in fade-in duration-500">
+                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                       <h3 className="text-lg font-black text-gray-900">Event Waitlist</h3>
+                       <p className="text-xs text-gray-500 font-medium mt-1">Guests waiting for ticket tiers that are sold out.</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                       <button className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-700 font-bold text-xs rounded-xl border border-gray-100 hover:bg-gray-100 transition-all">
+                          <Download size={14} />
+                          Export Waitlist
+                       </button>
+                    </div>
+                 </div>
+
+                 {waitlistLoading ? (
+                   <div className="py-20 flex justify-center"><CustomLoader /></div>
+                 ) : (
+                   <div className="bg-white rounded-3xl border border-gray-50 overflow-hidden shadow-sm">
+                      <div className="overflow-x-auto">
+                         <table className="w-full text-left">
+                            <thead className="bg-gray-50/50 border-b border-gray-50">
+                               <tr>
+                                  <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Guest</th>
+                                  <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Requested Tier</th>
+                                  <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Position</th>
+                                  <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
+                                  <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Joined At</th>
+                                  <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>
+                               </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50">
+                               {waitlist.length > 0 ? (
+                                 waitlist.map((entry, idx) => (
+                                   <tr key={entry.id || idx} className="hover:bg-gray-50/50 transition-colors group">
+                                      <td className="px-6 py-6">
+                                         <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-black text-sm">
+                                               {entry.fullName?.[0] || 'G'}
+                                            </div>
+                                            <div>
+                                               <p className="text-sm font-bold text-gray-900">{entry.fullName}</p>
+                                               <p className="text-[10px] text-gray-400 font-medium">{entry.email}</p>
+                                            </div>
+                                         </div>
+                                      </td>
+                                      <td className="px-6 py-6">
+                                         <p className="text-sm font-bold text-gray-700">{entry.ticketType?.name || entry.ticketTypeId || "Standard Pass"}</p>
+                                      </td>
+                                      <td className="px-6 py-6">
+                                         <span className="text-sm font-black text-primary bg-primary/5 px-2.5 py-1 rounded-lg">
+                                            #{entry.position || idx + 1}
+                                         </span>
+                                      </td>
+                                      <td className="px-6 py-6">
+                                         <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${
+                                            entry.status === 'NOTIFIED' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
+                                         }`}>
+                                            {entry.status || 'PENDING'}
+                                         </span>
+                                      </td>
+                                      <td className="px-6 py-6">
+                                         <p className="text-[11px] font-bold text-gray-600">{new Date(entry.createdAt).toLocaleDateString()}</p>
+                                      </td>
+                                      <td className="px-6 py-6 text-right">
+                                         <button
+                                           onClick={() => handleNotifyGuest(entry)}
+                                           className="px-3 py-1.5 bg-blue-50 text-primary font-bold text-[10px] rounded-lg border border-blue-100 hover:bg-primary hover:text-white transition-all"
+                                         >
+                                            Notify Guest
+                                         </button>
+                                      </td>
+                                   </tr>
+                                 ))
+                               ) : (
+                                 <tr>
+                                    <td colSpan={6} className="px-6 py-20 text-center">
+                                       <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
+                                          <Clock size={32} />
+                                       </div>
+                                       <h4 className="text-lg font-bold text-gray-900">Waitlist is empty</h4>
+                                       <p className="text-gray-500 text-sm">When guests join the waitlist, they will appear here.</p>
+                                    </td>
+                                 </tr>
+                               )}
+                            </tbody>
+                         </table>
+                      </div>
+                   </div>
+                 )}
               </div>
             )}
 

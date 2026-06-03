@@ -353,6 +353,7 @@ const EditEvent = () => {
     isFeatured: false,
     status: "UPCOMING",
     agendaEnabled: false,
+    isWaitlistEnabled: false,
   });
 
   const [mediaInfo, setMediaInfo] = useState({
@@ -439,6 +440,7 @@ const EditEvent = () => {
           isFeatured: !!event.isFeatured,
           status: event.status || "UPCOMING",
           agendaEnabled: !!event.agendaEnabled,
+          isWaitlistEnabled: !!event.isWaitlistEnabled,
         });
 
         setMediaInfo({
@@ -947,6 +949,7 @@ const EditEvent = () => {
         capacity: basicInfo.capacity,
         category: basicInfo.category,
         agendaEnabled: basicInfo.agendaEnabled,
+        isWaitlistEnabled: basicInfo.isWaitlistEnabled,
         tags: basicInfo.tags.split(',').map(t => t.trim()).filter(t => t),
         speakers: speakers.map(s => ({ name: s.name, title: s.title, bio: s.bio, imageUrl: s.imageUrl })),
         registrationMode: registration.mode,
@@ -1341,6 +1344,15 @@ const EditEvent = () => {
                                    </div>
                                 </div>
                              )}
+                             <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Waitlist Feature</label>
+                                <div className="flex items-center justify-between">
+                                   <span className="text-sm font-bold text-gray-700">{basicInfo.isWaitlistEnabled ? 'Enabled' : 'Disabled'}</span>
+                                   <button onClick={() => setBasicInfo(prev => ({ ...prev, isWaitlistEnabled: !prev.isWaitlistEnabled }))} className={`w-14 h-8 rounded-full transition-all relative ${basicInfo.isWaitlistEnabled ? 'bg-primary' : 'bg-gray-300'}`}>
+                                      <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${basicInfo.isWaitlistEnabled ? 'left-7' : 'left-1'}`} />
+                                   </button>
+                                </div>
+                             </div>
                           </div>
                        </div>
 
