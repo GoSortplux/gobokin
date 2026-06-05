@@ -15,6 +15,7 @@ import {
   LayoutGrid,
   List,
   Eye,
+  MousePointer2,
   Trash2
 } from "lucide-react";
 import Image from "next/image";
@@ -217,17 +218,29 @@ const MyEvents = () => {
                   )}
 
                   <div className="space-y-3 mb-4">
-                    <div className="flex items-center gap-3 text-sm text-gray-500 font-medium">
-                      <div className="w-8 h-8 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">
-                        <Clock size={16} />
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 text-sm text-gray-500 font-medium">
+                        <div className="w-8 h-8 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">
+                          <Clock size={16} />
+                        </div>
+                        {new Date(event.startDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
                       </div>
-                      {new Date(event.startDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
+                      <div className="flex items-center gap-2 text-xs font-bold text-gray-400 bg-gray-50/50 px-2 py-1 rounded-lg">
+                        <Eye size={14} className="text-primary" />
+                        {(event.analytics?.impressions || 0).toLocaleString()}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3 text-sm text-gray-500 font-medium">
-                      <div className="w-8 h-8 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">
-                        <MapPin size={16} />
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 text-sm text-gray-500 font-medium">
+                        <div className="w-8 h-8 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">
+                          <MapPin size={16} />
+                        </div>
+                        <span className="line-clamp-1">{event.location || "Virtual Event"}</span>
                       </div>
-                      <span className="line-clamp-1">{event.location || "Virtual Event"}</span>
+                      <div className="flex items-center gap-2 text-xs font-bold text-gray-400 bg-gray-50/50 px-2 py-1 rounded-lg">
+                        <MousePointer2 size={14} className="text-secondary" />
+                        {(event.analytics?.clicks || 0).toLocaleString()}
+                      </div>
                     </div>
                   </div>
 
@@ -280,6 +293,8 @@ const MyEvents = () => {
                     <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Event Details</th>
                     <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
                     <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Date</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Impressions</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Clicks</th>
                     <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Registrations</th>
                     {!isStaff && <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Revenue</th>}
                     <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>
@@ -313,6 +328,12 @@ const MyEvents = () => {
                       <td className="px-6 py-6">
                         <p className="text-sm font-black text-gray-900">{new Date(event.startDate).toLocaleDateString()}</p>
                         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Starts 09:00 AM</p>
+                      </td>
+                      <td className="px-6 py-5 font-black text-gray-600 text-sm">
+                        {(event.analytics?.impressions || 0).toLocaleString()}
+                      </td>
+                      <td className="px-6 py-5 font-black text-gray-600 text-sm">
+                        {(event.analytics?.clicks || 0).toLocaleString()}
                       </td>
                       <td className="px-6 py-5">
                          <div className="space-y-1">

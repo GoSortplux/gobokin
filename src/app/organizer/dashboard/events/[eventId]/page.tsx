@@ -32,7 +32,9 @@ import {
   UserPlus,
   ShieldCheck,
   Mail,
-  Trash2
+  Trash2,
+  MousePointer2,
+  Percent
 } from "lucide-react";
 import Image from "next/image";
 import api from "@/services/api";
@@ -514,7 +516,11 @@ const EventDetails = () => {
           { label: "Ticket Sales", value: analytics?.orders || 0, icon: Ticket, color: "text-blue-600", bg: "bg-blue-50" },
           { label: "Revenue", value: `₦${analytics?.totalRevenue?.toLocaleString() || 0}`, icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-50" },
           { label: "Registrations", value: analytics?.registrations || 0, icon: Users, color: "text-purple-600", bg: "bg-purple-50" },
-          { label: "Page Views", value: analytics?.views || 0, icon: Eye, color: "text-amber-600", bg: "bg-amber-50" },
+          { label: "Detail Views", value: (event?.analytics?.detailViews || analytics?.views || 0).toLocaleString(), icon: Eye, color: "text-amber-600", bg: "bg-amber-50" },
+          { label: "Impressions", value: (event?.analytics?.impressions || 0).toLocaleString(), icon: Eye, color: "text-blue-600", bg: "bg-blue-50" },
+          { label: "Clicks", value: (event?.analytics?.clicks || 0).toLocaleString(), icon: MousePointer2, color: "text-emerald-600", bg: "bg-emerald-50" },
+          { label: "CTR", value: `${(event?.analytics?.ctr || 0).toFixed(2)}%`, icon: Percent, color: "text-purple-600", bg: "bg-purple-50" },
+          { label: "Click to Detail", value: `${(event?.analytics?.clickToDetailRate || 0).toFixed(2)}%`, icon: Percent, color: "text-amber-600", bg: "bg-amber-50" },
         ]).map((stat, i) => (
           <div key={i} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 group">
             <div className={`w-12 h-12 rounded-2xl ${stat.bg} ${stat.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>

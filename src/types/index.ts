@@ -558,6 +558,14 @@ export interface StaffMember {
   canRegisterGuests?: boolean;
 }
 
+export interface EventAnalytics {
+  impressions: number;
+  clicks: number;
+  detailViews: number;
+  ctr: number;
+  clickToDetailRate: number;
+}
+
 export interface GlobalDiscount {
   id: string;
   code: string;
@@ -684,6 +692,7 @@ export interface Event {
   sessions?: Session[];
   staff?: StaffMember[];
   totalRevenue?: number;
+  analytics?: EventAnalytics;
 }
 
 export interface Transaction {
