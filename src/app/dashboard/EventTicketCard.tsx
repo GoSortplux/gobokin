@@ -12,7 +12,8 @@ import {
   ExternalLink,
   Ticket as TicketIcon,
   Clock,
-  RotateCcw
+  RotateCcw,
+  MoreVertical
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "@/services/api";
@@ -47,8 +48,11 @@ interface EventTicketCardProps {
 const EventTicketCard: React.FC<EventTicketCardProps> = ({ registration, onViewDetails }) => {
   const [showCalendarOptions, setShowCalendarOptions] = useState(false);
   const [showRefundModal, setShowRefundModal] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const calendarRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   useOnClickOutside(calendarRef, () => setShowCalendarOptions(false));
+  useOnClickOutside(menuRef, () => setIsMenuOpen(false));
 
   const handleDownloadICS = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -173,16 +177,42 @@ const EventTicketCard: React.FC<EventTicketCardProps> = ({ registration, onViewD
 
           <div className="flex items-center gap-2">
             {canRequestRefund && (
-               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowRefundModal(true);
-                }}
-                className="w-10 h-10 rounded-xl bg-red-50 text-red-400 hover:text-red-600 hover:bg-red-100 transition-all flex items-center justify-center border border-red-100"
-                title="Request Refund"
-              >
-                <RotateCcw size={18} />
-              </button>
+              <div className="relative" ref={menuRef}>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsMenuOpen(!isMenuOpen);
+                  }}
+                  className="w-10 h-10 rounded-xl bg-gray-50 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all flex items-center justify-center border border-gray-100"
+                  title="More Options"
+                >
+                  <MoreVertical size={18} />
+                </button>
+
+                <AnimatePresence>
+                  {isMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                      className="absolute right-0 bottom-full mb-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-[20] overflow-hidden"
+                    >
+                      <p className="px-4 py-2 text-[9px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50 mb-1">Actions</p>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowRefundModal(true);
+                          setIsMenuOpen(false);
+                        }}
+                        className="flex items-center gap-3 w-full px-4 py-2.5 text-xs font-bold text-red-600 hover:bg-red-50 transition-colors"
+                      >
+                        <RotateCcw size={14} />
+                        Request Refund
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             )}
 
             <div className="relative" ref={calendarRef}>

@@ -1,0 +1,63 @@
+   ▲ Next.js 15.5.9
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.2:3000
+
+ ✓ Starting...
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+ ✓ Ready in 2.9s
+ ○ Compiling / ...
+ ✓ Compiled / in 15s (3785 modules)
+ GET / 200 in 17820ms
+ GET / 200 in 215ms
+ ○ Compiling /auth/login ...
+ ✓ Compiled /auth/login in 10.4s (4348 modules)
+ GET /auth/login 200 in 11664ms
+ GET /dashboard?tab=events 200 in 11813ms
+ GET /auth/login 200 in 72ms
+ GET / 200 in 390ms
+ GET /auth/login 200 in 155ms
+ GET /dashboard?tab=events 200 in 163ms
+ GET /auth/login 200 in 519ms
+ GET / 200 in 236ms
+ GET / 200 in 215ms
+ GET /dashboard 200 in 173ms
+ GET / 200 in 195ms
+ GET /dashboard 200 in 137ms
+ GET / 200 in 64ms
+ GET / 200 in 67ms
+ GET / 200 in 346ms
+ GET /dashboard 200 in 144ms
+ GET / 200 in 110ms
+ GET /auth/login 200 in 535ms
+ GET /auth/login 200 in 424ms
+ GET /auth/login 200 in 411ms
+ GET /dashboard 200 in 135ms
+ GET / 200 in 69ms
+ GET /dashboard?tab=events 200 in 156ms
+ GET /dashboard?tab=events 200 in 150ms
+ GET /dashboard?tab=events 200 in 140ms
+ GET /dashboard 200 in 154ms
+ GET /auth/login 200 in 211ms
+ GET /auth/login 200 in 212ms
+ GET /auth/login 200 in 236ms
+ GET /auth/login 200 in 204ms
+ GET /auth/login 200 in 214ms
+ GET /auth/login 200 in 225ms
+ GET /dashboard 200 in 134ms
+ GET /auth/login 200 in 225ms
+ GET /auth/login 200 in 212ms
+ GET /auth/login 200 in 239ms
+ GET /auth/login 200 in 272ms
+ GET /auth/login 200 in 263ms
+ GET /auth/login 200 in 249ms
+ GET /dashboard 200 in 140ms
+ GET /auth/login 200 in 294ms
+ GET /auth/login 200 in 289ms
+ GET /auth/login 200 in 257ms
+ GET /auth/login 200 in 237ms
+ GET /auth/login 200 in 324ms
+ GET /auth/login 200 in 229ms
