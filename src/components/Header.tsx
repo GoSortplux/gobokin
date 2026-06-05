@@ -165,7 +165,7 @@ const Header = () => {
           <div className="hidden lg:flex items-center space-x-4">
             <Link
               href="/events"
-              className="px-4 py-2 text-sm font-medium text-white rounded-md shadow-sm bg-primary hover:bg-primary/90 transition-all duration-300"
+              className="px-4 py-2 text-sm font-medium text-white rounded-xl shadow-sm bg-primary hover:bg-primary/90 transition-all duration-300"
             >
               Explore Events
             </Link>
