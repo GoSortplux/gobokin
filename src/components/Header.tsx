@@ -6,7 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import api from "@/services/api";
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronRight, LogOut, LayoutDashboard, UserCircle, Plus, User as UserIcon, ChevronDown, Users } from "lucide-react";
+import { Menu, X, ChevronRight, LogOut, LayoutDashboard, UserCircle, Plus, User as UserIcon, ChevronDown, Users, Calendar } from "lucide-react";
 import useOnClickOutside from "@/hooks/useOnClickOutside";
 import useScroll from "@/hooks/useScroll";
 import CollapsedSearchBar from "./CollapsedSearchBar";
@@ -163,6 +163,12 @@ const Header = () => {
           )}
 
           <div className="hidden lg:flex items-center space-x-4">
+            <Link
+              href="/events"
+              className="px-4 py-2 text-sm font-medium text-white rounded-md shadow-sm bg-primary hover:bg-primary/90 transition-all duration-300"
+            >
+              Explore Events
+            </Link>
             {renderBecomeOwnerButton()}
             {message && <p>{message}</p>}
             {loading ? (
@@ -381,6 +387,17 @@ const Header = () => {
                     {/* Nav Links */}
                     <nav id="mobile-nav" className="space-y-2">
                       <Link
+                        href="/events"
+                        className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors group"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <Calendar className="w-5 h-5 text-gray-500 group-hover:text-primary" />
+                          <span className="font-medium text-gray-700 group-hover:text-primary">Explore Events</span>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-gray-400" />
+                      </Link>
+
+                      <Link
                         href={dashboardUrl}
                         className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors group"
                       >
@@ -435,6 +452,16 @@ const Header = () => {
                 ) : (
                   <div className="space-y-4">
                     <p className="text-gray-600 text-sm">Log in to book venues and manage your reservations.</p>
+                    <Link
+                      href="/events"
+                      className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors group"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <Calendar className="w-5 h-5 text-gray-500 group-hover:text-primary" />
+                        <span className="font-medium text-gray-700 group-hover:text-primary">Explore Events</span>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-gray-400" />
+                    </Link>
                     <Link
                       href="/auth/login"
                       className="block w-full py-3 text-center bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20"
