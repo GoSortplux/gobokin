@@ -79,9 +79,22 @@ const MyEvents = () => {
     }
   };
 
+  const getEffectiveStatus = (event: Event) => {
+    if (event.status === "CANCELLED") return "CANCELLED";
+
+    const now = new Date();
+    const start = new Date(event.startDate);
+    const end = new Date(event.endDate);
+
+    if (now < start) return "UPCOMING";
+    if (now >= start && now <= end) return "ONGOING";
+    return "COMPLETED";
+  };
+
   const filteredEvents = events.filter(event => {
     const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = activeFilter === "ALL" || event.status === activeFilter;
+    const effectiveStatus = getEffectiveStatus(event);
+    const matchesFilter = activeFilter === "ALL" || effectiveStatus === activeFilter;
     return matchesSearch && matchesFilter;
   });
 
@@ -197,8 +210,8 @@ const MyEvents = () => {
                     </div>
                   )}
                   <div className="absolute top-4 left-4">
-                    <span className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider ${getStatusColor(event.status)}`}>
-                      {event.status}
+                    <span className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider ${getStatusColor(getEffectiveStatus(event))}`}>
+                      {getEffectiveStatus(event)}
                     </span>
                   </div>
                   <div className="absolute top-4 right-4 flex items-center gap-2">
@@ -321,8 +334,8 @@ const MyEvents = () => {
                         </div>
                       </td>
                       <td className="px-6 py-5">
-                        <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${getStatusColor(event.status)}`}>
-                          {event.status}
+                        <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${getStatusColor(getEffectiveStatus(event))}`}>
+                          {getEffectiveStatus(event)}
                         </span>
                       </td>
                       <td className="px-6 py-6">

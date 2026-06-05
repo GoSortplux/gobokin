@@ -68,6 +68,18 @@ const EventDetails = () => {
   const [suspendConfig, setSuspendConfig] = useState<{ type: "event" | "ticket"; title: string; ticketId?: string }>({ type: "event", title: "" });
   const [isActionLoading, setIsActionLoading] = useState(false);
 
+  const getEffectiveStatus = (event: Event) => {
+    if (event.status === "CANCELLED") return "CANCELLED";
+
+    const now = new Date();
+    const start = new Date(event.startDate);
+    const end = new Date(event.endDate);
+
+    if (now < start) return "UPCOMING";
+    if (now >= start && now <= end) return "ONGOING";
+    return "COMPLETED";
+  };
+
   useEffect(() => {
     const fetchEventData = async () => {
       try {
@@ -484,7 +496,7 @@ const EventDetails = () => {
            <div className="flex-1 text-center lg:text-left space-y-4">
              <div className="flex items-center justify-center lg:justify-start gap-2 text-xs font-black text-primary uppercase tracking-widest bg-blue-50 px-3 py-1.5 rounded-xl w-fit">
                <CheckCircle2 size={14} />
-               {event.status}
+               {getEffectiveStatus(event)}
              </div>
              <h1 className="text-3xl lg:text-4xl font-black text-primary tracking-tight">{event.title}</h1>
              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-6 text-gray-500 font-medium">
