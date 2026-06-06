@@ -307,12 +307,14 @@ const HostEventPage = () => {
   const handleFinalize = () => {
     const isOrganizer = user?.role?.includes('organizer');
     if (!user) {
-        localStorage.setItem("gobokin_host_event_resume", "true");
-        localStorage.setItem("returnUrl", "/apply-organizer");
+        localStorage.setItem("gobokin_event_creation_draft_auto_resume", "true");
+        localStorage.setItem("gobokin_is_first_event_flow", "true");
+        localStorage.setItem("returnUrl", "/organizer/dashboard/events/create");
         router.push("/auth/register");
     } else if (!isOrganizer) {
-        localStorage.setItem("gobokin_host_event_resume", "true");
-        router.push("/apply-organizer");
+        localStorage.setItem("gobokin_event_creation_draft_auto_resume", "true");
+        localStorage.setItem("gobokin_is_first_event_flow", "true");
+        router.push("/organizer/dashboard/events/create");
     } else {
         localStorage.setItem("gobokin_event_creation_draft_auto_resume", "true");
         router.push("/organizer/dashboard/events/create");

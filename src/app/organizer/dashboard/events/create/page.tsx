@@ -46,6 +46,7 @@ import { useEffect } from "react";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 import { AgendaItem, EventType, RegistrationMode, RegistrationField, Speaker, TicketType, Ticket as ITicket } from "@/types";
+import { useAuth } from "@/context/AuthContext";
 
 const steps = [
   { id: 1, title: "Event Details", icon: Info },
@@ -332,6 +333,7 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, sessions, tickets, agenda
 
 const CreateEvent = () => {
   const router = useRouter();
+  const { updateToken } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [subStep, setSubStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -1210,6 +1212,20 @@ const CreateEvent = () => {
               confirmButtonColor: "#295FA7",
           });
           clearDraft();
+
+          const isFirstEventFlow = localStorage.getItem('gobokin_is_first_event_flow') === 'true';
+          if (isFirstEventFlow) {
+              try {
+                  const refreshRes = await api.post('/auth/refresh-token');
+                  if (refreshRes.data?.data?.accessToken) {
+                      updateToken(refreshRes.data.data.accessToken, null);
+                  }
+              } catch (e) {
+                  console.error("Token refresh failed", e);
+              }
+              localStorage.setItem('gobokin_show_profile_update_modal', 'true');
+          }
+
           router.push(`/organizer/dashboard/events/${eventId}`);
       } catch (_error) {
           console.error("Failed to create sessions:", _error);
