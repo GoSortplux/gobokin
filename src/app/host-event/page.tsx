@@ -31,6 +31,7 @@ import api from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
 import { EventType, RegistrationMode, Speaker } from "@/types";
 import Swal from "@/utils/sweetalert";
+import { translateError } from "@/utils/errors";
 
 const steps = [
   { id: 1, title: "Identity", icon: Type },
@@ -210,8 +211,10 @@ const HostEventPage = () => {
   const [categories, setCategories] = useState<string[]>([]);
   const [showPreview, setShowPreview] = useState(true);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [isFinalizing, setIsFinalizing] = useState(false);
 
   const [formData, setFormData] = useState({
+    eventId: null as string | null,
     basicInfo: {
       title: "",
       slug: "",
@@ -304,23 +307,80 @@ const HostEventPage = () => {
     }
   };
 
-  const handleFinalize = () => {
+  const handleFinalize = async () => {
     const isOrganizer = user?.role?.includes('organizer');
-    // Save draft one last time before redirecting
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
 
     if (!user) {
+        // Save draft one last time before redirecting
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
         localStorage.setItem("gobokin_event_creation_draft_auto_resume", "true");
         localStorage.setItem("gobokin_is_first_event_flow", "true");
         localStorage.setItem("returnUrl", "/organizer/dashboard/events/create");
         router.push("/auth/register");
-    } else if (!isOrganizer) {
+        return;
+    }
+
+    setIsFinalizing(true);
+    Swal.showLoading();
+
+    try {
+        const payload: Record<string, any> = {
+            title: formData.basicInfo.title,
+            description: formData.basicInfo.description,
+            isPublic: formData.basicInfo.isPublic,
+            type: formData.basicInfo.type,
+            startDate: formData.basicInfo.startDate ? new Date(formData.basicInfo.startDate).toISOString() : undefined,
+            endDate: formData.basicInfo.endDate ? new Date(formData.basicInfo.endDate).toISOString() : undefined,
+            location: formData.basicInfo.type === 'ONLINE' ? 'Virtual' : (formData.basicInfo.location || 'Virtual'),
+            virtualLink: formData.basicInfo.virtualLink || undefined,
+            capacity: formData.basicInfo.capacity,
+            category: formData.basicInfo.category,
+            tags: (formData.basicInfo.tags || "").split(',').map(tag => tag.trim()).filter(tag => tag !== ""),
+            agendaEnabled: formData.basicInfo.agendaEnabled,
+            registrationMode: formData.registration.mode,
+            status: "DRAFT",
+            // Default registration fields as expected by the dashboard
+            registrationFields: [
+                { name: "full-name", label: "Full Name", type: "text", required: true, isPerAttendee: true },
+                { name: "email", label: "Email Address", type: "text", required: true, isPerAttendee: true },
+                { name: "country", label: "Country", type: "select", source: "COUNTRIES", required: true, isPerAttendee: true },
+                { name: "state", label: "State", type: "select", source: "STATES", dependsOn: "country", required: true, isPerAttendee: true },
+                { name: "lga", label: "LGA", type: "select", source: "LGAS", dependsOn: "state", required: true, isPerAttendee: true },
+            ],
+            speakers: formData.speakers.map(s => ({
+                name: s.name,
+                title: s.title,
+                bio: s.bio,
+                imageUrl: s.imageUrl
+            }))
+        };
+
+        const response = await api.post("/events", payload);
+        const eventId = response.data.data.id;
+
+        // Update draft with eventId
+        const updatedDraft = { ...formData, eventId };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedDraft));
         localStorage.setItem("gobokin_event_creation_draft_auto_resume", "true");
-        localStorage.setItem("gobokin_is_first_event_flow", "true");
+
+        if (!isOrganizer) {
+            localStorage.setItem("gobokin_is_first_event_flow", "true");
+        }
+
+        Swal.fire({
+            title: 'Event Initialized!',
+            text: 'Redirecting to your dashboard to complete the setup.',
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false
+        });
+
         router.push("/organizer/dashboard/events/create");
-    } else {
-        localStorage.setItem("gobokin_event_creation_draft_auto_resume", "true");
-        router.push("/organizer/dashboard/events/create");
+    } catch (error) {
+        console.error("Failed to initialize event:", error);
+        Swal.fire("Error", translateError(error), "error");
+    } finally {
+        setIsFinalizing(false);
     }
   };
 
@@ -651,9 +711,10 @@ const HostEventPage = () => {
               </button>
               <button
                 onClick={handleNext}
-                className="flex items-center gap-3 bg-primary text-white font-semibold px-10 py-4 rounded-xl hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95"
+                disabled={isFinalizing}
+                className={`flex items-center gap-3 bg-primary text-white font-semibold px-10 py-4 rounded-xl hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95 ${isFinalizing ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
-                <span>{currentStep === 4 ? "Register to Finalize Event" : "Next Step"}</span>
+                <span>{currentStep === 4 ? (user ? "Finalize & Continue" : "Register to Finalize Event") : "Next Step"}</span>
                 <ArrowRight size={18} />
               </button>
             </div>

@@ -634,6 +634,9 @@ const CreateEvent = () => {
                     fields: Array.isArray(draft.registration.fields) ? draft.registration.fields : prev.fields
                 }));
             }
+            if (draft.eventId) {
+                setEventId(draft.eventId);
+            }
 
             // For hosting draft resume, we jump to step 1, sub-step 5 (Media)
             setCurrentStep(1);
