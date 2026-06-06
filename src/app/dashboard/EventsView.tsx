@@ -12,6 +12,7 @@ import RefundsView from "./RefundsView";
 
 interface Registration {
   id: string;
+  orderId: string;
   ticketNumber: string;
   paymentStatus: string;
   createdAt: string;

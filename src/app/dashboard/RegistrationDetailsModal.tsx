@@ -1,9 +1,11 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { X, Calendar, MapPin, Ticket, User, Mail, Phone, Info, Clock, ExternalLink, RotateCcw } from "lucide-react";
+import { X, Calendar, MapPin, Ticket, User, Mail, Phone, Info, Clock, ExternalLink, RotateCcw, CreditCard } from "lucide-react";
 import api from "@/services/api";
 import { Event } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
+import Swal from "@/utils/sweetalert";
+import { translateError } from "@/utils/errors";
 import RefundRequestModal from "@/components/RefundRequestModal";
 import Image from "next/image";
 import { format } from "date-fns";
@@ -17,6 +19,32 @@ const RegistrationDetailsModal: React.FC<RegistrationDetailsModalProps> = ({ reg
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [showRefundModal, setShowRefundModal] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+
+  const handlePayNow = async () => {
+    if (!registration.orderId) {
+      Swal.fire("Error", "Order ID missing for this registration.", "error");
+      return;
+    }
+
+    try {
+      setIsProcessingPayment(true);
+      Swal.showLoading();
+      const response = await api.get(`/events/orders/${registration.orderId}/checkout`);
+      const checkoutUrl = response.data.data.checkoutUrl;
+
+      if (checkoutUrl) {
+        window.location.href = checkoutUrl;
+      } else {
+        throw new Error("Checkout URL not found.");
+      }
+    } catch (error) {
+      console.error("Failed to fetch checkout URL:", error);
+      Swal.fire("Error", translateError(error), "error");
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
 
   useEffect(() => {
     const fetchEventDetails = async () => {
@@ -40,7 +68,8 @@ const RegistrationDetailsModal: React.FC<RegistrationDetailsModalProps> = ({ reg
   const eventDate = new Date(registration.event.startDate);
   const hasStarted = eventDate < new Date();
   const isFree = Number(registration.ticket.price) === 0;
-  const canRequestRefund = !hasStarted && !isFree && registration.paymentStatus === 'PAID';
+  const isPaid = registration.paymentStatus === 'PAID';
+  const canRequestRefund = !hasStarted && !isFree && isPaid;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -173,8 +202,22 @@ const RegistrationDetailsModal: React.FC<RegistrationDetailsModalProps> = ({ reg
                    </div>
 
                    <div className="w-full pt-8 border-t border-gray-100 space-y-3">
+                      {!isPaid && !isFree && (
+                        <button
+                          onClick={handlePayNow}
+                          disabled={isProcessingPayment}
+                          className="w-full bg-amber-500 text-white font-black py-4 rounded-2xl text-xs uppercase tracking-widest shadow-xl shadow-amber-500/20 hover:brightness-110 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                        >
+                          <CreditCard size={14} />
+                          {isProcessingPayment ? 'Processing...' : 'Complete Payment Now'}
+                        </button>
+                      )}
+
                       <div className="flex gap-4">
-                        <button className="flex-1 bg-primary text-white font-black py-4 rounded-2xl text-xs uppercase tracking-widest shadow-xl shadow-primary/20 hover:brightness-110 transition-all">
+                        <button
+                          disabled={!isPaid && !isFree}
+                          className="flex-1 bg-primary text-white font-black py-4 rounded-2xl text-xs uppercase tracking-widest shadow-xl shadow-primary/20 hover:brightness-110 transition-all disabled:opacity-50"
+                        >
                           Download PDF
                         </button>
                         <button className="flex-1 bg-gray-50 text-gray-900 font-black py-4 rounded-2xl text-xs uppercase tracking-widest border border-gray-100 hover:bg-gray-100 transition-all">

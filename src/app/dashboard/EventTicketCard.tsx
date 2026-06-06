@@ -12,16 +12,19 @@ import {
   ExternalLink,
   Ticket as TicketIcon,
   Clock,
-  RotateCcw
+  RotateCcw,
+  CreditCard
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "@/services/api";
 import Swal from "@/utils/sweetalert";
+import { translateError } from "@/utils/errors";
 import useOnClickOutside from "@/hooks/useOnClickOutside";
 import RefundRequestModal from "@/components/RefundRequestModal";
 
 interface Registration {
   id: string;
+  orderId: string;
   ticketNumber: string;
   paymentStatus: string;
   createdAt: string;
@@ -47,8 +50,37 @@ interface EventTicketCardProps {
 const EventTicketCard: React.FC<EventTicketCardProps> = ({ registration, onViewDetails }) => {
   const [showCalendarOptions, setShowCalendarOptions] = useState(false);
   const [showRefundModal, setShowRefundModal] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const calendarRef = useRef<HTMLDivElement>(null);
   useOnClickOutside(calendarRef, () => setShowCalendarOptions(false));
+
+  const handlePayNow = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!registration.orderId) {
+      Swal.fire("Error", "Order ID missing for this registration.", "error");
+      return;
+    }
+
+    try {
+      setIsProcessingPayment(true);
+      Swal.showLoading();
+      const response = await api.get(`/events/orders/${registration.orderId}/checkout`);
+      const checkoutUrl = response.data.data.checkoutUrl;
+
+      if (checkoutUrl) {
+        window.location.href = checkoutUrl;
+      } else {
+        throw new Error("Checkout URL not found.");
+      }
+    } catch (error) {
+      console.error("Failed to fetch checkout URL:", error);
+      Swal.fire("Error", translateError(error), "error");
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
 
   const handleDownloadICS = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -110,12 +142,23 @@ const EventTicketCard: React.FC<EventTicketCardProps> = ({ registration, onViewD
         )}
 
         {/* Status Badge */}
-        <div className="absolute top-4 right-4">
+        <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
           <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
             isPaid ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-amber-500 text-white shadow-lg shadow-amber-500/20'
           }`}>
             {registration.paymentStatus}
           </div>
+
+          {!isPaid && !isFree && (
+             <button
+              onClick={handlePayNow}
+              disabled={isProcessingPayment}
+              className="px-3 py-1.5 rounded-lg bg-white text-amber-600 text-[9px] font-black uppercase tracking-widest shadow-xl border border-amber-100 hover:bg-amber-50 transition-all flex items-center gap-1.5 disabled:opacity-50"
+            >
+              <CreditCard size={12} />
+              {isProcessingPayment ? '...' : 'Pay Now'}
+            </button>
+          )}
         </div>
 
         {/* Date Badge */}
