@@ -306,6 +306,9 @@ const HostEventPage = () => {
 
   const handleFinalize = () => {
     const isOrganizer = user?.role?.includes('organizer');
+    // Save draft one last time before redirecting
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
+
     if (!user) {
         localStorage.setItem("gobokin_event_creation_draft_auto_resume", "true");
         localStorage.setItem("gobokin_is_first_event_flow", "true");

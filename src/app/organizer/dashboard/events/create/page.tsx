@@ -615,16 +615,35 @@ const CreateEvent = () => {
     if (autoResume === "true" && hostingDraft) {
         try {
             const draft = JSON.parse(hostingDraft);
-            if (draft.basicInfo) setBasicInfo(prev => ({ ...prev, ...draft.basicInfo }));
-            if (draft.speakers) setSpeakers(draft.speakers);
-            if (draft.registration) setRegistration(prev => ({ ...prev, ...draft.registration }));
+            if (draft.basicInfo) {
+              setBasicInfo(prev => ({
+                ...prev,
+                ...draft.basicInfo,
+                tags: Array.isArray(draft.basicInfo.tags) ? draft.basicInfo.tags.join(', ') : draft.basicInfo.tags
+              }));
+            }
+            if (draft.speakers && Array.isArray(draft.speakers)) {
+                setSpeakers(draft.speakers);
+            }
+            if (draft.registration) {
+                setRegistration(prev => ({
+                    ...prev,
+                    mode: draft.registration.mode || prev.mode,
+                    isGroupingEnabled: draft.registration.isGroupingEnabled !== undefined ? draft.registration.isGroupingEnabled : prev.isGroupingEnabled,
+                    enforceUniqueGroupNames: draft.registration.enforceUniqueGroupNames !== undefined ? draft.registration.enforceUniqueGroupNames : prev.enforceUniqueGroupNames,
+                    fields: Array.isArray(draft.registration.fields) ? draft.registration.fields : prev.fields
+                }));
+            }
 
             // For hosting draft resume, we jump to step 1, sub-step 5 (Media)
             setCurrentStep(1);
             setSubStep(5);
 
             localStorage.removeItem(AUTOSAVE_KEY + "_auto_resume");
-            localStorage.removeItem("gobokin_hosting_draft");
+            // We delay removal to ensure it's loaded if component remounts briefly
+            setTimeout(() => {
+                localStorage.removeItem("gobokin_hosting_draft");
+            }, 5000);
 
             Swal.toast.fire({
                 icon: "success",
