@@ -54,6 +54,14 @@ const EventDetailClient = () => {
     return "ACTIVE";
   };
 
+  const handleNextTicket = () => {
+    if (!event?.tickets || event.tickets.length <= 1) return;
+    const currentIndex = event.tickets.findIndex(t => t.id === selectedTicket?.id);
+    const nextIndex = (currentIndex + 1) % event.tickets.length;
+    setSelectedTicket(event.tickets[nextIndex]);
+    setQuantity(1);
+  };
+
   useEffect(() => {
     const fetchWaitlistStatus = async () => {
       if (!user) return;
@@ -506,7 +514,15 @@ const EventDetailClient = () => {
                                  <p className="text-[9px] font-semibold text-primary uppercase tracking-widest mt-1">{selectedTicket?.type || "Pending Selection"}</p>
                               </div>
                            </div>
-                           <ChevronRight size={18} className="text-gray-400 group-hover:translate-x-1 transition-transform" />
+                           <div
+                              className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white hover:shadow-sm transition-all group/btn"
+                              onClick={(e) => {
+                                 e.stopPropagation();
+                                 handleNextTicket();
+                              }}
+                           >
+                              <ChevronRight size={18} className="text-gray-400 group-hover/btn:translate-x-0.5 group-hover/btn:text-primary transition-all" />
+                           </div>
                         </div>
                      </div>
 
