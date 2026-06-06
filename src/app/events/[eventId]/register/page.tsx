@@ -284,7 +284,6 @@ const RegistrationForm = () => {
 
         // Initialize payment
         const paymentRes = await api.post("/events/payments/initialize", {
-           orderId: orderData.order.id,
            registrationIds: registrationIds
         });
 
