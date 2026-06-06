@@ -70,6 +70,36 @@ const RegistrationForm = () => {
         setTicket(selectedTicket || null);
 
         if (selectedTicket) {
+          const now = new Date();
+          const sStart = selectedTicket.salesStart ? new Date(selectedTicket.salesStart) : null;
+          const sEnd = selectedTicket.salesEnd ? new Date(selectedTicket.salesEnd) : null;
+
+          if (sStart && now < sStart) {
+            Swal.fire({
+              title: "Sale Not Started",
+              text: "The ticket sale for this event has not yet started.",
+              icon: "info",
+              confirmButtonText: "Return to Event",
+              confirmButtonColor: "#295FA7",
+            }).then(() => {
+              router.push(`/events/${eventId}`);
+            });
+            return;
+          }
+
+          if (sEnd && now > sEnd) {
+            Swal.fire({
+              title: "Sale Ended",
+              text: "The ticket sale for this event has ended.",
+              icon: "warning",
+              confirmButtonText: "Return to Event",
+              confirmButtonColor: "#295FA7",
+            }).then(() => {
+              router.push(`/events/${eventId}`);
+            });
+            return;
+          }
+
           const maxLimit = Math.min(
             selectedTicket.availableQuantity || 0,
             selectedTicket.maxPerOrder && selectedTicket.maxPerOrder > 0 ? selectedTicket.maxPerOrder : Infinity

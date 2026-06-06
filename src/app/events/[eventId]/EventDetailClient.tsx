@@ -43,6 +43,17 @@ const EventDetailClient = () => {
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState("overview");
 
+  const getTicketSalesStatus = (ticket: TicketType | null) => {
+    if (!ticket) return "INACTIVE";
+    const now = new Date();
+    const salesStart = ticket.salesStart ? new Date(ticket.salesStart) : null;
+    const salesEnd = ticket.salesEnd ? new Date(ticket.salesEnd) : null;
+
+    if (salesStart && now < salesStart) return "UPCOMING";
+    if (salesEnd && now > salesEnd) return "ENDED";
+    return "ACTIVE";
+  };
+
   useEffect(() => {
     const fetchWaitlistStatus = async () => {
       if (!user) return;
@@ -58,9 +69,20 @@ const EventDetailClient = () => {
       try {
         setLoading(true);
         const response = await api.get(`/events/${eventId}`);
-        setEvent(response.data.data);
-        if (response.data.data.tickets && response.data.data.tickets.length > 0) {
-          setSelectedTicket(response.data.data.tickets[0]);
+        const eventData = response.data.data;
+        setEvent(eventData);
+
+        const tickets = eventData.tickets || [];
+        if (tickets.length > 0) {
+          const now = new Date();
+          const firstAvailable = tickets.find((t: TicketType) => {
+            const isTicketSoldOut = t.isSoldOut || (t.remainingTickets !== undefined && t.remainingTickets <= 0) || (t.availableQuantity !== undefined && t.availableQuantity <= 0);
+            const sStart = t.salesStart ? new Date(t.salesStart) : null;
+            const sEnd = t.salesEnd ? new Date(t.salesEnd) : null;
+            const isCurrentlyOnSale = (!sStart || now >= sStart) && (!sEnd || now <= sEnd);
+            return !isTicketSoldOut && isCurrentlyOnSale;
+          });
+          setSelectedTicket(firstAvailable || tickets[0]);
         }
       } catch (error) {
         console.error("Failed to fetch event details:", error);
@@ -370,11 +392,12 @@ const EventDetailClient = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                            {event.tickets && event.tickets.map((ticket) => {
                              const isTicketSoldOut = ticket.isSoldOut || (ticket.remainingTickets !== undefined && ticket.remainingTickets <= 0) || (ticket.availableQuantity !== undefined && ticket.availableQuantity <= 0);
+                             const ticketStatus = getTicketSalesStatus(ticket);
+
                              return (
                                <button
                                  key={ticket.id}
                                  onClick={() => !isTicketSoldOut && setSelectedTicket(ticket)}
-                                 disabled={isTicketSoldOut}
                                  className={`p-6 rounded-2xl text-left border transition-all duration-500 relative overflow-hidden group ${
                                    selectedTicket?.id === ticket.id
                                      ? "border-primary bg-primary/5 shadow-sm"
@@ -384,14 +407,27 @@ const EventDetailClient = () => {
                                  }`}
                                >
                                   <div className="flex items-center justify-between mb-6">
-                                     <div className="flex gap-2">
+                                     <div className="flex flex-wrap gap-2">
                                        <div className={`px-4 py-1.5 rounded-xl text-[9px] font-semibold uppercase tracking-widest ${ticket.type === 'FREE' ? 'bg-gray-100 text-gray-600' : 'bg-emerald-100 text-emerald-700'}`}>
                                           {ticket.type} PASS
                                        </div>
-                                       {isTicketSoldOut && (
+                                       {isTicketSoldOut ? (
                                          <div className="px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-rose-100 text-rose-600">
                                             SOLD OUT
                                          </div>
+                                       ) : (
+                                          <>
+                                            {ticketStatus === "UPCOMING" && (
+                                              <div className="px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-amber-100 text-amber-700">
+                                                STARTING SOON
+                                              </div>
+                                            )}
+                                            {ticketStatus === "ENDED" && (
+                                              <div className="px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-gray-100 text-gray-600">
+                                                SALES ENDED
+                                              </div>
+                                            )}
+                                          </>
                                        )}
                                      </div>
                                      {selectedTicket?.id === ticket.id && !isTicketSoldOut && (
@@ -523,35 +559,51 @@ const EventDetailClient = () => {
                   </div>
 
                   <div className="space-y-3 relative z-10">
-                     {((event.isSoldOut || event.availabilityStatus === 'SOLD_OUT') || (selectedTicket && (selectedTicket.isSoldOut || (selectedTicket.remainingTickets !== undefined && selectedTicket.remainingTickets <= 0)))) && event.isWaitlistEnabled ? (
-                       <button
-                         onClick={() => {
-                           if (waitlistStatus) {
-                             router.push('/dashboard?tab=waitlists');
-                           } else if (selectedTicket) {
-                             handleJoinWaitlist(selectedTicket);
-                           }
-                         }}
-                         disabled={isJoiningWaitlist || !selectedTicket}
-                         className="w-full font-semibold py-5 rounded-2xl transition-all flex items-center justify-center gap-3 text-lg group bg-rose-600 text-white shadow-xl shadow-rose-600/20 hover:brightness-110"
-                       >
-                         {isJoiningWaitlist ? 'Joining...' : waitlistStatus ? `Waitlisted (Pos: #${waitlistStatus.position})` : 'Join Waitlist'}
-                         <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform" />
-                       </button>
-                     ) : (
-                       <button
-                          onClick={handleRegister}
-                          disabled={!selectedTicket || event.isSoldOut || event.availabilityStatus === 'SOLD_OUT' || (selectedTicket && (selectedTicket.isSoldOut || (selectedTicket.remainingTickets !== undefined && selectedTicket.remainingTickets <= 0)))}
-                          className={`w-full font-semibold py-5 rounded-2xl transition-all flex items-center justify-center gap-3 text-lg group ${
-                             (event.isSoldOut || event.availabilityStatus === 'SOLD_OUT' || (selectedTicket && (selectedTicket.isSoldOut || (selectedTicket.remainingTickets !== undefined && selectedTicket.remainingTickets <= 0))))
-                             ? 'bg-rose-600 text-white shadow-xl shadow-rose-600/20'
-                             : 'bg-primary text-white hover:brightness-110 shadow-xl shadow-primary/20 disabled:opacity-50 disabled:grayscale'
-                          }`}
-                       >
-                          {(event.isSoldOut || event.availabilityStatus === 'SOLD_OUT' || (selectedTicket && (selectedTicket.isSoldOut || (selectedTicket.remainingTickets !== undefined && selectedTicket.remainingTickets <= 0)))) ? 'SOLD OUT' : 'Claim your Ticket'}
-                          {!event.isSoldOut && event.availabilityStatus !== 'SOLD_OUT' && !(selectedTicket && (selectedTicket.isSoldOut || (selectedTicket.remainingTickets !== undefined && selectedTicket.remainingTickets <= 0))) && <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform" />}
-                       </button>
-                     )}
+                     {(() => {
+                        const isTicketSoldOut = (event.isSoldOut || event.availabilityStatus === 'SOLD_OUT') || (selectedTicket && (selectedTicket.isSoldOut || (selectedTicket.remainingTickets !== undefined && selectedTicket.remainingTickets <= 0)));
+                        const ticketStatus = getTicketSalesStatus(selectedTicket);
+                        const isNotOnSale = ticketStatus !== "ACTIVE";
+
+                        if (isTicketSoldOut && event.isWaitlistEnabled) {
+                          return (
+                            <button
+                              onClick={() => {
+                                if (waitlistStatus) {
+                                  router.push('/dashboard?tab=waitlists');
+                                } else if (selectedTicket) {
+                                  handleJoinWaitlist(selectedTicket);
+                                }
+                              }}
+                              disabled={isJoiningWaitlist || !selectedTicket}
+                              className="w-full font-semibold py-5 rounded-2xl transition-all flex items-center justify-center gap-3 text-lg group bg-rose-600 text-white shadow-xl shadow-rose-600/20 hover:brightness-110"
+                            >
+                              {isJoiningWaitlist ? 'Joining...' : waitlistStatus ? `Waitlisted (Pos: #${waitlistStatus.position})` : 'Join Waitlist'}
+                              <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform" />
+                            </button>
+                          );
+                        }
+
+                        return (
+                          <button
+                             onClick={handleRegister}
+                             disabled={!selectedTicket || isTicketSoldOut || isNotOnSale}
+                             className={`w-full font-semibold py-5 rounded-2xl transition-all flex items-center justify-center gap-3 text-lg group ${
+                                (isTicketSoldOut || isNotOnSale)
+                                ? 'bg-rose-600 text-white shadow-xl shadow-rose-600/20'
+                                : 'bg-primary text-white hover:brightness-110 shadow-xl shadow-primary/20 disabled:opacity-50 disabled:grayscale'
+                             }`}
+                          >
+                             {isTicketSoldOut
+                                ? 'SOLD OUT'
+                                : ticketStatus === 'UPCOMING'
+                                  ? 'Ticket sale has not started'
+                                  : ticketStatus === 'ENDED'
+                                    ? 'Sales Ended'
+                                    : 'Claim your Ticket'}
+                             {!isTicketSoldOut && ticketStatus === 'ACTIVE' && <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform" />}
+                          </button>
+                        );
+                     })()}
 
                      <div className="flex items-center gap-2 justify-center pt-2">
                         <button
