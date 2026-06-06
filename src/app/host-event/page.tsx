@@ -338,7 +338,6 @@ const HostEventPage = () => {
             tags: (formData.basicInfo.tags || "").split(',').map(tag => tag.trim()).filter(tag => tag !== ""),
             agendaEnabled: formData.basicInfo.agendaEnabled,
             registrationMode: formData.registration.mode,
-            status: "DRAFT",
             // Default registration fields as expected by the dashboard
             registrationFields: [
                 { name: "full-name", label: "Full Name", type: "text", required: true, isPerAttendee: true },
