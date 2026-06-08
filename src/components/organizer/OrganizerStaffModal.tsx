@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, User, Mail, Shield, Lock, Phone } from 'lucide-react';
+import { X, User, Mail, Lock, Phone } from 'lucide-react';
 
 interface StaffModalProps {
   isOpen: boolean;

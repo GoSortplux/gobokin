@@ -37,7 +37,7 @@ import api from "@/services/api";
 import axios from "axios";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
-import { AgendaItem, EventType, RegistrationMode, RegistrationField, Speaker, TicketType } from "@/types";
+import { AgendaItem, EventType, RegistrationMode, RegistrationField, Speaker, TicketType, Ticket as ITicket } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 
 const steps = [
@@ -395,7 +395,7 @@ const EditEvent = () => {
     salesStart?: string;
     salesEnd?: string;
     isOffline?: boolean;
-    quantityDiscounts?: { minQuantity: number; price: number }[];
+    quantityDiscounts?: { minQuantity: number; price: number; discountPercentage?: number }[];
   }[]>([]);
 
   const [registration, setRegistration] = useState({
@@ -449,12 +449,12 @@ const EditEvent = () => {
           socialImage: event.socialImage || "",
         });
 
-        setSpeakers((event.speakers || []).map((s: any) => ({
+        setSpeakers((event.speakers || []).map((s: Speaker & { _id?: string }) => ({
           ...s,
           id: s.id || s._id
         })));
 
-        setSessions((event.sessions || []).map((s: any) => ({
+        setSessions((event.sessions || []).map((s: AgendaItem & { id?: string; _id?: string; location?: string; room?: string; stage?: string; sessionType?: string; speakerIds?: string[]; speakerNames?: string[] }) => ({
           ...s,
           id: s.id || s._id || Math.random().toString(),
           startTime: formatDate(s.startTime),
@@ -463,10 +463,10 @@ const EditEvent = () => {
           speakerNames: s.speakerNames || []
         })));
 
-        setTickets((event.tickets || []).map((t: any) => ({
+        setTickets((event.tickets || []).map((t: ITicket & { _id?: string }) => ({
           ...t,
           id: t.id || t._id || Math.random().toString(),
-          earlyBirdExpiry: formatDate(t.earlyBirdExpiry),
+          earlyBirdExpiry: formatDate(t.earlyBirdExpiry || ""),
           salesStart: formatDate(t.salesStart || ""),
           salesEnd: formatDate(t.salesEnd || ""),
           allocationType: t.allocationType || "GENERAL",
@@ -497,9 +497,9 @@ const EditEvent = () => {
 
   // Media Upload State
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [, setUploadProgress] = useState(0);
 
-  const uploadMedia = async (file: File) => {
+  const uploadMedia = useCallback(async (file: File) => {
     try {
       const presignedResponse = await api.get(`/events/${eventId}/media/upload-url`, {
         params: { fileName: file.name, fileType: file.type }
@@ -520,7 +520,7 @@ const EditEvent = () => {
       console.error('Upload failed:', error);
       throw error;
     }
-  };
+  }, [eventId]);
 
   const handleBannerUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -538,7 +538,7 @@ const EditEvent = () => {
     } finally {
       setIsUploading(false);
     }
-  }, [eventId, uploadMedia]);
+  }, [uploadMedia]);
 
   const handleMediaUrlUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -607,17 +607,17 @@ const EditEvent = () => {
       const fileUrl = await uploadMedia(file);
       updateSpeaker(index, 'imageUrl', fileUrl);
       Swal.close();
-    } catch (error) {
+    } catch (_error) {
       Swal.fire('Error', 'Upload failed', 'error');
     }
   };
 
-  const updateSession = (sessionId: string, field: string, value: any) => {
-    setSessions(sessions.map(s => s.id === sessionId ? { ...s, [field]: value } : s));
+  const updateSession = (sessionId: string, field: string, value: string | string[]) => {
+    setSessions(sessions.map(s => s.id === sessionId ? { ...s, [field]: value } : s) as typeof sessions);
   };
 
-  const updateTicket = (ticketId: string, field: string, value: any) => {
-    setTickets(tickets.map(t => {
+  const updateTicket = (ticketId: string, field: string, value: string | number | boolean) => {
+    setTickets(prevTickets => prevTickets.map(t => {
         if (t.id === ticketId) {
             let newValue = value;
             if (field === "totalQuantity") {
@@ -625,7 +625,7 @@ const EditEvent = () => {
                     .filter(ticket => ticket.id !== ticketId)
                     .reduce((sum, ticket) => sum + (ticket.totalQuantity || 0), 0);
                 const maxAllowed = Math.max(0, basicInfo.capacity - otherTicketsSum);
-                newValue = Math.min(parseInt(value) || 0, maxAllowed);
+                newValue = Math.min(parseInt(String(value)) || 0, maxAllowed);
             }
 
             const updated = { ...t, [field]: newValue };
@@ -722,9 +722,9 @@ const EditEvent = () => {
     }
   };
 
-  const updateField = (index: number, field: string, value: any) => {
+  const updateField = (index: number, field: keyof RegistrationField, value: string | boolean | string[] | undefined) => {
     const newFields = [...registration.fields];
-    newFields[index] = { ...newFields[index], [field]: value };
+    newFields[index] = { ...newFields[index], [field]: value } as RegistrationField;
     setRegistration({ ...registration, fields: newFields });
   };
 
@@ -763,7 +763,7 @@ const EditEvent = () => {
     }));
   };
 
-  const updateQuantityDiscount = (ticketId: string, discountIndex: number, field: string, value: any) => {
+  const updateQuantityDiscount = (ticketId: string, discountIndex: number, field: 'minQuantity' | 'price', value: number) => {
     setTickets(tickets.map(t => {
       if (t.id === ticketId && t.quantityDiscounts) {
         const updatedDiscounts = [...t.quantityDiscounts];
@@ -809,13 +809,13 @@ const EditEvent = () => {
         await api.delete(`/events/${eventId}/tickets/${ticketId}`);
         setTickets(tickets.filter(t => t.id !== ticketId));
         Swal.fire("Deleted!", "Your ticket has been deleted.", "success");
-      } catch (error) {
-        Swal.fire("Error", translateError(error), "error");
+      } catch (_error) {
+        Swal.fire("Error", translateError(_error), "error");
       }
     }
   };
 
-  const handleUpdateTicket = async (ticket: any) => {
+  const handleUpdateTicket = async (ticket: (typeof tickets)[0]) => {
     // If it's a new ticket, we can't update it individually yet, it will be saved with saveAllChanges
     if (!ticket.id || ticket.id.includes('.')) {
       Swal.fire("Info", "This is a new ticket. Please use 'Finalize & Update' to save it.", "info");
@@ -829,7 +829,7 @@ const EditEvent = () => {
 
     try {
       Swal.showLoading();
-      const payload: any = {
+      const payload: Partial<ITicket> = {
         name: ticket.name,
         description: ticket.description,
         price: ticket.type === 'FREE' ? 0 : ticket.price,
@@ -841,7 +841,11 @@ const EditEvent = () => {
         salesStart: ticket.salesStart ? new Date(ticket.salesStart).toISOString() : undefined,
         salesEnd: ticket.salesEnd ? new Date(ticket.salesEnd).toISOString() : undefined,
         isOffline: ticket.isOffline,
-        quantityDiscounts: ticket.quantityDiscounts
+        quantityDiscounts: ticket.quantityDiscounts?.map(qd => ({
+            minQuantity: qd.minQuantity,
+            price: qd.price,
+            discountPercentage: qd.discountPercentage || 0
+        }))
       };
 
       if (ticket.type !== 'FREE' && (ticket.earlyBirdLimit || 0) > 0 && (ticket.earlyBirdPrice || 0) > 0) {
@@ -884,7 +888,7 @@ const EditEvent = () => {
     }
   };
 
-  const handleUpdateSession = async (session: any) => {
+  const handleUpdateSession = async (session: (typeof sessions)[0]) => {
     if (!session.id || session.id.includes('.')) {
       Swal.fire("Info", "This is a new session. Please use 'Finalize & Update' to save it.", "info");
       return;
@@ -976,7 +980,7 @@ const EditEvent = () => {
       const newTickets = tickets.filter(t => !t.id || t.id.includes('.'));
 
       for (const ticket of existingTickets) {
-          const payload: any = {
+          const payload: Partial<ITicket> = {
               name: ticket.name,
               description: ticket.description,
               price: ticket.type === 'FREE' ? 0 : ticket.price,
@@ -988,7 +992,11 @@ const EditEvent = () => {
               salesStart: ticket.salesStart ? new Date(ticket.salesStart).toISOString() : undefined,
               salesEnd: ticket.salesEnd ? new Date(ticket.salesEnd).toISOString() : undefined,
               isOffline: ticket.isOffline,
-              quantityDiscounts: ticket.quantityDiscounts
+              quantityDiscounts: ticket.quantityDiscounts?.map(qd => ({
+                  minQuantity: qd.minQuantity,
+                  price: qd.price,
+                  discountPercentage: qd.discountPercentage || 0
+              }))
           };
 
           if (ticket.type !== 'FREE' && (ticket.earlyBirdLimit || 0) > 0 && (ticket.earlyBirdPrice || 0) > 0) {
@@ -1002,7 +1010,7 @@ const EditEvent = () => {
       if (newTickets.length > 0) {
           const ticketPayload = {
               tickets: newTickets.map(t => {
-                  const item: any = {
+                      const item: Partial<ITicket> = {
                       name: t.name,
                       description: t.description,
                       price: t.type === 'FREE' ? 0 : t.price,
@@ -1014,7 +1022,11 @@ const EditEvent = () => {
                       salesStart: t.salesStart ? new Date(t.salesStart).toISOString() : undefined,
                       salesEnd: t.salesEnd ? new Date(t.salesEnd).toISOString() : undefined,
                       isOffline: t.isOffline,
-                      quantityDiscounts: t.quantityDiscounts
+                      quantityDiscounts: t.quantityDiscounts?.map(qd => ({
+                          minQuantity: qd.minQuantity,
+                          price: qd.price,
+                          discountPercentage: qd.discountPercentage || 0
+                      }))
                   };
 
                   if (t.type !== 'FREE' && (t.earlyBirdLimit || 0) > 0 && (t.earlyBirdPrice || 0) > 0) {
@@ -1316,7 +1328,7 @@ const EditEvent = () => {
                                             isGroupingEnabled: newGroupingEnabled,
                                             fields: newGroupingEnabled
                                                ? prev.fields
-                                               : prev.fields.map((f, i) => ({ ...f, isPerAttendee: false }))
+                                               : prev.fields.map((f) => ({ ...f, isPerAttendee: false }))
                                          }));
                                       }}
                                       className={`w-14 h-8 rounded-full transition-all relative ${registration.isGroupingEnabled ? 'bg-primary' : 'bg-gray-300'}`}
@@ -1558,9 +1570,9 @@ const EditEvent = () => {
                                                             <option value="">Independent</option>
                                                             {registration.fields
                                                                 .filter((f, i) => i !== idx && (f.type === 'select' || f.type === 'text'))
-                                                                .map((f, i) => (
-                                                                    <option key={i} value={f.name || f.label.toLowerCase().replace(/\s+/g, '-')}>
-                                                                        {f.label || `Field ${i + 1}`}
+                                                                .map((f, _i) => (
+                                                                    <option key={_i} value={f.name || f.label.toLowerCase().replace(/\s+/g, '-')}>
+                                                                        {f.label || `Field ${_i + 1}`}
                                                                     </option>
                                                                 ))
                                                             }
@@ -1671,10 +1683,10 @@ const EditEvent = () => {
                              <div className="space-y-8">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Gallery Assets</label>
                                 <div className="flex flex-wrap gap-4">
-                                    {mediaInfo.mediaUrls.map((url, idx) => (
-                                        <div key={idx} className="relative w-24 h-24 rounded-2xl overflow-hidden group">
+                                    {mediaInfo.mediaUrls.map((url, i) => (
+                                        <div key={i} className="relative w-24 h-24 rounded-2xl overflow-hidden group">
                                             {url && typeof url === 'string' && url.match(/\.(mp4|webm|ogg)$/) ? <video src={url} className="w-full h-full object-cover" /> : <Image src={url} alt="Media" fill className="object-cover" />}
-                                            <button onClick={() => removeMediaUrl(idx)} className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white"><Trash2 size={16} /></button>
+                                            <button onClick={() => removeMediaUrl(i)} className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white"><Trash2 size={16} /></button>
                                         </div>
                                     ))}
                                     <label className="w-24 h-24 rounded-2xl border-2 border-dashed border-gray-200 flex items-center justify-center text-gray-300 hover:border-primary hover:text-primary cursor-pointer transition-all">
@@ -2122,11 +2134,11 @@ const EditEvent = () => {
                                                             let nextIds, nextNames;
 
                                                             if (isAssigned) {
-                                                                nextIds = currentIds.filter(id => id !== (speaker as any).id);
+                                                                nextIds = currentIds.filter(id => id !== speaker.id);
                                                                 nextNames = currentNames.filter(name => name !== speaker.name);
                                                             } else {
                                                                 nextIds = [...currentIds];
-                                                                if ((speaker as any).id) nextIds.push((speaker as any).id);
+                                                                if (speaker.id) nextIds.push(speaker.id);
                                                                 nextNames = [...currentNames, speaker.name];
                                                             }
 

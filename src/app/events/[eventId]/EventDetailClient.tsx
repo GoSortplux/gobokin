@@ -68,7 +68,7 @@ const EventDetailClient = () => {
       try {
         const response = await api.get(`/events/${eventId}/waitlist/status`);
         setWaitlistStatus(response.data.data);
-      } catch (error) {
+      } catch (_error) {
         setWaitlistStatus(null);
       }
     };

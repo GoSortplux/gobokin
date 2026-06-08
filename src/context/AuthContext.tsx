@@ -6,12 +6,12 @@ import { jwtDecode } from 'jwt-decode';
 import Swal from "@/utils/sweetalert";
 import api from '@/services/api';
 import { getDashboardPath } from '@/utils/redirects';
-import { User } from '@/types';
+import { User, UserRole } from '@/types';
 
 interface DecodedToken {
   _id: string;
   email: string;
-  role:string[];
+  role: UserRole[];
   activeRole: string;
   hasAcceptedLatestPolicies: boolean;
   hasAcceptedHallOwnerPolicy: boolean;

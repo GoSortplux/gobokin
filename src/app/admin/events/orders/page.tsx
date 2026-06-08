@@ -5,20 +5,26 @@ import {
   Search,
   Filter,
   Eye,
-  Calendar,
-  User,
-  Clock,
-  MoreVertical,
-  CheckCircle2,
-  XCircle,
   Hash
 } from "lucide-react";
 import api from "@/services/api";
 import CustomLoader from "@/components/CustomLoader";
 import { formatCurrency } from "@/utils/currency";
 
+interface AdminOrder {
+  id: string;
+  ticketNumber: string;
+  createdAt: string;
+  eventTitle: string;
+  buyerName: string;
+  buyerEmail: string;
+  ticketCount: number;
+  totalAmount: number;
+  status: string;
+}
+
 const AllOrdersAdmin = () => {
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -35,11 +41,26 @@ const AllOrdersAdmin = () => {
       const orderList = Array.isArray(rawData) ? rawData : (Array.isArray(rawData?.data) ? rawData.data : []);
 
       // Flatten orders into individual registrations to display ticket numbers
-      const flattened = orderList.flatMap((order: any) => {
+      const flattened = orderList.flatMap((order: {
+        id: string;
+        registrations?: {
+          id: string;
+          createdAt?: string;
+          ticketNumber?: string;
+          attendeeData?: { fullName?: string; 'full-name'?: string; email?: string };
+          pricePaid: number;
+          paymentStatus: string;
+        }[];
+        buyerInfo?: { fullName: string; email: string };
+        event?: { title: string };
+        eventTitle?: string;
+        amountPaid: number;
+        status: string;
+        createdAt: string;
+      }) => {
         const registrations = order.registrations || [];
         if (registrations.length === 0) {
            return [{
-             ...order,
              id: order.id,
              ticketNumber: `ORD-${order.id.slice(0, 8)}`,
              buyerName: order.buyerInfo?.fullName || "Guest",
@@ -47,15 +68,20 @@ const AllOrdersAdmin = () => {
              eventTitle: order.event?.title || order.eventTitle || "N/A",
              totalAmount: order.amountPaid || 0,
              status: order.status || "PENDING",
-             ticketCount: 0
+             ticketCount: 0,
+             createdAt: order.createdAt
            }];
         }
 
-        return registrations.map((reg: any) => ({
-          ...order,
-          ...reg,
+        return registrations.map((reg: {
+          id: string;
+          createdAt?: string;
+          ticketNumber?: string;
+          attendeeData?: { fullName?: string; 'full-name'?: string; email?: string };
+          pricePaid: number;
+          paymentStatus: string;
+        }): AdminOrder => ({
           id: reg.id,
-          orderId: order.id,
           createdAt: reg.createdAt || order.createdAt,
           eventTitle: order.event?.title || order.eventTitle || "N/A",
           ticketNumber: reg.ticketNumber || `ORD-${order.id.slice(0, 8)}`,

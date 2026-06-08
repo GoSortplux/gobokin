@@ -5,9 +5,7 @@ import BookingsView from "./BookingsView";
 import SettingsView from "./SettingsView";
 import ReservationsList from "@/components/ReservationsList";
 import EventsView from "./EventsView";
-import RefundsView from "./RefundsView";
-import WaitlistsView from "./WaitlistsView";
-import { Calendar, Ticket, Clock, Settings, History, ListOrdered } from "lucide-react";
+import { Calendar, Ticket, Clock, Settings } from "lucide-react";
 
 const DashboardContent = () => {
   const searchParams = useSearchParams();

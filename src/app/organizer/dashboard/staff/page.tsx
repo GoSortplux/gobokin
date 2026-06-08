@@ -3,16 +3,10 @@ import React, { useState, useEffect } from "react";
 import {
   Users,
   Search,
-  PlusCircle,
   Mail,
-  Phone,
   Trash2,
   ShieldCheck,
-  UserPlus,
-  MoreVertical,
-  CheckCircle2,
-  XCircle,
-  AlertCircle
+  UserPlus
 } from "lucide-react";
 import api from "@/services/api";
 import { StaffMember } from "@/types";

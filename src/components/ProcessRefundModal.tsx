@@ -57,9 +57,10 @@ const ProcessRefundModal: React.FC<ProcessRefundModalProps> = ({ request, onClos
       Swal.fire("Success", "Refund processed successfully.", "success");
       onSuccess();
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMsg = translateError(error);
-      if (error?.response?.data?.message?.toLowerCase().includes("insufficient") || error?.response?.data?.message?.toLowerCase().includes("top-up")) {
+      const err = error as { response?: { data?: { message?: string } } };
+      if (err?.response?.data?.message?.toLowerCase().includes("insufficient") || err?.response?.data?.message?.toLowerCase().includes("top-up")) {
         Swal.fire({
           title: "Insufficient Funds",
           text: errorMsg,

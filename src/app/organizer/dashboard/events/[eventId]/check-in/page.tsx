@@ -15,7 +15,7 @@ import {
   Mail
 } from "lucide-react";
 import api from "@/services/api";
-import { Event, Analytics, StaffMember } from "@/types";
+import { Event, Analytics, StaffMember, Registration, Session } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
@@ -31,7 +31,7 @@ const CheckInInterface = () => {
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [searchResult, setSearchResult] = useState<any | null>(null);
+  const [searchResult, setSearchResult] = useState<Registration | null>(null);
   const [searching, setSearching] = useState(false);
   const [checkingIn, setCheckingIn] = useState(false);
   const [selectedSessionId, setSelectedSessionId] = useState<string>("");
@@ -40,20 +40,20 @@ const CheckInInterface = () => {
     try {
       if (showLoading) setLoading(true);
 
-      const promises: [Promise<any>, Promise<any> | null, Promise<any> | null] = [
+      const promises = [
         api.get(`/events/${eventId}`),
-        !isStaff ? api.get(`/events/${eventId}/analytics`) : null,
-        !isStaff ? api.get(`/events/${eventId}/staff`) : null
-      ];
+        !isStaff ? api.get(`/events/${eventId}/analytics`) : Promise.resolve(null),
+        !isStaff ? api.get(`/events/${eventId}/staff`) : Promise.resolve(null)
+      ] as const;
 
       const [eventRes, analyticsRes, staffRes] = await Promise.all(promises);
 
-      setEvent(eventRes.data.data);
-      if (analyticsRes) {
+      if (eventRes) setEvent(eventRes.data.data);
+      if (analyticsRes && analyticsRes.data) {
         setAnalytics(analyticsRes.data.data);
       }
-      if (staffRes) {
-        const staffMembers = (staffRes.data.data || []).map((item: any) => item.staff).filter(Boolean);
+      if (staffRes && staffRes.data) {
+        const staffMembers = (staffRes.data.data || []).map((item: { staff: StaffMember }) => item.staff).filter(Boolean);
         setStaff(staffMembers);
       }
     } catch (error) {
@@ -62,7 +62,7 @@ const CheckInInterface = () => {
     } finally {
       if (showLoading) setLoading(false);
     }
-  }, [eventId]);
+  }, [eventId, isStaff]);
 
   useEffect(() => {
     fetchData();
@@ -205,7 +205,7 @@ const CheckInInterface = () => {
                   <div className="flex flex-col md:flex-row items-center gap-8">
                      <div className="relative">
                         <div className="w-28 h-28 bg-primary/10 text-primary rounded-[2.5rem] flex items-center justify-center font-black text-4xl shadow-inner border border-primary/5">
-                           {(searchResult.attendeeData?.fullName || searchResult.attendeeData?.["full-name"] || "G")[0]}
+                           {String(searchResult.attendeeData?.fullName || searchResult.attendeeData?.["full-name"] || "G")[0]}
                         </div>
                         {!searchResult.checkInStatus && (
                           <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-white p-2 rounded-xl shadow-lg border-4 border-white">
@@ -215,7 +215,7 @@ const CheckInInterface = () => {
                      </div>
                      <div className="flex-1 text-center md:text-left">
                         <h3 className="text-3xl font-black text-gray-900 tracking-tight leading-tight mb-2">
-                          {searchResult.attendeeData?.fullName || searchResult.attendeeData?.["full-name"] || "Attendee Name N/A"}
+                          {(searchResult.attendeeData?.fullName || searchResult.attendeeData?.["full-name"] || "Attendee Name N/A") as React.ReactNode}
                         </h3>
                         <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
                           <span className="text-gray-500 font-bold flex items-center gap-2 bg-gray-50 px-4 py-1.5 rounded-full text-sm">
@@ -242,7 +242,7 @@ const CheckInInterface = () => {
                             className="w-full pl-12 pr-10 py-5 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold focus:bg-white focus:border-primary transition-all outline-none appearance-none cursor-pointer"
                           >
                             <option value="">Standard Event Entry</option>
-                            {event.sessions.map((session: any) => (
+                            {event.sessions.map((session: Session) => (
                               <option key={session.id} value={session.id}>
                                 {session.title}
                               </option>

@@ -4,9 +4,7 @@ import Link from "next/link";
 import {
   Calendar,
   Search,
-  Filter,
   MapPin,
-  Ticket,
   ArrowRight,
   PlusCircle,
   MoreVertical,
@@ -162,10 +160,10 @@ const MyEvents = () => {
         </div>
 
         <div className="flex items-center gap-2 w-full lg:w-auto overflow-x-auto no-scrollbar py-1">
-          {["ALL", "UPCOMING", "ONGOING", "COMPLETED", "CANCELLED"].map((filter) => (
+          {(["ALL", "UPCOMING", "ONGOING", "COMPLETED", "CANCELLED"] as const).map((filter) => (
             <button
               key={filter}
-              onClick={() => setActiveFilter(filter as any)}
+              onClick={() => setActiveFilter(filter)}
               className={`px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
                 activeFilter === filter
                   ? "bg-primary text-white shadow-md shadow-primary/20"
@@ -350,13 +348,13 @@ const MyEvents = () => {
                       </td>
                       <td className="px-6 py-5">
                          <div className="space-y-1">
-                            <p className="text-sm font-black text-gray-900">{(event as any).registrationCount || 0} / {event.capacity}</p>
+                            <p className="text-sm font-black text-gray-900">{event.registrationCount || 0} / {event.capacity}</p>
                             <div className="w-24 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                               <div className="w-full h-full bg-primary rounded-full" style={{ width: `${Math.min(100, (((event as any).registrationCount || 0) / event.capacity) * 100)}%` }}></div>
+                               <div className="w-full h-full bg-primary rounded-full" style={{ width: `${Math.min(100, ((event.registrationCount || 0) / event.capacity) * 100)}%` }}></div>
                             </div>
                          </div>
                       </td>
-                      {!isStaff && <td className="px-6 py-5 font-black text-emerald-600 text-sm">₦{((event as any).totalRevenue || 0).toLocaleString()}</td>}
+                      {!isStaff && <td className="px-6 py-5 font-black text-emerald-600 text-sm">₦{(event.totalRevenue || 0).toLocaleString()}</td>}
                       <td className="px-6 py-5 text-right">
                         <div className="flex items-center justify-end gap-3">
                             {!isStaff ? (

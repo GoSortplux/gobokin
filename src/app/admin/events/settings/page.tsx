@@ -9,7 +9,6 @@ import {
   AlertCircle,
   Hash,
   Info,
-  Layers,
   Edit2,
   X
 } from "lucide-react";
@@ -18,11 +17,36 @@ import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { formatCurrency } from "@/utils/currency";
 
+interface ConfigItem {
+  key: string;
+  value: string;
+  description: string;
+}
+
+interface Category {
+  name: string;
+}
+
+interface PackageRule {
+  ruleKey: string;
+  ruleValue: string;
+}
+
+interface SubscriptionPackage {
+  id: string;
+  name: string;
+  price: number;
+  durationDays: number;
+  type: string;
+  discountPercentage: number;
+  rules: PackageRule[];
+}
+
 const SystemSettings = () => {
   const [activeTab, setActiveTab] = useState<'config' | 'categories' | 'packages'>('config');
-  const [config, setConfig] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [packages, setPackages] = useState<any[]>([]);
+  const [config, setConfig] = useState<ConfigItem[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [packages, setPackages] = useState<SubscriptionPackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [newCategory, setNewCategory] = useState("");
 
@@ -39,6 +63,7 @@ const SystemSettings = () => {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   const fetchData = async () => {
@@ -54,20 +79,20 @@ const SystemSettings = () => {
         const res = await api.get("/events/admin/packages");
         setPackages(res.data.data || []);
       }
-    } catch (error) {
-      console.error("Failed to fetch settings:", error);
+    } catch (_error) {
+      console.error("Failed to fetch settings:", _error);
     } finally {
       setLoading(false);
     }
   };
 
-  const updateConfig = async (key: string, value: any, description: string) => {
+  const updateConfig = async (key: string, value: string, description: string) => {
     try {
       Swal.showLoading();
       await api.patch("/events/admin/config", { key, value, description });
       Swal.fire("Success!", "Configuration updated.", "success");
       fetchData();
-    } catch (error) {
+    } catch (_error) {
       Swal.fire("Error", "Failed to update config", "error");
     }
   };
@@ -81,7 +106,7 @@ const SystemSettings = () => {
       setNewCategory("");
       Swal.fire("Success!", "Category added.", "success");
       fetchData();
-    } catch (error) {
+    } catch (_error) {
       Swal.fire("Error", "Failed to add category", "error");
     }
   };
@@ -102,7 +127,7 @@ const SystemSettings = () => {
         Swal.fire("Deleted!", "Category removed.", "success");
         fetchData();
       }
-    } catch (error) {
+    } catch (_error) {
       Swal.fire("Error", "Failed to remove category", "error");
     }
   };
@@ -115,7 +140,7 @@ const SystemSettings = () => {
       Swal.fire("Success!", "Subscription package created successfully.", "success");
       setIsModalOpen(false);
       fetchData();
-    } catch (error) {
+    } catch (_error) {
       Swal.fire("Error", "Failed to create package", "error");
     }
   };
@@ -185,7 +210,7 @@ const SystemSettings = () => {
             Platform Configuration
           </h3>
           <div className="space-y-8">
-            {config.map((item: any, i: number) => (
+            {config.map((item, i) => (
               <div key={i} className="space-y-3">
                 <div className="flex items-center justify-between">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{item.key.replace(/_/g, ' ')}</label>
@@ -236,7 +261,7 @@ const SystemSettings = () => {
           </form>
 
           <div className="grid grid-cols-1 gap-3">
-            {categories.map((cat: any, i: number) => (
+            {categories.map((cat, i) => (
               <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl group">
                 <span className="text-sm font-bold text-black-900">{cat.name}</span>
                 <button
@@ -282,7 +307,7 @@ const SystemSettings = () => {
                 </div>
                 <div className="p-8 flex-1 space-y-4">
                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Package Rules</p>
-                  {pkg.rules.map((rule: any, i: number) => (
+                  {pkg.rules.map((rule, i) => (
                     <div key={i} className="flex items-center gap-3 text-sm font-bold text-gray-700">
                       <div className="w-6 h-6 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
                         <CheckCircle2 size={14} />

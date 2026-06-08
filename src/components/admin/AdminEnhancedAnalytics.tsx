@@ -10,7 +10,7 @@ import { DateRange, Range } from 'react-date-range';
 import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
 import useOnClickOutside from '@/hooks/useOnClickOutside';
-import { TrendingUp, TrendingDown, Calendar as CalendarIcon, ChevronDown, DollarSign, Briefcase, Shield, Percent, Wallet, ArrowRight, Ticket, Users, MousePointerClick, ShoppingBag, Eye, LayoutDashboard, BarChart3 } from 'lucide-react';
+import { TrendingUp, TrendingDown, Calendar as CalendarIcon, ChevronDown, DollarSign, Briefcase, Shield, Percent, Wallet, ArrowRight, Ticket, Users, MousePointerClick, ShoppingBag, Eye, BarChart3 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { Analytics } from '@/types';
 
@@ -156,7 +156,7 @@ const formatDateRange = (start: Date | undefined, end: Date | undefined) => {
 
 const AdminEnhancedAnalytics = ({ defaultView = 'venues' }: { defaultView?: 'venues' | 'events' }) => {
   const { user, fetchUserProfile } = useAuth();
-  const [activeView, setActiveView] = useState<'venues' | 'events'>(defaultView);
+  const [activeView] = useState<'venues' | 'events'>(defaultView);
   const [venueData, setVenueData] = useState<AdminAnalyticsData | null>(null);
   const [eventAnalytics, setEventAnalytics] = useState<Analytics | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -525,7 +525,7 @@ const AdminEnhancedAnalytics = ({ defaultView = 'venues' }: { defaultView?: 'ven
                             />
                             <Tooltip
                                 contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', padding: '12px' }}
-                                formatter={(value: any) => [`₦${value.toLocaleString()}`, 'Revenue']}
+                                formatter={(value: unknown) => [`₦${Number(value || 0).toLocaleString()}`, 'Revenue']}
                             />
                             <Area type="monotone" dataKey="revenue" stroke="#295FA7" strokeWidth={4} fillOpacity={1} fill="url(#colorRevenue)" />
                         </AreaChart>

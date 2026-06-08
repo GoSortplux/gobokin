@@ -2,33 +2,22 @@
 import React, { useState, useEffect } from "react";
 import {
   Calendar,
-  Users,
   TrendingUp,
   Wallet,
   PlusCircle,
-  ArrowUpRight,
   Ticket,
-  Eye,
-  MoreVertical,
-  Search,
-  Filter,
   BarChart3,
   MousePointerClick,
   CheckCircle2,
-  Clock,
   ArrowRight,
-  TrendingDown,
   ShoppingBag
 } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import api from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
 import { Analytics, Event } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 import {
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -55,18 +44,24 @@ const OrganizerDashboard = () => {
             const response = await api.get("/events/my-events");
             const events = response.data.data || [];
             // Map raw Event objects to TopEvent-like structure for the table
-            const mappedEvents = events.map((e: any) => ({
+            const mappedEvents = events.map((e: Event) => ({
                 eventId: e.id,
                 title: e.title,
                 status: e.status,
-                views: e.views || 0,
+                views: e.analytics?.detailViews || 0,
                 registrations: e.registrationCount || 0,
-                attendanceRate: e.attendanceRate || 0,
+                attendanceRate: 0, // Need to calculate if available
                 grossRevenue: 0 // Staff shouldn't see revenue
             }));
             setAnalytics({
-                topEvents: mappedEvents
-            } as any);
+                topEvents: mappedEvents,
+                summary: {
+                    totalEvents: events.length,
+                    totalRegistrations: events.reduce((sum: number, e: Event) => sum + (e.registrationCount || 0), 0),
+                    checkedInGuests: 0,
+                    attendanceRate: 0
+                }
+            } as unknown as Analytics);
         } else {
             const response = await api.get("/events/my-organizer-profile/analytics");
             setAnalytics(response.data.data);
@@ -227,7 +222,7 @@ const OrganizerDashboard = () => {
                                 tickFormatter={(str) => {
                                     try {
                                         return new Date(str).toLocaleDateString('en-US', { weekday: 'short' });
-                                    } catch (e) {
+                                } catch (_e) {
                                         return str;
                                     }
                                 }}
@@ -241,7 +236,7 @@ const OrganizerDashboard = () => {
                             <Tooltip
                                 contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '12px' }}
                                 itemStyle={{ fontWeight: 800, color: '#295FA7' }}
-                                formatter={(value: any) => [`₦${value.toLocaleString()}`, 'Revenue']}
+                                formatter={(value: unknown) => [`₦${Number(value || 0).toLocaleString()}`, 'Revenue']}
                             />
                             <Area type="monotone" dataKey="sales" stroke="#295FA7" strokeWidth={4} fillOpacity={1} fill="url(#colorSales)" />
                         </AreaChart>

@@ -13,7 +13,6 @@ import {
   LayoutGrid,
   ChevronRight,
   Heart,
-  TrendingUp,
   CheckCircle2,
   X,
   Map as MapIcon,
@@ -52,7 +51,7 @@ interface DiscoveryData {
   byCategory: Record<string, Event[]>;
 }
 
-const CATEGORY_ICONS: Record<string, any> = {
+const CATEGORY_ICONS: Record<string, React.ElementType> = {
   "Technology": Cpu,
   "Religious": Church,
   "Social": Users,

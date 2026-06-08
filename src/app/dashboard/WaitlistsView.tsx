@@ -3,8 +3,6 @@ import React, { useState, useEffect } from "react";
 import api from "@/services/api";
 import CustomLoader from "@/components/CustomLoader";
 import { ListOrdered, Clock, MapPin, Calendar, ArrowRight } from "lucide-react";
-import Swal from "@/utils/sweetalert";
-import { translateError } from "@/utils/errors";
 import Image from "next/image";
 import Link from "next/link";
 import { WaitlistEntry } from "@/types";

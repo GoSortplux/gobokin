@@ -14,11 +14,9 @@ import {
   Globe,
   User,
   ExternalLink,
-  Clock,
   Tag,
   PlusCircle,
   Trash2,
-  AlertCircle,
   Info,
   Calendar
 } from "lucide-react";
@@ -63,6 +61,7 @@ const OrganizerSettings = () => {
 
   useEffect(() => {
     fetchInitialData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchInitialData = async () => {
@@ -235,7 +234,7 @@ const OrganizerSettings = () => {
     }));
   };
 
-  const tabs: { id: TabType; label: string; icon: any }[] = [
+  const navigationTabs: { id: TabType; label: string; icon: React.ElementType }[] = [
     { id: 'profile', label: 'Profile & Policies', icon: User },
     { id: 'subscriptions', label: 'Subscriptions', icon: CreditCard },
     { id: 'discounts', label: 'Global Discounts', icon: Tag },
@@ -254,7 +253,7 @@ const OrganizerSettings = () => {
 
       {/* Tab Navigation */}
       <div className="flex p-1 bg-gray-100 rounded-2xl md:w-fit">
-        {tabs.map((tab) => (
+        {navigationTabs.map((tab) => (
             <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}

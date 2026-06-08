@@ -144,7 +144,7 @@ const BookingCard: React.FC<BookingCardProps> = ({ booking, onViewReceipt, onRev
     if (result.isConfirmed) {
       try {
         Swal.showLoading();
-        const response = await api.post(`/events/bridge-from-booking/${booking._id}`);
+        await api.post(`/events/bridge-from-booking/${booking._id}`);
         await Swal.fire({
           title: 'Success!',
           text: 'Booking bridged successfully. You are now an organizer for this event.',

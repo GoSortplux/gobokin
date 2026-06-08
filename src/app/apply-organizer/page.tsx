@@ -9,7 +9,7 @@ import { Briefcase, Globe, FileText, UserPlus, ArrowRight, CheckCircle2 } from "
 
 const ApplyOrganizer = () => {
   const router = useRouter();
-  const { user, updateToken } = useAuth();
+  const { updateToken } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     bio: "",
@@ -47,7 +47,7 @@ const ApplyOrganizer = () => {
 
     try {
       Swal.showLoading();
-      const response = await api.post("/events/become-an-organizer", {
+      await api.post("/events/become-an-organizer", {
         data: {
           experience: formData.experience,
           portfolio: formData.portfolio,

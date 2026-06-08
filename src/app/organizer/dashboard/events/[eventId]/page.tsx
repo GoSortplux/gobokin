@@ -39,7 +39,7 @@ import {
 import Image from "next/image";
 import api from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
-import { Event, Analytics, StaffMember, WaitlistEntry } from "@/types";
+import { Event, Analytics, StaffMember, WaitlistEntry, Registration } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
@@ -56,7 +56,7 @@ const EventDetails = () => {
   const isStaff = user?.role?.includes('organizer-staff');
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [staff, setStaff] = useState<StaffMember[]>([]);
-  const [attendees, setAttendees] = useState<{ id?: string; attendeeName?: string; attendeeEmail?: string; ticketName?: string; ticketNumber?: string; status?: string; checkInStatus?: boolean; createdAt: string; attendeeData?: Record<string, string>; checkedInBy?: { fullName: string; email: string } }[]>([]);
+  const [attendees, setAttendees] = useState<(Partial<Registration> & { attendeeName: string; attendeeEmail: string; ticketName: string; status: string })[]>([]);
   const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [attendeesLoading, setAttendeesLoading] = useState(false);
@@ -86,14 +86,14 @@ const EventDetails = () => {
         setLoading(true);
 
         // Only fetch analytics if not staff
-        const promises: [Promise<any>, Promise<any> | null] = [
+        const promises = [
           api.get(`/events/${eventId}`),
-          !isStaff ? api.get(`/events/${eventId}/analytics`) : null
-        ];
+          !isStaff ? api.get(`/events/${eventId}/analytics`) : Promise.resolve(null)
+        ] as const;
 
         const [eventRes, analyticsRes] = await Promise.all(promises);
 
-        setEvent(eventRes.data.data);
+        if (eventRes) setEvent(eventRes.data.data);
         if (analyticsRes) {
           setAnalytics(analyticsRes.data.data);
         }
@@ -105,6 +105,7 @@ const EventDetails = () => {
       }
     };
     fetchEventData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId]);
 
   useEffect(() => {
@@ -154,13 +155,29 @@ const EventDetails = () => {
           const orders = response.data.data || [];
 
           // Based on common patterns in this repo, if orders have registrations:
-          let flattenedAttendees = [];
+          let flattenedAttendees: (Partial<Registration> & { attendeeName: string; attendeeEmail: string; ticketName: string; status: string })[] = [];
           if (Array.isArray(orders)) {
-            flattenedAttendees = orders.flatMap((order: any) => {
+          flattenedAttendees = orders.flatMap((order: {
+            id: string;
+            registrations?: {
+              id: string;
+              createdAt?: string;
+              ticketId?: { name: string };
+              ticketNumber?: string;
+              attendeeData?: { fullName?: string; 'full-name'?: string; email?: string };
+              paymentStatus?: string;
+              checkInStatus?: boolean;
+              checkedInBy?: { fullName: string; email: string };
+            }[];
+            buyerInfo?: { fullName: string; email: string };
+            ticketName?: string;
+            status?: string;
+            createdAt: string;
+          }) => {
               const registrations = order.registrations || [];
               if (registrations.length === 0) {
                  return [{
-                   ...order,
+                 id: order.id,
                    attendeeName: order.buyerInfo?.fullName || "Guest",
                    attendeeEmail: order.buyerInfo?.email || "N/A",
                    ticketName: order.ticketName || "Standard Entry",
@@ -170,7 +187,7 @@ const EventDetails = () => {
                  }];
               }
 
-              return registrations.map((reg: any) => ({
+            return registrations.map((reg) => ({
                 ...reg,
                 orderId: order.id,
                 attendeeName: reg.attendeeData?.fullName || reg.attendeeData?.['full-name'] || order.buyerInfo?.fullName || "Guest",
@@ -1261,11 +1278,11 @@ const EventDetails = () => {
                                       <td className="px-6 py-6">
                                          <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 rounded-xl bg-primary/5 text-primary flex items-center justify-center font-black text-sm">
-                                               {(attendee.attendeeName || attendee.attendeeData?.['full-name'] || 'G')[0]}
+                                               {String(attendee.attendeeName || attendee.attendeeData?.['full-name'] || 'G')[0]}
                                             </div>
                                             <div>
-                                               <p className="text-sm font-bold text-gray-900">{attendee.attendeeName || attendee.attendeeData?.['full-name'] || "Guest"}</p>
-                                               <p className="text-[10px] text-gray-400 font-medium">{attendee.attendeeEmail || attendee.attendeeData?.['email'] || "No email"}</p>
+                                               <p className="text-sm font-bold text-gray-900">{(attendee.attendeeName || attendee.attendeeData?.['full-name'] || "Guest") as React.ReactNode}</p>
+                                               <p className="text-[10px] text-gray-400 font-medium">{(attendee.attendeeEmail || attendee.attendeeData?.['email'] || "No email") as React.ReactNode}</p>
                                             </div>
                                          </div>
                                       </td>
@@ -1299,8 +1316,8 @@ const EventDetails = () => {
                                          )}
                                       </td>
                                       <td className="px-6 py-6">
-                                         <p className="text-[11px] font-bold text-gray-600">{new Date(attendee.createdAt).toLocaleDateString()}</p>
-                                         <p className="text-[9px] text-gray-400 font-medium">{new Date(attendee.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                         <p className="text-[11px] font-bold text-gray-600">{attendee.createdAt ? new Date(attendee.createdAt).toLocaleDateString() : 'N/A'}</p>
+                                         <p className="text-[9px] text-gray-400 font-medium">{attendee.createdAt ? new Date(attendee.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'}</p>
                                       </td>
                                       <td className="px-6 py-6 text-right">
                                          <div className="flex items-center justify-end gap-2">
@@ -1329,13 +1346,29 @@ const EventDetails = () => {
                                                       }
                                                       const response = await api.get(`/events/${eventId}/orders`);
                                                       const orders = response.data.data || [];
-                                                      let flattenedAttendees = [];
+                                                      let flattenedAttendees: (Partial<Registration> & { attendeeName: string; attendeeEmail: string; ticketName: string; status: string })[] = [];
                                                       if (Array.isArray(orders)) {
-                                                        flattenedAttendees = orders.flatMap((order: any) => {
+                                                        flattenedAttendees = orders.flatMap((order: {
+                                                          id: string;
+                                                          registrations?: {
+                                                            id: string;
+                                                            createdAt?: string;
+                                                            ticketId?: { name: string };
+                                                            ticketNumber?: string;
+                                                            attendeeData?: { fullName?: string; 'full-name'?: string; email?: string };
+                                                            paymentStatus?: string;
+                                                            checkInStatus?: boolean;
+                                                            checkedInBy?: { fullName: string; email: string };
+                                                          }[];
+                                                          buyerInfo?: { fullName: string; email: string };
+                                                          ticketName?: string;
+                                                          status?: string;
+                                                          createdAt: string;
+                                                        }) => {
                                                           const registrations = order.registrations || [];
                                                           if (registrations.length === 0) {
                                                             return [{
-                                                              ...order,
+                                                              id: order.id,
                                                               attendeeName: order.buyerInfo?.fullName || "Guest",
                                                               attendeeEmail: order.buyerInfo?.email || "N/A",
                                                               ticketName: order.ticketName || "Standard Entry",
@@ -1344,7 +1377,7 @@ const EventDetails = () => {
                                                               createdAt: order.createdAt
                                                             }];
                                                           }
-                                                          return registrations.map((reg: any) => ({
+                                                          return registrations.map((reg) => ({
                                                             ...reg,
                                                             orderId: order.id,
                                                             attendeeName: reg.attendeeData?.fullName || reg.attendeeData?.['full-name'] || order.buyerInfo?.fullName || "Guest",
@@ -1419,13 +1452,29 @@ const EventDetails = () => {
                   setAttendeesLoading(true);
                   const response = await api.get(`/events/${eventId}/orders`);
                   const orders = response.data.data || [];
-                  let flattenedAttendees = [];
+                  let flattenedAttendees: (Partial<Registration> & { attendeeName: string; attendeeEmail: string; ticketName: string; status: string })[] = [];
                   if (Array.isArray(orders)) {
-                    flattenedAttendees = orders.flatMap((order: any) => {
+                    flattenedAttendees = orders.flatMap((order: {
+                      id: string;
+                      registrations?: {
+                        id: string;
+                        createdAt?: string;
+                        ticketId?: { name: string };
+                        ticketNumber?: string;
+                        attendeeData?: { fullName?: string; 'full-name'?: string; email?: string };
+                        paymentStatus?: string;
+                        checkInStatus?: boolean;
+                        checkedInBy?: { fullName: string; email: string };
+                      }[];
+                      buyerInfo?: { fullName: string; email: string };
+                      ticketName?: string;
+                      status?: string;
+                      createdAt: string;
+                    }) => {
                       const registrations = order.registrations || [];
                       if (registrations.length === 0) {
                         return [{
-                          ...order,
+                          id: order.id,
                           attendeeName: order.buyerInfo?.fullName || "Guest",
                           attendeeEmail: order.buyerInfo?.email || "N/A",
                           ticketName: order.ticketName || "Standard Entry",
@@ -1434,7 +1483,7 @@ const EventDetails = () => {
                           createdAt: order.createdAt
                         }];
                       }
-                      return registrations.map((reg: any) => ({
+                      return registrations.map((reg) => ({
                         ...reg,
                         orderId: order.id,
                         attendeeName: reg.attendeeData?.fullName || reg.attendeeData?.['full-name'] || order.buyerInfo?.fullName || "Guest",

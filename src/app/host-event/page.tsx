@@ -5,23 +5,17 @@ import {
   ArrowLeft,
   ArrowRight,
   Type,
-  Layout,
-  Tag,
   Calendar,
   Clock,
   MapPin,
-  Globe,
   Users,
   ChevronDown,
-  ChevronUp,
-  Info,
   ShieldCheck,
   User,
   Plus,
   Trash2,
   FileText,
   CheckCircle2,
-  Sparkles,
   Zap,
   Eye,
   EyeOff,
@@ -29,14 +23,7 @@ import {
   XCircle,
   Upload,
   UploadCloud,
-  Ticket,
-  Coins,
-  History,
-  Layers,
-  Percent,
-  Settings,
-  MousePointer2,
-  X
+  Ticket
 } from "lucide-react";
 import api from "@/services/api";
 import axios from "axios";
@@ -77,7 +64,19 @@ interface LivePreviewProps {
   };
   speakers: Speaker[];
   tickets: ITicket[];
-  sessions: any[];
+  sessions: {
+    id?: string;
+    title: string;
+    description?: string;
+    startTime?: string;
+    endTime?: string;
+    location?: string;
+    room?: string;
+    stage?: string;
+    sessionType?: string;
+    speakerIds?: string[];
+    speakerNames?: string[];
+  }[];
   agendaEnabled: boolean;
 }
 
@@ -435,6 +434,7 @@ const HostEventPage = () => {
         }
     };
     checkAndInitialize();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, formData.eventId]);
 
   useEffect(() => {
@@ -459,9 +459,9 @@ const HostEventPage = () => {
       });
 
       return finalUrl;
-    } catch (error) {
-      console.error('Upload failed:', error);
-      throw error;
+    } catch (_error) {
+      console.error('Upload failed:', _error);
+      throw _error;
     }
   };
 
@@ -479,7 +479,7 @@ const HostEventPage = () => {
       }
       setFormData(prev => ({ ...prev, mediaInfo: { ...prev.mediaInfo, bannerUrl: fileUrl } }));
       Swal.toast.fire({ icon: 'success', title: 'Banner uploaded successfully!' });
-    } catch (error) {
+    } catch (_error) {
       Swal.fire('Error', 'Failed to upload banner.', 'error');
     } finally {
       setIsUploading(false);
@@ -503,7 +503,7 @@ const HostEventPage = () => {
       }
       setFormData(prev => ({ ...prev, mediaInfo: { ...prev.mediaInfo, mediaUrls: [...prev.mediaInfo.mediaUrls, ...urls] } }));
       Swal.toast.fire({ icon: 'success', title: 'Media uploaded successfully!' });
-    } catch (error) {
+    } catch (_error) {
       Swal.fire('Error', 'Some uploads failed', 'error');
     } finally {
       setIsUploading(false);
@@ -522,11 +522,11 @@ const HostEventPage = () => {
       setFormData(prev => ({ ...prev, mediaInfo: { ...prev.mediaInfo, mediaUrls: prev.mediaInfo.mediaUrls.filter((_, i) => i !== idx) } }));
   };
 
-  const handleChange = (section: string, field: string, value: any) => {
+  const handleChange = (section: keyof typeof formData, field: string, value: string | boolean | number) => {
     setFormData(prev => ({
       ...prev,
       [section]: {
-        ...(prev as any)[section],
+        ...(prev[section] as Record<string, string | boolean | number>),
         [field]: value
       }
     }));
@@ -574,7 +574,7 @@ const HostEventPage = () => {
     }
   };
 
-  const updateTicket = (id: string, field: string, value: any) => {
+  const updateTicket = (id: string, field: keyof ITicket, value: string | number | boolean) => {
     setFormData(prev => ({
       ...prev,
       tickets: prev.tickets.map(t => {
@@ -583,7 +583,7 @@ const HostEventPage = () => {
           if (field === "totalQuantity") {
              const otherTicketsSum = prev.tickets.filter(ticket => ticket.id !== id).reduce((sum, ticket) => sum + (ticket.totalQuantity || 0), 0);
              const maxAllowed = Math.max(0, prev.basicInfo.capacity - otherTicketsSum);
-             newValue = Math.min(parseInt(value) || 0, maxAllowed);
+             newValue = Math.min(parseInt(String(value)) || 0, maxAllowed);
           }
           const updated = { ...t, [field]: newValue };
           if (field === 'type' && value === 'FREE') {
@@ -605,13 +605,13 @@ const HostEventPage = () => {
     }));
   };
 
-  const updateQuantityDiscount = (ticketId: string, index: number, field: string, value: number) => {
+  const updateQuantityDiscount = (ticketId: string, index: number, field: 'minQuantity' | 'discountPercentage' | 'price', value: number) => {
     setFormData(prev => ({
       ...prev,
       tickets: prev.tickets.map(t => {
         if (t.id === ticketId) {
           const discounts = [...(t.quantityDiscounts || [])];
-          (discounts[index] as any)[field] = value;
+          discounts[index] = { ...discounts[index], [field]: value };
           return { ...t, quantityDiscounts: discounts };
         }
         return t;
@@ -650,7 +650,7 @@ const HostEventPage = () => {
     }
   };
 
-  const updateSession = (id: string, field: string, value: any) => {
+  const updateSession = (id: string, field: string, value: string | string[]) => {
     setFormData(prev => ({
       ...prev,
       sessions: prev.sessions.map(s => s.id === id ? { ...s, [field]: value } : s)
@@ -757,7 +757,7 @@ const HostEventPage = () => {
     Swal.showLoading();
 
     try {
-        const payload: Record<string, any> = {
+        const payload: Record<string, string | boolean | number | string[] | Record<string, string | boolean | number>[] | Speaker[] | undefined> = {
             title: formData.basicInfo.title,
             description: formData.basicInfo.description,
             isPublic: formData.basicInfo.isPublic,
@@ -1095,7 +1095,7 @@ const HostEventPage = () => {
                             }`}
                           >
                             <p className="text-xs font-bold uppercase tracking-wider mb-2">Basic Quantity</p>
-                            <p className="text-xs text-gray-500 font-medium leading-relaxed">Only collect the buyer's information, regardless of quantity.</p>
+                            <p className="text-xs text-gray-500 font-medium leading-relaxed">Only collect the buyer&apos;s information, regardless of quantity.</p>
                           </button>
                         </div>
                       </div>

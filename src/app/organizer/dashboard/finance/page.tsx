@@ -5,7 +5,6 @@ import Link from "next/link";
 import {
   Wallet,
   TrendingUp,
-  Download,
   ArrowUpRight,
   CreditCard,
   History,

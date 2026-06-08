@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { UserRole } from "@/types";
 import { useUI } from "@/context/UIContext";
 import {
   LayoutDashboard,
@@ -74,7 +75,7 @@ const OrganizerSidebar = () => {
       id: "organizer-nav-settings",
       roles: ["organizer"]
     },
-  ].filter(link => !link.roles || link.roles.some(r => user?.role?.includes(r)));
+  ].filter(link => !link.roles || link.roles.some(r => user?.role?.includes(r as UserRole)));
 
   return (
     <>

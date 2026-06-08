@@ -3,27 +3,37 @@ import React, { useState, useEffect } from "react";
 import {
   Ticket,
   Search,
-  Filter,
   Download,
   Eye,
-  User,
-  ShieldCheck,
   CheckCircle2,
-  XCircle,
-  Clock,
-  MoreVertical
+  Clock
 } from "lucide-react";
 import api from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
+import { Event } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 import withAuth from "@/components/auth/withAuth";
 
+interface OrderRow {
+  id: string;
+  orderId: string;
+  ticketNumber: string;
+  createdAt: string;
+  eventTitle: string;
+  ticketName: string;
+  attendeeName: string;
+  amountPaid: number;
+  status: string;
+  checkedInBy?: { fullName: string; email: string };
+  checkInStatus?: boolean;
+}
+
 const OrdersView = () => {
   const { user } = useAuth();
-  const [orders, setOrders] = useState<any[]>([]);
-  const [events, setEvents] = useState<any[]>([]);
+  const [orders, setOrders] = useState<OrderRow[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [ordersLoading, setOrdersLoading] = useState(false);
@@ -53,12 +63,14 @@ const OrdersView = () => {
         setLoading(false);
     }
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isStaff]);
 
   useEffect(() => {
     if (selectedEventId) {
         fetchOrders();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedEventId]);
 
   const fetchOrders = async () => {
@@ -73,23 +85,43 @@ const OrdersView = () => {
       const orderList = Array.isArray(rawData) ? rawData : (Array.isArray(rawData?.data) ? rawData.data : []);
 
       // Flatten orders into individual registrations to display ticket numbers
-      const flattened = orderList.flatMap((order: any) => {
+      const flattened = orderList.flatMap((order: {
+        id: string;
+        registrations?: {
+          id: string;
+          createdAt?: string;
+          ticketId?: { name: string };
+          ticketNumber?: string;
+          attendeeData?: { fullName?: string; 'full-name'?: string; email?: string };
+          pricePaid: number;
+          paymentStatus: string;
+          checkedInBy?: { fullName: string; email: string };
+          checkInStatus?: boolean;
+        }[];
+        buyerInfo?: { fullName: string; email: string };
+        event?: { title: string };
+        eventTitle?: string;
+        amountPaid: number;
+        status: string;
+        createdAt: string;
+        ticketName?: string;
+      }): OrderRow[] => {
         const registrations = order.registrations || [];
         if (registrations.length === 0) {
            return [{
-             ...order,
              id: order.id,
+             orderId: order.id,
              ticketNumber: `ORD-${order.id.slice(0, 8)}`,
              attendeeName: order.buyerInfo?.fullName || "Guest",
              eventTitle: order.event?.title || order.eventTitle || "N/A",
              amountPaid: order.amountPaid || 0,
-             status: order.status || "PENDING"
+             status: order.status || "PENDING",
+             createdAt: order.createdAt,
+             ticketName: order.ticketName || "Ticket"
            }];
         }
 
-        return registrations.map((reg: any) => ({
-          ...order,
-          ...reg,
+        return registrations.map((reg): OrderRow => ({
           id: reg.id,
           orderId: order.id,
           createdAt: reg.createdAt || order.createdAt,
@@ -99,7 +131,8 @@ const OrdersView = () => {
           attendeeName: reg.attendeeData?.fullName || reg.attendeeData?.['full-name'] || order.buyerInfo?.fullName || "Guest",
           amountPaid: Number(reg.pricePaid || order.amountPaid || 0),
           status: reg.paymentStatus || order.status || "PAID",
-          checkedInBy: reg.checkedInBy
+          checkedInBy: reg.checkedInBy,
+          checkInStatus: reg.checkInStatus
         }));
       });
 

@@ -3,12 +3,8 @@ import React, { useState, useEffect } from "react";
 import {
   Calendar,
   Search,
-  Filter,
   MapPin,
-  Ticket,
   ArrowRight,
-  MoreVertical,
-  CheckCircle2,
   Clock,
   LayoutGrid,
   List,
@@ -46,7 +42,7 @@ const AllEventsAdmin = () => {
       try {
           const fallbackResponse = await api.get("/events");
           setEvents(fallbackResponse.data.data || []);
-      } catch (e) {
+      } catch (_e) {
           setEvents([]);
       }
     } finally {
@@ -117,10 +113,10 @@ const AllEventsAdmin = () => {
         </div>
 
         <div className="flex items-center gap-2 w-full lg:w-auto overflow-x-auto no-scrollbar py-1">
-          {["ALL", "UPCOMING", "ONGOING", "COMPLETED", "CANCELLED"].map((filter) => (
+          {(["ALL", "UPCOMING", "ONGOING", "COMPLETED", "CANCELLED"] as const).map((filter) => (
             <button
               key={filter}
-              onClick={() => setActiveFilter(filter as any)}
+              onClick={() => setActiveFilter(filter)}
               className={`px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
                 activeFilter === filter
                   ? "bg-primary text-white shadow-md shadow-primary/20"
@@ -251,10 +247,10 @@ const AllEventsAdmin = () => {
                       </td>
                       <td className="px-6 py-5">
                          <div className="space-y-1">
-                            <p className="text-sm font-black text-gray-900">{(event as any).registrationCount || 0} / {event.capacity}</p>
+                            <p className="text-sm font-black text-gray-900">{event.registrationCount || 0} / {event.capacity}</p>
                          </div>
                       </td>
-                      <td className="px-6 py-5 font-black text-emerald-600 text-sm">₦{((event as any).totalRevenue || 0).toLocaleString()}</td>
+                      <td className="px-6 py-5 font-black text-emerald-600 text-sm">₦{(event.totalRevenue || 0).toLocaleString()}</td>
                       <td className="px-6 py-5 text-right">
                         <div className="flex items-center justify-end gap-3">
                             <Link

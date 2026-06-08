@@ -17,10 +17,29 @@ import CustomLoader from "@/components/CustomLoader";
 import { formatCurrency } from "@/utils/currency";
 import Swal from "@/utils/sweetalert";
 
+interface AdminFinanceSummary {
+  totalGrossVolume: number;
+  platformRevenue: number;
+  organizerPayouts: number;
+  activeSubscriptions: number;
+}
+
+interface WithdrawalRequest {
+  id: string;
+  organizerName?: string;
+  organizerEmail?: string;
+  organizerId: string;
+  amount: number;
+  bankName: string;
+  accountNumber: string;
+  createdAt: string;
+  status: string;
+}
+
 const FinancePage = () => {
   const [activeTab, setActiveTab] = useState<'summary' | 'withdrawals'>('summary');
-  const [summary, setSummary] = useState<any>(null);
-  const [requests, setRequests] = useState<any[]>([]);
+  const [summary, setSummary] = useState<AdminFinanceSummary | null>(null);
+  const [requests, setRequests] = useState<WithdrawalRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [withdrawFilter, setWithdrawFilter] = useState("PENDING");
   const [searchTerm, setSearchTerm] = useState("");
@@ -77,7 +96,7 @@ const FinancePage = () => {
         });
         Swal.fire("Success!", `Withdrawal request ${status.toLowerCase()}.`, "success");
         fetchRequests();
-      } catch (error) {
+      } catch (_error) {
         Swal.fire("Error", "Failed to update status", "error");
       }
     }

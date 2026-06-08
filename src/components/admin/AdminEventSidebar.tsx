@@ -15,13 +15,7 @@ import {
   LogOut,
   ChevronLeft,
   Menu,
-  X,
-  Shield,
-  Briefcase,
-  Layers,
-  ArrowLeftRight,
-  CreditCard,
-  Target
+  X
 } from "lucide-react";
 
 const AdminEventSidebar = () => {

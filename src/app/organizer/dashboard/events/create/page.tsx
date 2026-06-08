@@ -45,7 +45,7 @@ import axios from "axios";
 import { useEffect } from "react";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
-import { AgendaItem, EventType, RegistrationMode, RegistrationField, Speaker, TicketType, Ticket as ITicket } from "@/types";
+import { EventType, RegistrationMode, RegistrationField, Speaker, TicketType, Ticket as ITicket } from "@/types";
 import { useAuth } from "@/context/AuthContext";
 
 const steps = [
@@ -516,9 +516,9 @@ const CreateEvent = () => {
 
       const { status: _status, ...patchPayload } = basePayload as Record<string, unknown>;
       // Ensure status is DRAFT if we're autosaving
-      (patchPayload as any).status = "DRAFT";
+      const finalPayload = { ...patchPayload, status: "DRAFT" };
 
-      const response = await api.patch(`/events/${eventId}`, patchPayload);
+      const response = await api.patch(`/events/${eventId}`, finalPayload);
       if (response.data.data.speakers) {
         setSpeakers(response.data.data.speakers);
       }
@@ -529,7 +529,7 @@ const CreateEvent = () => {
           if (!emptyTicket) {
               const ticketPayload = {
                   tickets: tickets.map(({ id: _, ...rest }) => {
-                      const tPayload: any = {
+                      const tPayload: Partial<ITicket> = {
                           name: rest.name,
                           description: rest.description,
                           type: rest.type,
@@ -605,6 +605,7 @@ const CreateEvent = () => {
     }, 10000); // Every 10 seconds
 
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [saveToLocalStorage]); // Removing saveToBackend from deps to prevent reset on every state change
 
   // Load draft on mount
@@ -695,6 +696,7 @@ const CreateEvent = () => {
         clearDraft();
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Media Upload State
@@ -870,7 +872,7 @@ const CreateEvent = () => {
     if (sessions.length > 1) setSessions(sessions.filter(s => s.id !== sessionId));
   };
 
-  const updateSession = (sessionId: string, field: string, value: any) => {
+  const updateSession = (sessionId: string, field: string, value: string | string[]) => {
     setSessions(sessions.map(s => s.id === sessionId ? { ...s, [field]: value } : s));
   };
 
@@ -902,7 +904,7 @@ const CreateEvent = () => {
     if (tickets.length > 1) setTickets(tickets.filter(t => t.id !== ticketId));
   };
 
-  const updateTicket = (ticketId: string, field: string, value: any) => {
+  const updateTicket = (ticketId: string, field: string, value: string | number | boolean) => {
     setTickets(tickets.map(t => {
         if (t.id === ticketId) {
             let newValue = value;
@@ -911,7 +913,7 @@ const CreateEvent = () => {
                     .filter(ticket => ticket.id !== ticketId)
                     .reduce((sum, ticket) => sum + (ticket.totalQuantity || 0), 0);
                 const maxAllowed = Math.max(0, basicInfo.capacity - otherTicketsSum);
-                newValue = Math.min(parseInt(value) || 0, maxAllowed);
+                newValue = Math.min(parseInt(String(value)) || 0, maxAllowed);
             }
 
             const updated = { ...t, [field]: newValue };
@@ -1038,9 +1040,9 @@ const CreateEvent = () => {
     }
   };
 
-  const updateField = (index: number, field: string, value: any) => {
+  const updateField = (index: number, field: keyof RegistrationField, value: string | boolean | string[] | undefined) => {
     const newFields = [...registration.fields];
-    newFields[index] = { ...newFields[index], [field]: value };
+    newFields[index] = { ...newFields[index], [field]: value } as RegistrationField;
     setRegistration({ ...registration, fields: newFields });
   };
 
@@ -1156,7 +1158,7 @@ const CreateEvent = () => {
           Swal.showLoading();
           const payload = {
               tickets: tickets.map(({ id: _, ...rest }) => {
-                  const tPayload: any = {
+                  const tPayload: Partial<ITicket> = {
                       name: rest.name,
                       description: rest.description,
                       type: rest.type,

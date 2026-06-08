@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { History, Search, Filter, AlertCircle, Clock, CheckCircle2, XCircle, Info } from "lucide-react";
+import { History, Filter, AlertCircle, Clock, CheckCircle2, XCircle, Info } from "lucide-react";
 import api from "@/services/api";
 import { RefundRequest } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
@@ -13,6 +13,7 @@ const RefundsView = () => {
 
   useEffect(() => {
     fetchRefundRequests();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 
   const fetchRefundRequests = async () => {
@@ -104,7 +105,7 @@ const RefundsView = () => {
 
                   <div className="max-w-xs">
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Reason</p>
-                    <p className="text-xs text-gray-600 font-medium line-clamp-1 italic">"{request.reason}"</p>
+                    <p className="text-xs text-gray-600 font-medium line-clamp-1 italic">&quot;{request.reason}&quot;</p>
                   </div>
                 </div>
               </div>

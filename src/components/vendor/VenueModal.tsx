@@ -705,7 +705,7 @@ const VenueModal: React.FC<VenueModalProps> = ({ isOpen, onClose, onSubmit, venu
 
   const handleBulkAdd = () => {
     const startIdx = formData.facilities.length;
-    const newFacilities: Facility[] = selectedBulkFacilities.map((id, idx) => {
+    const newFacilities: Facility[] = selectedBulkFacilities.map((id) => {
       const facility = availableFacilities.find(f => f._id === id);
       return {
         facility: id,

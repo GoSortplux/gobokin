@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useVendor } from "@/context/VendorContext";
 import api from "@/services/api";
 import { translateError } from "@/utils/errors";
+import { Event } from "@/types";
 import VenueModal from "@/components/vendor/VenueModal";
 import ReservationModal from "@/components/vendor/ReservationModal";
 import { useUI } from "@/context/UIContext";
@@ -55,7 +56,7 @@ const VenuesContent = () => {
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
   const [selectedVenueId, setSelectedVenueId] = useState<string | null>(null);
 
-  const [venueEvents, setVenueEvents] = useState<Record<string, any[]>>({});
+  const [venueEvents, setVenueEvents] = useState<Record<string, Event[]>>({});
   const [loadingEvents, setLoadingEvents] = useState<string | null>(null);
 
   const pathname = usePathname();
@@ -428,7 +429,7 @@ const VenuesContent = () => {
                                    </div>
                                 ) : venueEvents[venue._id || venue.id]?.length > 0 ? (
                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                      {venueEvents[venue._id || venue.id].map((event: any) => (
+                                      {venueEvents[venue._id || venue.id].map((event: Event) => (
                                         <div key={event.id} className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-3">
                                            <div className="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center font-black text-xs">
                                               {event.title[0]}

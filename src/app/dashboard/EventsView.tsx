@@ -9,26 +9,7 @@ import RegistrationDetailsModal from "./RegistrationDetailsModal";
 import EventTicketCard from "./EventTicketCard";
 import WaitlistsView from "./WaitlistsView";
 import RefundsView from "./RefundsView";
-
-interface Registration {
-  id: string;
-  orderId: string;
-  ticketNumber: string;
-  paymentStatus: string;
-  createdAt: string;
-  event: {
-    id: string;
-    title: string;
-    startDate: string;
-    location: string;
-    bannerUrl: string;
-  };
-  ticket: {
-    name: string;
-    type: string;
-    price: number;
-  };
-}
+import { Registration } from "@/types";
 
 const EventsView = () => {
   const [registrations, setRegistrations] = useState<Registration[]>([]);

@@ -89,10 +89,10 @@ const UserManagementPage = () => {
       </div>
 
       <div className="bg-white p-3 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-2 overflow-x-auto no-scrollbar">
-         {["ALL", "PENDING", "APPROVED", "REJECTED"].map(filter => (
+         {(["ALL", "PENDING", "APPROVED", "REJECTED"] as const).map(filter => (
            <button
              key={filter}
-             onClick={() => setAppFilter(filter as any)}
+             onClick={() => setAppFilter(filter)}
              className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
                appFilter === filter ? "bg-primary text-white shadow-md shadow-primary/20" : "text-gray-500 hover:bg-gray-50"
              }`}
@@ -182,7 +182,7 @@ const UserManagementPage = () => {
                            <div className="flex-1">
                               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">References</p>
                               <div className="flex flex-wrap gap-2 mt-1">
-                                 {app.data.references?.map((ref: string, i: number) => (
+                                 {(app.data.references as string[])?.map((ref, i) => (
                                    <span key={i} className="px-3 py-1 bg-white border border-gray-100 rounded-lg text-xs font-medium text-gray-600">{ref}</span>
                                  ))}
                               </div>
