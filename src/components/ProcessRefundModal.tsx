@@ -57,6 +57,7 @@ const ProcessRefundModal: React.FC<ProcessRefundModalProps> = ({ request, onClos
       Swal.fire("Success", "Refund processed successfully.", "success");
       onSuccess();
       onClose();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       const errorMsg = translateError(error);
       if (error?.response?.data?.message?.toLowerCase().includes("insufficient") || error?.response?.data?.message?.toLowerCase().includes("top-up")) {

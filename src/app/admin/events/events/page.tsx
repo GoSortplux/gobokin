@@ -3,12 +3,8 @@ import React, { useState, useEffect } from "react";
 import {
   Calendar,
   Search,
-  Filter,
   MapPin,
-  Ticket,
   ArrowRight,
-  MoreVertical,
-  CheckCircle2,
   Clock,
   LayoutGrid,
   List,
@@ -46,7 +42,7 @@ const AllEventsAdmin = () => {
       try {
           const fallbackResponse = await api.get("/events");
           setEvents(fallbackResponse.data.data || []);
-      } catch (e) {
+      } catch (_e) {
           setEvents([]);
       }
     } finally {
@@ -120,6 +116,7 @@ const AllEventsAdmin = () => {
           {["ALL", "UPCOMING", "ONGOING", "COMPLETED", "CANCELLED"].map((filter) => (
             <button
               key={filter}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               onClick={() => setActiveFilter(filter as any)}
               className={`px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
                 activeFilter === filter
@@ -251,9 +248,11 @@ const AllEventsAdmin = () => {
                       </td>
                       <td className="px-6 py-5">
                          <div className="space-y-1">
+                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                             <p className="text-sm font-black text-gray-900">{(event as any).registrationCount || 0} / {event.capacity}</p>
                          </div>
                       </td>
+                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                       <td className="px-6 py-5 font-black text-emerald-600 text-sm">₦{((event as any).totalRevenue || 0).toLocaleString()}</td>
                       <td className="px-6 py-5 text-right">
                         <div className="flex items-center justify-end gap-3">

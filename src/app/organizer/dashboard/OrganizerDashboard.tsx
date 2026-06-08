@@ -55,6 +55,7 @@ const OrganizerDashboard = () => {
             const response = await api.get("/events/my-events");
             const events = response.data.data || [];
             // Map raw Event objects to TopEvent-like structure for the table
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const mappedEvents = events.map((e: any) => ({
                 eventId: e.id,
                 title: e.title,
@@ -66,6 +67,7 @@ const OrganizerDashboard = () => {
             }));
             setAnalytics({
                 topEvents: mappedEvents
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } as any);
         } else {
             const response = await api.get("/events/my-organizer-profile/analytics");
@@ -241,6 +243,7 @@ const OrganizerDashboard = () => {
                             <Tooltip
                                 contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '12px' }}
                                 itemStyle={{ fontWeight: 800, color: '#295FA7' }}
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                 formatter={(value: any) => [`₦${value.toLocaleString()}`, 'Revenue']}
                             />
                             <Area type="monotone" dataKey="sales" stroke="#295FA7" strokeWidth={4} fillOpacity={1} fill="url(#colorSales)" />

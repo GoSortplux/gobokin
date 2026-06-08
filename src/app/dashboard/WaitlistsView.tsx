@@ -67,7 +67,7 @@ const WaitlistsView = () => {
         {waitlists.map((entry) => (
           <div key={entry.id} className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden group hover:shadow-xl hover:shadow-gray-200/50 transition-all duration-500">
              <div className="relative aspect-[16/9]">
-                {entry.event.bannerUrl ? (
+                {entry.event?.bannerUrl ? (
                   <Image src={entry.event.bannerUrl} alt={entry.event.title} fill className="object-cover group-hover:scale-105 transition-transform duration-700" />
                 ) : (
                   <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-300">
@@ -84,15 +84,15 @@ const WaitlistsView = () => {
 
              <div className="p-6 space-y-6">
                 <div>
-                   <h3 className="text-xl font-black text-gray-900 line-clamp-1 mb-2 group-hover:text-primary transition-colors">{entry.event.title}</h3>
+                   <h3 className="text-xl font-black text-gray-900 line-clamp-1 mb-2 group-hover:text-primary transition-colors">{entry.event?.title || 'Unknown Event'}</h3>
                    <div className="flex flex-col gap-2">
                       <div className="flex items-center gap-2 text-gray-500 font-medium text-xs">
                          <Calendar size={14} className="text-primary" />
-                         {new Date(entry.event.startDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
+                         {entry.event?.startDate ? new Date(entry.event.startDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : 'Date TBD'}
                       </div>
                       <div className="flex items-center gap-2 text-gray-500 font-medium text-xs">
                          <MapPin size={14} className="text-primary" />
-                         <span className="truncate">{entry.event.location || "Virtual Event"}</span>
+                         <span className="truncate">{entry.event?.location || "Virtual Event"}</span>
                       </div>
                    </div>
                 </div>
@@ -109,7 +109,7 @@ const WaitlistsView = () => {
                          </span>
                       </div>
                    </div>
-                   <Link href={`/events/${entry.event.id}`} className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-all group/btn">
+                   <Link href={`/events/${entry.event?.id}`} className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-all group/btn">
                       <ArrowRight size={20} className="group-hover/btn:translate-x-1 transition-transform" />
                    </Link>
                 </div>

@@ -17,10 +17,38 @@ import CustomLoader from "@/components/CustomLoader";
 import { formatCurrency } from "@/utils/currency";
 import Swal from "@/utils/sweetalert";
 
+interface AdminFinanceSummary {
+  totalGrossVolume: number;
+  platformRevenue: number;
+  organizerEarnings: number;
+  pendingWithdrawals: number;
+  totalEvents: number;
+  activeOrganizers: number;
+  organizerPayouts: number;
+  activeSubscriptions: number;
+}
+
+interface AdminWithdrawalRequest {
+  id: string;
+  organizer: {
+    fullName: string;
+    email: string;
+  };
+  amount: number;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  bankAccount: {
+    bankName: string;
+    accountNumber: string;
+    accountName: string;
+  };
+  createdAt: string;
+  adminNotes?: string;
+}
+
 const FinancePage = () => {
   const [activeTab, setActiveTab] = useState<'summary' | 'withdrawals'>('summary');
-  const [summary, setSummary] = useState<any>(null);
-  const [requests, setRequests] = useState<any[]>([]);
+  const [summary, setSummary] = useState<AdminFinanceSummary | null>(null);
+  const [requests, setRequests] = useState<AdminWithdrawalRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [withdrawFilter, setWithdrawFilter] = useState("PENDING");
   const [searchTerm, setSearchTerm] = useState("");
@@ -38,8 +66,8 @@ const FinancePage = () => {
       setLoading(true);
       const response = await api.get("/events/admin/finance/summary");
       setSummary(response.data.data);
-    } catch (error) {
-      console.error("Failed to fetch finance summary:", error);
+    } catch (_error) {
+      console.error("Failed to fetch finance summary:", _error);
     } finally {
       setLoading(false);
     }
@@ -50,8 +78,8 @@ const FinancePage = () => {
       setLoading(true);
       const response = await api.get("/events/admin/withdrawals");
       setRequests(response.data.data || []);
-    } catch (error) {
-      console.error("Failed to fetch withdrawals:", error);
+    } catch (_error) {
+      console.error("Failed to fetch withdrawals:", _error);
       setRequests([]);
     } finally {
       setLoading(false);
@@ -77,7 +105,7 @@ const FinancePage = () => {
         });
         Swal.fire("Success!", `Withdrawal request ${status.toLowerCase()}.`, "success");
         fetchRequests();
-      } catch (error) {
+      } catch (_error) {
         Swal.fire("Error", "Failed to update status", "error");
       }
     }
@@ -270,20 +298,20 @@ const FinancePage = () => {
                   ) : requests.length > 0 ? requests.filter(r => {
                     const matchesFilter = withdrawFilter === "ALL" || r.status === withdrawFilter;
                     const matchesSearch =
-                      r.organizerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                      r.organizerEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                      r.organizerId?.toLowerCase().includes(searchTerm.toLowerCase());
+                      r.organizer.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      r.organizer.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      r.id?.toLowerCase().includes(searchTerm.toLowerCase());
                     return matchesFilter && matchesSearch;
                   }).map((req) => (
                     <tr key={req.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-8 py-6">
-                        <p className="font-bold text-gray-900">{req.organizerName || "ID: " + req.organizerId.slice(0,8)}</p>
-                        <p className="text-xs text-gray-500 font-medium">{req.organizerEmail}</p>
+                        <p className="font-bold text-gray-900">{req.organizer.fullName || "ID: " + req.id.slice(0,8)}</p>
+                        <p className="text-xs text-gray-500 font-medium">{req.organizer.email}</p>
                       </td>
                       <td className="px-8 py-6 font-black text-primary text-lg">{formatCurrency(req.amount)}</td>
                       <td className="px-8 py-6">
-                        <p className="text-sm font-bold text-gray-700">{req.bankName}</p>
-                        <p className="text-xs text-gray-500 font-medium">{req.accountNumber}</p>
+                        <p className="text-sm font-bold text-gray-700">{req.bankAccount.bankName}</p>
+                        <p className="text-xs text-gray-500 font-medium">{req.bankAccount.accountNumber}</p>
                       </td>
                       <td className="px-8 py-6">
                         <p className="text-sm font-bold text-gray-700">{new Date(req.createdAt).toLocaleDateString()}</p>

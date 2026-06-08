@@ -52,6 +52,7 @@ interface DiscoveryData {
   byCategory: Record<string, Event[]>;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CATEGORY_ICONS: Record<string, any> = {
   "Technology": Cpu,
   "Religious": Church,

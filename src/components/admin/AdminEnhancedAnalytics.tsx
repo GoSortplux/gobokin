@@ -525,6 +525,7 @@ const AdminEnhancedAnalytics = ({ defaultView = 'venues' }: { defaultView?: 'ven
                             />
                             <Tooltip
                                 contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', padding: '12px' }}
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                 formatter={(value: any) => [`₦${value.toLocaleString()}`, 'Revenue']}
                             />
                             <Area type="monotone" dataKey="revenue" stroke="#295FA7" strokeWidth={4} fillOpacity={1} fill="url(#colorRevenue)" />

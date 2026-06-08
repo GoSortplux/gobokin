@@ -86,6 +86,7 @@ const EventDetails = () => {
         setLoading(true);
 
         // Only fetch analytics if not staff
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const promises: [Promise<any>, Promise<any> | null] = [
           api.get(`/events/${eventId}`),
           !isStaff ? api.get(`/events/${eventId}/analytics`) : null
@@ -105,6 +106,7 @@ const EventDetails = () => {
       }
     };
     fetchEventData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId]);
 
   useEffect(() => {
@@ -156,6 +158,7 @@ const EventDetails = () => {
           // Based on common patterns in this repo, if orders have registrations:
           let flattenedAttendees = [];
           if (Array.isArray(orders)) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             flattenedAttendees = orders.flatMap((order: any) => {
               const registrations = order.registrations || [];
               if (registrations.length === 0) {
@@ -170,6 +173,7 @@ const EventDetails = () => {
                  }];
               }
 
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               return registrations.map((reg: any) => ({
                 ...reg,
                 orderId: order.id,
@@ -1331,6 +1335,7 @@ const EventDetails = () => {
                                                       const orders = response.data.data || [];
                                                       let flattenedAttendees = [];
                                                       if (Array.isArray(orders)) {
+                                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                                         flattenedAttendees = orders.flatMap((order: any) => {
                                                           const registrations = order.registrations || [];
                                                           if (registrations.length === 0) {
@@ -1344,6 +1349,7 @@ const EventDetails = () => {
                                                               createdAt: order.createdAt
                                                             }];
                                                           }
+                                                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                                           return registrations.map((reg: any) => ({
                                                             ...reg,
                                                             orderId: order.id,
@@ -1421,6 +1427,7 @@ const EventDetails = () => {
                   const orders = response.data.data || [];
                   let flattenedAttendees = [];
                   if (Array.isArray(orders)) {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     flattenedAttendees = orders.flatMap((order: any) => {
                       const registrations = order.registrations || [];
                       if (registrations.length === 0) {
@@ -1434,6 +1441,7 @@ const EventDetails = () => {
                           createdAt: order.createdAt
                         }];
                       }
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       return registrations.map((reg: any) => ({
                         ...reg,
                         orderId: order.id,

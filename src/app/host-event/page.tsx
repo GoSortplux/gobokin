@@ -77,6 +77,7 @@ interface LivePreviewProps {
   };
   speakers: Speaker[];
   tickets: ITicket[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   sessions: any[];
   agendaEnabled: boolean;
 }
@@ -435,6 +436,7 @@ const HostEventPage = () => {
         }
     };
     checkAndInitialize();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, formData.eventId]);
 
   useEffect(() => {
@@ -459,9 +461,9 @@ const HostEventPage = () => {
       });
 
       return finalUrl;
-    } catch (error) {
-      console.error('Upload failed:', error);
-      throw error;
+    } catch (_error) {
+      console.error('Upload failed:', _error);
+      throw _error;
     }
   };
 
@@ -479,7 +481,7 @@ const HostEventPage = () => {
       }
       setFormData(prev => ({ ...prev, mediaInfo: { ...prev.mediaInfo, bannerUrl: fileUrl } }));
       Swal.toast.fire({ icon: 'success', title: 'Banner uploaded successfully!' });
-    } catch (error) {
+    } catch (_error) {
       Swal.fire('Error', 'Failed to upload banner.', 'error');
     } finally {
       setIsUploading(false);
@@ -503,7 +505,7 @@ const HostEventPage = () => {
       }
       setFormData(prev => ({ ...prev, mediaInfo: { ...prev.mediaInfo, mediaUrls: [...prev.mediaInfo.mediaUrls, ...urls] } }));
       Swal.toast.fire({ icon: 'success', title: 'Media uploaded successfully!' });
-    } catch (error) {
+    } catch (_error) {
       Swal.fire('Error', 'Some uploads failed', 'error');
     } finally {
       setIsUploading(false);
@@ -522,10 +524,12 @@ const HostEventPage = () => {
       setFormData(prev => ({ ...prev, mediaInfo: { ...prev.mediaInfo, mediaUrls: prev.mediaInfo.mediaUrls.filter((_, i) => i !== idx) } }));
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleChange = (section: string, field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
       [section]: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ...(prev as any)[section],
         [field]: value
       }
@@ -574,6 +578,7 @@ const HostEventPage = () => {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateTicket = (id: string, field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
@@ -611,6 +616,7 @@ const HostEventPage = () => {
       tickets: prev.tickets.map(t => {
         if (t.id === ticketId) {
           const discounts = [...(t.quantityDiscounts || [])];
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (discounts[index] as any)[field] = value;
           return { ...t, quantityDiscounts: discounts };
         }
@@ -650,6 +656,7 @@ const HostEventPage = () => {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateSession = (id: string, field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
@@ -700,8 +707,8 @@ const HostEventPage = () => {
         setCurrentStep(7);
         window.scrollTo({ top: 0, behavior: "smooth" });
         Swal.fire({ title: 'Step 6 Complete', icon: 'success', timer: 1500, showConfirmButton: false });
-    } catch (error) {
-        Swal.fire("Error", translateError(error), "error");
+    } catch (_error) {
+        Swal.fire("Error", translateError(_error), "error");
     } finally {
         setIsFinalizing(false);
     }
@@ -734,8 +741,8 @@ const HostEventPage = () => {
         await Swal.fire({ title: "Event Fully Launched!", icon: "success", confirmButtonColor: "#295FA7" });
         localStorage.removeItem(STORAGE_KEY);
         router.push(`/organizer/dashboard/events/${eventId}`);
-    } catch (error) {
-        Swal.fire("Error", translateError(error), "error");
+    } catch (_error) {
+        Swal.fire("Error", translateError(_error), "error");
     } finally {
         setIsFinalizing(false);
     }
@@ -757,6 +764,7 @@ const HostEventPage = () => {
     Swal.showLoading();
 
     try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const payload: Record<string, any> = {
             title: formData.basicInfo.title,
             description: formData.basicInfo.description,
@@ -810,9 +818,9 @@ const HostEventPage = () => {
 
         setCurrentStep(5);
         window.scrollTo({ top: 0, behavior: "smooth" });
-    } catch (error) {
-        console.error("Failed to initialize event:", error);
-        Swal.fire("Error", translateError(error), "error");
+    } catch (_error) {
+        console.error("Failed to finalized event creation:", _error);
+      Swal.fire("Error", translateError(_error), "error");
     } finally {
         setIsFinalizing(false);
     }
@@ -1095,7 +1103,7 @@ const HostEventPage = () => {
                             }`}
                           >
                             <p className="text-xs font-bold uppercase tracking-wider mb-2">Basic Quantity</p>
-                            <p className="text-xs text-gray-500 font-medium leading-relaxed">Only collect the buyer's information, regardless of quantity.</p>
+                            <p className="text-xs text-gray-500 font-medium leading-relaxed">Only collect the buyer&apos;s information, regardless of quantity.</p>
                           </button>
                         </div>
                       </div>

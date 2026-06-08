@@ -5,30 +5,11 @@ import CustomLoader from "@/components/CustomLoader";
 import { Ticket, ListOrdered, History } from "lucide-react";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
+import { Registration } from "@/types";
 import RegistrationDetailsModal from "./RegistrationDetailsModal";
 import EventTicketCard from "./EventTicketCard";
 import WaitlistsView from "./WaitlistsView";
 import RefundsView from "./RefundsView";
-
-interface Registration {
-  id: string;
-  orderId: string;
-  ticketNumber: string;
-  paymentStatus: string;
-  createdAt: string;
-  event: {
-    id: string;
-    title: string;
-    startDate: string;
-    location: string;
-    bannerUrl: string;
-  };
-  ticket: {
-    name: string;
-    type: string;
-    price: number;
-  };
-}
 
 const EventsView = () => {
   const [registrations, setRegistrations] = useState<Registration[]>([]);

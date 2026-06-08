@@ -5,20 +5,27 @@ import {
   Search,
   Filter,
   Eye,
-  Calendar,
-  User,
-  Clock,
-  MoreVertical,
-  CheckCircle2,
-  XCircle,
   Hash
 } from "lucide-react";
 import api from "@/services/api";
 import CustomLoader from "@/components/CustomLoader";
 import { formatCurrency } from "@/utils/currency";
 
+interface AdminOrderFlattened {
+  id: string;
+  orderId: string;
+  createdAt: string;
+  eventTitle: string;
+  ticketNumber: string;
+  buyerName: string;
+  buyerEmail: string;
+  totalAmount: number;
+  status: string;
+  ticketCount: number;
+}
+
 const AllOrdersAdmin = () => {
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<AdminOrderFlattened[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -35,7 +42,8 @@ const AllOrdersAdmin = () => {
       const orderList = Array.isArray(rawData) ? rawData : (Array.isArray(rawData?.data) ? rawData.data : []);
 
       // Flatten orders into individual registrations to display ticket numbers
-      const flattened = orderList.flatMap((order: any) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const flattened = orderList.flatMap((order: any): AdminOrderFlattened[] => {
         const registrations = order.registrations || [];
         if (registrations.length === 0) {
            return [{
@@ -51,6 +59,7 @@ const AllOrdersAdmin = () => {
            }];
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return registrations.map((reg: any) => ({
           ...order,
           ...reg,

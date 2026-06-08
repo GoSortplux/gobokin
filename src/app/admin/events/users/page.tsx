@@ -92,7 +92,7 @@ const UserManagementPage = () => {
          {["ALL", "PENDING", "APPROVED", "REJECTED"].map(filter => (
            <button
              key={filter}
-             onClick={() => setAppFilter(filter as any)}
+             onClick={() => setAppFilter(filter as "ALL" | "PENDING" | "APPROVED" | "REJECTED")}
              className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
                appFilter === filter ? "bg-primary text-white shadow-md shadow-primary/20" : "text-gray-500 hover:bg-gray-50"
              }`}

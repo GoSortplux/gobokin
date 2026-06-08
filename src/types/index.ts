@@ -843,4 +843,11 @@ export interface WaitlistEntry {
   status: 'PENDING' | 'NOTIFIED' | 'EXPIRED' | string;
   createdAt: string;
   ticketType?: Ticket;
+  event?: {
+    id: string;
+    title: string;
+    bannerUrl: string;
+    startDate: string;
+    location: string;
+  };
 }

@@ -31,6 +31,7 @@ const CheckInInterface = () => {
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [searchResult, setSearchResult] = useState<any | null>(null);
   const [searching, setSearching] = useState(false);
   const [checkingIn, setCheckingIn] = useState(false);
@@ -40,6 +41,7 @@ const CheckInInterface = () => {
     try {
       if (showLoading) setLoading(true);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const promises: [Promise<any>, Promise<any> | null, Promise<any> | null] = [
         api.get(`/events/${eventId}`),
         !isStaff ? api.get(`/events/${eventId}/analytics`) : null,
@@ -53,6 +55,7 @@ const CheckInInterface = () => {
         setAnalytics(analyticsRes.data.data);
       }
       if (staffRes) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const staffMembers = (staffRes.data.data || []).map((item: any) => item.staff).filter(Boolean);
         setStaff(staffMembers);
       }
@@ -62,6 +65,7 @@ const CheckInInterface = () => {
     } finally {
       if (showLoading) setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId]);
 
   useEffect(() => {
@@ -242,6 +246,7 @@ const CheckInInterface = () => {
                             className="w-full pl-12 pr-10 py-5 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold focus:bg-white focus:border-primary transition-all outline-none appearance-none cursor-pointer"
                           >
                             <option value="">Standard Event Entry</option>
+                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                             {event.sessions.map((session: any) => (
                               <option key={session.id} value={session.id}>
                                 {session.title}

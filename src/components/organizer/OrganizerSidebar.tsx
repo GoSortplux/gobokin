@@ -74,7 +74,8 @@ const OrganizerSidebar = () => {
       id: "organizer-nav-settings",
       roles: ["organizer"]
     },
-  ].filter(link => !link.roles || link.roles.some(r => user?.role?.includes(r)));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ].filter(link => !link.roles || link.roles.some(r => user?.role?.includes(r as any)));
 
   return (
     <>

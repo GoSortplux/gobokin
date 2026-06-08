@@ -63,6 +63,7 @@ const OrganizerSettings = () => {
 
   useEffect(() => {
     fetchInitialData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchInitialData = async () => {
@@ -235,6 +236,7 @@ const OrganizerSettings = () => {
     }));
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const tabs: { id: TabType; label: string; icon: any }[] = [
     { id: 'profile', label: 'Profile & Policies', icon: User },
     { id: 'subscriptions', label: 'Subscriptions', icon: CreditCard },

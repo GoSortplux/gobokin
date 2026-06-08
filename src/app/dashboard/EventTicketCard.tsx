@@ -21,26 +21,7 @@ import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 import useOnClickOutside from "@/hooks/useOnClickOutside";
 import RefundRequestModal from "@/components/RefundRequestModal";
-
-interface Registration {
-  id: string;
-  orderId: string;
-  ticketNumber: string;
-  paymentStatus: string;
-  createdAt: string;
-  event: {
-    id: string;
-    title: string;
-    startDate: string;
-    location: string;
-    bannerUrl: string;
-  };
-  ticket: {
-    name: string;
-    type: string;
-    price: number;
-  };
-}
+import { Registration } from "@/types";
 
 interface EventTicketCardProps {
   registration: Registration;

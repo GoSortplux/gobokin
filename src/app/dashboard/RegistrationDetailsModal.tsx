@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { X, Calendar, MapPin, Ticket, User, Mail, Phone, Info, Clock, ExternalLink, RotateCcw, CreditCard } from "lucide-react";
 import api from "@/services/api";
-import { Event } from "@/types";
+import { Event, Registration } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
@@ -11,7 +11,7 @@ import Image from "next/image";
 import { format } from "date-fns";
 
 interface RegistrationDetailsModalProps {
-  registration: any;
+  registration: Registration;
   onClose: () => void;
 }
 
@@ -139,7 +139,7 @@ const RegistrationDetailsModal: React.FC<RegistrationDetailsModalProps> = ({ reg
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <div className="space-y-1">
                         <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Full Name</p>
-                        <p className="font-black text-gray-900">{registration.attendeeData?.fullName || registration.attendeeData?.["full-name"] || "N/A"}</p>
+                        <p className="font-black text-gray-900">{registration.attendeeData?.fullName || (registration.attendeeData as Record<string, unknown>)?.[ "full-name" ] as string || "N/A"}</p>
                       </div>
                       <div className="space-y-1">
                         <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Email Address</p>

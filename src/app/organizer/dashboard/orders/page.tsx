@@ -22,7 +22,9 @@ import withAuth from "@/components/auth/withAuth";
 
 const OrdersView = () => {
   const { user } = useAuth();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [orders, setOrders] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [events, setEvents] = useState<any[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -53,12 +55,14 @@ const OrdersView = () => {
         setLoading(false);
     }
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isStaff]);
 
   useEffect(() => {
     if (selectedEventId) {
         fetchOrders();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedEventId]);
 
   const fetchOrders = async () => {
@@ -73,6 +77,7 @@ const OrdersView = () => {
       const orderList = Array.isArray(rawData) ? rawData : (Array.isArray(rawData?.data) ? rawData.data : []);
 
       // Flatten orders into individual registrations to display ticket numbers
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const flattened = orderList.flatMap((order: any) => {
         const registrations = order.registrations || [];
         if (registrations.length === 0) {
@@ -87,6 +92,7 @@ const OrdersView = () => {
            }];
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return registrations.map((reg: any) => ({
           ...order,
           ...reg,
