@@ -149,7 +149,7 @@ const MyEvents = () => {
       </div>
 
       {/* Toolbar */}
-      <div className="bg-white p-2 md:p-3 rounded-2xl md:rounded-[2rem] border border-gray-100 shadow-sm flex flex-col lg:flex-row items-center gap-4">
+      <div id="organizer-events-toolbar" className="bg-white p-2 md:p-3 rounded-2xl md:rounded-[2rem] border border-gray-100 shadow-sm flex flex-col lg:flex-row items-center gap-4">
         <div className="relative flex-1 w-full">
           <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
           <input
@@ -199,7 +199,7 @@ const MyEvents = () => {
       {/* Content */}
       {filteredEvents.length > 0 ? (
         viewMode === "grid" ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+          <div id="organizer-events-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {filteredEvents.map((event) => (
               <div key={event.id} className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-xl transition-all duration-500 group relative">
                 <div className="relative h-44 w-full overflow-hidden">

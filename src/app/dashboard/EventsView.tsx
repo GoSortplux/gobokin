@@ -38,14 +38,15 @@ const EventsView = () => {
   return (
     <div className="space-y-8">
       {/* Sub-tabs Navigation */}
-      <div className="flex items-center gap-2 p-1.5 bg-gray-50 rounded-2xl border border-gray-100 w-fit">
+      <div id="customer-events-tabs" className="flex items-center gap-2 p-1.5 bg-gray-50 rounded-2xl border border-gray-100 w-fit">
         {[
-          { id: "tickets", label: "My Tickets", icon: Ticket },
-          { id: "waitlists", label: "Waitlists", icon: ListOrdered },
-          { id: "refunds", label: "Refund History", icon: History },
+          { id: "tickets", label: "My Tickets", icon: Ticket, tourId: "customer-events-tickets" },
+          { id: "waitlists", label: "Waitlists", icon: ListOrdered, tourId: "customer-events-waitlists" },
+          { id: "refunds", label: "Refund History", icon: History, tourId: "customer-events-refunds" },
         ].map((tab) => (
           <button
             key={tab.id}
+            id={tab.tourId}
             onClick={() => setActiveSubTab(tab.id)}
             className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 ${
               activeSubTab === tab.id

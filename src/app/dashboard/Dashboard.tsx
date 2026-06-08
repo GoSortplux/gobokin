@@ -10,6 +10,7 @@ import WaitlistsView from "./WaitlistsView";
 import { Calendar, Ticket, Clock, Settings, History, ListOrdered } from "lucide-react";
 
 const DashboardContent = () => {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState("bookings");
 
@@ -19,6 +20,11 @@ const DashboardContent = () => {
       setActiveTab(tab);
     }
   }, [searchParams]);
+
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId);
+    router.push(`/dashboard?tab=${tabId}`, { scroll: false });
+  };
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="container mx-auto px-4 py-12">
@@ -27,17 +33,18 @@ const DashboardContent = () => {
             {[
               { id: "bookings", label: "My Bookings", icon: Calendar, color: "bg-primary", shadow: "shadow-primary/20" },
               { id: "reservations", label: "My Reservations", icon: Clock, color: "bg-amber-600", shadow: "shadow-amber-600/20" },
-              { id: "events", label: "My Events", icon: Ticket, color: "bg-emerald-600", shadow: "shadow-emerald-600/20" },
+              { id: "events", label: "My Events", icon: Ticket, color: "bg-emerald-600", shadow: "shadow-emerald-600/20", tourId: "customer-nav-events" },
               { id: "settings", label: "Profile Settings", icon: Settings, color: "bg-gray-800", shadow: "shadow-gray-800/20" },
             ].map((tab) => (
               <button
                 key={tab.id}
+                id={tab.tourId}
                 className={`cursor-pointer py-2.5 px-6 rounded-xl text-sm font-bold transition-all duration-200 whitespace-nowrap flex items-center gap-2 ${
                   activeTab === tab.id
                     ? `${tab.color} text-white shadow-md ${tab.shadow}`
                     : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
                 }`}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleTabChange(tab.id)}
               >
                 <tab.icon size={16} />
                 {tab.label}

@@ -1295,7 +1295,7 @@ const CreateEvent = () => {
           </button>
 
           {/* Step Indicator Desktop */}
-          <div className="hidden xl:flex items-center gap-1.5 bg-gray-50 p-2 rounded-[2.5rem] border border-gray-100">
+          <div id="event-creation-steps" className="hidden xl:flex items-center gap-1.5 bg-gray-50 p-2 rounded-[2.5rem] border border-gray-100">
             {steps.map((step) => (
               <div
                 key={step.id}
@@ -1323,7 +1323,7 @@ const CreateEvent = () => {
 
       <div className="flex flex-col lg:flex-row gap-10 items-start px-2">
         {/* Main Form Container */}
-        <div className={`flex-1 w-full bg-white rounded-[3rem] border border-gray-100 shadow-2xl shadow-gray-200/40 overflow-hidden transition-all duration-700 ease-in-out`}>
+        <div id="event-creation-form" className={`flex-1 w-full bg-white rounded-[3rem] border border-gray-100 shadow-2xl shadow-gray-200/40 overflow-hidden transition-all duration-700 ease-in-out`}>
           {/* Mobile Progress Bar */}
           <div className="lg:hidden bg-white px-6 py-6 border-b border-gray-50 flex items-center justify-between">
               <div className="flex items-center gap-5">
@@ -2769,7 +2769,7 @@ const CreateEvent = () => {
 
         {/* Live Preview Pane (Desktop) */}
         {showPreview && (
-          <div className="hidden lg:block w-[400px] xl:w-[480px] shrink-0 animate-in fade-in slide-in-from-right-12 duration-1000 ease-out">
+          <div id="event-creation-preview" className="hidden lg:block w-[400px] xl:w-[480px] shrink-0 animate-in fade-in slide-in-from-right-12 duration-1000 ease-out">
             <LivePreview
               basicInfo={basicInfo}
               mediaInfo={mediaInfo}

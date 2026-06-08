@@ -485,7 +485,7 @@ const EventDiscoveryContent = () => {
         </div>
 
         {/* Category Filter */}
-        <div className="space-y-3">
+        <div id="discovery-categories" className="space-y-3">
            <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest ml-1">Category</label>
            <div className="flex flex-col gap-1.5">
               {["All", ...categories].map(cat => {
@@ -529,7 +529,7 @@ const EventDiscoveryContent = () => {
         </div>
 
         {/* View Toggle */}
-        <div className="pt-4 border-t border-gray-100">
+        <div id="discovery-view-toggle" className="pt-4 border-t border-gray-100">
            <div className="flex bg-gray-50 p-1 rounded-xl">
               <button
                 onClick={() => setViewMode('grid')}
@@ -578,12 +578,14 @@ const EventDiscoveryContent = () => {
 
                <div className="flex items-center gap-3 mt-2">
                   <Link
+                    id="discovery-host-event"
                     href={user?.role?.includes('organizer') ? "/organizer/dashboard/events/create" : "/host-event"}
                     className="bg-primary text-white px-6 py-3 rounded-xl text-sm font-semibold uppercase tracking-widest hover:scale-105 transition-all shadow-md shadow-primary/10"
                   >
                     Host an Event
                   </Link>
                   <button
+                    id="discovery-browse-list"
                     onClick={() => {
                       const el = document.getElementById('main-listing');
                       el?.scrollIntoView({ behavior: 'smooth' });
@@ -744,7 +746,7 @@ const EventDiscoveryContent = () => {
             <div className="space-y-24">
               {/* Featured Section */}
               {discoveryData?.featured?.length > 0 && (
-                <div>
+                <div id="discovery-featured">
                   <div className="flex items-center justify-between mb-8">
                      <div>
                         <h2 className="text-2xl font-semibold text-gray-900 tracking-tighter flex items-center gap-3">
@@ -820,7 +822,7 @@ const EventDiscoveryContent = () => {
 
               {/* Bookmarks Section - At the bottom with Slider */}
               {discoveryData?.bookmarks?.length > 0 && (
-                <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 mt-20">
+                <div id="discovery-bookmarks" className="animate-in fade-in slide-in-from-bottom-8 duration-700 mt-20">
                   <div className="flex items-center justify-between mb-8 border-b border-gray-100 pb-5 relative">
                      <div>
                         <h2 className="text-2xl font-semibold text-gray-900 tracking-tighter flex items-center gap-3">

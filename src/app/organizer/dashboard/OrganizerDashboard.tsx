@@ -157,7 +157,7 @@ const OrganizerDashboard = () => {
   return (
     <div className="space-y-8 pb-12 px-2 lg:px-4">
       {/* Welcome & Quick Actions */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <div id="organizer-dashboard-header" className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div>
           <h1 className="text-4xl font-black text-primary tracking-tight">Dashboard</h1>
           <p className="text-gray-500 font-medium mt-1">Experience the pulse of your events in real-time.</p>
@@ -181,7 +181,7 @@ const OrganizerDashboard = () => {
 
       {/* Stats Grid */}
       {!isStaff && (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div id="organizer-stats-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, idx) => (
           <div key={idx} className="bg-white p-7 rounded-3xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 group">
             <div className="flex items-center justify-between mb-6">
@@ -200,7 +200,7 @@ const OrganizerDashboard = () => {
       {!isStaff && (
       <div className={`grid grid-cols-1 ${isStaff ? 'lg:grid-cols-1' : 'lg:grid-cols-3'} gap-8`}>
         {!isStaff && (
-            <div className="lg:col-span-2 bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm">
+            <div id="organizer-revenue-trends" className="lg:col-span-2 bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm">
                 <div className="flex items-center justify-between mb-8">
                     <div>
                         <h2 className="text-xl font-black text-gray-900 tracking-tight">Revenue Trends</h2>
@@ -253,7 +253,7 @@ const OrganizerDashboard = () => {
             </div>
         )}
 
-        <div className={`bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm ${isStaff ? 'w-full' : ''}`}>
+        <div id="organizer-event-distribution" className={`bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm ${isStaff ? 'w-full' : ''}`}>
             <h2 className="text-xl font-black text-gray-900 tracking-tight mb-2">Event Distribution</h2>
             <p className="text-sm text-gray-400 font-medium mb-8">Status of your events</p>
 
@@ -311,7 +311,7 @@ const OrganizerDashboard = () => {
       )}
 
       {/* Top Events Table */}
-      <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
+      <div id="organizer-top-events" className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
         <div className="flex items-center justify-between mb-8">
             <div>
                 <h2 className="text-2xl font-black text-gray-900 tracking-tight">Top Events</h2>

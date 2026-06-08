@@ -851,7 +851,7 @@ const HostEventPage = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-4 mb-12 overflow-x-auto no-scrollbar pb-2">
+        <div id="event-creation-steps" className="flex items-center gap-4 mb-12 overflow-x-auto no-scrollbar pb-2">
           {steps.map((step, idx) => (
             <React.Fragment key={step.id}>
               <button
@@ -881,7 +881,7 @@ const HostEventPage = () => {
         </div>
 
         <div className="flex flex-col lg:flex-row gap-12 items-start">
-          <div className="flex-1 w-full max-w-4xl">
+          <div id="event-creation-form" className="flex-1 w-full max-w-4xl">
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               <div className="p-8 md:p-10 lg:p-12">
                 {currentStep === 1 && (
@@ -1519,7 +1519,7 @@ const HostEventPage = () => {
           </div>
 
           {showPreview && (
-            <div className="hidden lg:block w-[400px] xl:w-[480px] shrink-0 animate-in fade-in slide-in-from-right-12 duration-1000 ease-out">
+            <div id="event-creation-preview" className="hidden lg:block w-[400px] xl:w-[480px] shrink-0 animate-in fade-in slide-in-from-right-12 duration-1000 ease-out">
               <LivePreview
                 basicInfo={formData.basicInfo}
                 mediaInfo={formData.mediaInfo}
