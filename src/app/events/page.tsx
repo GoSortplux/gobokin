@@ -13,7 +13,6 @@ import {
   LayoutGrid,
   ChevronRight,
   Heart,
-  TrendingUp,
   CheckCircle2,
   X,
   Map as MapIcon,

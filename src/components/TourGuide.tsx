@@ -19,7 +19,6 @@ const TourGuide = () => {
     if (!user || !activeRole) return;
 
     const isVendorPage = pathname.startsWith('/vendor');
-    const isOrganizerPage = pathname.startsWith('/organizer');
     const isDashboardPage = pathname === '/dashboard';
     const isEventsDiscoveryPage = pathname === '/events';
     const isHostEventPage = pathname === '/host-event';

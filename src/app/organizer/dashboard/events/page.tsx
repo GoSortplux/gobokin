@@ -4,9 +4,9 @@ import Link from "next/link";
 import {
   Calendar,
   Search,
-  Filter,
+
   MapPin,
-  Ticket,
+
   ArrowRight,
   PlusCircle,
   MoreVertical,

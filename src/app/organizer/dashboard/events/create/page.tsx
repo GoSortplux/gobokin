@@ -45,7 +45,7 @@ import axios from "axios";
 import { useEffect } from "react";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
-import { AgendaItem, EventType, RegistrationMode, RegistrationField, Speaker, TicketType, Ticket as ITicket } from "@/types";
+import {  EventType, RegistrationMode, RegistrationField, Speaker, TicketType, Ticket as ITicket } from "@/types";
 import { useAuth } from "@/context/AuthContext";
 
 const steps = [

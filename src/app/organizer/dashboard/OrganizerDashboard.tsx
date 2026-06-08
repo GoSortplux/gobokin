@@ -2,33 +2,22 @@
 import React, { useState, useEffect } from "react";
 import {
   Calendar,
-  Users,
   TrendingUp,
   Wallet,
   PlusCircle,
-  ArrowUpRight,
   Ticket,
-  Eye,
-  MoreVertical,
-  Search,
-  Filter,
   BarChart3,
   MousePointerClick,
   CheckCircle2,
-  Clock,
   ArrowRight,
-  TrendingDown,
   ShoppingBag
 } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import api from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
-import { Analytics, Event } from "@/types";
+import { Analytics } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 import {
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -229,7 +218,7 @@ const OrganizerDashboard = () => {
                                 tickFormatter={(str) => {
                                     try {
                                         return new Date(str).toLocaleDateString('en-US', { weekday: 'short' });
-                                    } catch (e) {
+                                    } catch (_e) {
                                         return str;
                                     }
                                 }}
