@@ -1425,8 +1425,11 @@ const CreateEvent = () => {
                                 </div>
                              </div>
                              <div className="space-y-3">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Search Keywords</label>
-                                <div className="flex flex-wrap gap-2 p-4 bg-white border border-gray-300 rounded-3xl min-h-[76px] focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/5 transition-all shadow-sm">
+                                <div className="flex items-center justify-between ml-1">
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Search Keywords</label>
+                                    <span className="text-[9px] font-bold text-gray-400 uppercase">{basicInfo.tags.length}/5 Keywords</span>
+                                </div>
+                                <div className="flex flex-wrap gap-2 p-4 bg-white border border-gray-300 rounded-3xl h-[120px] overflow-y-auto focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/5 transition-all shadow-sm scrollbar-thin scrollbar-thumb-gray-200">
                                    {basicInfo.tags.map((tag, index) => (
                                       <span key={index} className="flex items-center gap-2 px-3 py-1.5 bg-primary/5 text-primary rounded-xl text-[11px] font-black uppercase tracking-wider border border-primary/10 animate-in zoom-in duration-300">
                                          {tag}
@@ -1444,36 +1447,37 @@ const CreateEvent = () => {
                                          </button>
                                       </span>
                                    ))}
-                                   <input
-                                      type="text"
-                                      placeholder={basicInfo.tags.length === 0 ? "Enter keywords (comma separated)" : "Add more..."}
-                                      className="flex-1 min-w-[120px] bg-transparent outline-none text-sm font-bold placeholder:text-gray-400 px-2"
-                                      value={keywordInput}
-                                      onChange={(e) => {
-                                         const value = e.target.value;
-                                         if (value.endsWith(',')) {
-                                            const newTag = value.slice(0, -1).trim();
-                                            if (newTag && !basicInfo.tags.includes(newTag)) {
-                                               setBasicInfo(prev => ({ ...prev, tags: [...prev.tags, newTag] }));
-                                               setKeywordInput("");
-                                               handleBlur();
+                                   {basicInfo.tags.length < 5 && (
+                                      <input
+                                         type="text"
+                                         placeholder={basicInfo.tags.length === 0 ? "Enter keywords (comma separated)" : "Add more..."}
+                                         className="flex-1 min-w-[120px] bg-transparent outline-none text-sm font-bold placeholder:text-gray-400 px-2 h-fit self-center"
+                                         value={keywordInput}
+                                         onChange={(e) => {
+                                            const value = e.target.value;
+                                            if (value.endsWith(',')) {
+                                               const newTag = value.slice(0, -1).trim();
+                                               if (newTag && !basicInfo.tags.includes(newTag) && basicInfo.tags.length < 5) {
+                                                  setBasicInfo(prev => ({ ...prev, tags: [...prev.tags, newTag] }));
+                                                  setKeywordInput("");
+                                                  handleBlur();
+                                               } else {
+                                                  setKeywordInput(value.slice(0, -1));
+                                               }
                                             } else {
-                                               setKeywordInput(value.slice(0, -1));
+                                               setKeywordInput(value);
                                             }
-                                         } else {
-                                            setKeywordInput(value);
-                                         }
-                                      }}
-                                      onKeyDown={(e) => {
-                                         if (e.key === 'Enter') {
-                                            e.preventDefault();
-                                            const newTag = keywordInput.trim();
-                                            if (newTag && !basicInfo.tags.includes(newTag)) {
-                                               setBasicInfo(prev => ({ ...prev, tags: [...prev.tags, newTag] }));
-                                               setKeywordInput("");
-                                               handleBlur();
-                                            }
-                                         } else if (e.key === 'Backspace' && !keywordInput && basicInfo.tags.length > 0) {
+                                         }}
+                                         onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                               e.preventDefault();
+                                               const newTag = keywordInput.trim();
+                                               if (newTag && !basicInfo.tags.includes(newTag) && basicInfo.tags.length < 5) {
+                                                  setBasicInfo(prev => ({ ...prev, tags: [...prev.tags, newTag] }));
+                                                  setKeywordInput("");
+                                                  handleBlur();
+                                               }
+                                            } else if (e.key === 'Backspace' && !keywordInput && basicInfo.tags.length > 0) {
                                             const newTags = [...basicInfo.tags];
                                             newTags.pop();
                                             setBasicInfo(prev => ({ ...prev, tags: newTags }));
@@ -1860,8 +1864,8 @@ const CreateEvent = () => {
                        <div className="space-y-10">
                           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-gray-100 pb-10">
                              <div>
-                                <h3 className="text-3xl font-black text-gray-900 tracking-tight">Intelligence Gathering</h3>
-                                <p className="text-sm text-gray-500 font-medium">Capture custom data points from your attendees.</p>
+                                <h3 className="text-3xl font-black text-gray-900 tracking-tight">Custom Registration Fields</h3>
+                                <p className="text-sm text-gray-500 font-medium">Add custom fields to collect information from attendees during registration.</p>
                              </div>
                              <div className="relative" ref={addFieldDropdownRef}>
                                 <button
@@ -1869,7 +1873,7 @@ const CreateEvent = () => {
                                   className="flex items-center gap-3 bg-gray-900 text-white font-black px-8 py-5 rounded-3xl hover:bg-black transition-all shadow-2xl shadow-gray-900/20 text-[10px] uppercase tracking-[0.2em]"
                                 >
                                   <Plus size={18} />
-                                  Add Dynamic Field
+                                  Add Fields
                                 </button>
                                 {showAddFieldDropdown && (
                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-gray-100 py-3 z-[100] animate-in fade-in zoom-in duration-200">
@@ -1884,13 +1888,6 @@ const CreateEvent = () => {
                                          Location
                                       </button>
                                       )}
-                                      <button
-                                         onClick={() => addField('address')}
-                                         className="w-full px-6 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors flex items-center gap-3"
-                                      >
-                                         <FileText size={14} />
-                                         Address
-                                      </button>
                                       <button
                                          onClick={() => addField('custom')}
                                          className="w-full px-6 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors flex items-center gap-3"
