@@ -343,9 +343,13 @@ const CreateEvent = () => {
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
   const [showAddFieldDropdown, setShowAddFieldDropdown] = useState(false);
+  const [showRegInfo, setShowRegInfo] = useState(false);
+  const [keywordInput, setKeywordInput] = useState("");
   const addFieldDropdownRef = useRef<HTMLDivElement>(null);
+  const regInfoRef = useRef<HTMLDivElement>(null);
 
   useOnClickOutside(addFieldDropdownRef, () => setShowAddFieldDropdown(false));
+  useOnClickOutside(regInfoRef, () => setShowRegInfo(false));
 
   // Fetch Categories
   useEffect(() => {
@@ -375,7 +379,7 @@ const CreateEvent = () => {
     virtualLink: "",
     capacity: 0,
     category: "",
-    tags: "",
+    tags: [] as string[],
     isPublic: true,
     agendaEnabled: false,
     status: "UPCOMING",
@@ -486,7 +490,7 @@ const CreateEvent = () => {
         virtualLink: basicInfo.virtualLink || undefined,
         capacity: basicInfo.capacity,
         category: basicInfo.category,
-        tags: (basicInfo.tags || "").split(',').map(tag => tag.trim()).filter(tag => tag !== ""),
+        tags: basicInfo.tags,
         agendaEnabled: basicInfo.agendaEnabled,
         registrationMode: registration.mode,
         isGroupingEnabled: registration.isGroupingEnabled,
@@ -622,7 +626,7 @@ const CreateEvent = () => {
               setBasicInfo(prev => ({
                 ...prev,
                 ...draft.basicInfo,
-                tags: Array.isArray(draft.basicInfo.tags) ? draft.basicInfo.tags.join(', ') : draft.basicInfo.tags
+                tags: Array.isArray(draft.basicInfo.tags) ? draft.basicInfo.tags : []
               }));
             }
             if (draft.speakers && Array.isArray(draft.speakers)) {
@@ -675,7 +679,10 @@ const CreateEvent = () => {
           confirmButtonColor: "#295FA7",
         }).then((result) => {
           if (result.isConfirmed) {
-            if (draft.basicInfo) setBasicInfo(draft.basicInfo);
+            if (draft.basicInfo) setBasicInfo({
+              ...draft.basicInfo,
+              tags: Array.isArray(draft.basicInfo.tags) ? draft.basicInfo.tags : []
+            });
             if (draft.mediaInfo) setMediaInfo(draft.mediaInfo);
             if (draft.speakers) setSpeakers(draft.speakers);
             if (draft.sessions) setSessions(draft.sessions);
@@ -1096,7 +1103,7 @@ const CreateEvent = () => {
         virtualLink: basicInfo.virtualLink || undefined,
         capacity: basicInfo.capacity,
         category: basicInfo.category,
-        tags: (basicInfo.tags || "").split(',').map(tag => tag.trim()).filter(tag => tag !== ""),
+        tags: basicInfo.tags,
         agendaEnabled: basicInfo.agendaEnabled,
         registrationMode: registration.mode,
         isGroupingEnabled: registration.isGroupingEnabled,
@@ -1419,15 +1426,60 @@ const CreateEvent = () => {
                              </div>
                              <div className="space-y-3">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Search Keywords</label>
-                                <div className="relative">
-                                   <Tag size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-primary" />
+                                <div className="flex flex-wrap gap-2 p-4 bg-white border border-gray-300 rounded-3xl min-h-[76px] focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/5 transition-all shadow-sm">
+                                   {basicInfo.tags.map((tag, index) => (
+                                      <span key={index} className="flex items-center gap-2 px-3 py-1.5 bg-primary/5 text-primary rounded-xl text-[11px] font-black uppercase tracking-wider border border-primary/10 animate-in zoom-in duration-300">
+                                         {tag}
+                                         <button
+                                            type="button"
+                                            onClick={() => {
+                                               const newTags = [...basicInfo.tags];
+                                               newTags.splice(index, 1);
+                                               setBasicInfo(prev => ({ ...prev, tags: newTags }));
+                                               handleBlur();
+                                            }}
+                                            className="hover:text-secondary transition-colors"
+                                         >
+                                            <X size={12} strokeWidth={3} />
+                                         </button>
+                                      </span>
+                                   ))}
                                    <input
                                       type="text"
-                                      name="tags"
-                                      placeholder="Comma separated tags"
-                                      className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
-                                      value={basicInfo.tags || ""}
-                                      onBlur={handleBlur} onChange={handleBasicChange}
+                                      placeholder={basicInfo.tags.length === 0 ? "Enter keywords (comma separated)" : "Add more..."}
+                                      className="flex-1 min-w-[120px] bg-transparent outline-none text-sm font-bold placeholder:text-gray-400 px-2"
+                                      value={keywordInput}
+                                      onChange={(e) => {
+                                         const value = e.target.value;
+                                         if (value.endsWith(',')) {
+                                            const newTag = value.slice(0, -1).trim();
+                                            if (newTag && !basicInfo.tags.includes(newTag)) {
+                                               setBasicInfo(prev => ({ ...prev, tags: [...prev.tags, newTag] }));
+                                               setKeywordInput("");
+                                               handleBlur();
+                                            } else {
+                                               setKeywordInput(value.slice(0, -1));
+                                            }
+                                         } else {
+                                            setKeywordInput(value);
+                                         }
+                                      }}
+                                      onKeyDown={(e) => {
+                                         if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            const newTag = keywordInput.trim();
+                                            if (newTag && !basicInfo.tags.includes(newTag)) {
+                                               setBasicInfo(prev => ({ ...prev, tags: [...prev.tags, newTag] }));
+                                               setKeywordInput("");
+                                               handleBlur();
+                                            }
+                                         } else if (e.key === 'Backspace' && !keywordInput && basicInfo.tags.length > 0) {
+                                            const newTags = [...basicInfo.tags];
+                                            newTags.pop();
+                                            setBasicInfo(prev => ({ ...prev, tags: newTags }));
+                                            handleBlur();
+                                         }
+                                      }}
                                    />
                                 </div>
                              </div>
@@ -1676,14 +1728,14 @@ const CreateEvent = () => {
 
                  {subStep === 3 && (
                     <div className="space-y-16 animate-in fade-in duration-500">
-                       {/* Section 8: Advanced Settings */}
+                       {/* Section 8: Event Configuration */}
                        <div className="space-y-10 group/section">
                           <div className="flex items-center gap-5 border-b border-gray-100 pb-10">
                              <div className="w-14 h-14 rounded-2xl bg-gray-50 text-primary flex items-center justify-center shadow-sm border border-gray-100">
                                 <ShieldCheck size={24} />
                              </div>
                              <div>
-                                <h3 className="text-2xl font-black text-gray-900 tracking-tight">Advanced Settings</h3>
+                                <h3 className="text-2xl font-black text-gray-900 tracking-tight">Event Configuration</h3>
                                 <p className="text-sm text-gray-400 font-medium">Fine-tune your event&apos;s visibility and registration.</p>
                              </div>
                           </div>
@@ -1705,9 +1757,42 @@ const CreateEvent = () => {
                                 </div>
                              </div>
                              <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                                   <User size={12} />
-                                   Registration Mode
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
+                                   <div className="flex items-center gap-2">
+                                      <User size={12} />
+                                      Registration Mode
+                                   </div>
+                                   <div className="relative" ref={regInfoRef}>
+                                      <button
+                                        type="button"
+                                        onClick={() => setShowRegInfo(!showRegInfo)}
+                                        className="text-primary hover:text-primary/80 transition-colors focus:outline-none"
+                                      >
+                                        <Info size={14} />
+                                      </button>
+                                      {showRegInfo && (
+                                        <div className="absolute bottom-full right-0 mb-3 w-72 p-6 bg-white border border-gray-100 text-gray-900 rounded-[2rem] shadow-2xl z-[100] animate-in fade-in slide-in-from-bottom-2 duration-200">
+                                           <div className="flex items-center justify-between mb-4">
+                                              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Registration Modes Explained</p>
+                                              <button onClick={() => setShowRegInfo(false)} className="text-gray-400 hover:text-gray-600">
+                                                 <X size={14} />
+                                              </button>
+                                           </div>
+                                           <div className="space-y-4">
+                                              <div className="space-y-1.5">
+                                                 <p className="text-xs font-bold text-primary uppercase">Attendee Registration (Full details)</p>
+                                                 <p className="text-[10px] text-gray-500 font-medium leading-relaxed">Collects comprehensive information for every single attendee. Use this when you need names, emails, or specific data for each person attending.</p>
+                                              </div>
+                                              <div className="h-[1px] bg-gray-100" />
+                                              <div className="space-y-1.5">
+                                                 <p className="text-xs font-bold text-secondary uppercase">Ticket Sales (basic quantity)</p>
+                                                 <p className="text-[10px] text-gray-500 font-medium leading-relaxed">Collects details only from the ticket buyer. Use this for simple events where you just need to know how many tickets were sold to a single person.</p>
+                                              </div>
+                                           </div>
+                                           <div className="absolute top-full right-1 w-3 h-3 bg-white border-b border-r border-gray-100 rotate-45 -translate-y-1.5" />
+                                        </div>
+                                      )}
+                                   </div>
                                 </label>
                                 <div className="relative">
                                    <select
@@ -1715,8 +1800,8 @@ const CreateEvent = () => {
                                       value={registration.mode}
                                       onBlur={handleBlur} onChange={(e) => setRegistration(prev => ({ ...prev, mode: e.target.value as RegistrationMode }))}
                                    >
-                                      <option value="FULL_DETAILS">Full Details (Each Guest)</option>
-                                      <option value="BASIC_QUANTITY">Basic Quantity (Buyer Only)</option>
+                                      <option value="FULL_DETAILS">Attendee Registration (Full details)</option>
+                                      <option value="BASIC_QUANTITY">Ticket Sales (basic quantity)</option>
                                    </select>
                                    <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                                 </div>
@@ -1726,8 +1811,11 @@ const CreateEvent = () => {
                                    <Users size={12} />
                                    Grouping
                                 </label>
-                                <div className="flex items-center justify-between">
-                                   <span className="text-sm font-bold text-gray-700">Allow Grouping</span>
+                                <div className="flex items-start justify-between gap-4">
+                                   <div className="space-y-1">
+                                      <span className="text-sm font-bold text-gray-700 block">Enable Group Registration</span>
+                                      <p className="text-[10px] text-gray-400 font-medium leading-tight">Allow attendees to register as a group or team.</p>
+                                   </div>
                                    <button
                                       onClick={() => {
                                          const newGroupingEnabled = !registration.isGroupingEnabled;
@@ -1739,7 +1827,7 @@ const CreateEvent = () => {
                                                : prev.fields.map((f) => ({ ...f, isPerAttendee: false }))
                                          }));
                                       }}
-                                      className={`w-14 h-8 rounded-full transition-all relative ${registration.isGroupingEnabled ? 'bg-primary' : 'bg-gray-300'}`}
+                                      className={`w-14 h-8 rounded-full transition-all relative shrink-0 ${registration.isGroupingEnabled ? 'bg-primary' : 'bg-gray-300'}`}
                                    >
                                       <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${registration.isGroupingEnabled ? 'left-7' : 'left-1'}`} />
                                    </button>
@@ -1751,11 +1839,14 @@ const CreateEvent = () => {
                                       <Users size={12} />
                                       Unique Names
                                    </label>
-                                   <div className="flex items-center justify-between">
-                                      <span className="text-sm font-bold text-gray-700">Enforce Unique Names</span>
+                                   <div className="flex items-start justify-between gap-4">
+                                      <div className="space-y-1">
+                                         <span className="text-sm font-bold text-gray-700 block">Require Unique Group Names</span>
+                                         <p className="text-[10px] text-gray-400 font-medium leading-tight">Prevent multiple groups from using the same name.</p>
+                                      </div>
                                       <button
                                          onClick={() => setRegistration(prev => ({ ...prev, enforceUniqueGroupNames: !prev.enforceUniqueGroupNames }))}
-                                         className={`w-14 h-8 rounded-full transition-all relative ${registration.enforceUniqueGroupNames ? 'bg-primary' : 'bg-gray-300'}`}
+                                         className={`w-14 h-8 rounded-full transition-all relative shrink-0 ${registration.enforceUniqueGroupNames ? 'bg-primary' : 'bg-gray-300'}`}
                                       >
                                          <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${registration.enforceUniqueGroupNames ? 'left-7' : 'left-1'}`} />
                                       </button>
@@ -2384,7 +2475,7 @@ const CreateEvent = () => {
                              <div className="pt-6 border-t border-gray-100 space-y-6">
                                 <h5 className="text-[10px] font-black text-primary uppercase tracking-[0.3em] flex items-center gap-2">
                                     <Settings size={12} />
-                                    Advanced Sales Configuration
+                                    Ticket Configuration
                                 </h5>
                                 <div className={`grid gap-6 ${showPreview ? "grid-cols-1 2xl:grid-cols-3" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"}`}>
                                     <div className="space-y-2">
