@@ -1478,13 +1478,14 @@ const CreateEvent = () => {
                                                   handleBlur();
                                                }
                                             } else if (e.key === 'Backspace' && !keywordInput && basicInfo.tags.length > 0) {
-                                            const newTags = [...basicInfo.tags];
-                                            newTags.pop();
-                                            setBasicInfo(prev => ({ ...prev, tags: newTags }));
-                                            handleBlur();
-                                         }
+                                               const newTags = [...basicInfo.tags];
+                                               newTags.pop();
+                                               setBasicInfo(prev => ({ ...prev, tags: newTags }));
+                                               handleBlur();
+                                            }
                                       }}
                                    />
+                                   )}
                                 </div>
                              </div>
                           </div>

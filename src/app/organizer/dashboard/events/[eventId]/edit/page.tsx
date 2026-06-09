@@ -1255,12 +1255,13 @@ const EditEvent = () => {
                                                   setKeywordInput("");
                                                }
                                             } else if (e.key === 'Backspace' && !keywordInput && basicInfo.tags.length > 0) {
-                                            const newTags = [...basicInfo.tags];
-                                            newTags.pop();
-                                            setBasicInfo(prev => ({ ...prev, tags: newTags }));
-                                         }
+                                               const newTags = [...basicInfo.tags];
+                                               newTags.pop();
+                                               setBasicInfo(prev => ({ ...prev, tags: newTags }));
+                                            }
                                       }}
                                    />
+                                   )}
                                 </div>
                              </div>
                           </div>
