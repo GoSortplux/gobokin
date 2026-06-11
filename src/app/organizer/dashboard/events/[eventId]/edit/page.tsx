@@ -303,7 +303,7 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, sessions, tickets, agenda
                    {tickets.map((ticket, i) => (
                      <div key={i} className="p-5 rounded-[1.5rem] border border-gray-100 bg-gray-50/50 space-y-4 transition-all hover:bg-white hover:shadow-xl hover:shadow-gray-200/20 group">
                         <div className="flex justify-between items-center">
-                          <p className="text-[11px] font-black text-gray-900 group-hover:text-primary transition-colors">{ticket.name || "Untitled Tier"}</p>
+                          <p className="text-[11px] font-black text-gray-900 group-hover:text-primary transition-colors">{ticket.name || "Unnamed Ticket Type"}</p>
                           <span className="text-[8px] font-black text-secondary bg-secondary/5 px-2 py-1 rounded-lg uppercase tracking-widest border border-secondary/10">{ticket.type}</span>
                         </div>
                         <div className="flex items-end gap-1">
@@ -836,7 +836,7 @@ const EditEvent = () => {
     }
 
     if (!ticket.name || ticket.name.trim() === "") {
-        Swal.fire("Validation Error", "Ticket must have a public name.", "error");
+        Swal.fire("Validation Error", "Ticket must have a name.", "error");
         return;
     }
 
@@ -931,7 +931,7 @@ const EditEvent = () => {
     // Validate Ticket Names
     const emptyTicket = tickets.find(t => !t.name || t.name.trim() === "");
     if (emptyTicket) {
-        Swal.fire("Validation Error", "All ticket tiers must have a public name.", "error");
+        Swal.fire("Validation Error", "All tickets must have a name.", "error");
         return;
     }
 
@@ -1814,7 +1814,7 @@ const EditEvent = () => {
             {currentStep === 2 && (
               <div className="space-y-12 animate-in fade-in duration-500">
                  <div className="flex items-center justify-between px-4">
-                    <h3 className="text-3xl font-black text-gray-900 tracking-tight">Ticket Vault</h3>
+                    <h3 className="text-3xl font-black text-gray-900 tracking-tight">Tickets</h3>
                     <button onClick={() => {
                       const currentTotal = tickets.reduce((sum, t) => sum + (t.totalQuantity || 0), 0);
                       const remaining = Math.max(0, basicInfo.capacity - currentTotal);
@@ -1837,7 +1837,7 @@ const EditEvent = () => {
                         quantityDiscounts: []
                       }]);
                     }} className="flex items-center gap-3 bg-secondary text-white font-black px-8 py-5 rounded-3xl text-[10px] uppercase tracking-[0.2em]">
-                      <Plus size={18} /> Create Tier
+                      <Plus size={18} /> Add Ticket Type
                     </button>
                  </div>
                  <div className={`grid gap-8 ${showPreview ? "grid-cols-1 2xl:grid-cols-2" : "grid-cols-1 md:grid-cols-2"}`}>
@@ -1849,8 +1849,8 @@ const EditEvent = () => {
                                       <Ticket size={24} strokeWidth={2} />
                                    </div>
                                    <div>
-                                       <h4 className="font-black text-gray-900 uppercase tracking-[0.3em] text-[10px]">Tier #{_index+1}</h4>
-                                       <p className="text-sm font-black text-gray-400 mt-1">{ticket.name || 'Untitled Tier'}</p>
+                                       <h4 className="font-black text-gray-900 uppercase tracking-[0.3em] text-[10px]">Ticket Type #{_index+1}</h4>
+                                       <p className="text-sm font-black text-gray-400 mt-1">{ticket.name || 'Unnamed Ticket Type'}</p>
                                    </div>
                                 </div>
                                 <div className="flex items-center gap-3">
@@ -1875,7 +1875,7 @@ const EditEvent = () => {
                                 <div className="space-y-3">
                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                                        <Type size={12} className="text-secondary" />
-                                       Public Name
+                                       Ticket Name
                                    </label>
                                    <input
                                       type="text"
@@ -1889,7 +1889,7 @@ const EditEvent = () => {
                                 <div className="space-y-3">
                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                                        <FileText size={12} className="text-secondary" />
-                                       Public Description
+                                       Description
                                    </label>
                                    <textarea
                                       rows={2}
@@ -1904,7 +1904,7 @@ const EditEvent = () => {
                                    <div className="space-y-3">
                                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                                           <MousePointer2 size={12} className="text-secondary" />
-                                          Pricing Model
+                                          Pricing
                                       </label>
                                       <div className="relative">
                                           <select
@@ -1912,8 +1912,8 @@ const EditEvent = () => {
                                              value={ticket.type}
                                              onChange={(e) => updateTicket(ticket.id, "type", e.target.value as TicketType)}
                                           >
-                                             <option value="FREE">Complimentary</option>
-                                             <option value="PAID">Premium Access</option>
+                                             <option value="FREE">Free</option>
+                                             <option value="PAID">Paid</option>
                                           </select>
                                           <ChevronDown size={16} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none" />
                                       </div>
@@ -1921,7 +1921,7 @@ const EditEvent = () => {
                                    <div className="space-y-3">
                                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                                           <Coins size={12} className="text-secondary" />
-                                          Unit Price
+                                          Ticket Price
                                       </label>
                                       <div className="relative">
                                           <span className="absolute left-5 top-1/2 -translate-y-1/2 text-secondary font-black text-xs">₦</span>
@@ -1937,7 +1937,7 @@ const EditEvent = () => {
                                    <div className="space-y-3">
                                       <label htmlFor={`totalQuantity-${ticket.id}`} className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                                           <Layers size={12} className="text-secondary" />
-                                          Total Inventory
+                                          Available Quantity
                                       </label>
                                       <input
                                          id={`totalQuantity-${ticket.id}`}
@@ -1953,7 +1953,7 @@ const EditEvent = () => {
                                    <div className="space-y-3">
                                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                                           <Users size={12} className="text-secondary" />
-                                          Min Purchase
+                                          Minimum Tickets per Order
                                       </label>
                                       <input
                                          type="number"

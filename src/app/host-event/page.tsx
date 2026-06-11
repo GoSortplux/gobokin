@@ -281,7 +281,7 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, tickets, sessions, agenda
                  {tickets.map((ticket, i) => (
                    <div key={i} className="p-5 rounded-[1.5rem] border border-gray-100 bg-gray-50/50 space-y-4 transition-all hover:bg-white hover:shadow-xl hover:shadow-gray-200/20 group">
                       <div className="flex justify-between items-center">
-                        <p className="text-[11px] font-black text-gray-900 group-hover:text-primary transition-colors">{ticket.name || "Untitled Tier"}</p>
+                        <p className="text-[11px] font-black text-gray-900 group-hover:text-primary transition-colors">{ticket.name || "Unnamed Ticket Type"}</p>
                         <span className="text-[8px] font-black text-secondary bg-secondary/5 px-2 py-1 rounded-lg uppercase tracking-widest border border-secondary/10">{ticket.type}</span>
                       </div>
                       <div className="flex items-end gap-1">
@@ -673,7 +673,7 @@ const HostEventPage = () => {
 
     const emptyTicket = formData.tickets.find(t => !t.name || t.name.trim() === "");
     if (emptyTicket) {
-        Swal.fire("Validation Error", "All ticket tiers must have a name.", "error");
+        Swal.fire("Validation Error", "All tickets must have a name.", "error");
         return;
     }
 
@@ -1257,7 +1257,7 @@ const HostEventPage = () => {
                   <div className="space-y-12 animate-in fade-in duration-500">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-gray-50 pb-8">
                        <div>
-                          <h3 className="text-2xl font-semibold text-gray-900 tracking-tight">Ticket Vault</h3>
+                          <h3 className="text-2xl font-semibold text-gray-900 tracking-tight">Tickets</h3>
                           <p className="text-gray-500 font-medium">Configure access and monetization for your event.</p>
                        </div>
                        <button
@@ -1265,7 +1265,7 @@ const HostEventPage = () => {
                          className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white font-semibold rounded-xl hover:bg-black transition-all text-sm shadow-lg shadow-gray-200"
                        >
                          <Plus size={18} />
-                         <span>Create Tier</span>
+                         <span>Add Ticket Type</span>
                        </button>
                     </div>
 
@@ -1277,7 +1277,7 @@ const HostEventPage = () => {
                                 <div className="w-10 h-10 rounded-xl bg-gray-50 text-primary flex items-center justify-center border border-gray-100">
                                    <Ticket size={20} />
                                 </div>
-                                <h4 className="text-sm font-bold text-gray-900 uppercase tracking-widest">Tier #{index+1}</h4>
+                                <h4 className="text-sm font-bold text-gray-900 uppercase tracking-widest">Ticket Type #{index+1}</h4>
                              </div>
                              {formData.tickets.length > 1 && (
                                 <button onClick={() => removeTicket(ticket.id!)} className="text-gray-400 hover:text-rose-500 transition-colors">
@@ -1288,7 +1288,7 @@ const HostEventPage = () => {
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2 md:col-span-2">
-                               <label className="text-xs font-semibold text-gray-700 ml-1">Public Name</label>
+                               <label className="text-xs font-semibold text-gray-700 ml-1">Ticket Name</label>
                                <input
                                   type="text"
                                   placeholder="e.g., General Admission"
@@ -1298,18 +1298,18 @@ const HostEventPage = () => {
                                />
                             </div>
                             <div className="space-y-2">
-                               <label className="text-xs font-semibold text-gray-700 ml-1">Pricing Model</label>
+                               <label className="text-xs font-semibold text-gray-700 ml-1">Pricing</label>
                                <select
                                   className="w-full px-5 py-3 bg-white border border-gray-200 rounded-xl text-sm font-medium outline-none focus:border-primary"
                                   value={ticket.type}
                                   onChange={(e) => updateTicket(ticket.id!, "type", e.target.value as TicketType)}
                                >
-                                  <option value="FREE">Complimentary</option>
-                                  <option value="PAID">Premium Access</option>
+                                  <option value="FREE">Free</option>
+                                  <option value="PAID">Paid</option>
                                </select>
                             </div>
                             <div className="space-y-2">
-                               <label className="text-xs font-semibold text-gray-700 ml-1">Unit Price</label>
+                               <label className="text-xs font-semibold text-gray-700 ml-1">Ticket Price</label>
                                <div className="relative">
                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">₦</span>
                                    <input
@@ -1322,7 +1322,7 @@ const HostEventPage = () => {
                                </div>
                             </div>
                             <div className="space-y-2">
-                               <label className="text-xs font-semibold text-gray-700 ml-1">Inventory</label>
+                               <label className="text-xs font-semibold text-gray-700 ml-1">Available Quantity</label>
                                <input
                                   type="number"
                                   className="w-full px-5 py-3 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:border-primary outline-none"

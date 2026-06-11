@@ -314,7 +314,7 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, sessions, tickets, agenda
                    {tickets.map((ticket, i) => (
                      <div key={i} className="p-5 rounded-[1.5rem] border border-gray-100 bg-gray-50/50 space-y-4 transition-all hover:bg-white hover:shadow-xl hover:shadow-gray-200/20 group">
                         <div className="flex justify-between items-center">
-                          <p className="text-[11px] font-black text-gray-900 group-hover:text-primary transition-colors">{ticket.name || "Untitled Tier"}</p>
+                          <p className="text-[11px] font-black text-gray-900 group-hover:text-primary transition-colors">{ticket.name || "Unnamed Ticket Type"}</p>
                           <span className="text-[8px] font-black text-secondary bg-secondary/5 px-2 py-1 rounded-lg uppercase tracking-widest border border-secondary/10">{ticket.type}</span>
                         </div>
                         <div className="flex items-end gap-1">
@@ -1215,7 +1215,7 @@ const CreateEvent = () => {
       // Validate Ticket Names
       const emptyTicket = tickets.find(t => !t.name || t.name.trim() === "");
       if (emptyTicket) {
-          Swal.fire("Validation Error", "All ticket tiers must have a public name.", "error");
+          Swal.fire("Validation Error", "All tickets must have a name.", "error");
           return;
       }
 
@@ -2723,7 +2723,7 @@ const CreateEvent = () => {
               <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-4">
                     <div>
-                       <h3 className="text-4xl font-black text-gray-900 tracking-tight leading-none mb-3">Ticket Vault</h3>
+                       <h3 className="text-4xl font-black text-gray-900 tracking-tight leading-none mb-3">Tickets</h3>
                        <p className="text-lg text-gray-500 font-medium">Configure access and monetization for your event.</p>
                     </div>
                     <button
@@ -2731,7 +2731,7 @@ const CreateEvent = () => {
                       className="flex items-center gap-3 bg-secondary text-white font-black px-8 py-5 rounded-[2rem] hover:bg-opacity-90 transition-all shadow-3xl shadow-secondary/30 text-[10px] uppercase tracking-[0.25em] active:scale-95 group"
                     >
                       <Plus size={18} className="group-hover:rotate-90 transition-transform duration-500" />
-                      Create Tier
+                      Add Ticket Type
                     </button>
                  </div>
 
@@ -2744,8 +2744,8 @@ const CreateEvent = () => {
                                    <Ticket size={24} strokeWidth={2} />
                                 </div>
                                 <div>
-                                    <h4 className="font-black text-gray-900 uppercase tracking-[0.3em] text-[10px]">Tier #{index+1}</h4>
-                                    <p className="text-sm font-black text-gray-400 mt-1">{ticket.name || 'Untitled Tier'}</p>
+                                    <h4 className="font-black text-gray-900 uppercase tracking-[0.3em] text-[10px]">Ticket Type #{index+1}</h4>
+                                    <p className="text-sm font-black text-gray-400 mt-1">{ticket.name || 'Unnamed Ticket Type'}</p>
                                 </div>
                              </div>
                              {tickets.length > 1 && (
@@ -2762,7 +2762,7 @@ const CreateEvent = () => {
                              <div className="space-y-3">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                                     <Type size={12} className="text-secondary" />
-                                    Public Name
+                                    Ticket Name
                                 </label>
                                 <input
                                    type="text"
@@ -2776,7 +2776,7 @@ const CreateEvent = () => {
                              <div className="space-y-3">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                                     <FileText size={12} className="text-secondary" />
-                                    Public Description
+                                    Description
                                 </label>
                                 <textarea
                                    rows={2}
@@ -2791,7 +2791,7 @@ const CreateEvent = () => {
                                 <div className="space-y-3">
                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                                        <MousePointer2 size={12} className="text-secondary" />
-                                       Pricing Model
+                                       Pricing
                                    </label>
                                    <div className="relative">
                                        <select
@@ -2799,8 +2799,8 @@ const CreateEvent = () => {
                                           value={ticket.type}
                                           onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id!, "type", e.target.value as TicketType)}
                                        >
-                                          <option value="FREE">Complimentary</option>
-                                          <option value="PAID">Premium Access</option>
+                                          <option value="FREE">Free</option>
+                                          <option value="PAID">Paid</option>
                                        </select>
                                        <ChevronDown size={16} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none" />
                                    </div>
@@ -2808,7 +2808,7 @@ const CreateEvent = () => {
                                 <div className="space-y-3">
                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                                        <Coins size={12} className="text-secondary" />
-                                       Unit Price
+                                       Ticket Price
                                    </label>
                                    <div className="relative">
                                        <span className="absolute left-5 top-1/2 -translate-y-1/2 text-secondary font-black text-xs">₦</span>
@@ -2824,7 +2824,7 @@ const CreateEvent = () => {
                                 <div className="space-y-3">
                                    <label htmlFor={`totalQuantity-${ticket.id}`} className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                                        <Layers size={12} className="text-secondary" />
-                                       Total Inventory
+                                       Available Quantity
                                    </label>
                                    <input
                                       id={`totalQuantity-${ticket.id}`}
@@ -2840,7 +2840,7 @@ const CreateEvent = () => {
                                 <div className="space-y-3">
                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                                        <Users size={12} className="text-secondary" />
-                                       Min Purchase
+                                       Minimum Tickets per Order
                                    </label>
                                    <input
                                       type="number"
