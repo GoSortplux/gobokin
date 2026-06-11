@@ -1100,8 +1100,9 @@ const HostEventPage = () => {
                 {currentStep === 4 && (
                   <div className="space-y-10 animate-in fade-in duration-500">
                     <div className="space-y-4">
-                      <div className="flex items-center gap-4">
-                        <h3 className="text-2xl font-semibold text-gray-900 tracking-tight">Detailed Description</h3>
+                      <div className="flex flex-col gap-1">
+                        <h3 className="text-2xl font-semibold text-gray-900 tracking-tight">Event Description</h3>
+                        <p className="text-gray-500 font-medium">Describe your event and provide any information attendees need to know.</p>
                       </div>
                       <textarea
                         rows={12}
@@ -1118,7 +1119,7 @@ const HostEventPage = () => {
                       <div className="space-y-2">
                         <h4 className="font-semibold text-gray-900 text-base">Almost there!</h4>
                         <p className="text-sm text-gray-600 font-medium leading-relaxed">
-                          Your event outline is ready. Next, we&apos;ll upload your banner and gallery images to give your event a visual identity.
+                          Your event outline is ready. Next, we&apos;ll upload your cover image and gallery photos to complete your event&apos;s visual presentation.
                         </p>
                       </div>
                     </div>
@@ -1384,8 +1385,8 @@ const HostEventPage = () => {
                 {currentStep === 5 && (
                     <div className="space-y-10 animate-in fade-in duration-500">
                         <div className="space-y-4 border-b border-gray-50 pb-8">
-                            <h3 className="text-2xl font-semibold text-gray-900 tracking-tight">Visual Identity</h3>
-                            <p className="text-gray-500 font-medium">Upload a captivating banner and gallery images.</p>
+                            <h3 className="text-2xl font-semibold text-gray-900 tracking-tight">Event Cover Image</h3>
+                            <p className="text-gray-500 font-medium">Upload a cover image that represents your event and appears prominently on the event page.</p>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -1442,7 +1443,10 @@ const HostEventPage = () => {
 
                              <div className="space-y-6">
                                 <div className="space-y-3">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Asset Source URL</label>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Banner Image URL</label>
+                                        <p className="text-[10px] text-gray-400 font-medium ml-1">Paste a direct link to an image to use as your event banner.</p>
+                                    </div>
                                     <input
                                       type="text"
                                       placeholder="https://..."
@@ -1452,7 +1456,10 @@ const HostEventPage = () => {
                                     />
                                 </div>
                                 <div className="space-y-3">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Additional Media Gallery</label>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Additional Media Gallery</label>
+                                        <p className="text-[10px] text-gray-400 font-medium ml-1">Add photos that help attendees learn more about your event.</p>
+                                    </div>
                                     <div className="flex flex-wrap gap-3">
                                         {formData.mediaInfo.mediaUrls.map((url, idx) => (
                                             <div key={idx} className="relative w-20 h-20 rounded-xl overflow-hidden border border-gray-100 group">

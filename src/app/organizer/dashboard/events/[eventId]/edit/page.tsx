@@ -1749,7 +1749,10 @@ const EditEvent = () => {
                              <div className="w-14 h-14 rounded-2xl bg-gray-50 text-secondary flex items-center justify-center shadow-sm border border-gray-100">
                                 <FileText size={24} />
                              </div>
-                             <h3 className="text-2xl font-black text-gray-900 tracking-tight">Detailed Narrative</h3>
+                             <div>
+                                <h3 className="text-2xl font-black text-gray-900 tracking-tight">Event Description</h3>
+                                <p className="text-sm text-gray-400 font-medium">Describe your event and provide any information attendees need to know.</p>
+                             </div>
                           </div>
                           <textarea rows={12} className="w-full p-8 bg-white border border-gray-300 rounded-[2.5rem] text-sm font-bold focus:border-primary transition-all outline-none" value={basicInfo.description} onChange={handleBasicChange} name="description" />
                        </div>
@@ -1763,7 +1766,10 @@ const EditEvent = () => {
                              <div className="w-14 h-14 rounded-2xl bg-gray-50 text-primary flex items-center justify-center shadow-sm border border-gray-100">
                                 <ImageIcon size={24} />
                              </div>
-                             <h3 className="text-2xl font-black text-gray-900 tracking-tight">Visual Identity</h3>
+                             <div>
+                                <h3 className="text-2xl font-black text-gray-900 tracking-tight">Event Cover Image</h3>
+                                <p className="text-sm text-gray-400 font-medium">Upload a cover image that represents your event and appears prominently on the event page.</p>
+                             </div>
                           </div>
 
                           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
@@ -1781,7 +1787,10 @@ const EditEvent = () => {
                                 )}
                              </div>
                              <div className="space-y-8">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Gallery Assets</label>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Additional Media Gallery</label>
+                                    <p className="text-[10px] text-gray-400 font-medium">Add photos that help attendees learn more about your event.</p>
+                                </div>
                                 <div className="flex flex-wrap gap-4">
                                     {mediaInfo.mediaUrls.map((url, idx) => (
                                         <div key={idx} className="relative w-24 h-24 rounded-2xl overflow-hidden group">
@@ -2176,7 +2185,7 @@ const EditEvent = () => {
                                     </div>
 
                                     <div className="md:col-span-2 lg:col-span-3 space-y-3">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Detailed Description</label>
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Event Description</label>
                                         <textarea rows={3} placeholder="What will happen during this session?" className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold outline-none focus:border-primary transition-all shadow-sm resize-none" value={session.description} onChange={(e) => updateSession(session.id, "description", e.target.value)} />
                                     </div>
 

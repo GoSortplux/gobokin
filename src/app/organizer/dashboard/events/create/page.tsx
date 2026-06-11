@@ -2562,8 +2562,8 @@ const CreateEvent = () => {
                                 <FileText size={24} />
                              </div>
                              <div>
-                                  <h3 className="text-2xl font-black text-gray-900 tracking-tight">Detailed Narrative</h3>
-                                  <p className="text-sm text-gray-400 font-medium">Tell the story of your event.</p>
+                                  <h3 className="text-2xl font-black text-gray-900 tracking-tight">Event Description</h3>
+                                  <p className="text-sm text-gray-400 font-medium">Describe your event and provide any information attendees need to know.</p>
                              </div>
                           </div>
                           <textarea
@@ -2587,8 +2587,8 @@ const CreateEvent = () => {
                                 <ImageIcon size={24} />
                              </div>
                              <div>
-                                <h3 className="text-2xl font-black text-gray-900 tracking-tight">Visual Identity</h3>
-                                <p className="text-sm text-gray-400 font-medium">Upload a captivating banner and gallery images.</p>
+                                <h3 className="text-2xl font-black text-gray-900 tracking-tight">Event Cover Image</h3>
+                                <p className="text-sm text-gray-400 font-medium">Upload a cover image that represents your event and appears prominently on the event page.</p>
                              </div>
                           </div>
 
@@ -2654,7 +2654,10 @@ const CreateEvent = () => {
 
                              <div className="space-y-10 flex flex-col justify-center">
                                 <div className="space-y-3">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Asset Source URL</label>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Banner Image URL</label>
+                                        <p className="text-[10px] text-gray-400 font-medium ml-1">Paste a direct link to an image to use as your event banner.</p>
+                                    </div>
                                     <div className="relative">
                                         <Globe size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300" />
                                         <input
@@ -2668,7 +2671,10 @@ const CreateEvent = () => {
                                     </div>
                                 </div>
                                 <div className="space-y-3">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Additional Media Gallery</label>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Additional Media Gallery</label>
+                                        <p className="text-[10px] text-gray-400 font-medium ml-1">Add photos that help attendees learn more about your event.</p>
+                                    </div>
                                     <div className="flex flex-wrap gap-4">
                                         {mediaInfo.mediaUrls.map((url, idx) => (
                                             <div key={idx} className="relative w-24 h-24 rounded-2xl overflow-hidden border border-gray-100 group">
