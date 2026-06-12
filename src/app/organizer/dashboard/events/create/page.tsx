@@ -1296,12 +1296,35 @@ const CreateEvent = () => {
           if (payload.sessions.length > 0) {
               await api.post(`/events/${eventId}/sessions`, payload);
           }
-          await Swal.fire({
-              title: "Event Fully Launched!",
-              text: "Your event, tickets, and sessions have been successfully created.",
+
+          const result = await Swal.fire({
+              title: "Event Sessions Saved!",
+              text: "Your event, tickets, and sessions have been successfully created. Would you like to publish your event now to make it live for attendees?",
               icon: "success",
+              showCancelButton: true,
+              confirmButtonText: "Publish Event Now",
+              cancelButtonText: "Go to Dashboard",
               confirmButtonColor: "#295FA7",
+              cancelButtonColor: "#6B7280",
           });
+
+          if (result.isConfirmed) {
+              try {
+                  Swal.showLoading();
+                  await api.post(`/events/${eventId}/publish`);
+                  await Swal.fire({
+                      title: "Event Published!",
+                      text: "Your event is now live and visible to the public.",
+                      icon: "success",
+                      timer: 2000,
+                      showConfirmButton: false
+                  });
+              } catch (pubErr) {
+                  console.error("Publishing failed:", pubErr);
+                  Swal.fire("Publishing Failed", "Sessions were saved, but we couldn't publish the event. You can do it manually from the dashboard.", "warning");
+              }
+          }
+
           clearDraft();
 
           const isFirstEventFlow = localStorage.getItem('gobokin_is_first_event_flow') === 'true';
