@@ -1964,154 +1964,151 @@ const EditEvent = () => {
                                    </div>
                                 </div>
 
-                                <div className="pt-6 border-t border-gray-100 space-y-6">
-                                   <h5 className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Early Bird Configuration (Optional)</h5>
-                                   <div className={`grid gap-6 ${showPreview ? "grid-cols-1 2xl:grid-cols-3" : "grid-cols-1 sm:grid-cols-3"}`}>
-                                       <div className="space-y-2">
-                                           <label className="text-[9px] font-bold text-gray-400 uppercase">Discount Price</label>
-                                           <div className="relative">
-                                               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-black text-[10px]">₦</span>
-                                               <input
-                                                   type="number"
-                                                   disabled={ticket.type === "FREE"}
-                                                   className="w-full pl-8 pr-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none disabled:bg-gray-100 disabled:opacity-50"
-                                                   value={ticket.earlyBirdPrice}
-                                                   onChange={(e) => updateTicket(ticket.id, "earlyBirdPrice", parseFloat(e.target.value))}
-                                               />
-                                           </div>
-                                       </div>
-                                       <div className="space-y-2">
-                                           <label className="text-[9px] font-bold text-gray-400 uppercase">Total Limit</label>
-                                           <input
-                                               type="number"
-                                               disabled={ticket.type === "FREE"}
-                                               className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none disabled:bg-gray-100 disabled:opacity-50"
-                                               value={ticket.earlyBirdLimit}
-                                               onChange={(e) => updateTicket(ticket.id, "earlyBirdLimit", parseInt(e.target.value))}
-                                           />
-                                       </div>
-                                       <div className="space-y-2">
-                                           <label className="text-[9px] font-bold text-gray-400 uppercase">Expiry Date</label>
-                                           <input
-                                               type="datetime-local"
-                                               disabled={ticket.type === "FREE"}
-                                               className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-[10px] font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none disabled:bg-gray-100 disabled:opacity-50"
-                                               value={ticket.earlyBirdExpiry}
-                                               onChange={(e) => updateTicket(ticket.id, "earlyBirdExpiry", e.target.value)}
-                                           />
-                                       </div>
-                                   </div>
-                                </div>
-
-                                <div className="pt-6 border-t border-gray-100 space-y-6">
-                                   <h5 className="text-[10px] font-black text-primary uppercase tracking-[0.3em] flex items-center gap-2">
-                                       <Settings size={12} />
+                                <div className="pt-10 border-t border-gray-100 space-y-12">
+                                   <h5 className="text-[12px] font-black text-primary uppercase tracking-[0.4em] flex items-center gap-3">
+                                       <Settings size={16} />
                                        Ticket Configuration
                                    </h5>
-                                   <div className={`grid gap-6 ${showPreview ? "grid-cols-1 2xl:grid-cols-3" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"}`}>
-                                       <div className="space-y-2">
-                                           <label className="text-[9px] font-bold text-gray-400 uppercase">Sales Start</label>
-                                           <input
-                                               type="datetime-local"
-                                               className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-[10px] font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
-                                               value={ticket.salesStart}
-                                               onChange={(e) => updateTicket(ticket.id, "salesStart", e.target.value)}
-                                           />
-                                       </div>
-                                       <div className="space-y-2">
-                                           <label className="text-[9px] font-bold text-gray-400 uppercase">Sales End</label>
-                                           <input
-                                               type="datetime-local"
-                                               className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-[10px] font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
-                                               value={ticket.salesEnd}
-                                               onChange={(e) => updateTicket(ticket.id, "salesEnd", e.target.value)}
-                                           />
-                                       </div>
-                                       <div className="space-y-2">
-                                           <label className="text-[9px] font-bold text-gray-400 uppercase">Allocation Type</label>
-                                           <select
-                                               className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
-                                               value={ticket.allocationType}
-                                               onChange={(e) => updateTicket(ticket.id, "allocationType", e.target.value as "GENERAL" | "RESERVED")}
-                                           >
-                                               <option value="GENERAL">General</option>
-                                               <option value="RESERVED">Reserved</option>
-                                           </select>
-                                       </div>
-                                       <div className="space-y-2">
-                                           <label className="text-[9px] font-bold text-gray-400 uppercase">Max Per Order</label>
-                                           <input
-                                               type="number"
-                                               className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
-                                               value={ticket.maxPerOrder}
-                                               onChange={(e) => updateTicket(ticket.id, "maxPerOrder", parseInt(e.target.value))}
-                                           />
-                                       </div>
-                                       <div className="flex items-center gap-3 pt-6">
-                                           <input
-                                               type="checkbox"
-                                               id={`isOffline-${ticket.id}`}
-                                               className="w-4 h-4 rounded text-secondary focus:ring-secondary border-gray-300"
-                                               checked={ticket.isOffline}
-                                               onChange={(e) => updateTicket(ticket.id, "isOffline", e.target.checked)}
-                                           />
-                                           <label htmlFor={`isOffline-${ticket.id}`} className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                                               Offline Ticket
-                                           </label>
-                                       </div>
-                                   </div>
-                                </div>
 
-                                <div className="pt-6 border-t border-gray-100 space-y-6">
-                                   <div className="flex items-center justify-between">
-                                       <h5 className="text-[10px] font-black text-primary uppercase tracking-[0.3em] flex items-center gap-2">
-                                           <Percent size={12} />
-                                           Quantity Discounts
-                                       </h5>
-                                       <button
-                                           onClick={() => addQuantityDiscount(ticket.id)}
-                                           className="text-[9px] font-black text-secondary uppercase tracking-widest hover:underline flex items-center gap-1"
-                                       >
-                                           <Plus size={10} /> Add Rule
-                                       </button>
-                                   </div>
-                                   <div className="space-y-4">
-                                       {ticket.quantityDiscounts?.map((discount, dIndex) => (
-                                           <div key={dIndex} className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-gray-100/50 rounded-2xl items-end">
+                                   <div className="space-y-8 pl-4 border-l-2 border-gray-100">
+                                       <div className="space-y-6">
+                                           <h6 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Early Bird Discount (Optional)</h6>
+                                           <div className={`grid gap-6 ${showPreview ? "grid-cols-1 2xl:grid-cols-3" : "grid-cols-1 sm:grid-cols-3"}`}>
                                                <div className="space-y-2">
-                                                   <label className="text-[8px] font-bold text-gray-400 uppercase">Min Quantity</label>
-                                                   <input
-                                                       type="number"
-                                                       className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold outline-none"
-                                                       value={discount.minQuantity}
-                                                       onChange={(e) => updateQuantityDiscount(ticket.id, dIndex, "minQuantity", parseInt(e.target.value))}
-                                                   />
-                                               </div>
-                                               <div className="space-y-2">
-                                                   <label className="text-[8px] font-bold text-gray-400 uppercase">Discount Price</label>
+                                                   <label className="text-[9px] font-bold text-gray-400 uppercase">Early Bird Price</label>
                                                    <div className="relative">
-                                                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-primary font-black text-[9px]">₦</span>
+                                                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-black text-[10px]">₦</span>
                                                        <input
                                                            type="number"
-                                                           className="w-full pl-6 pr-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold outline-none"
-                                                           value={discount.price}
-                                                           onChange={(e) => updateQuantityDiscount(ticket.id, dIndex, "price", parseFloat(e.target.value))}
+                                                           disabled={ticket.type === "FREE"}
+                                                           className="w-full pl-8 pr-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none disabled:bg-gray-100 disabled:opacity-50"
+                                                           value={ticket.earlyBirdPrice}
+                                                           onChange={(e) => updateTicket(ticket.id, "earlyBirdPrice", parseFloat(e.target.value))}
                                                        />
                                                    </div>
                                                </div>
-                                               <div className="flex justify-end">
-                                                   <button
-                                                       onClick={() => removeQuantityDiscount(ticket.id, dIndex)}
-                                                       className="p-2 text-gray-400 hover:text-red-500 transition-colors"
-                                                   >
-                                                       <Trash2 size={14} />
-                                                   </button>
+                                               <div className="space-y-2">
+                                                   <label className="text-[9px] font-bold text-gray-400 uppercase">Available Tickets at This Price</label>
+                                                   <input
+                                                       type="number"
+                                                       disabled={ticket.type === "FREE"}
+                                                       className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none disabled:bg-gray-100 disabled:opacity-50"
+                                                       value={ticket.earlyBirdLimit}
+                                                       onChange={(e) => updateTicket(ticket.id, "earlyBirdLimit", parseInt(e.target.value))}
+                                                   />
+                                               </div>
+                                               <div className="space-y-2">
+                                                   <label className="text-[9px] font-bold text-gray-400 uppercase">Discount Ends On</label>
+                                                   <input
+                                                       type="datetime-local"
+                                                       disabled={ticket.type === "FREE"}
+                                                       className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none disabled:bg-gray-100 disabled:opacity-50"
+                                                       value={ticket.earlyBirdExpiry}
+                                                       onChange={(e) => updateTicket(ticket.id, "earlyBirdExpiry", e.target.value)}
+                                                   />
                                                </div>
                                            </div>
-                                       ))}
-                                       {(!ticket.quantityDiscounts || ticket.quantityDiscounts.length === 0) && (
-                                           <p className="text-[10px] text-gray-400 italic text-center py-2">No quantity discounts configured</p>
-                                       )}
+                                       </div>
+
+                                       <div className="pt-8 border-t border-gray-50 space-y-6">
+                                           <h6 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Advance Sales Configuration</h6>
+                                           <div className={`grid gap-6 ${showPreview ? "grid-cols-1 2xl:grid-cols-3" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"}`}>
+                                               <div className="space-y-2">
+                                                   <label className="text-[9px] font-bold text-gray-400 uppercase">Sales Start Date</label>
+                                                   <input
+                                                       type="datetime-local"
+                                                       className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-[10px] font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
+                                                       value={ticket.salesStart}
+                                                       onChange={(e) => updateTicket(ticket.id, "salesStart", e.target.value)}
+                                                   />
+                                               </div>
+                                               <div className="space-y-2">
+                                                   <label className="text-[9px] font-bold text-gray-400 uppercase">Sales End Date</label>
+                                                   <input
+                                                       type="datetime-local"
+                                                       className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-[10px] font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
+                                                       value={ticket.salesEnd}
+                                                       onChange={(e) => updateTicket(ticket.id, "salesEnd", e.target.value)}
+                                                   />
+                                               </div>
+                                               <div className="space-y-2">
+                                                   <label className="text-[9px] font-bold text-gray-400 uppercase">Maximum Tickets per Order</label>
+                                                   <input
+                                                       type="number"
+                                                       className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
+                                                       value={ticket.maxPerOrder}
+                                                       onChange={(e) => updateTicket(ticket.id, "maxPerOrder", parseInt(e.target.value))}
+                                                   />
+                                               </div>
+                                               <div className="space-y-3">
+                                                   <div className="flex items-center gap-3 pt-4">
+                                                       <input
+                                                           type="checkbox"
+                                                           id={`isOffline-${ticket.id}`}
+                                                           className="w-4 h-4 rounded text-secondary focus:ring-secondary border-gray-300"
+                                                           checked={ticket.isOffline}
+                                                           onChange={(e) => updateTicket(ticket.id, "isOffline", e.target.checked)}
+                                                       />
+                                                       <label htmlFor={`isOffline-${ticket.id}`} className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                                           Offline Sales Allocation
+                                                       </label>
+                                                   </div>
+                                                   <p className="text-[9px] text-gray-400 font-medium ml-7 leading-relaxed">
+                                                       Reserve tickets for offline sales and generate ticket IDs for printing.
+                                                   </p>
+                                               </div>
+                                           </div>
+                                       </div>
+
+                                       <div className="pt-8 border-t border-gray-50 space-y-6">
+                                           <div className="flex items-center justify-between">
+                                               <h6 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Quantity Discounts</h6>
+                                               <button
+                                                   onClick={() => addQuantityDiscount(ticket.id)}
+                                                   className="text-[9px] font-black text-secondary uppercase tracking-widest hover:underline flex items-center gap-1"
+                                               >
+                                                   <Plus size={10} /> Add Rule
+                                               </button>
+                                           </div>
+                                           <div className="space-y-4">
+                                               {ticket.quantityDiscounts?.map((discount, dIndex) => (
+                                                   <div key={dIndex} className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-gray-100/50 rounded-2xl items-end">
+                                                       <div className="space-y-2">
+                                                           <label className="text-[8px] font-bold text-gray-400 uppercase">Min Quantity</label>
+                                                           <input
+                                                               type="number"
+                                                               className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold outline-none"
+                                                               value={discount.minQuantity}
+                                                               onChange={(e) => updateQuantityDiscount(ticket.id, dIndex, "minQuantity", parseInt(e.target.value))}
+                                                           />
+                                                       </div>
+                                                       <div className="space-y-2">
+                                                           <label className="text-[8px] font-bold text-gray-400 uppercase">Discount Price</label>
+                                                           <div className="relative">
+                                                               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-primary font-black text-[9px]">₦</span>
+                                                               <input
+                                                                   type="number"
+                                                                   className="w-full pl-6 pr-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold outline-none"
+                                                                   value={discount.price}
+                                                                   onChange={(e) => updateQuantityDiscount(ticket.id, dIndex, "price", parseFloat(e.target.value))}
+                                                               />
+                                                           </div>
+                                                       </div>
+                                                       <div className="flex justify-end">
+                                                           <button
+                                                               onClick={() => removeQuantityDiscount(ticket.id, dIndex)}
+                                                               className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                                                           >
+                                                               <Trash2 size={14} />
+                                                           </button>
+                                                       </div>
+                                                   </div>
+                                               ))}
+                                               {(!ticket.quantityDiscounts || ticket.quantityDiscounts.length === 0) && (
+                                                   <p className="text-[10px] text-gray-400 italic text-center py-2">No quantity discounts configured</p>
+                                               )}
+                                           </div>
+                                       </div>
                                    </div>
                                 </div>
                             </div>
