@@ -782,17 +782,6 @@ const EventDetailClient = () => {
                      </div>
                   </div>
 
-                  <div className="flex items-center justify-center gap-6 pt-2 relative z-10">
-                     <div className="flex items-center gap-2 text-[8px] font-semibold text-gray-400 uppercase tracking-[0.2em]">
-                        <ShieldCheck size={12} className="text-emerald-500" />
-                        Verified
-                     </div>
-                     <div className="w-[1px] h-2 bg-gray-200"></div>
-                     <div className="flex items-center gap-2 text-[8px] font-semibold text-gray-400 uppercase tracking-[0.2em]">
-                        <Tag size={12} className="text-primary" />
-                        Official
-                     </div>
-                  </div>
                </div>
 
                {/* Secondary Save Date Options - Explicit Luma Style */}
