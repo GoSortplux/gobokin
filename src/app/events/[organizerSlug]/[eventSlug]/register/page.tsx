@@ -17,11 +17,14 @@ import { Event, Ticket as TicketType, RegistrationField } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
+import { useAuth } from "@/context/AuthContext";
+import LoginRequiredModal from "@/components/auth/LoginRequiredModal";
 
 const RegistrationForm = () => {
   const { organizerSlug, eventSlug } = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { user } = useAuth();
   const ticketId = searchParams.get("ticketId");
   const quantity = parseInt(searchParams.get("qty") || "1");
 
@@ -29,6 +32,7 @@ const RegistrationForm = () => {
   const [ticket, setTicket] = useState<TicketType | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   // Dynamic data for selects
   const [countries, setCountries] = useState<{ _id: string; name: string }[]>([]);
@@ -121,31 +125,49 @@ const RegistrationForm = () => {
           }
         }
 
-        // Initialize attendees array based on quantity and actual fields
-        const initialAttendees = Array.from({ length: quantity }, () => {
+        // Check for draft data
+        const draftKey = `gobokin_registration_draft_${eventData.id}`;
+        const draftDataString = localStorage.getItem(draftKey);
+        let draftData = null;
+        if (draftDataString) {
+          try {
+            draftData = JSON.parse(draftDataString);
+            localStorage.removeItem(draftKey);
+          } catch (e) {
+            console.error("Failed to parse registration draft", e);
+          }
+        }
+
+        if (draftData) {
+          setAttendees(draftData.attendees);
+          setSharedData(draftData.sharedData);
+        } else {
+          // Initialize attendees array based on quantity and actual fields
+          const initialAttendees = Array.from({ length: quantity }, () => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const attendeeObj: any = {};
+            (eventData.registrationFields || []).forEach(f => {
+              if (f.isPerAttendee) {
+                attendeeObj[f.name] = f.type === 'checkbox' ? false : "";
+              }
+            });
+            // Defensive fallbacks for buyerInfo requirements
+            if (!attendeeObj["full-name"]) attendeeObj["full-name"] = "";
+            if (!attendeeObj["email"]) attendeeObj["email"] = "";
+            return attendeeObj;
+          });
+          setAttendees(initialAttendees);
+
+          // Initialize shared data
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const attendeeObj: any = {};
+          const initialShared: any = {};
           (eventData.registrationFields || []).forEach(f => {
-            if (f.isPerAttendee) {
-              attendeeObj[f.name] = f.type === 'checkbox' ? false : "";
+            if (!f.isPerAttendee) {
+              initialShared[f.name] = f.type === 'checkbox' ? false : "";
             }
           });
-          // Defensive fallbacks for buyerInfo requirements
-          if (!attendeeObj["full-name"]) attendeeObj["full-name"] = "";
-          if (!attendeeObj["email"]) attendeeObj["email"] = "";
-          return attendeeObj;
-        });
-        setAttendees(initialAttendees);
-
-        // Initialize shared data
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const initialShared: any = {};
-        (eventData.registrationFields || []).forEach(f => {
-          if (!f.isPerAttendee) {
-            initialShared[f.name] = f.type === 'checkbox' ? false : "";
-          }
-        });
-        setSharedData(initialShared);
+          setSharedData(initialShared);
+        }
 
       } catch (error) {
         console.error("Failed to fetch registration data:", error);
@@ -251,6 +273,18 @@ const RegistrationForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!user) {
+      // Save draft to localStorage
+      const draftKey = `gobokin_registration_draft_${event?.id}`;
+      localStorage.setItem(draftKey, JSON.stringify({
+        attendees,
+        sharedData
+      }));
+      setShowLoginModal(true);
+      return;
+    }
+
     setSubmitting(true);
 
     try {
@@ -312,6 +346,12 @@ const RegistrationForm = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pt-24 pb-24">
+      <LoginRequiredModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        title="Sign in required"
+        message="You need to sign in to complete your ticket purchase."
+      />
       <div className="container mx-auto px-4 max-w-4xl">
         <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-500 hover:text-primary transition-colors font-bold mb-8 group">
           <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
@@ -368,6 +408,8 @@ const RegistrationForm = () => {
                                    {(field.type === 'text' || field.type === 'number') && !field.source ? (
                                       <input
                                         type={field.type}
+                                        name={field.name}
+                                        placeholder={`Enter ${field.label}`}
                                         required={field.required}
                                         className={`w-full p-4 bg-white border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 transition-all ${['full-name', 'email', 'phone'].includes(field.name) ? 'pl-12' : ''}`}
                                         value={field.isPerAttendee ? attendees[index][field.name] || "" : sharedData[field.name] || ""}
