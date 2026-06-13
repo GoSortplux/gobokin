@@ -30,6 +30,7 @@ const VerifyPaymentContent = () => {
       const isEventPayment = (reference && reference.startsWith('REG-')) || type === 'event' || type === 'ticket';
 
       if (isEventPayment) {
+        // Explicitly use the name 'reference' as requested for the event endpoint
         endpoint = `/events/payments/verify?reference=${reference}`;
       } else if (type === 'conversion') {
         endpoint = `/reservations/verify-conversion?paymentReference=${reference}`;
@@ -131,7 +132,10 @@ const VerifyPaymentContent = () => {
     // Prevent double invocation in strict mode
     if (verifyInitiated.current) return;
 
-    const reference = searchParams.get('paymentReference') || searchParams.get('reference');
+    const reference = searchParams.get('reference') ||
+                      searchParams.get('paymentReference') ||
+                      searchParams.get('transactionReference') ||
+                      searchParams.get('trcref');
     const type = searchParams.get('type');
 
     if (reference) {
@@ -142,7 +146,7 @@ const VerifyPaymentContent = () => {
 
       const timer = setTimeout(() => {
         verify(reference, type);
-      }, 3000);
+      }, 1000); // Reduced delay to 1 second for better UX
 
       return () => clearTimeout(timer);
     } else {
