@@ -49,7 +49,14 @@ const BroadcastModal = ({ isOpen, onClose, eventId, tickets }: BroadcastModalPro
     setIsUploading(true);
     try {
       // Get presigned URL
-      const response = await api.get(`/events/${eventId}/media/upload-url`, {
+      interface UploadResponse {
+        data: {
+            uploadUrl: string;
+            fileUrl: string;
+            publicUrl: string;
+        }
+      }
+      const response = await api.get<UploadResponse>(`/events/${eventId}/media/upload-url`, {
         params: { fileName: file.name, fileType: file.type }
       });
       const { uploadUrl, fileUrl, publicUrl } = response.data.data;
@@ -63,8 +70,8 @@ const BroadcastModal = ({ isOpen, onClose, eventId, tickets }: BroadcastModalPro
       setAttachmentUrl(finalUrl);
       setAttachmentName(file.name);
       Swal.toast.fire({ icon: "success", title: "File attached successfully" });
-    } catch (error) {
-      console.error("Upload failed:", error);
+    } catch (_error) {
+      console.error("Upload failed:", _error);
       Swal.fire("Upload Failed", "Could not upload the attachment. Please try again.", "error");
     } finally {
       setIsUploading(false);
@@ -123,9 +130,9 @@ const BroadcastModal = ({ isOpen, onClose, eventId, tickets }: BroadcastModalPro
       setSelectedTicketIds([]);
       removeAttachment();
       onClose();
-    } catch (error) {
-      console.error("Broadcast failed:", error);
-      Swal.fire("Error", translateError(error), "error");
+    } catch (_error) {
+      console.error("Broadcast failed:", _error);
+      Swal.fire("Error", translateError(_error), "error");
     } finally {
       setIsSending(false);
     }
@@ -163,7 +170,7 @@ const BroadcastModal = ({ isOpen, onClose, eventId, tickets }: BroadcastModalPro
             <div className="relative">
               <select
                 value={segmentType}
-                onChange={(e) => setSegmentType(e.target.value as any)}
+                onChange={(e) => setSegmentType(e.target.value as "all" | "registered" | "checked-in" | "not_checked_in" | "tickets")}
                 className="w-full p-5 bg-gray-50 border-2 border-gray-100 rounded-2xl text-sm font-bold focus:border-primary focus:bg-white outline-none transition-all appearance-none cursor-pointer pr-12"
               >
                 <option value="all">All Attendees</option>

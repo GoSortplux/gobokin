@@ -110,9 +110,13 @@ const WaitlistsView = () => {
                       </div>
                    </div>
                    <Link
-                    href={entry.event?.organizer?.slug && entry.event?.slug
-                      ? `/events/${entry.event.organizer.slug}/${entry.event.slug}`
-                      : `/events/${entry.event?.id}`}
+                    href={
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      (entry.event as any)?.organizer?.slug && (entry.event as any)?.slug
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        ? `/events/${(entry.event as any).organizer.slug}/${(entry.event as any).slug}`
+                        : `/events/${entry.event?.id}`
+                    }
                     className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-all group/btn"
                    >
                       <ArrowRight size={20} className="group-hover/btn:translate-x-1 transition-transform" />

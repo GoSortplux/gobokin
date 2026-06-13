@@ -50,8 +50,12 @@ const RegistrationDetailsModal: React.FC<RegistrationDetailsModalProps> = ({ reg
     const fetchEventDetails = async () => {
       try {
         setLoading(true);
-        const endpoint = registration.event?.organizer?.slug && registration.event?.slug
-          ? `/events/e/${registration.event.organizer.slug}/${registration.event.slug}`
+        // The event object inside registration might not have organizer slug
+        // We use any to bypass strict typing for this dynamic lookup
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const eventAny = registration.event as any;
+        const endpoint = eventAny?.organizer?.slug && eventAny?.slug
+          ? `/events/e/${eventAny.organizer.slug}/${eventAny.slug}`
           : `/events/${registration.event.id}`;
         const response = await api.get(endpoint);
         setEvent(response.data.data);

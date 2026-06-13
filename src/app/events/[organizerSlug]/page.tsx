@@ -10,6 +10,7 @@ const EventIdRedirect = () => {
 
   useEffect(() => {
     const fetchEventAndRedirect = async () => {
+      if (!organizerSlug || typeof organizerSlug !== 'string') return;
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       if (uuidRegex.test(organizerSlug)) {
         try {
@@ -18,8 +19,8 @@ const EventIdRedirect = () => {
           if (eventData.organizer?.slug && eventData.slug) {
             router.replace(`/events/${eventData.organizer.slug}/${eventData.slug}`);
           }
-        } catch (error) {
-          console.error("Failed to fetch event for redirect:", error);
+        } catch (_error) {
+          console.error("Failed to fetch event for redirect:", _error);
         }
       }
     };

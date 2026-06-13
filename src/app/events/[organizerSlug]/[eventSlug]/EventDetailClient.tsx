@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
@@ -21,13 +21,116 @@ import {
   Heart,
   Globe,
   Sparkles,
-  BookmarkPlus
+  BookmarkPlus,
+  ChevronDown,
+  ChevronUp,
+  User
 } from "lucide-react";
 import api from "@/services/api";
-import { Event, Ticket as TicketType } from "@/types";
+import { Event, Ticket as TicketType, Session } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
+
+const SessionCard = ({ session }: { session: Session }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const descriptionRef = useRef<HTMLParagraphElement>(null);
+  const [isTruncated, setIsTruncated] = useState(false);
+
+  useEffect(() => {
+    if (descriptionRef.current) {
+      setIsTruncated(descriptionRef.current.scrollHeight > descriptionRef.current.clientHeight);
+    }
+  }, [session.description]);
+
+  const startTime = new Date(session.startTime);
+  const endTime = session.endTime ? new Date(session.endTime) : null;
+
+  return (
+    <div className="bg-gray-50 rounded-2xl border border-transparent hover:bg-white hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 transition-all duration-500 group overflow-hidden">
+      <div className="p-6">
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Time & Type Column */}
+          <div className="flex-shrink-0 md:w-32 flex md:flex-col items-center md:items-start justify-between md:justify-start gap-2">
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-primary uppercase tracking-widest leading-none">
+                {startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </p>
+              {endTime && (
+                <p className="text-[10px] font-medium text-gray-400 uppercase tracking-widest">
+                  to {endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </p>
+              )}
+            </div>
+            {session.sessionType && (
+              <span className="px-2 py-1 rounded-lg bg-primary/10 text-primary text-[9px] font-bold uppercase tracking-wider">
+                {session.sessionType}
+              </span>
+            )}
+          </div>
+
+          {/* Main Info Column */}
+          <div className="flex-1 min-w-0 space-y-4">
+            <div>
+              <div className="flex items-start justify-between gap-4">
+                <h4 className="font-bold text-gray-900 text-xl tracking-tight group-hover:text-primary transition-colors">
+                  {session.title}
+                </h4>
+                <div className="flex-shrink-0 flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-gray-100 shadow-sm">
+                  <MapPin size={12} className="text-primary" />
+                  <span className="text-[10px] font-semibold text-gray-900 uppercase tracking-widest truncate max-w-[100px]">
+                    {session.location || session.room || "Main Hall"}
+                  </span>
+                </div>
+              </div>
+
+              {session.description && (
+                <div className="mt-2 relative">
+                  <p
+                    ref={descriptionRef}
+                    className={`text-gray-500 text-sm font-medium leading-relaxed ${!isExpanded ? 'line-clamp-2' : ''}`}
+                  >
+                    {session.description}
+                  </p>
+                  {(isTruncated || isExpanded) && (
+                    <button
+                      onClick={() => setIsExpanded(!isExpanded)}
+                      className="mt-2 text-primary text-xs font-bold uppercase tracking-widest flex items-center gap-1 hover:underline"
+                    >
+                      {isExpanded ? (
+                        <>Show Less <ChevronUp size={14} /></>
+                      ) : (
+                        <>Read More <ChevronDown size={14} /></>
+                      )}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Speakers & Metadata */}
+            {(session.speakerNames && session.speakerNames.length > 0) && (
+              <div className="flex flex-wrap items-center gap-4 pt-2">
+                <div className="flex items-center gap-2">
+                   <div className="flex -space-x-2">
+                      {session.speakerNames.slice(0, 3).map((_, i) => (
+                        <div key={i} className="w-6 h-6 rounded-full bg-primary/10 border-2 border-white flex items-center justify-center text-primary">
+                          <User size={12} />
+                        </div>
+                      ))}
+                   </div>
+                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                      {session.speakerNames.join(", ")}
+                   </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const EventDetailClient = () => {
   const { organizerSlug, eventSlug } = useParams();
@@ -68,7 +171,7 @@ const EventDetailClient = () => {
       try {
         const response = await api.get(`/events/${id}/waitlist/status`);
         setWaitlistStatus(response.data.data);
-      } catch (error) {
+      } catch (_error) {
         setWaitlistStatus(null);
       }
     };
@@ -94,9 +197,9 @@ const EventDetailClient = () => {
           setSelectedTicket(firstAvailable || tickets[0]);
         }
         return eventData;
-      } catch (error) {
-        console.error("Failed to fetch event details:", error);
-        Swal.fire("Error", translateError(error), "error");
+      } catch (_error) {
+        console.error("Failed to fetch event details:", _error);
+        Swal.fire("Error", translateError(_error), "error");
       } finally {
         setLoading(false);
       }
@@ -122,9 +225,9 @@ const EventDetailClient = () => {
         ticketTypeId: ticket.id
       });
       Swal.fire("Joined Waitlist", "You have successfully joined the waitlist for this ticket tier.", "success");
-    } catch (error) {
-      console.error("Failed to join waitlist:", error);
-      Swal.fire("Error", translateError(error), "error");
+    } catch (_error) {
+      console.error("Failed to join waitlist:", _error);
+      Swal.fire("Error", translateError(_error), "error");
     } finally {
       setIsJoiningWaitlist(false);
     }
@@ -157,8 +260,8 @@ const EventDetailClient = () => {
       document.body.appendChild(link);
       link.click();
       link.remove();
-    } catch (error) {
-      console.error("Failed to download ICS:", error);
+    } catch (_error) {
+      console.error("Failed to download ICS:", _error);
       Swal.fire("Error", "Could not download calendar file.", "error");
     }
   };
@@ -171,8 +274,8 @@ const EventDetailClient = () => {
       if (links && links[type]) {
         window.open(links[type], '_blank');
       }
-    } catch (error) {
-      console.error("Failed to get calendar links:", error);
+    } catch (_error) {
+      console.error("Failed to get calendar links:", _error);
       Swal.fire("Error", "Could not open calendar.", "error");
     }
   };
@@ -198,9 +301,9 @@ const EventDetailClient = () => {
         title: isBookmarked ? 'Event bookmarked' : 'Bookmark removed',
         timer: 2000
       });
-    } catch (error) {
-      console.error("Failed to toggle bookmark:", error);
-      Swal.fire("Error", translateError(error), "error");
+    } catch (_error) {
+      console.error("Failed to toggle bookmark:", _error);
+      Swal.fire("Error", translateError(_error), "error");
     } finally {
       setIsBookmarking(false);
     }
@@ -361,29 +464,24 @@ const EventDetailClient = () => {
 
                   {activeTab === "schedule" && (
                     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10">
-                      <h3 className="text-2xl font-semibold text-gray-900 tracking-tighter flex items-center gap-3">
-                        <div className="w-1.5 h-8 bg-primary rounded-full"></div>
-                        The Schedule
-                      </h3>
+                      <div className="flex items-center justify-between gap-4">
+                        <h3 className="text-2xl font-semibold text-gray-900 tracking-tighter flex items-center gap-3">
+                          <div className="w-1.5 h-8 bg-primary rounded-full"></div>
+                          The Schedule
+                        </h3>
+                        {event.sessions && event.sessions.length > 0 && (
+                          <span className="px-4 py-1.5 bg-gray-50 rounded-full text-[10px] font-bold text-gray-400 uppercase tracking-widest border border-gray-100">
+                             {event.sessions.length} Sessions
+                          </span>
+                        )}
+                      </div>
+
                       {event.sessions && event.sessions.length > 0 ? (
-                        <div className="space-y-4">
-                          {event.sessions.map((session, i) => (
-                            <div key={i} className="flex flex-col md:flex-row gap-5 md:items-center bg-gray-50 p-6 rounded-2xl border border-transparent hover:bg-white hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 transition-all duration-500 group">
-                              <div className="flex-shrink-0 w-28">
-                                 <p className="text-sm font-semibold text-primary uppercase tracking-widest leading-none mb-1">
-                                    {new Date(session.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                 </p>
-                                 <p className="text-[9px] font-medium text-gray-400 uppercase tracking-widest">START TIME</p>
-                              </div>
-                              <div className="flex-1">
-                                 <h4 className="font-semibold text-gray-900 text-xl tracking-tight mb-1 group-hover:text-primary transition-colors">{session.title}</h4>
-                                 <p className="text-gray-500 text-sm font-medium line-clamp-2">{session.description}</p>
-                              </div>
-                              <div className="flex-shrink-0 flex items-center gap-2 bg-white px-4 py-2 rounded-xl border border-gray-100 shadow-sm">
-                                 <MapPin size={12} className="text-primary" />
-                                 <span className="text-[10px] font-semibold text-gray-900 uppercase tracking-widest">{session.location || "Main Hall"}</span>
-                              </div>
-                            </div>
+                        <div className="grid grid-cols-1 gap-6">
+                          {[...event.sessions]
+                            .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+                            .map((session, i) => (
+                              <SessionCard key={session.id || i} session={session} />
                           ))}
                         </div>
                       ) : (
