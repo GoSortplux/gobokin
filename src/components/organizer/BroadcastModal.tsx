@@ -12,7 +12,8 @@ import {
   Loader2,
   AlertCircle,
   Mail,
-  Smartphone
+  Smartphone,
+  XCircle
 } from "lucide-react";
 import api from "@/services/api";
 import axios from "axios";
@@ -30,7 +31,7 @@ interface BroadcastModalProps {
 const BroadcastModal = ({ isOpen, onClose, eventId, tickets }: BroadcastModalProps) => {
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
-  const [segmentType, setSegmentType] = useState<"all" | "checked-in" | "tickets">("all");
+  const [segmentType, setSegmentType] = useState<"all" | "registered" | "checked-in" | "not_checked_in" | "tickets">("all");
   const [selectedTickets, setSelectedTicketIds] = useState<string[]>([]);
   const [attachmentUrl, setAttachmentUrl] = useState<string | null>(null);
   const [attachmentName, setAttachmentName] = useState<string | null>(null);
@@ -96,7 +97,7 @@ const BroadcastModal = ({ isOpen, onClose, eventId, tickets }: BroadcastModalPro
 
     setIsSending(true);
     try {
-      const segments = segmentType === "tickets" ? selectedTickets.join(",") : segmentType;
+      const segments = segmentType === "tickets" ? selectedTickets : segmentType;
 
       const payload = {
         subject,
@@ -158,11 +159,13 @@ const BroadcastModal = ({ isOpen, onClose, eventId, tickets }: BroadcastModalPro
               <Users size={12} className="text-primary" />
               Target Audience Segment
             </label>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
               {[
-                { id: "all", label: "All Attendees", icon: Users },
-                { id: "checked-in", label: "Checked-in Only", icon: CheckCircle2 },
-                { id: "tickets", label: "Specific Tickets", icon: Ticket },
+                { id: "all", label: "All", icon: Users },
+                { id: "registered", label: "Registered", icon: Users },
+                { id: "checked-in", label: "Checked-in", icon: CheckCircle2 },
+                { id: "not_checked_in", label: "Not Checked", icon: XCircle },
+                { id: "tickets", label: "By Ticket", icon: Ticket },
               ].map((s) => (
                 <button
                   key={s.id}
