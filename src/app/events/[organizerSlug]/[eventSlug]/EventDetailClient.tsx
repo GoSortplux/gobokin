@@ -30,7 +30,7 @@ import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 
 const EventDetailClient = () => {
-  const { eventId } = useParams();
+  const { organizerSlug, eventSlug } = useParams();
   const router = useRouter();
   const { user } = useAuth();
   const [event, setEvent] = useState<Event | null>(null);
@@ -63,10 +63,10 @@ const EventDetailClient = () => {
   };
 
   useEffect(() => {
-    const fetchWaitlistStatus = async () => {
+    const fetchWaitlistStatus = async (id: string) => {
       if (!user) return;
       try {
-        const response = await api.get(`/events/${eventId}/waitlist/status`);
+        const response = await api.get(`/events/${id}/waitlist/status`);
         setWaitlistStatus(response.data.data);
       } catch (error) {
         setWaitlistStatus(null);
@@ -76,7 +76,8 @@ const EventDetailClient = () => {
     const fetchEvent = async () => {
       try {
         setLoading(true);
-        const response = await api.get(`/events/${eventId}`);
+        // New slug-based endpoint
+        const response = await api.get(`/events/e/${organizerSlug}/${eventSlug}`);
         const eventData = response.data.data;
         setEvent(eventData);
 
@@ -92,6 +93,7 @@ const EventDetailClient = () => {
           });
           setSelectedTicket(firstAvailable || tickets[0]);
         }
+        return eventData;
       } catch (error) {
         console.error("Failed to fetch event details:", error);
         Swal.fire("Error", translateError(error), "error");
@@ -99,19 +101,22 @@ const EventDetailClient = () => {
         setLoading(false);
       }
     };
-    fetchEvent();
-    fetchWaitlistStatus();
-  }, [eventId, user]);
+    fetchEvent().then((data) => {
+      if (data?.id) {
+        fetchWaitlistStatus(data.id);
+      }
+    });
+  }, [organizerSlug, eventSlug, user]);
 
   const handleJoinWaitlist = async (ticket: TicketType) => {
-    if (!user) {
+    if (!user || !event) {
       setShowLoginModal(true);
       return;
     }
 
     try {
       setIsJoiningWaitlist(true);
-      await api.post(`/events/${eventId}/waitlist`, {
+      await api.post(`/events/${event.id}/waitlist`, {
         fullName: user.fullName,
         email: user.email,
         ticketTypeId: ticket.id
@@ -138,12 +143,13 @@ const EventDetailClient = () => {
       return;
     }
 
-    router.push(`/events/${eventId}/register?ticketId=${selectedTicket.id}&qty=${quantity}`);
+    router.push(`/events/${organizerSlug}/${eventSlug}/register?ticketId=${selectedTicket.id}&qty=${quantity}`);
   };
 
   const handleDownloadICS = async () => {
+    if (!event) return;
     try {
-      const response = await api.get(`/events/${eventId}/ics`, { responseType: 'blob' });
+      const response = await api.get(`/events/${event.id}/ics`, { responseType: 'blob' });
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -158,8 +164,9 @@ const EventDetailClient = () => {
   };
 
   const handleAddToCalendar = async (type: 'google' | 'outlook' | 'apple') => {
+    if (!event) return;
     try {
-      const response = await api.get(`/events/${eventId}/calendar-links`);
+      const response = await api.get(`/events/${event.id}/calendar-links`);
       const links = response.data.data;
       if (links && links[type]) {
         window.open(links[type], '_blank');
@@ -171,14 +178,14 @@ const EventDetailClient = () => {
   };
 
   const handleToggleBookmark = async () => {
-    if (!user) {
+    if (!user || !event) {
       setShowLoginModal(true);
       return;
     }
 
     try {
       setIsBookmarking(true);
-      const response = await api.post(`/events/${eventId}/bookmark`);
+      const response = await api.post(`/events/${event.id}/bookmark`);
 
       // Handle both nested and flat response structures
       const data = response.data.data || response.data;

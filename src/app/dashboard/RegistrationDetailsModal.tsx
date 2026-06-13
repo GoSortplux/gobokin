@@ -50,7 +50,10 @@ const RegistrationDetailsModal: React.FC<RegistrationDetailsModalProps> = ({ reg
     const fetchEventDetails = async () => {
       try {
         setLoading(true);
-        const response = await api.get(`/events/${registration.event.id}`);
+        const endpoint = registration.event?.organizer?.slug && registration.event?.slug
+          ? `/events/e/${registration.event.organizer.slug}/${registration.event.slug}`
+          : `/events/${registration.event.id}`;
+        const response = await api.get(endpoint);
         setEvent(response.data.data);
       } catch (error) {
         console.error("Failed to fetch event details:", error);
@@ -166,7 +169,12 @@ const RegistrationDetailsModal: React.FC<RegistrationDetailsModalProps> = ({ reg
                       {event.description}
                     </p>
                     <button
-                      onClick={() => window.open(`/events/${event.id}`, '_blank')}
+                      onClick={() => {
+                        const url = event.organizer?.slug && event.slug
+                          ? `/events/${event.organizer.slug}/${event.slug}`
+                          : `/events/${event.id}`;
+                        window.open(url, '_blank');
+                      }}
                       className="text-primary text-xs font-black uppercase tracking-widest flex items-center gap-2 hover:underline"
                     >
                       View Full Event Page <ExternalLink size={14} />

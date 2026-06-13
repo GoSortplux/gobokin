@@ -313,13 +313,17 @@ const EventDiscoveryContent = () => {
       }
     };
 
+    const eventUrl = event.organizer?.slug && event.slug
+      ? `/events/${event.organizer.slug}/${event.slug}`
+      : `/events/${event.id}`;
+
     return (
     <div
       className={`bg-white border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-all duration-500 group relative ${
         variant === 'featured' ? 'rounded-2xl' : 'rounded-xl'
       } ${className || ""}`}
     >
-      <Link href={`/events/${event.id}`} className="block">
+      <Link href={eventUrl} className="block">
       <div className={`relative w-full overflow-hidden ${variant === 'featured' ? 'h-64' : 'h-48'}`}>
         {event.bannerUrl ? (
           <Image src={event.bannerUrl} alt={event.title} fill className="object-cover transition-transform duration-700 group-hover:scale-105" />

@@ -4,7 +4,6 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   ArrowRight,
-  CheckCircle2,
   User,
   Mail,
   Phone,
@@ -20,7 +19,7 @@ import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 
 const RegistrationForm = () => {
-  const { eventId } = useParams();
+  const { organizerSlug, eventSlug } = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
   const ticketId = searchParams.get("ticketId");
@@ -47,7 +46,7 @@ const RegistrationForm = () => {
       try {
         setLoading(true);
 
-        const response = await api.get(`/events/${eventId}`);
+        const response = await api.get(`/events/e/${organizerSlug}/${eventSlug}`);
         const eventData = response.data.data as Event;
         setEvent(eventData);
 
@@ -85,7 +84,7 @@ const RegistrationForm = () => {
               confirmButtonText: "Return to Event",
               confirmButtonColor: "#295FA7",
             }).then(() => {
-              router.push(`/events/${eventId}`);
+              router.push(`/events/${organizerSlug}/${eventSlug}`);
             });
             return;
           }
@@ -98,7 +97,7 @@ const RegistrationForm = () => {
               confirmButtonText: "Return to Event",
               confirmButtonColor: "#295FA7",
             }).then(() => {
-              router.push(`/events/${eventId}`);
+              router.push(`/events/${organizerSlug}/${eventSlug}`);
             });
             return;
           }
@@ -116,7 +115,7 @@ const RegistrationForm = () => {
               confirmButtonText: "Return to Event",
               confirmButtonColor: "#295FA7",
             }).then(() => {
-              router.push(`/events/${eventId}`);
+              router.push(`/events/${organizerSlug}/${eventSlug}`);
             });
             return;
           }
@@ -157,7 +156,7 @@ const RegistrationForm = () => {
     };
     fetchRegistrationData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [eventId, ticketId, quantity]);
+  }, [organizerSlug, eventSlug, ticketId, quantity]);
 
   const fetchDependentData = async (field: RegistrationField, parentValue: string) => {
     if (!parentValue) return;
@@ -275,11 +274,10 @@ const RegistrationForm = () => {
         sharedData: sharedData,
       };
 
-      const response = await api.post(`/events/${eventId}/orders`, payload);
+      const response = await api.post(`/events/${event?.id}/orders`, payload);
       const orderData = response.data.data;
 
       // If order is successful, check if it's a free ticket or needs payment
-      // Use Number() to handle cases where price might be a string "0"
       if (Number(ticket?.price) === 0) {
         await Swal.fire({
           title: "Registration Successful!",
@@ -289,11 +287,8 @@ const RegistrationForm = () => {
         });
         router.push("/dashboard?tab=events");
       } else {
-        // Extract registration IDs for payment initialization
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const registrationIds = orderData.registrations.map((reg: any) => reg.id);
-
-        // Initialize payment
         const paymentRes = await api.post("/events/payments/initialize", {
            registrationIds: registrationIds
         });
@@ -358,9 +353,6 @@ const RegistrationForm = () => {
 
                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {(event.registrationFields || []).map((field) => {
-                            // Logic:
-                            // 1. If field is per-attendee, show for all attendees.
-                            // 2. If field is NOT per-attendee, show ONLY for the first attendee (index 0).
                             if (!field.isPerAttendee && index !== 0) return null;
 
                             return (
