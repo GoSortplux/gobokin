@@ -17,6 +17,7 @@ import {
 import api from "@/services/api";
 import { Event, Analytics, StaffMember } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
+import QRScannerModal from "@/components/organizer/QRScannerModal";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 import { useAuth } from "@/context/AuthContext";
@@ -36,6 +37,8 @@ const CheckInInterface = () => {
   const [searching, setSearching] = useState(false);
   const [checkingIn, setCheckingIn] = useState(false);
   const [selectedSessionId, setSelectedSessionId] = useState<string>("");
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [qrPayload, setQrPayload] = useState<string | null>(null);
 
   const fetchData = useCallback(async (showLoading = true) => {
     try {
@@ -95,10 +98,20 @@ const CheckInInterface = () => {
     setCheckingIn(true);
     try {
       Swal.showLoading();
-      await api.post("/events/check-in", {
+      const payload: {
+        ticketNumber: string;
+        sessionId?: string;
+        qrPayload?: string;
+      } = {
         ticketNumber: searchResult.ticketNumber,
         sessionId: selectedSessionId || undefined
-      });
+      };
+
+      if (qrPayload) {
+        payload.qrPayload = qrPayload;
+      }
+
+      await api.post("/events/check-in", payload);
 
       await Swal.fire({
         title: "Check-in Successful!",
@@ -110,12 +123,36 @@ const CheckInInterface = () => {
 
       setSearchResult(null);
       setSearchTerm("");
+      setQrPayload(null);
       fetchData(false); // Silent refresh of stats
     } catch (error) {
       console.error("Check-in failed:", error);
       Swal.fire("Check-in Error", translateError(error), "error");
     } finally {
       setCheckingIn(false);
+    }
+  };
+
+  const handleScanSuccess = async (decodedText: string) => {
+    setIsScannerOpen(false);
+    try {
+      const data = JSON.parse(decodedText);
+      if (!data.ticketNumber) {
+        throw new Error("Invalid QR code format");
+      }
+
+      setSearchTerm(data.ticketNumber);
+      setQrPayload(decodedText);
+      setSearching(true);
+      setSearchResult(null);
+
+      const response = await api.get(`/events/check-in/lookup?ticketNumber=${data.ticketNumber}`);
+      setSearchResult(response.data.data);
+    } catch (error) {
+      console.error("Scan processing failed:", error);
+      Swal.fire("Invalid QR Code", "This QR code is not recognized or contains invalid data.", "error");
+    } finally {
+      setSearching(false);
     }
   };
 
@@ -182,7 +219,11 @@ const CheckInInterface = () => {
              </form>
 
              <div className="mt-10 pt-10 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-center gap-6 relative z-10">
-                <button className="flex items-center gap-4 px-8 py-4 bg-gray-900 text-white rounded-[1.5rem] hover:scale-105 transition-all shadow-xl shadow-gray-900/10 group">
+                <button
+                  type="button"
+                  onClick={() => setIsScannerOpen(true)}
+                  className="flex items-center gap-4 px-8 py-4 bg-gray-900 text-white rounded-[1.5rem] hover:scale-105 transition-all shadow-xl shadow-gray-900/10 group"
+                >
                    <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center group-hover:bg-primary transition-colors">
                       <QrCode size={20} />
                    </div>
@@ -197,6 +238,12 @@ const CheckInInterface = () => {
                 </p>
              </div>
           </div>
+
+          <QRScannerModal
+            isOpen={isScannerOpen}
+            onClose={() => setIsScannerOpen(false)}
+            onScanSuccess={handleScanSuccess}
+          />
 
           {/* Search Result Card */}
           {searchResult && (
