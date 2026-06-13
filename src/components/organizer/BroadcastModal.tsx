@@ -13,7 +13,8 @@ import {
   AlertCircle,
   Mail,
   Smartphone,
-  XCircle
+  XCircle,
+  ChevronDown
 } from "lucide-react";
 import api from "@/services/api";
 import axios from "axios";
@@ -155,32 +156,25 @@ const BroadcastModal = ({ isOpen, onClose, eventId, tickets }: BroadcastModalPro
         <div className="p-8 space-y-8 max-h-[calc(100vh-200px)] overflow-y-auto no-scrollbar">
           {/* Segmentation */}
           <div className="space-y-4">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2 ml-1">
               <Users size={12} className="text-primary" />
               Target Audience Segment
             </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-              {[
-                { id: "all", label: "All", icon: Users },
-                { id: "registered", label: "Registered", icon: Users },
-                { id: "checked-in", label: "Checked-in", icon: CheckCircle2 },
-                { id: "not_checked_in", label: "Not Checked", icon: XCircle },
-                { id: "tickets", label: "By Ticket", icon: Ticket },
-              ].map((s) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => setSegmentType(s.id as any)}
-                  className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all font-bold text-sm ${
-                    segmentType === s.id
-                      ? "bg-primary/5 border-primary text-primary shadow-sm"
-                      : "bg-gray-50 border-gray-100 text-gray-400 hover:border-gray-200"
-                  }`}
-                >
-                  <s.icon size={18} />
-                  {s.label}
-                </button>
-              ))}
+            <div className="relative">
+              <select
+                value={segmentType}
+                onChange={(e) => setSegmentType(e.target.value as any)}
+                className="w-full p-5 bg-gray-50 border-2 border-gray-100 rounded-2xl text-sm font-bold focus:border-primary focus:bg-white outline-none transition-all appearance-none cursor-pointer pr-12"
+              >
+                <option value="all">All Attendees</option>
+                <option value="registered">Registered Only</option>
+                <option value="checked-in">Checked-in Only</option>
+                <option value="not_checked_in">Not Checked-in</option>
+                <option value="tickets">By Specific Ticket Types</option>
+              </select>
+              <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                <ChevronDown size={20} />
+              </div>
             </div>
 
             {segmentType === "tickets" && (
