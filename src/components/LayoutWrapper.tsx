@@ -26,7 +26,7 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
     pathname.startsWith("/vendor") ||
     pathname.startsWith("/organizer") ||
     pathname.startsWith("/admin");
-  const isPaymentPage = pathname.startsWith("/payment/verify");
+  const isPaymentPage = pathname.startsWith("/payment/verify") || pathname.startsWith("/payment-success");
   const isEventPage = pathname.startsWith("/events");
 
   useEffect(() => {

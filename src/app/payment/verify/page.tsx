@@ -27,7 +27,11 @@ const VerifyPaymentContent = () => {
 
     try {
       let endpoint = '';
-      if (type === 'conversion') {
+      const isEventPayment = (reference && reference.startsWith('REG-')) || type === 'event' || type === 'ticket';
+
+      if (isEventPayment) {
+        endpoint = `/events/payments/verify?reference=${reference}`;
+      } else if (type === 'conversion') {
         endpoint = `/reservations/verify-conversion?paymentReference=${reference}`;
       } else if (type === 'reservation') {
         endpoint = `/reservations/verify?paymentReference=${reference}`;
@@ -39,6 +43,16 @@ const VerifyPaymentContent = () => {
 
       if (response.data.success) {
         const data = response.data.data;
+
+        // Handle Event Payments
+        if (isEventPayment) {
+          const orderId = data?.orderId || data?.order?.id || data?.id;
+          setPaymentStatus({ status: 'success', message: 'Payment verified! Preparing your tickets...' });
+          setTimeout(() => {
+            router.push(`/payment-success/event?orderId=${orderId}`);
+          }, 1500);
+          return;
+        }
 
         // Determine if this is a subscription based on type or data
         if (type === 'subscription' || data?.type === 'subscription' || (data?.tier && data?.status)) {
