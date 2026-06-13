@@ -46,6 +46,7 @@ import { translateError } from "@/utils/errors";
 import AssignStaffModal from "@/components/organizer/AssignStaffModal";
 import WalkInRegistrationModal from "@/components/organizer/WalkInRegistrationModal";
 import SuspendModal from "@/components/organizer/SuspendModal";
+import BroadcastModal from "@/components/organizer/BroadcastModal";
 
 const EventDetails = () => {
   const { user } = useAuth();
@@ -65,6 +66,7 @@ const EventDetails = () => {
   const [isStaffModalOpen, setIsStaffModalOpen] = useState(false);
   const [isWalkInModalOpen, setIsWalkInModalOpen] = useState(false);
   const [isSuspendModalOpen, setIsSuspendModalOpen] = useState(false);
+  const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState(false);
   const [suspendConfig, setSuspendConfig] = useState<{ type: "event" | "ticket"; title: string; ticketId?: string }>({ type: "event", title: "" });
   const [isActionLoading, setIsActionLoading] = useState(false);
 
@@ -344,26 +346,8 @@ const EventDetails = () => {
     }
   };
 
-  const handleBroadcast = async () => {
-    const { value: message, isConfirmed } = await Swal.fire({
-      title: 'Broadcast Message',
-      text: 'Send a message to all registered attendees via email/app.',
-      input: 'textarea',
-      inputPlaceholder: 'Type your message here...',
-      showCancelButton: true,
-      confirmButtonText: 'Send Broadcast',
-      confirmButtonColor: '#295FA7',
-    });
-
-    if (isConfirmed && message) {
-      try {
-        Swal.showLoading();
-        await api.post(`/events/${eventId}/broadcast`, { message });
-        Swal.fire('Sent!', 'Your message has been broadcast to all attendees.', 'success');
-      } catch (error) {
-        Swal.fire('Error', translateError(error), 'error');
-      }
-    }
+  const handleBroadcast = () => {
+    setIsBroadcastModalOpen(true);
   };
 
   const handlePublish = async () => {
@@ -1406,6 +1390,15 @@ const EventDetails = () => {
         onAssign={handleAssignStaff}
         assignedStaffIds={staff.map(s => s.id)}
       />
+
+      {event && (
+        <BroadcastModal
+          isOpen={isBroadcastModalOpen}
+          onClose={() => setIsBroadcastModalOpen(false)}
+          eventId={event.id}
+          tickets={event.tickets || []}
+        />
+      )}
 
       {event && (
         <WalkInRegistrationModal
