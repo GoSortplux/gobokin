@@ -31,8 +31,12 @@ const VerifyPaymentContent = () => {
         endpoint = `/reservations/verify-conversion?paymentReference=${reference}`;
       } else if (type === 'reservation') {
         endpoint = `/reservations/verify?paymentReference=${reference}`;
+      } else if (type === 'event' || type === 'ticket') {
+        endpoint = `/events/payments/verify?reference=${reference}`;
       } else {
-        endpoint = `/payments/verify?paymentReference=${reference}`;
+        // Default to events/payments/verify as requested for standard ticket purchases
+        // while allowing venue payments to use the old endpoint if needed
+        endpoint = `/events/payments/verify?reference=${reference}`;
       }
 
       const response = await api.get(endpoint);
@@ -45,6 +49,20 @@ const VerifyPaymentContent = () => {
           setPaymentStatus({ status: 'success', message: 'Subscription successful! Redirecting...' });
           setTimeout(() => {
             router.push('/payment-success?type=subscription');
+          }, 1500);
+          return;
+        }
+
+        // Handle event registrations
+        if (type === 'event' || type === 'ticket' || data?.registrationId || data?.orderId) {
+          const registrationId = data?.registrationId || data?._id;
+          const orderId = data?.orderId;
+          const idParam = registrationId ? 'registrationId' : 'orderId';
+          const finalId = registrationId || orderId;
+
+          setPaymentStatus({ status: 'success', message: 'Payment verified! Redirecting to your ticket...' });
+          setTimeout(() => {
+            router.push(`/payment-success?${idParam}=${finalId}${type ? `&type=${type}` : ''}`);
           }, 1500);
           return;
         }
@@ -117,7 +135,8 @@ const VerifyPaymentContent = () => {
     // Prevent double invocation in strict mode
     if (verifyInitiated.current) return;
 
-    const reference = searchParams.get('paymentReference') || searchParams.get('reference');
+    // The new endpoint uses 'reference', but some providers might redirect back with 'paymentReference'
+    const reference = searchParams.get('reference') || searchParams.get('paymentReference');
     const type = searchParams.get('type');
 
     if (reference) {
