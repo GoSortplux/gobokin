@@ -87,6 +87,18 @@ const EventTicketCard: React.FC<EventTicketCardProps> = ({ registration, onViewD
     try {
       const response = await api.get(`/events/${registration.event.id}/calendar-links`);
       const links = response.data.data;
+
+      if (type === 'google') {
+        const fmtDate = (d: string) => new Date(d).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+        const start = fmtDate(registration.event.startDate);
+        // Default to 2 hours if no end date
+        const end = fmtDate(new Date(new Date(registration.event.startDate).getTime() + 2 * 60 * 60 * 1000).toISOString());
+
+        const gLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(registration.event.title)}&dates=${start}/${end}&location=${encodeURIComponent(registration.event.location || '')}`;
+        window.open(gLink, '_blank');
+        return;
+      }
+
       if (links && links[type]) {
         window.open(links[type], '_blank');
       }

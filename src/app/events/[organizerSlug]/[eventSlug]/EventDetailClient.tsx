@@ -145,6 +145,7 @@ const EventDetailClient = () => {
   const [selectedTicket, setSelectedTicket] = useState<TicketType | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState("overview");
+  const [isRegistered, setIsRegistered] = useState(false);
 
   const getTicketSalesStatus = (ticket: TicketType | null) => {
     if (!ticket) return "INACTIVE";
@@ -166,6 +167,20 @@ const EventDetailClient = () => {
   };
 
   useEffect(() => {
+    const fetchUserRegistration = async (id: string) => {
+      if (!user) return;
+      try {
+        const response = await api.get("/events/my-registrations");
+        const registrations = response.data.data || response.data;
+        if (Array.isArray(registrations)) {
+          const registered = registrations.some((reg: any) => reg.event.id === id);
+          setIsRegistered(registered);
+        }
+      } catch (_error) {
+        setIsRegistered(false);
+      }
+    };
+
     const fetchWaitlistStatus = async (id: string) => {
       if (!user) return;
       try {
@@ -207,6 +222,7 @@ const EventDetailClient = () => {
     fetchEvent().then((data) => {
       if (data?.id) {
         fetchWaitlistStatus(data.id);
+        fetchUserRegistration(data.id);
       }
     });
   }, [organizerSlug, eventSlug, user]);
@@ -271,6 +287,18 @@ const EventDetailClient = () => {
     try {
       const response = await api.get(`/events/${event.id}/calendar-links`);
       const links = response.data.data;
+
+      if (type === 'google') {
+        // Construct Google Calendar link manually if API link fails or as a robust fallback
+        const fmtDate = (d: string) => new Date(d).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+        const start = fmtDate(event.startDate);
+        const end = event.endDate ? fmtDate(event.endDate) : fmtDate(new Date(new Date(event.startDate).getTime() + 2 * 60 * 60 * 1000).toISOString());
+
+        const gLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${start}/${end}&details=${encodeURIComponent(event.description || '')}&location=${encodeURIComponent(event.location || '')}`;
+        window.open(gLink, '_blank');
+        return;
+      }
+
       if (links && links[type]) {
         window.open(links[type], '_blank');
       }
@@ -564,7 +592,7 @@ const EventDetailClient = () => {
                                      </div>
                                      {!isTicketSoldOut ? (
                                        <p className="text-[10px] font-semibold text-primary group-hover:translate-x-2 transition-transform flex items-center gap-1.5">
-                                          SELECT PASS <ChevronRight size={14} />
+                                          <ChevronRight size={14} />
                                        </p>
                                      ) : event.isWaitlistEnabled && (
                                        <button
@@ -727,13 +755,15 @@ const EventDetailClient = () => {
                      })()}
 
                      <div className="flex items-center gap-2 justify-center pt-2">
-                        <button
-                           onClick={() => handleAddToCalendar('google')}
-                           className="flex-1 py-3 bg-white border-2 border-gray-100 rounded-xl text-[10px] font-semibold text-gray-600 uppercase tracking-widest hover:border-primary/20 hover:text-primary transition-all flex items-center justify-center gap-2 group"
-                        >
-                           <CalendarPlus size={14} className="group-hover:scale-110 transition-transform" />
-                           Save Date
-                        </button>
+                        {isRegistered && (
+                          <button
+                            onClick={() => handleAddToCalendar('google')}
+                            className="flex-1 py-3 bg-white border-2 border-gray-100 rounded-xl text-[10px] font-semibold text-gray-600 uppercase tracking-widest hover:border-primary/20 hover:text-primary transition-all flex items-center justify-center gap-2 group"
+                          >
+                             <CalendarPlus size={14} className="group-hover:scale-110 transition-transform" />
+                             Save Date
+                          </button>
+                        )}
                         <button
                           onClick={handleToggleBookmark}
                           disabled={isBookmarking}
@@ -766,33 +796,35 @@ const EventDetailClient = () => {
                </div>
 
                {/* Secondary Save Date Options - Explicit Luma Style */}
-               <div className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm space-y-6">
-                  <div className="flex items-center gap-3">
-                     <div className="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center">
-                        <BookmarkPlus size={20} />
-                     </div>
-                     <h4 className="font-semibold text-gray-900 tracking-tight">Calendar Sync</h4>
-                  </div>
-                  <div className="grid grid-cols-1 gap-3">
-                     <button
-                       onClick={() => handleAddToCalendar('google')}
-                       className="flex items-center justify-between p-4 rounded-xl bg-gray-50 hover:bg-white hover:shadow-md hover:shadow-primary/5 transition-all group border border-transparent hover:border-primary/10"
-                     >
-                        <span className="text-xs font-semibold text-gray-700 uppercase tracking-widest">Google Calendar</span>
-                        <ChevronRight size={16} className="text-gray-300 group-hover:translate-x-1 transition-transform group-hover:text-primary" />
-                     </button>
-                     <button
-                       onClick={() => handleDownloadICS()}
-                       className="flex items-center justify-between p-4 rounded-xl bg-gray-50 hover:bg-white hover:shadow-md hover:shadow-primary/5 transition-all group border border-transparent hover:border-primary/10"
-                     >
-                        <div className="flex items-center gap-2">
-                           <span className="text-xs font-semibold text-gray-700 uppercase tracking-widest">Apple / Outlook</span>
-                           <Download size={14} className="text-gray-300 group-hover:text-primary" />
-                        </div>
-                        <ChevronRight size={16} className="text-gray-300 group-hover:translate-x-1 transition-transform group-hover:text-primary" />
-                     </button>
-                  </div>
-               </div>
+               {isRegistered && (
+                 <div className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm space-y-6">
+                    <div className="flex items-center gap-3">
+                       <div className="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center">
+                          <BookmarkPlus size={20} />
+                       </div>
+                       <h4 className="font-semibold text-gray-900 tracking-tight">Calendar Sync</h4>
+                    </div>
+                    <div className="grid grid-cols-1 gap-3">
+                       <button
+                         onClick={() => handleAddToCalendar('google')}
+                         className="flex items-center justify-between p-4 rounded-xl bg-gray-50 hover:bg-white hover:shadow-md hover:shadow-primary/5 transition-all group border border-transparent hover:border-primary/10"
+                       >
+                          <span className="text-xs font-semibold text-gray-700 uppercase tracking-widest">Google Calendar</span>
+                          <ChevronRight size={16} className="text-gray-300 group-hover:translate-x-1 transition-transform group-hover:text-primary" />
+                       </button>
+                       <button
+                         onClick={() => handleDownloadICS()}
+                         className="flex items-center justify-between p-4 rounded-xl bg-gray-50 hover:bg-white hover:shadow-md hover:shadow-primary/5 transition-all group border border-transparent hover:border-primary/10"
+                       >
+                          <div className="flex items-center gap-2">
+                             <span className="text-xs font-semibold text-gray-700 uppercase tracking-widest">Apple / Outlook</span>
+                             <Download size={14} className="text-gray-300 group-hover:text-primary" />
+                          </div>
+                          <ChevronRight size={16} className="text-gray-300 group-hover:translate-x-1 transition-transform group-hover:text-primary" />
+                       </button>
+                    </div>
+                 </div>
+               )}
 
                {/* Minimalist Organizer Card */}
                <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">

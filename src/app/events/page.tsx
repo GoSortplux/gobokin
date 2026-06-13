@@ -270,6 +270,17 @@ const EventDiscoveryContent = () => {
       try {
         const response = await api.get(`/events/${event.id}/calendar-links`);
         const links = response.data.data;
+
+        if (type === 'google') {
+          const fmtDate = (d: string) => new Date(d).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+          const start = fmtDate(event.startDate);
+          const end = event.endDate ? fmtDate(event.endDate) : fmtDate(new Date(new Date(event.startDate).getTime() + 2 * 60 * 60 * 1000).toISOString());
+
+          const gLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${start}/${end}&details=${encodeURIComponent(event.description || '')}&location=${encodeURIComponent(event.location || '')}`;
+          window.open(gLink, '_blank');
+          return;
+        }
+
         if (links && links[type]) {
           window.open(links[type], '_blank');
         }
