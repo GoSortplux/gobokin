@@ -27,7 +27,7 @@ import {
   User
 } from "lucide-react";
 import api from "@/services/api";
-import { Event, Ticket as TicketType, Session } from "@/types";
+import { Event, Ticket as TicketType, Session, Registration } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
@@ -173,7 +173,7 @@ const EventDetailClient = () => {
         const response = await api.get("/events/my-registrations");
         const registrations = response.data.data || response.data;
         if (Array.isArray(registrations)) {
-          const registered = registrations.some((reg: any) => reg.event.id === id);
+          const registered = registrations.some((reg: Registration) => reg.event.id === id);
           setIsRegistered(registered);
         }
       } catch (_error) {
