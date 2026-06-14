@@ -141,11 +141,20 @@ const VerifyPaymentContent = () => {
         if (match) extractedReference = match[1];
     }
 
-    const reference = extractedReference ||
+    let reference = extractedReference ||
                       searchParams.get('reference') ||
                       searchParams.get('paymentReference') ||
                       searchParams.get('transactionReference') ||
                       searchParams.get('trcref');
+
+    // Clean reference from malformed double-query strings (?ref=X?other=Y)
+    if (reference && reference.includes('?')) {
+        reference = reference.split('?')[0];
+    }
+    if (reference && reference.includes('&')) {
+        reference = reference.split('&')[0];
+    }
+
     const type = searchParams.get('type');
 
     if (reference) {

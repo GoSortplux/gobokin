@@ -10,10 +10,18 @@ const EventsVerifyContent = () => {
 
   useEffect(() => {
     // Extract all potential reference parameters
-    const reference = searchParams.get("reference") ||
+    let reference = searchParams.get("reference") ||
                       searchParams.get("paymentReference") ||
                       searchParams.get("transactionReference") ||
                       searchParams.get("trcref");
+
+    // Clean reference from malformed double-query strings (?ref=X?other=Y)
+    if (reference && reference.includes('?')) {
+      reference = reference.split('?')[0];
+    }
+    if (reference && reference.includes('&')) {
+      reference = reference.split('&')[0];
+    }
 
     const type = searchParams.get("type") || "event";
 
