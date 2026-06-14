@@ -132,7 +132,17 @@ const VerifyPaymentContent = () => {
     // Prevent double invocation in strict mode
     if (verifyInitiated.current) return;
 
-    const reference = searchParams.get('reference') ||
+    // Handle potential double-query string bug (?reference=REG-123?paymentReference=REG-123)
+    const rawUrl = typeof window !== 'undefined' ? window.location.href : '';
+    let extractedReference = '';
+
+    if (rawUrl.includes('?reference=') || rawUrl.includes('&reference=')) {
+        const match = rawUrl.match(/[?&]reference=([^?&]+)/);
+        if (match) extractedReference = match[1];
+    }
+
+    const reference = extractedReference ||
+                      searchParams.get('reference') ||
                       searchParams.get('paymentReference') ||
                       searchParams.get('transactionReference') ||
                       searchParams.get('trcref');
