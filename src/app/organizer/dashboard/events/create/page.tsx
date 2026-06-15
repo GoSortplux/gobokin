@@ -22,7 +22,7 @@ import {
   Share2,
   ShieldCheck,
   Clock,
-  ChevronDown, ChevronUp,
+  ChevronDown,
   Type,
   GripVertical,
   Layout,
@@ -38,8 +38,7 @@ import {
   History, X,
   MousePointer2,
   XCircle,
-  Settings,
-  Percent
+  Settings
 } from "lucide-react";
 import api from "@/services/api";
 import axios from "axios";
@@ -1093,17 +1092,6 @@ const CreateEvent = () => {
     setRegistration({ ...registration, fields: newFields });
   };
 
-  const moveField = (index: number, direction: 'up' | 'down') => {
-    const newFields = [...registration.fields];
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    if (targetIndex >= 0 && targetIndex < newFields.length) {
-      const temp = newFields[index];
-      newFields[index] = newFields[targetIndex];
-      newFields[targetIndex] = temp;
-      setRegistration({ ...registration, fields: newFields });
-      handleBlur();
-    }
-  };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateField = (index: number, field: string, value: any) => {
@@ -2136,7 +2124,7 @@ const CreateEvent = () => {
                                       </label>
                                    </div>
 
-                                   {(!isLocationField && !isGroupNameField) && (
+                                   {!isGroupNameField && (
                                       <button
                                          onClick={() => removeField(idx)}
                                          className="absolute top-4 right-4 w-10 h-10 bg-white/80 text-gray-300 hover:text-secondary rounded-xl flex items-center justify-center shadow-sm border border-gray-100 transition-all opacity-0 group-hover:opacity-100 z-10"
@@ -2323,14 +2311,12 @@ const CreateEvent = () => {
                                               </label>
                                            </div>
 
-                                           {!isLocationField && (
-                                              <button
-                                                 onClick={() => removeField(idx)}
-                                                 className="absolute top-4 right-4 w-10 h-10 bg-white/80 text-gray-300 hover:text-secondary rounded-xl flex items-center justify-center shadow-sm border border-gray-100 transition-all opacity-0 group-hover:opacity-100 z-10"
-                                              >
-                                                 <Trash2 size={16} />
-                                              </button>
-                                           )}
+                                           <button
+                                              onClick={() => removeField(idx)}
+                                              className="absolute top-4 right-4 w-10 h-10 bg-white/80 text-gray-300 hover:text-secondary rounded-xl flex items-center justify-center shadow-sm border border-gray-100 transition-all opacity-0 group-hover:opacity-100 z-10"
+                                           >
+                                              <Trash2 size={16} />
+                                           </button>
                                          </div>
                                          {(field.type === 'select' || field.type === 'checkbox') && (
                                              <div className="bg-gray-50/50 rounded-[2rem] p-6 border border-gray-100 mt-2 ml-4 mr-4 space-y-5">
@@ -2474,14 +2460,12 @@ const CreateEvent = () => {
                                              </label>
                                           </div>
 
-                                          {!isLocationField && (
-                                             <button
-                                                onClick={() => removeField(idx)}
-                                                className="absolute top-4 right-4 w-10 h-10 bg-white/80 text-gray-300 hover:text-secondary rounded-xl flex items-center justify-center shadow-sm border border-gray-100 transition-all opacity-0 group-hover:opacity-100 z-10"
-                                             >
-                                                <Trash2 size={16} />
-                                             </button>
-                                          )}
+                                          <button
+                                             onClick={() => removeField(idx)}
+                                             className="absolute top-4 right-4 w-10 h-10 bg-white/80 text-gray-300 hover:text-secondary rounded-xl flex items-center justify-center shadow-sm border border-gray-100 transition-all opacity-0 group-hover:opacity-100 z-10"
+                                          >
+                                             <Trash2 size={16} />
+                                          </button>
                                         </div>
                                         {(field.type === 'select' || field.type === 'checkbox') && (
                                             <div className="bg-gray-50/50 rounded-[2rem] p-6 border border-gray-100 mt-2 ml-4 mr-4 space-y-5">

@@ -3,15 +3,10 @@ import React, { useState, useEffect } from "react";
 import {
   Ticket,
   Search,
-  Filter,
   Download,
   Eye,
-  User,
-  ShieldCheck,
   CheckCircle2,
-  XCircle,
-  Clock,
-  MoreVertical
+  Clock
 } from "lucide-react";
 import api from "@/services/api";
 import { useAuth } from "@/context/AuthContext";

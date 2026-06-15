@@ -27,7 +27,6 @@ import {
   Upload,
   XCircle, X,
   Settings,
-  Percent,
   Coins,
   ChevronDown,
   Layers,
@@ -37,7 +36,7 @@ import api from "@/services/api";
 import axios from "axios";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
-import { AgendaItem, EventType, RegistrationMode, RegistrationField, Speaker, TicketType } from "@/types";
+import { EventType, RegistrationMode, RegistrationField, Speaker, TicketType } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 
 const steps = [
@@ -504,7 +503,7 @@ const EditEvent = () => {
 
   // Media Upload State
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [_, setUploadProgress] = useState(0);
 
   const uploadMedia = async (file: File) => {
     try {
@@ -523,7 +522,7 @@ const EditEvent = () => {
       });
 
       return finalUrl;
-    } catch (error) {
+    } catch (_error) {
       console.error('Upload failed:', error);
       throw error;
     }
@@ -615,7 +614,7 @@ const EditEvent = () => {
       const fileUrl = await uploadMedia(file);
       updateSpeaker(index, 'imageUrl', fileUrl);
       Swal.close();
-    } catch (error) {
+    } catch (_error) {
       Swal.fire('Error', 'Upload failed', 'error');
     }
   };
@@ -1432,7 +1431,7 @@ const EditEvent = () => {
                                             isGroupingEnabled: newGroupingEnabled,
                                             fields: newGroupingEnabled
                                                ? prev.fields
-                                               : prev.fields.map((f, i) => ({ ...f, isPerAttendee: false }))
+                                               : prev.fields.map((f, _i) => ({ ...f, isPerAttendee: false }))
                                          }));
                                       }}
                                       className={`w-14 h-8 rounded-full transition-all relative shrink-0 ${registration.isGroupingEnabled ? 'bg-primary' : 'bg-gray-300'}`}
@@ -1633,7 +1632,6 @@ const EditEvent = () => {
                                 </div>
                                 {(field.type === 'select' || field.type === 'checkbox') && (
                                     <div className="bg-gray-50/50 rounded-[2rem] p-6 border border-gray-100 mt-2 ml-4 mr-4 space-y-5">
-                                        {!isLocationField && (
                                         <div className={`grid gap-5 ${showPreview ? "grid-cols-1 2xl:grid-cols-2" : "grid-cols-1 md:grid-cols-2"}`}>
                                             <div className="space-y-2">
                                                 <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Choice Source</label>
@@ -1682,14 +1680,13 @@ const EditEvent = () => {
                                                 </div>
                                             )}
                                         </div>
-                                        )}
 
                                         <div className="space-y-3">
                                             <div className="flex items-center justify-between px-1">
                                                 <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
                                                     {field.source ? "Auto-Managed" : "Your Options"}
                                                 </p>
-                                                {!field.source && !isLocationField && (
+                                                {!field.source && (
                                                     <button
                                                         onClick={() => addFieldOption(idx)}
                                                         className="text-[9px] font-black text-primary uppercase tracking-widest hover:underline flex items-center gap-1"
