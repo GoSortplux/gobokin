@@ -1353,7 +1353,13 @@ const EventDetails = () => {
                                                     Swal.fire('Error', translateError(error), 'error');
                                                   }
                                                 }}
-                                                className="px-3 py-1.5 bg-emerald-50 text-emerald-600 font-bold text-[10px] rounded-lg border border-emerald-100 hover:bg-emerald-600 hover:text-white transition-all"
+                                                disabled={attendee.status === 'PENDING' || attendee.status === 'FAILED'}
+                                                title={attendee.status === 'PENDING' || attendee.status === 'FAILED' ? `Cannot check in a ${attendee.status.toLowerCase()} ticket` : ''}
+                                                className={`px-3 py-1.5 font-bold text-[10px] rounded-lg border transition-all ${
+                                                  attendee.status === 'PENDING' || attendee.status === 'FAILED'
+                                                    ? 'bg-gray-50 text-gray-400 border-gray-100 cursor-not-allowed opacity-60'
+                                                    : 'bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-600 hover:text-white'
+                                                }`}
                                               >
                                                 Check-in
                                               </button>

@@ -290,7 +290,13 @@ const OrdersView = () => {
                                 ) : (
                                     <button
                                         onClick={() => handleCheckIn(order.ticketNumber, order.attendeeName)}
-                                        className="px-3 py-1.5 bg-emerald-50 text-emerald-600 font-bold text-[10px] rounded-lg border border-emerald-100 hover:bg-emerald-600 hover:text-white transition-all uppercase tracking-widest"
+                                        disabled={order.status === 'PENDING' || order.status === 'FAILED'}
+                                        title={order.status === 'PENDING' || order.status === 'FAILED' ? `Cannot check in a ${order.status.toLowerCase()} ticket` : ''}
+                                        className={`px-3 py-1.5 font-bold text-[10px] rounded-lg border transition-all uppercase tracking-widest ${
+                                            order.status === 'PENDING' || order.status === 'FAILED'
+                                                ? 'bg-gray-50 text-gray-400 border-gray-100 cursor-not-allowed opacity-60'
+                                                : 'bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-600 hover:text-white'
+                                        }`}
                                     >
                                         Check-in
                                     </button>
