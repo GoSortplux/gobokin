@@ -1,6 +1,6 @@
 "use client";
-import React, { useState, useCallback, useEffect, useRef } from "react";
-import { useRouter, useParams } from "next/navigation";
+import React, { useState, useCallback, useEffect, useRef, Suspense } from "react";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import useOnClickOutside from "@/hooks/useOnClickOutside";
 import {
@@ -321,25 +321,23 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, sessions, tickets, agenda
   );
 };
 
-const EditEvent = () => {
+const EditEventContent = () => {
   const router = useRouter();
   const { eventId } = useParams();
+  const searchParams = useSearchParams();
   const [currentStep, setCurrentStep] = useState(1);
   const [subStep, setSubStep] = useState(1);
 
   // Deep linking to steps
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const step = params.get("step");
-      if (step) {
-        const parsedStep = parseInt(step);
-        if (!isNaN(parsedStep)) {
-          setCurrentStep(parsedStep);
-        }
+    const step = searchParams.get("step");
+    if (step) {
+      const parsedStep = parseInt(step);
+      if (!isNaN(parsedStep)) {
+        setCurrentStep(parsedStep);
       }
     }
-  }, []);
+  }, [searchParams]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
@@ -538,8 +536,8 @@ const EditEvent = () => {
 
       return finalUrl;
     } catch (_error) {
-      console.error('Upload failed:', error);
-      throw error;
+      console.error('Upload failed:', _error);
+      throw _error;
     }
   };
 
@@ -2375,6 +2373,14 @@ const EditEvent = () => {
         </div>
       )}
     </div>
+  );
+};
+
+const EditEvent = () => {
+  return (
+    <Suspense fallback={<div className="h-screen flex items-center justify-center"><CustomLoader /></div>}>
+      <EditEventContent />
+    </Suspense>
   );
 };
 

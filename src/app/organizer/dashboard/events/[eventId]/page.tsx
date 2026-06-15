@@ -953,44 +953,44 @@ const EventDetails = () => {
                     </div>
                  )}
 
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {event.tickets && event.tickets.length > 0 ? (
                       event.tickets.map((ticket, i) => (
-                        <div key={i} className="p-8 rounded-[2.5rem] border-2 border-gray-50 hover:border-primary/20 hover:bg-white hover:shadow-2xl transition-all duration-500 group relative overflow-hidden">
-                           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+                        <div key={i} className="p-6 rounded-3xl border border-gray-100 bg-white hover:shadow-xl transition-all duration-500 group relative overflow-hidden flex flex-col">
+                           <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
 
-                           <div className="flex items-center justify-between mb-6 relative z-10">
-                              <div className="flex flex-wrap items-center gap-3">
-                                 <div className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${ticket.type === 'FREE' ? 'bg-gray-100 text-gray-600' : 'bg-emerald-100 text-emerald-700'}`}>
+                           <div className="flex items-center justify-between mb-4 relative z-10">
+                              <div className="flex flex-wrap gap-1.5">
+                                 <span className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider ${ticket.type === 'FREE' ? 'bg-gray-100 text-gray-500' : 'bg-emerald-50 text-emerald-600'}`}>
                                     {ticket.type}
-                                 </div>
+                                 </span>
                                  {ticket.isOffline && (
-                                   <div className="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest bg-amber-100 text-amber-700">
+                                   <span className="px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider bg-amber-50 text-amber-600">
                                       OFFLINE
-                                   </div>
+                                   </span>
                                  )}
                                  {(ticket.isSalesSuspended || ticket.salesStatus === 'PAUSED' || ticket.availabilityStatus === 'SALES_PAUSED') && (
-                                   <div className="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest bg-rose-100 text-rose-700">
-                                      SUSPENDED
-                                   </div>
+                                   <span className="px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider bg-rose-50 text-rose-600">
+                                      PAUSED
+                                   </span>
                                  )}
                               </div>
                               {!isStaff && (
                                 <div className="relative">
                                   <button
                                     onClick={() => setActiveMenu(activeMenu === ticket.id ? null : ticket.id!)}
-                                    className="p-2 text-gray-400 hover:text-primary hover:bg-gray-50 rounded-xl transition-all"
+                                    className="p-1.5 text-gray-400 hover:text-primary hover:bg-gray-50 rounded-lg transition-all"
                                   >
-                                    <MoreVertical size={20} />
+                                    <MoreVertical size={16} />
                                   </button>
 
                                   {activeMenu === ticket.id && (
-                                    <div ref={menuRef} className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 py-3 z-[100] animate-in fade-in zoom-in duration-200">
+                                    <div ref={menuRef} className="absolute right-0 mt-1 w-48 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-[100] animate-in fade-in zoom-in duration-200">
                                       <Link
                                         href={`/organizer/dashboard/events/${eventId}/edit?step=2`}
-                                        className="w-full px-6 py-3 text-left text-[11px] font-black uppercase tracking-widest text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors flex items-center gap-3"
+                                        className="w-full px-4 py-2 text-left text-[10px] font-black uppercase tracking-widest text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors flex items-center gap-2 cursor-pointer"
                                       >
-                                        <Settings size={16} />
+                                        <Settings size={14} />
                                         Edit Ticket
                                       </Link>
 
@@ -1001,9 +1001,9 @@ const EventDetails = () => {
                                             setActiveMenu(null);
                                           }}
                                           disabled={isActionLoading}
-                                          className="w-full px-6 py-3 text-left text-[11px] font-black uppercase tracking-widest text-emerald-600 hover:bg-emerald-50 transition-colors flex items-center gap-3"
+                                          className="w-full px-4 py-2 text-left text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:bg-gray-50 transition-colors flex items-center gap-2 cursor-pointer"
                                         >
-                                          <PlayCircle size={16} />
+                                          <PlayCircle size={14} />
                                           Resume Sales
                                         </button>
                                       ) : (
@@ -1014,9 +1014,9 @@ const EventDetails = () => {
                                             setActiveMenu(null);
                                           }}
                                           disabled={isActionLoading}
-                                          className="w-full px-6 py-3 text-left text-[11px] font-black uppercase tracking-widest text-amber-600 hover:bg-amber-50 transition-colors flex items-center gap-3"
+                                          className="w-full px-4 py-2 text-left text-[10px] font-black uppercase tracking-widest text-amber-600 hover:bg-gray-50 transition-colors flex items-center gap-2 cursor-pointer"
                                         >
-                                          <PauseCircle size={16} />
+                                          <PauseCircle size={14} />
                                           Suspend Sales
                                         </button>
                                       )}
@@ -1026,99 +1026,55 @@ const EventDetails = () => {
                               )}
                            </div>
 
-                           <h4 className="font-black text-gray-900 text-2xl mb-2 relative z-10">{ticket.name}</h4>
-                           {(ticket.isSalesSuspended || ticket.salesStatus === 'PAUSED' || ticket.availabilityStatus === 'SALES_PAUSED') && (
-                             <p className="text-[10px] text-rose-600 font-bold uppercase tracking-widest mb-4 bg-rose-50 px-3 py-1 rounded-lg w-fit">
-                                Reason: {ticket.salesSuspensionReason || ticket.salesMessage || ticket.salesSuspensionDetails?.reason || "N/A"}
-                             </p>
+                           <div className="flex-1">
+                              <h4 className="font-black text-gray-900 text-lg mb-1 relative z-10 leading-tight">{ticket.name}</h4>
+                              <p className="text-gray-400 text-[10px] mb-3 line-clamp-2 font-medium">{ticket.description || "No description provided."}</p>
+
+                              <div className="flex items-baseline gap-1 mb-4 relative z-10">
+                                 <p className="text-2xl font-black text-primary">
+                                   {Number(ticket.price) > 0 ? `₦${Number(ticket.price).toLocaleString()}` : "Free"}
+                                 </p>
+                                 {Number(ticket.price) > 0 && <span className="text-[10px] font-bold text-gray-300 uppercase">/ pax</span>}
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-x-4 gap-y-3 pt-4 border-t border-gray-50 relative z-10 mb-5">
+                                 <div>
+                                    <p className="text-[8px] font-black text-gray-300 uppercase tracking-widest mb-0.5">Quantity</p>
+                                    <p className="text-[11px] font-bold text-gray-600">{ticket.availableQuantity} / {ticket.totalQuantity}</p>
+                                 </div>
+                                 <div>
+                                    <p className="text-[8px] font-black text-gray-300 uppercase tracking-widest mb-0.5">Min Order</p>
+                                    <p className="text-[11px] font-bold text-gray-600">{ticket.groupSize || 1} pax</p>
+                                 </div>
+                                 <div className="col-span-2">
+                                    <p className="text-[8px] font-black text-gray-300 uppercase tracking-widest mb-0.5">Allocation</p>
+                                    <p className="text-[11px] font-bold text-gray-600 uppercase">{ticket.allocationType || "GENERAL"}</p>
+                                 </div>
+                              </div>
+                           </div>
+
+                           <div className="space-y-3 relative z-10">
+                              <div className="flex items-center justify-between text-[9px] font-black text-gray-400 uppercase tracking-wider">
+                                 <span>Sales Progress</span>
+                                 <span className="text-primary">{Math.round(((ticket.totalQuantity - (ticket.availableQuantity || 0)) / (ticket.totalQuantity || 1)) * 100)}%</span>
+                              </div>
+                              <div className="w-full h-1.5 bg-gray-50 rounded-full overflow-hidden">
+                                 <div
+                                   className="h-full bg-primary rounded-full transition-all duration-1000"
+                                   style={{ width: `${Math.min(100, ((ticket.totalQuantity - (ticket.availableQuantity || 0)) / (ticket.totalQuantity || 1)) * 100)}%` }}
+                                 ></div>
+                              </div>
+                           </div>
+
+                           {ticket.earlyBirdPrice && (
+                             <div className="mt-4 p-2 bg-emerald-50 rounded-xl border border-emerald-100/50 flex items-center justify-between">
+                                <div className="flex items-center gap-1.5">
+                                   <TrendingUp size={12} className="text-emerald-600" />
+                                   <span className="text-[8px] font-black text-emerald-700 uppercase">Early Bird</span>
+                                </div>
+                                <span className="text-[10px] font-black text-emerald-600">₦{Number(ticket.earlyBirdPrice).toLocaleString()}</span>
+                             </div>
                            )}
-                           <p className="text-gray-500 text-sm mb-6 line-clamp-2">{ticket.description || "No description provided."}</p>
-
-                           <div className="flex items-baseline gap-1 mb-8 relative z-10">
-                              <p className="text-4xl font-black text-gray-900">
-                                {Number(ticket.price) > 0 ? `₦${Number(ticket.price).toLocaleString()}` : "Free"}
-                              </p>
-                              {Number(ticket.price) > 0 && <span className="text-xs font-bold text-gray-400 uppercase">/ pax</span>}
-                           </div>
-
-                           <div className="space-y-6 pt-6 border-t border-gray-100 relative z-10">
-                              <div className="grid grid-cols-2 gap-4">
-                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Min Group Size</p>
-                                    <p className="text-sm font-bold text-gray-700">{ticket.groupSize || 1} Person(s)</p>
-                                 </div>
-                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Allocation Type</p>
-                                    <p className="text-sm font-bold text-gray-700">{ticket.allocationType || "GENERAL"}</p>
-                                 </div>
-                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Max Per Order</p>
-                                    <p className="text-sm font-bold text-gray-700">{ticket.maxPerOrder || 10}</p>
-                                 </div>
-                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Available</p>
-                                    <p className="text-sm font-bold text-gray-700">{ticket.availableQuantity || 0} / {ticket.totalQuantity}</p>
-                                 </div>
-                              </div>
-
-                              {(ticket.salesStart || ticket.salesEnd) && (
-                                <div className="space-y-3 p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                                   <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                                      <Clock size={12} className="text-primary" />
-                                      Sales Period
-                                   </div>
-                                   <div className="flex flex-col gap-1">
-                                      <p className="text-[11px] font-bold text-gray-600">
-                                         Start: {ticket.salesStart ? new Date(ticket.salesStart).toLocaleString() : 'Immediate'}
-                                      </p>
-                                      <p className="text-[11px] font-bold text-gray-600">
-                                         End: {ticket.salesEnd ? new Date(ticket.salesEnd).toLocaleString() : 'Event Start'}
-                                      </p>
-                                   </div>
-                                </div>
-                              )}
-
-                              {ticket.earlyBirdPrice && (
-                                <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
-                                   <div className="flex items-center justify-between mb-2">
-                                      <div className="flex items-center gap-2 text-[10px] font-black text-emerald-700 uppercase tracking-widest">
-                                         <TrendingUp size={12} />
-                                         Early Bird Active
-                                      </div>
-                                      <span className="text-[11px] font-black text-emerald-700">₦{Number(ticket.earlyBirdPrice).toLocaleString()}</span>
-                                   </div>
-                                   <p className="text-[10px] text-emerald-600 font-medium">
-                                      Ends {ticket.earlyBirdExpiry ? new Date(ticket.earlyBirdExpiry).toLocaleDateString() : 'when limit reached'} • {ticket.earlyBirdLimit} slots total
-                                   </p>
-                                </div>
-                              )}
-
-                              {ticket.quantityDiscounts && ticket.quantityDiscounts.length > 0 && (
-                                <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100">
-                                   <p className="text-[10px] font-black text-blue-700 uppercase tracking-widest mb-2">Quantity Discounts</p>
-                                   <div className="space-y-1">
-                                      {ticket.quantityDiscounts.map((qd, idx) => (
-                                         <p key={idx} className="text-[11px] font-bold text-blue-600">
-                                            {qd.minQuantity}+ tickets: {qd.discountPercentage}% off
-                                         </p>
-                                      ))}
-                                   </div>
-                                </div>
-                              )}
-
-                              <div className="space-y-3">
-                                 <div className="flex items-center justify-between text-xs font-bold text-gray-400 uppercase tracking-widest">
-                                    <span>Sales Progress</span>
-                                    <span className="text-gray-900 font-black">{ticket.totalQuantity - (ticket.availableQuantity || 0)} / {ticket.totalQuantity} Sold</span>
-                                 </div>
-                                 <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
-                                    <div
-                                      className="h-full bg-emerald-500 rounded-full transition-all duration-1000"
-                                      style={{ width: `${Math.min(100, ((ticket.totalQuantity - (ticket.availableQuantity || 0)) / (ticket.totalQuantity || 1)) * 100)}%` }}
-                                    ></div>
-                                 </div>
-                              </div>
-                           </div>
                         </div>
                       ))
                     ) : (
