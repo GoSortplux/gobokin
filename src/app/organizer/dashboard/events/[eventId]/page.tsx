@@ -956,8 +956,8 @@ const EventDetails = () => {
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {event.tickets && event.tickets.length > 0 ? (
                       event.tickets.map((ticket, i) => (
-                        <div key={i} className="p-6 rounded-3xl border border-gray-100 bg-white hover:shadow-xl transition-all duration-500 group relative overflow-hidden flex flex-col">
-                           <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
+                        <div key={i} className="p-6 rounded-3xl border border-gray-100 bg-white hover:shadow-xl transition-all duration-500 group relative flex flex-col">
+                           <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 overflow-hidden pointer-events-none"></div>
 
                            <div className="flex items-center justify-between mb-4 relative z-10">
                               <div className="flex flex-wrap gap-1.5">
@@ -978,25 +978,35 @@ const EventDetails = () => {
                               {!isStaff && (
                                 <div className="relative">
                                   <button
-                                    onClick={() => setActiveMenu(activeMenu === ticket.id ? null : ticket.id!)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setActiveMenu(activeMenu === ticket.id ? null : ticket.id!);
+                                    }}
                                     className="p-1.5 text-gray-400 hover:text-primary hover:bg-gray-50 rounded-lg transition-all"
                                   >
                                     <MoreVertical size={16} />
                                   </button>
 
                                   {activeMenu === ticket.id && (
-                                    <div ref={menuRef} className="absolute right-0 mt-1 w-48 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-[100] animate-in fade-in zoom-in duration-200">
-                                      <Link
-                                        href={`/organizer/dashboard/events/${eventId}/edit?step=2`}
+                                    <div
+                                      ref={menuRef}
+                                      className="absolute right-0 mt-1 w-48 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-[100] animate-in fade-in zoom-in duration-200"
+                                    >
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          router.push(`/organizer/dashboard/events/${eventId}/edit?step=2`);
+                                        }}
                                         className="w-full px-4 py-2 text-left text-[10px] font-black uppercase tracking-widest text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors flex items-center gap-2 cursor-pointer"
                                       >
                                         <Settings size={14} />
                                         Edit Ticket
-                                      </Link>
+                                      </button>
 
                                       {(ticket.isSalesSuspended || ticket.salesStatus === 'PAUSED' || ticket.availabilityStatus === 'SALES_PAUSED') ? (
                                         <button
-                                          onClick={() => {
+                                          onClick={(e) => {
+                                            e.stopPropagation();
                                             handleResumeTicketSales(ticket.id!);
                                             setActiveMenu(null);
                                           }}
@@ -1008,7 +1018,8 @@ const EventDetails = () => {
                                         </button>
                                       ) : (
                                         <button
-                                          onClick={() => {
+                                          onClick={(e) => {
+                                            e.stopPropagation();
                                             setSuspendConfig({ type: "ticket", title: `Suspend ${ticket.name}`, ticketId: ticket.id });
                                             setIsSuspendModalOpen(true);
                                             setActiveMenu(null);
