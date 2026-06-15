@@ -2308,16 +2308,16 @@ const EditEvent = () => {
           </div>
 
           {/* Action Footer */}
-          <div className="bg-white px-8 md:px-16 py-12 border-t border-gray-50 flex flex-col md:flex-row items-center justify-between gap-8">
-             <button onClick={() => router.back()} className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-gray-900 transition-colors order-last md:order-first">Discard Changes</button>
-             <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 w-full md:w-auto">
+          <div className="bg-white px-8 md:px-16 py-8 border-t border-gray-50 flex flex-col md:flex-row items-center justify-between gap-6">
+             <button onClick={() => router.back()} className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-gray-900 transition-colors order-last md:order-first">Discard Changes</button>
+             <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4 w-full md:w-auto">
                 <button
                     onClick={() => saveAllChanges(false)}
                     disabled={saving}
-                    className="flex items-center gap-3 bg-white text-gray-900 border border-gray-200 font-black px-8 md:px-10 py-5 md:py-6 rounded-[2.5rem] shadow-sm hover:bg-gray-50 transition-all uppercase tracking-[0.2em] text-[10px] md:text-[11px] disabled:opacity-50"
+                    className="flex items-center gap-2.5 bg-white text-gray-900 border border-gray-200 font-black px-6 md:px-8 py-4 md:py-5 rounded-[2rem] shadow-sm hover:border-secondary hover:text-secondary transition-all uppercase tracking-[0.15em] text-[9px] md:text-[10px] disabled:opacity-50"
                 >
                     {saving ? "Saving..." : "Save Changes"}
-                    <CheckCircle2 size={18} className="text-emerald-500" />
+                    <CheckCircle2 size={16} className="text-emerald-500" />
                 </button>
 
                 {currentStep === 1 && (
@@ -2327,10 +2327,10 @@ const EditEvent = () => {
                             else setCurrentStep(2);
                             window.scrollTo({ top: 0, behavior: 'smooth' });
                         }}
-                        className="flex items-center gap-4 bg-primary text-white font-black px-10 md:px-14 py-5 md:py-6 rounded-[2.5rem] shadow-3xl shadow-primary/30 uppercase tracking-[0.3em] text-[10px] md:text-[11px]"
+                        className="flex items-center gap-3 bg-primary text-white font-black px-8 md:px-10 py-4 md:py-5 rounded-[2rem] shadow-3xl shadow-primary/30 uppercase tracking-[0.2em] text-[9px] md:text-[10px]"
                     >
-                        {subStep < 5 ? "Next Phase" : "Next: Ticketing"}
-                        <ArrowRight size={20} />
+                        {subStep < 5 ? "Continue" : "Next: Ticketing"}
+                        <ArrowRight size={18} />
                     </button>
                 )}
                 {currentStep === 2 && (
@@ -2339,16 +2339,16 @@ const EditEvent = () => {
                             setCurrentStep(3);
                             window.scrollTo({ top: 0, behavior: 'smooth' });
                         }}
-                        className="flex items-center gap-4 bg-primary text-white font-black px-10 md:px-14 py-5 md:py-6 rounded-[2.5rem] shadow-3xl shadow-primary/30 uppercase tracking-[0.3em] text-[10px] md:text-[11px]"
+                        className="flex items-center gap-3 bg-primary text-white font-black px-8 md:px-10 py-4 md:py-5 rounded-[2rem] shadow-3xl shadow-primary/30 uppercase tracking-[0.2em] text-[9px] md:text-[10px]"
                     >
                         Next: Schedule
-                        <ArrowRight size={20} />
+                        <ArrowRight size={18} />
                     </button>
                 )}
                 {currentStep === 3 && (
-                    <button onClick={() => saveAllChanges(true)} disabled={saving} className="flex items-center gap-4 bg-secondary text-white font-black px-10 md:px-14 py-5 md:py-6 rounded-[2.5rem] shadow-3xl shadow-secondary/30 uppercase tracking-[0.3em] text-[10px] md:text-[11px] disabled:opacity-50">
+                    <button onClick={() => saveAllChanges(true)} disabled={saving} className="flex items-center gap-3 bg-secondary text-white font-black px-8 md:px-10 py-4 md:py-5 rounded-[2rem] shadow-3xl shadow-secondary/30 uppercase tracking-[0.2em] text-[9px] md:text-[10px] disabled:opacity-50">
                         {saving ? "Finalizing..." : "Finalize & Update"}
-                        <ShieldCheck size={20} />
+                        <ShieldCheck size={18} />
                     </button>
                 )}
              </div>
