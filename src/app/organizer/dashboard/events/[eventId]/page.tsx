@@ -1,7 +1,8 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import useOnClickOutside from "@/hooks/useOnClickOutside";
 import {
   ArrowLeft,
   Calendar,
@@ -69,6 +70,9 @@ const EventDetails = () => {
   const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState(false);
   const [suspendConfig, setSuspendConfig] = useState<{ type: "event" | "ticket"; title: string; ticketId?: string }>({ type: "event", title: "" });
   const [isActionLoading, setIsActionLoading] = useState(false);
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  useOnClickOutside(menuRef, () => setActiveMenu(null));
 
   const getEffectiveStatus = (event: Event) => {
     if (event.status === "CANCELLED") return "CANCELLED";
@@ -972,32 +976,52 @@ const EventDetails = () => {
                                  )}
                               </div>
                               {!isStaff && (
-                                <div className="flex items-center gap-2">
-                                  {(ticket.isSalesSuspended || ticket.salesStatus === 'PAUSED' || ticket.availabilityStatus === 'SALES_PAUSED') ? (
-                                    <button
-                                      onClick={() => handleResumeTicketSales(ticket.id!)}
-                                      disabled={isActionLoading}
-                                      className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
-                                      title="Resume Sales"
-                                    >
-                                      <PlayCircle size={20} />
-                                    </button>
-                                  ) : (
-                                    <button
-                                      onClick={() => {
-                                        setSuspendConfig({ type: "ticket", title: `Suspend ${ticket.name}`, ticketId: ticket.id });
-                                        setIsSuspendModalOpen(true);
-                                      }}
-                                      disabled={isActionLoading}
-                                      className="p-2 text-amber-600 hover:bg-amber-50 rounded-xl transition-all"
-                                      title="Suspend Sales"
-                                    >
-                                      <PauseCircle size={20} />
-                                    </button>
-                                  )}
-                                  <button className="p-2 text-gray-400 hover:text-primary transition-colors">
+                                <div className="relative">
+                                  <button
+                                    onClick={() => setActiveMenu(activeMenu === ticket.id ? null : ticket.id!)}
+                                    className="p-2 text-gray-400 hover:text-primary hover:bg-gray-50 rounded-xl transition-all"
+                                  >
                                     <MoreVertical size={20} />
                                   </button>
+
+                                  {activeMenu === ticket.id && (
+                                    <div ref={menuRef} className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 py-3 z-[100] animate-in fade-in zoom-in duration-200">
+                                      <Link
+                                        href={`/organizer/dashboard/events/${eventId}/edit?step=2`}
+                                        className="w-full px-6 py-3 text-left text-[11px] font-black uppercase tracking-widest text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors flex items-center gap-3"
+                                      >
+                                        <Settings size={16} />
+                                        Edit Ticket
+                                      </Link>
+
+                                      {(ticket.isSalesSuspended || ticket.salesStatus === 'PAUSED' || ticket.availabilityStatus === 'SALES_PAUSED') ? (
+                                        <button
+                                          onClick={() => {
+                                            handleResumeTicketSales(ticket.id!);
+                                            setActiveMenu(null);
+                                          }}
+                                          disabled={isActionLoading}
+                                          className="w-full px-6 py-3 text-left text-[11px] font-black uppercase tracking-widest text-emerald-600 hover:bg-emerald-50 transition-colors flex items-center gap-3"
+                                        >
+                                          <PlayCircle size={16} />
+                                          Resume Sales
+                                        </button>
+                                      ) : (
+                                        <button
+                                          onClick={() => {
+                                            setSuspendConfig({ type: "ticket", title: `Suspend ${ticket.name}`, ticketId: ticket.id });
+                                            setIsSuspendModalOpen(true);
+                                            setActiveMenu(null);
+                                          }}
+                                          disabled={isActionLoading}
+                                          className="w-full px-6 py-3 text-left text-[11px] font-black uppercase tracking-widest text-amber-600 hover:bg-amber-50 transition-colors flex items-center gap-3"
+                                        >
+                                          <PauseCircle size={16} />
+                                          Suspend Sales
+                                        </button>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
                               )}
                            </div>

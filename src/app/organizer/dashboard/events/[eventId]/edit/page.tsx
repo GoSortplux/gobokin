@@ -22,6 +22,7 @@ import {
   FileText,
   Eye,
   EyeOff,
+  CheckCircle2,
   Zap,
   UploadCloud,
   Upload,
@@ -325,6 +326,20 @@ const EditEvent = () => {
   const { eventId } = useParams();
   const [currentStep, setCurrentStep] = useState(1);
   const [subStep, setSubStep] = useState(1);
+
+  // Deep linking to steps
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const step = params.get("step");
+      if (step) {
+        const parsedStep = parseInt(step);
+        if (!isNaN(parsedStep)) {
+          setCurrentStep(parsedStep);
+        }
+      }
+    }
+  }, []);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
@@ -926,7 +941,7 @@ const EditEvent = () => {
   };
 
   // Consolidate Save Handler
-  const saveAllChanges = async () => {
+  const saveAllChanges = async (shouldRedirect = true) => {
     // Validate Ticket Names
     const emptyTicket = tickets.find(t => !t.name || t.name.trim() === "");
     if (emptyTicket) {
@@ -1087,7 +1102,9 @@ const EditEvent = () => {
       }
 
       Swal.fire("Success", "Event updated successfully", "success");
-      router.push(`/organizer/dashboard/events/${eventId}`);
+      if (shouldRedirect) {
+          router.push(`/organizer/dashboard/events/${eventId}`);
+      }
     } catch (error) {
       Swal.fire("Error", translateError(error), "error");
     } finally {
@@ -2291,9 +2308,18 @@ const EditEvent = () => {
           </div>
 
           {/* Action Footer */}
-          <div className="bg-white px-8 md:px-16 py-12 border-t border-gray-50 flex items-center justify-between">
-             <button onClick={() => router.back()} className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-gray-900 transition-colors">Discard Changes</button>
-             <div className="flex items-center gap-6">
+          <div className="bg-white px-8 md:px-16 py-12 border-t border-gray-50 flex flex-col md:flex-row items-center justify-between gap-8">
+             <button onClick={() => router.back()} className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-gray-900 transition-colors order-last md:order-first">Discard Changes</button>
+             <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 w-full md:w-auto">
+                <button
+                    onClick={() => saveAllChanges(false)}
+                    disabled={saving}
+                    className="flex items-center gap-3 bg-white text-gray-900 border border-gray-200 font-black px-8 md:px-10 py-5 md:py-6 rounded-[2.5rem] shadow-sm hover:bg-gray-50 transition-all uppercase tracking-[0.2em] text-[10px] md:text-[11px] disabled:opacity-50"
+                >
+                    {saving ? "Saving..." : "Save Changes"}
+                    <CheckCircle2 size={18} className="text-emerald-500" />
+                </button>
+
                 {currentStep === 1 && (
                     <button
                         onClick={() => {
@@ -2301,7 +2327,7 @@ const EditEvent = () => {
                             else setCurrentStep(2);
                             window.scrollTo({ top: 0, behavior: 'smooth' });
                         }}
-                        className="flex items-center gap-4 bg-primary text-white font-black px-14 py-6 rounded-[2.5rem] shadow-3xl shadow-primary/30 uppercase tracking-[0.3em] text-[11px]"
+                        className="flex items-center gap-4 bg-primary text-white font-black px-10 md:px-14 py-5 md:py-6 rounded-[2.5rem] shadow-3xl shadow-primary/30 uppercase tracking-[0.3em] text-[10px] md:text-[11px]"
                     >
                         {subStep < 5 ? "Next Phase" : "Next: Ticketing"}
                         <ArrowRight size={20} />
@@ -2313,14 +2339,14 @@ const EditEvent = () => {
                             setCurrentStep(3);
                             window.scrollTo({ top: 0, behavior: 'smooth' });
                         }}
-                        className="flex items-center gap-4 bg-primary text-white font-black px-14 py-6 rounded-[2.5rem] shadow-3xl shadow-primary/30 uppercase tracking-[0.3em] text-[11px]"
+                        className="flex items-center gap-4 bg-primary text-white font-black px-10 md:px-14 py-5 md:py-6 rounded-[2.5rem] shadow-3xl shadow-primary/30 uppercase tracking-[0.3em] text-[10px] md:text-[11px]"
                     >
                         Next: Schedule
                         <ArrowRight size={20} />
                     </button>
                 )}
                 {currentStep === 3 && (
-                    <button onClick={saveAllChanges} disabled={saving} className="flex items-center gap-4 bg-secondary text-white font-black px-14 py-6 rounded-[2.5rem] shadow-3xl shadow-secondary/30 uppercase tracking-[0.3em] text-[11px] disabled:opacity-50">
+                    <button onClick={() => saveAllChanges(true)} disabled={saving} className="flex items-center gap-4 bg-secondary text-white font-black px-10 md:px-14 py-5 md:py-6 rounded-[2.5rem] shadow-3xl shadow-secondary/30 uppercase tracking-[0.3em] text-[10px] md:text-[11px] disabled:opacity-50">
                         {saving ? "Finalizing..." : "Finalize & Update"}
                         <ShieldCheck size={20} />
                     </button>
