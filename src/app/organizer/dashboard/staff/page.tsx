@@ -85,15 +85,15 @@ const StaffPool = () => {
   if (loading) return <div className="h-full flex items-center justify-center"><CustomLoader /></div>;
 
   return (
-    <div className="space-y-8 pb-12 px-2">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div className="space-y-8 pb-12 px-2 lg:px-4">
+      <div className="flex flex-col md:flex-row md:items-start lg:items-center justify-between gap-6">
         <div>
           <h1 className="text-4xl font-black text-primary tracking-tight">Staff Pool</h1>
           <p className="text-gray-500 font-medium mt-1">Manage your global pool of event staff and managers.</p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center justify-center gap-2 bg-primary text-white font-bold px-6 py-4 rounded-2xl hover:bg-opacity-90 transition-all shadow-xl shadow-primary/20"
+          className="flex items-center justify-center gap-2 bg-primary text-white font-bold px-6 py-4 rounded-2xl hover:bg-opacity-90 transition-all shadow-xl shadow-primary/20 w-full md:w-auto"
         >
           <UserPlus size={20} />
           Add New Staff

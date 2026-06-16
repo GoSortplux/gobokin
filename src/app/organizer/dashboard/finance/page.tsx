@@ -149,14 +149,14 @@ const FinanceDashboardContent = () => {
   if (loading) return <div className="h-full flex items-center justify-center"><CustomLoader /></div>;
 
   return (
-    <div className="space-y-8 pb-12 px-2">
+    <div className="space-y-8 pb-12 px-2 lg:px-4">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="flex flex-col md:flex-row md:items-start lg:items-center justify-between gap-6">
         <div>
           <h1 className="text-4xl font-black text-primary tracking-tight">Financial Overview</h1>
           <p className="text-gray-500 font-medium mt-1">Monitor your earnings, transactions, and payouts.</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
           <button
             onClick={handleTopUp}
             className="flex items-center justify-center gap-2 bg-white text-gray-900 font-bold px-6 py-4 rounded-2xl hover:bg-gray-50 transition-all shadow-sm border border-gray-100"
@@ -179,18 +179,18 @@ const FinanceDashboardContent = () => {
          <div className="bg-gray-900 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden lg:col-span-2 shadow-2xl shadow-blue-900/20">
             <div className="relative z-10 space-y-8">
                <div className="flex items-center justify-between">
-                  <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-primary backdrop-blur-md">
-                     <Wallet size={28} />
+                  <div className="w-12 h-12 md:w-14 md:h-14 bg-white/10 rounded-2xl flex items-center justify-center text-primary backdrop-blur-md">
+                     <Wallet size={24} className="md:w-7 md:h-7" />
                   </div>
-                  <div className="px-4 py-1.5 bg-emerald-500/20 text-emerald-400 rounded-xl text-[10px] font-black uppercase tracking-widest border border-emerald-500/30">
+                  <div className="px-3 md:px-4 py-1 md:py-1.5 bg-emerald-500/20 text-emerald-400 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest border border-emerald-500/30">
                      Available Now
                   </div>
                </div>
                <div>
-                  <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">Total Wallet Balance</p>
-                  <h2 className="text-5xl font-black tracking-tight flex items-baseline gap-2">
+                  <p className="text-xs md:text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">Total Wallet Balance</p>
+                  <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight flex flex-wrap items-baseline gap-2">
                     ₦{(summary?.wallet?.availableBalance || 0).toLocaleString()}
-                    <span className="text-xl text-gray-500 font-bold uppercase tracking-widest">NGN</span>
+                    <span className="text-sm md:text-xl text-gray-500 font-bold uppercase tracking-widest">NGN</span>
                   </h2>
                </div>
                <div className="grid grid-cols-2 gap-8 pt-8 border-t border-white/10">
@@ -239,11 +239,11 @@ const FinanceDashboardContent = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
          <div className="lg:col-span-2 space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
                <div className="flex items-center p-1 bg-gray-50 rounded-2xl border border-gray-100">
                  <button
                    onClick={() => setActiveView('transactions')}
-                   className={`px-6 py-2.5 rounded-xl text-sm font-black transition-all ${
+                   className={`flex-1 sm:flex-none px-4 md:px-6 py-2.5 rounded-xl text-xs md:text-sm font-black transition-all ${
                      activeView === 'transactions' ? 'bg-white text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'
                    }`}
                  >
@@ -251,11 +251,11 @@ const FinanceDashboardContent = () => {
                  </button>
                  <button
                    onClick={() => setActiveView('refunds')}
-                   className={`px-6 py-2.5 rounded-xl text-sm font-black transition-all flex items-center gap-2 ${
+                   className={`flex-1 sm:flex-none px-4 md:px-6 py-2.5 rounded-xl text-xs md:text-sm font-black transition-all flex items-center justify-center gap-2 ${
                      activeView === 'refunds' ? 'bg-white text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'
                    }`}
                  >
-                   Refund Requests
+                   Refunds
                    {refundRequests.filter(r => r.status === 'PENDING').length > 0 && (
                      <span className="w-5 h-5 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center animate-pulse">
                        {refundRequests.filter(r => r.status === 'PENDING').length}
@@ -276,32 +276,32 @@ const FinanceDashboardContent = () => {
                  {summary?.recentTransactions && summary.recentTransactions.length > 0 ? (
                    <div className="divide-y divide-gray-50">
                     {summary.recentTransactions.map((tx: Transaction, idx: number) => (
-                      <div key={tx.id || idx} className="p-6 flex items-center justify-between hover:bg-gray-50 transition-colors group">
-                           <div className="flex items-center gap-5">
-                              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm ${
+                      <div key={tx.id || idx} className="p-5 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-gray-50 transition-colors group gap-4">
+                           <div className="flex items-center gap-4 md:gap-5">
+                              <div className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center shadow-sm shrink-0 ${
                                 tx.type === 'TICKET_SALE' ? 'bg-blue-50 text-blue-600' : 'bg-emerald-50 text-emerald-600'
                               }`}>
-                                 {tx.type === 'TICKET_SALE' ? <Ticket size={24} /> : <Banknote size={24} />}
+                                 {tx.type === 'TICKET_SALE' ? <Ticket size={20} className="md:w-6 md:h-6" /> : <Banknote size={20} className="md:w-6 md:h-6" />}
                               </div>
                               <div>
-                               <p className="font-bold text-gray-900 group-hover:text-primary transition-colors">{(tx.type || '').replace('_', ' ')}</p>
-                                 <p className="text-xs text-gray-500 font-medium flex items-center gap-2">
-                                    <History size={12} />
+                               <p className="font-bold text-gray-900 group-hover:text-primary transition-colors text-sm md:text-base">{(tx.type || '').replace('_', ' ')}</p>
+                                 <p className="text-[10px] md:text-xs text-gray-500 font-medium flex items-center gap-2 mt-0.5">
+                                    <History size={10} className="md:w-3 md:h-3" />
                                     {new Date(tx.createdAt).toLocaleDateString()} at {new Date(tx.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                  </p>
                               </div>
                            </div>
-                           <div className="flex items-center gap-8">
-                              <div className="text-right">
-                                 <p className={`font-black text-lg ${tx.type === 'WITHDRAWAL' ? 'text-red-500' : 'text-emerald-600'}`}>
+                           <div className="flex items-center justify-between sm:justify-end gap-4 md:gap-8">
+                              <div className="text-left sm:text-right">
+                                 <p className={`font-black text-base md:text-lg ${tx.type === 'WITHDRAWAL' ? 'text-red-500' : 'text-emerald-600'}`}>
                                     {tx.type === 'WITHDRAWAL' ? '-' : '+'}₦{(tx.amount || 0).toLocaleString()}
                                  </p>
-                                 <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
+                                 <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
                                     {tx.status}
                                  </span>
                               </div>
                               <button className="p-2 text-gray-300 hover:text-primary transition-all">
-                                 <MoreVertical size={20} />
+                                 <MoreVertical size={18} className="md:w-5 md:h-5" />
                               </button>
                            </div>
                         </div>
@@ -324,19 +324,19 @@ const FinanceDashboardContent = () => {
                  {refundRequests && refundRequests.length > 0 ? (
                    <div className="divide-y divide-gray-50">
                       {refundRequests.map((req) => (
-                        <div key={req.id} className="p-6 flex items-center justify-between hover:bg-gray-50 transition-colors group">
-                           <div className="flex items-center gap-5">
-                              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm ${
+                        <div key={req.id} className="p-5 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-gray-50 transition-colors group gap-4">
+                           <div className="flex items-center gap-4 md:gap-5">
+                              <div className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center shadow-sm shrink-0 ${
                                 req.status === 'PENDING' ? 'bg-amber-50 text-amber-600' :
                                 req.status === 'APPROVED' || req.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600' :
                                 'bg-red-50 text-red-600'
                               }`}>
-                                 {req.status === 'PENDING' ? <Clock size={24} /> : <RotateCcw size={24} />}
+                                 {req.status === 'PENDING' ? <Clock size={20} className="md:w-6 md:h-6" /> : <RotateCcw size={20} className="md:w-6 md:h-6" />}
                               </div>
                               <div>
-                                 <div className="flex items-center gap-2">
-                                   <p className="font-bold text-gray-900">{req.registration.attendeeData.fullName}</p>
-                                   <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${
+                                 <div className="flex flex-wrap items-center gap-2">
+                                   <p className="font-bold text-gray-900 text-sm md:text-base">{req.registration.attendeeData.fullName}</p>
+                                   <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-1.5 md:px-2 py-0.5 rounded-full ${
                                       req.status === 'PENDING' ? 'bg-amber-100 text-amber-700' :
                                       req.status === 'APPROVED' || req.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-700' :
                                       'bg-red-100 text-red-700'
@@ -344,24 +344,24 @@ const FinanceDashboardContent = () => {
                                       {req.status}
                                    </span>
                                  </div>
-                                 <p className="text-xs text-gray-500 font-medium flex items-center gap-2">
+                                 <p className="text-[10px] md:text-xs text-gray-500 font-medium mt-0.5">
                                     {req.registration.event.title} • Ticket: {req.registration.ticketNumber}
                                  </p>
                               </div>
                            </div>
-                           <div className="flex items-center gap-8">
-                              <div className="text-right">
-                                 <p className="font-black text-lg text-gray-900">
+                           <div className="flex items-center justify-between sm:justify-end gap-4 md:gap-8">
+                              <div className="text-left sm:text-right">
+                                 <p className="font-black text-base md:text-lg text-gray-900">
                                     ₦{req.registration.pricePaid.toLocaleString()}
                                  </p>
-                                 <p className="text-[10px] text-gray-400 font-medium">
+                                 <p className="text-[9px] md:text-[10px] text-gray-400 font-medium">
                                     {new Date(req.createdAt).toLocaleDateString()}
                                  </p>
                               </div>
                               {req.status === 'PENDING' && (
                                 <button
                                   onClick={() => setSelectedRequest(req)}
-                                  className="bg-primary text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl shadow-lg shadow-primary/10 hover:brightness-110 transition-all"
+                                  className="bg-primary text-white text-[9px] md:text-[10px] font-black uppercase tracking-widest px-3 md:px-4 py-2 rounded-xl shadow-lg shadow-primary/10 hover:brightness-110 transition-all"
                                 >
                                   Process
                                 </button>

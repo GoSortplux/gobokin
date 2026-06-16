@@ -168,7 +168,7 @@ const OrdersView = () => {
   if (loading) return <div className="h-full flex items-center justify-center"><CustomLoader /></div>;
 
   return (
-    <div className="space-y-8 pb-12 px-2">
+    <div className="space-y-8 pb-12 px-2 lg:px-4">
       <div>
         <h1 className="text-4xl font-black text-primary tracking-tight">Orders & Registrations</h1>
         <p className="text-gray-500 font-medium mt-1">Track ticket sales and attendee registration data across all your events.</p>
@@ -203,7 +203,7 @@ const OrdersView = () => {
 
         <button
             onClick={handleExport}
-            className="flex items-center gap-2 px-8 py-4 rounded-2xl bg-white text-gray-700 font-black text-sm border border-gray-100 hover:bg-gray-50 transition-all shadow-sm whitespace-nowrap"
+            className="flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-white text-gray-700 font-black text-sm border border-gray-100 hover:bg-gray-50 transition-all shadow-sm whitespace-nowrap w-full lg:w-auto"
         >
           <Download size={18} />
           {isStaff ? 'Export Attendance' : 'Export All'}
@@ -217,7 +217,9 @@ const OrdersView = () => {
                 <CustomLoader />
             </div>
          )}
-         <div className="overflow-x-auto">
+
+         {/* Desktop Table */}
+         <div className="hidden lg:block overflow-x-auto">
             <table className="w-full text-left">
                <thead className="bg-gray-50 border-b border-gray-100">
                   <tr>
@@ -305,7 +307,7 @@ const OrdersView = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={6} className="px-6 py-20 text-center">
+                      <td colSpan={7} className="px-6 py-20 text-center">
                          <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
                             <Ticket size={32} />
                          </div>
@@ -316,6 +318,88 @@ const OrdersView = () => {
                   )}
                </tbody>
             </table>
+         </div>
+
+         {/* Mobile Card Layout */}
+         <div className="lg:hidden divide-y divide-gray-50">
+            {orders.length > 0 ? (
+                orders.map((order) => (
+                    <div key={order.id} className="p-5 hover:bg-gray-50 transition-colors space-y-4">
+                        <div className="flex items-start justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-black text-sm shrink-0">
+                                    {order.attendeeName?.[0] || 'G'}
+                                </div>
+                                <div>
+                                    <p className="text-sm font-black text-gray-900 leading-tight">{order.attendeeName}</p>
+                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">{order.ticketNumber}</p>
+                                </div>
+                            </div>
+                            <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${
+                                order.status === 'PAID' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-amber-50 text-amber-600 border border-amber-100'
+                            }`}>
+                                {order.status}
+                            </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-1">Event</p>
+                                <p className="text-xs font-bold text-gray-700 truncate max-w-full">{order.eventTitle}</p>
+                                <p className="text-[8px] text-gray-400 font-bold mt-0.5 italic">{order.ticketName}</p>
+                            </div>
+                            <div>
+                                <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-1">Date</p>
+                                <p className="text-xs font-bold text-gray-700">{new Date(order.createdAt).toLocaleDateString()}</p>
+                            </div>
+                            {!isStaff && (
+                                <div>
+                                    <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-1">Amount</p>
+                                    <p className="text-sm font-black text-gray-900">₦{order.amountPaid.toLocaleString()}</p>
+                                </div>
+                            )}
+                            {order.checkedInBy && (
+                                <div>
+                                    <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-1">Checked-in By</p>
+                                    <p className="text-[10px] font-bold text-gray-700 leading-tight">{order.checkedInBy.fullName}</p>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex items-center gap-2 pt-2">
+                            {order.checkInStatus ? (
+                                <div className="flex-1 flex items-center justify-center gap-1.5 text-[10px] font-black text-blue-600 uppercase tracking-widest bg-blue-50 py-3 rounded-xl border border-blue-100">
+                                    <CheckCircle2 size={14} />
+                                    Checked-in
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => handleCheckIn(order.ticketNumber, order.attendeeName)}
+                                    disabled={order.status === 'PENDING' || order.status === 'FAILED'}
+                                    className={`flex-1 flex items-center justify-center gap-1.5 py-3 font-bold text-[10px] rounded-xl border transition-all uppercase tracking-widest ${
+                                        order.status === 'PENDING' || order.status === 'FAILED'
+                                            ? 'bg-gray-50 text-gray-400 border-gray-100 cursor-not-allowed opacity-60'
+                                            : 'bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-600 hover:text-white'
+                                    }`}
+                                >
+                                    Check-in Attendee
+                                </button>
+                            )}
+                            <button className="w-12 h-12 flex items-center justify-center bg-gray-50 text-gray-400 rounded-xl hover:text-primary transition-all shrink-0">
+                                <Eye size={20} />
+                            </button>
+                        </div>
+                    </div>
+                ))
+            ) : (
+                <div className="px-6 py-20 text-center">
+                    <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
+                        <Ticket size={32} />
+                    </div>
+                    <h4 className="text-lg font-bold text-gray-900">No orders found</h4>
+                    <p className="text-gray-500 text-sm">You haven&apos;t received any ticket registrations yet.</p>
+                </div>
+            )}
          </div>
       </div>
     </div>

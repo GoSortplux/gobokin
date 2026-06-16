@@ -246,8 +246,8 @@ const OrganizerSettings = () => {
   if (loading) return <div className="h-full flex items-center justify-center"><CustomLoader /></div>;
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 pb-12 px-2">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+    <div className="max-w-5xl mx-auto space-y-8 pb-12 px-2 lg:px-4">
+      <div className="flex flex-col md:flex-row md:items-start lg:items-end justify-between gap-4">
         <div>
             <h1 className="text-4xl font-black text-primary tracking-tight">Organizer Settings</h1>
             <p className="text-gray-500 font-medium mt-1">Manage your profile, subscriptions, and global discounts.</p>
@@ -255,18 +255,18 @@ const OrganizerSettings = () => {
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex p-1 bg-gray-100 rounded-2xl md:w-fit">
+      <div className="flex p-1 bg-gray-100 rounded-2xl w-full md:w-fit overflow-x-auto no-scrollbar">
         {tabs.map((tab) => (
             <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black transition-all ${
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 md:px-6 py-3 rounded-xl text-xs md:text-sm font-black transition-all whitespace-nowrap ${
                     activeTab === tab.id
                     ? 'bg-white text-primary shadow-sm'
                     : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
                 }`}
             >
-                <tab.icon size={18} />
+                <tab.icon size={16} className="md:w-[18px] md:h-[18px]" />
                 <span className="hidden sm:inline">{tab.label}</span>
                 <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
             </button>

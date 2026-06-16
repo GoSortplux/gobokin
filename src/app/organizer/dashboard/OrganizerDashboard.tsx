@@ -152,7 +152,7 @@ const OrganizerDashboard = () => {
           <p className="text-gray-500 font-medium mt-1">Experience the pulse of your events in real-time.</p>
         </div>
         {!isStaff && (
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <button className="flex items-center justify-center gap-2 bg-white text-gray-700 font-bold px-5 py-3.5 rounded-2xl border border-gray-100 shadow-sm hover:bg-gray-50 transition-all">
                     <BarChart3 size={18} />
                     Download Reports
@@ -300,7 +300,7 @@ const OrganizerDashboard = () => {
       )}
 
       {/* Top Events Table */}
-      <div id="organizer-top-events" className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
+      <div id="organizer-top-events" className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm">
         <div className="flex items-center justify-between mb-8">
             <div>
                 <h2 className="text-2xl font-black text-gray-900 tracking-tight">Top Events</h2>
@@ -312,7 +312,7 @@ const OrganizerDashboard = () => {
             </Link>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="hidden md:block overflow-x-auto">
             <table className="min-w-full">
                 <thead>
                     <tr className="border-b border-gray-50">
@@ -367,6 +367,54 @@ const OrganizerDashboard = () => {
                     )}
                 </tbody>
             </table>
+        </div>
+
+        {/* Mobile View: Cards */}
+        <div className="md:hidden space-y-4">
+            {analytics?.topEvents?.map((event) => (
+                <div key={event.eventId} className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                    <div className="flex justify-between items-start mb-4">
+                        <div className="flex-1">
+                            <p className="font-black text-gray-900 text-base">{event.title}</p>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">ID: {event.eventId}</p>
+                        </div>
+                        <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider ${
+                            event.status === 'UPCOMING' ? 'bg-blue-100 text-blue-600' :
+                            event.status === 'ONGOING' ? 'bg-emerald-100 text-emerald-600' :
+                            event.status === 'COMPLETED' ? 'bg-amber-100 text-amber-600' :
+                            'bg-gray-200 text-gray-600'
+                        }`}>
+                            {event.status}
+                        </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200/50">
+                        <div>
+                            <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-1">Views</p>
+                            <p className="text-sm font-bold text-gray-900">{(event.views || 0).toLocaleString()}</p>
+                        </div>
+                        <div>
+                            <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-1">Registrations</p>
+                            <p className="text-sm font-bold text-gray-900">{(event.registrations || 0).toLocaleString()}</p>
+                        </div>
+                        {!isStaff ? (
+                            <div className="col-span-2">
+                                <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-1">Revenue</p>
+                                <p className="text-base font-black text-primary">{formatCurrency(event.grossRevenue)}</p>
+                            </div>
+                        ) : (
+                            <div className="col-span-2">
+                                <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-1">Attendance Rate</p>
+                                <p className="text-base font-black text-primary">{event.attendanceRate || 0}%</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            ))}
+            {!analytics?.topEvents?.length && (
+                <div className="py-12 text-center text-gray-400 font-bold">
+                    No event data available for this period.
+                </div>
+            )}
         </div>
       </div>
     </div>

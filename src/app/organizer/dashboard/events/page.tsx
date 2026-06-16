@@ -219,9 +219,9 @@ const MyEvents = () => {
   if (loading) return <div className="h-full flex items-center justify-center"><CustomLoader /></div>;
 
   return (
-    <div className="space-y-8 pb-12 px-2">
+    <div className="space-y-8 pb-12 px-2 lg:px-4">
       {/* Header & Search */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="flex flex-col md:flex-row md:items-start lg:items-center justify-between gap-6">
         <div>
           <h1 className="text-4xl font-black text-primary tracking-tight">My Events</h1>
           <p className="text-gray-500 font-medium mt-1">{isStaff ? "View and manage check-ins for your assigned events." : "Manage and monitor all your events in one place."}</p>
@@ -229,7 +229,7 @@ const MyEvents = () => {
         {!isStaff && (
           <Link
             href="/organizer/dashboard/events/create"
-            className="flex items-center justify-center gap-2 bg-primary text-white font-bold px-6 py-4 rounded-2xl hover:bg-opacity-90 transition-all shadow-xl shadow-primary/20"
+            className="flex items-center justify-center gap-2 bg-primary text-white font-bold px-6 py-4 rounded-2xl hover:bg-opacity-90 transition-all shadow-xl shadow-primary/20 w-full md:w-auto"
           >
             <PlusCircle size={20} />
             Create New Event
@@ -250,7 +250,7 @@ const MyEvents = () => {
           />
         </div>
 
-        <div className="flex items-center gap-2 w-full lg:w-auto overflow-x-auto no-scrollbar py-1">
+        <div className="flex items-center gap-2 w-full lg:w-auto overflow-x-auto no-scrollbar py-1 scroll-smooth">
           {["ALL", "UPCOMING", "ONGOING", "COMPLETED", "CANCELLED"].map((filter) => (
             <button
               key={filter}
@@ -397,7 +397,8 @@ const MyEvents = () => {
           </div>
         ) : (
           <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
+            {/* Desktop Table View */}
+            <div className="hidden lg:block overflow-x-auto">
               <table className="w-full text-left">
                 <thead className="bg-gray-50 border-b border-gray-100">
                   <tr>
@@ -510,6 +511,102 @@ const MyEvents = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile/Tablet Card View */}
+            <div className="lg:hidden divide-y divide-gray-50">
+                {filteredEvents.map((event) => (
+                    <div key={event.id} className="p-6 hover:bg-gray-50 transition-colors">
+                        <div className="flex items-start justify-between gap-4 mb-4">
+                            <div className="flex items-center gap-4">
+                                <div className="w-14 h-14 rounded-2xl bg-gray-100 overflow-hidden relative border border-gray-100 shrink-0">
+                                    {event.bannerUrl ? (
+                                        <Image src={event.bannerUrl} alt={event.title} fill className="object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-primary bg-primary/10 font-bold">
+                                            {event.title[0]}
+                                        </div>
+                                    )}
+                                </div>
+                                <div>
+                                    <p className="font-bold text-gray-900 text-sm leading-tight mb-1">{event.title}</p>
+                                    <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider ${getStatusColor(getEffectiveStatus(event))}`}>
+                                        {getEffectiveStatus(event)}
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="relative">
+                                <button
+                                    onClick={(e) => toggleMenu(e, event.id)}
+                                    className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${activeMenu === event.id ? 'bg-primary text-white' : 'bg-gray-50 text-gray-400'}`}
+                                >
+                                    <MoreVertical size={16} />
+                                </button>
+                                {renderDropdown(event)}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-y-4 gap-x-2">
+                            <div>
+                                <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-1">Date</p>
+                                <p className="text-xs font-bold text-gray-700">{new Date(event.startDate).toLocaleDateString()}</p>
+                            </div>
+                            <div>
+                                <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-1">Registrations</p>
+                                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                                <p className="text-xs font-bold text-gray-700">{(event as any).registrationCount || 0} / {event.capacity}</p>
+                            </div>
+                            <div>
+                                <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-1">Impressions</p>
+                                <p className="text-xs font-bold text-gray-700">{(event.analytics?.impressions || 0).toLocaleString()}</p>
+                            </div>
+                            {!isStaff && (
+                                <div>
+                                    <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-1">Revenue</p>
+                                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                                    <p className="text-xs font-bold text-emerald-600">₦{((event as any).totalRevenue || 0).toLocaleString()}</p>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex items-center gap-2 mt-6">
+                            {!isStaff ? (
+                                <>
+                                    <Link
+                                        href={`/organizer/dashboard/events/${event.id}`}
+                                        className="flex-1 bg-blue-50 text-primary font-black py-3 rounded-xl flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest"
+                                    >
+                                        <Eye size={16} />
+                                        Manage
+                                    </Link>
+                                    <button
+                                        onClick={() => deleteEvent(event.id)}
+                                        className="w-12 h-12 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center"
+                                    >
+                                        <Trash2 size={18} />
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <Link
+                                        href={`/organizer/dashboard/events/${event.id}/check-in`}
+                                        className="flex-1 bg-primary text-white font-black py-3 rounded-xl flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest"
+                                    >
+                                        <CheckCircle2 size={16} />
+                                        Check-in
+                                    </Link>
+                                    <button
+                                        onClick={() => handleWalkIn(event)}
+                                        className="flex-1 bg-emerald-50 text-emerald-600 border border-emerald-100 font-black py-3 rounded-xl flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest"
+                                    >
+                                        <PlusCircle size={16} />
+                                        Walk-in
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                ))}
             </div>
           </div>
         )
