@@ -1,12 +1,10 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
   Calendar,
   Search,
-
   MapPin,
-
   ArrowRight,
   PlusCircle,
   MoreVertical,
@@ -16,7 +14,10 @@ import {
   List,
   Eye,
   MousePointer2,
-  Trash2
+  Trash2,
+  ExternalLink,
+  Edit,
+  Settings
 } from "lucide-react";
 import Image from "next/image";
 import api from "@/services/api";
@@ -26,6 +27,7 @@ import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 import { useAuth } from "@/context/AuthContext";
 import WalkInRegistrationModal from "@/components/organizer/WalkInRegistrationModal";
+import useOnClickOutside from "@/hooks/useOnClickOutside";
 
 const MyEvents = () => {
   const { user } = useAuth();
@@ -36,8 +38,18 @@ const MyEvents = () => {
   const [activeFilter, setActiveFilter] = useState<"ALL" | "UPCOMING" | "ONGOING" | "COMPLETED" | "CANCELLED">("ALL");
   const [selectedEventForWalkIn, setSelectedEventForWalkIn] = useState<Event | null>(null);
   const [isWalkInModalOpen, setIsWalkInModalOpen] = useState(false);
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useOnClickOutside(menuRef, () => setActiveMenu(null));
 
   const isStaff = user?.role?.includes('organizer-staff');
+
+  const toggleMenu = (e: React.MouseEvent, eventId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setActiveMenu(activeMenu === eventId ? null : eventId);
+  };
 
   useEffect(() => {
     fetchEvents();
@@ -125,6 +137,83 @@ const MyEvents = () => {
       setSelectedEventForWalkIn(event);
     }
     setIsWalkInModalOpen(true);
+  };
+
+  const renderDropdown = (event: Event) => {
+    if (activeMenu !== event.id) return null;
+
+    const status = getEffectiveStatus(event);
+
+    return (
+      <div
+        ref={menuRef}
+        className="absolute right-0 top-12 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-[100] animate-in fade-in zoom-in duration-200"
+      >
+        {!isStaff && (
+          <>
+            <Link
+              href={`/organizer/dashboard/events/${event.id}`}
+              className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              <Settings size={18} className="text-primary" />
+              Manage Event
+            </Link>
+            <Link
+              href={`/organizer/dashboard/events/${event.id}/edit`}
+              className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              <Edit size={18} className="text-secondary" />
+              Edit Event
+            </Link>
+          </>
+        )}
+
+        <Link
+          href={`/events/${event.organizer?.slug || 'organizer'}/${event.slug}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors"
+        >
+          <ExternalLink size={18} className="text-blue-500" />
+          View Public Page
+        </Link>
+
+        {(status === "ONGOING" || status === "UPCOMING") && (
+          <>
+            <Link
+              href={`/organizer/dashboard/events/${event.id}/check-in`}
+              className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              <CheckCircle2 size={18} className="text-emerald-500" />
+              Check-in Portal
+            </Link>
+            <button
+              onClick={() => {
+                handleWalkIn(event);
+                setActiveMenu(null);
+              }}
+              className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              <PlusCircle size={18} className="text-purple-500" />
+              Walk-in Registration
+            </button>
+          </>
+        )}
+
+        {!isStaff && (
+          <button
+            onClick={() => {
+              deleteEvent(event.id);
+              setActiveMenu(null);
+            }}
+            className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-rose-600 hover:bg-rose-50 transition-colors mt-1 border-t border-gray-50"
+          >
+            <Trash2 size={18} />
+            Delete Event
+          </button>
+        )}
+      </div>
+    );
   };
 
   if (loading) return <div className="h-full flex items-center justify-center"><CustomLoader /></div>;
@@ -216,9 +305,15 @@ const MyEvents = () => {
                     </span>
                   </div>
                   <div className="absolute top-4 right-4 flex items-center gap-2">
-                    <button className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl text-white flex items-center justify-center hover:bg-white hover:text-primary transition-all">
-                      <MoreVertical size={20} />
-                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={(e) => toggleMenu(e, event.id)}
+                        className={`w-10 h-10 backdrop-blur-md rounded-xl flex items-center justify-center transition-all ${activeMenu === event.id ? 'bg-white text-primary' : 'bg-white/20 text-white hover:bg-white hover:text-primary'}`}
+                      >
+                        <MoreVertical size={20} />
+                      </button>
+                      {renderDropdown(event)}
+                    </div>
                   </div>
                 </div>
 
@@ -398,6 +493,15 @@ const MyEvents = () => {
                                 </button>
                               </>
                             )}
+                            <div className="relative">
+                              <button
+                                onClick={(e) => toggleMenu(e, event.id)}
+                                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${activeMenu === event.id ? 'bg-primary text-white' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'}`}
+                              >
+                                <MoreVertical size={18} />
+                              </button>
+                              {renderDropdown(event)}
+                            </div>
                         </div>
                       </td>
                     </tr>
