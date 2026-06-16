@@ -290,8 +290,21 @@ const MyEvents = () => {
         viewMode === "grid" ? (
           <div id="organizer-events-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {filteredEvents.map((event) => (
-              <div key={event.id} className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-xl transition-all duration-500 group relative">
-                <div className="relative h-44 w-full overflow-hidden">
+              <div key={event.id} className="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-500 group relative">
+                {/* Menu Button - Placed outside overflow-hidden container to prevent clipping */}
+                <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
+                  <div className="relative">
+                    <button
+                      onClick={(e) => toggleMenu(e, event.id)}
+                      className={`w-10 h-10 backdrop-blur-md rounded-xl flex items-center justify-center transition-all ${activeMenu === event.id ? 'bg-white text-primary shadow-lg' : 'bg-white/20 text-white hover:bg-white hover:text-primary'}`}
+                    >
+                      <MoreVertical size={20} />
+                    </button>
+                    {renderDropdown(event)}
+                  </div>
+                </div>
+
+                <div className="relative h-44 w-full rounded-t-3xl overflow-hidden">
                   {event.bannerUrl ? (
                     <Image src={event.bannerUrl} alt={event.title} fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
                   ) : (
@@ -303,17 +316,6 @@ const MyEvents = () => {
                     <span className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider ${getStatusColor(getEffectiveStatus(event))}`}>
                       {getEffectiveStatus(event)}
                     </span>
-                  </div>
-                  <div className="absolute top-4 right-4 flex items-center gap-2">
-                    <div className="relative">
-                      <button
-                        onClick={(e) => toggleMenu(e, event.id)}
-                        className={`w-10 h-10 backdrop-blur-md rounded-xl flex items-center justify-center transition-all ${activeMenu === event.id ? 'bg-white text-primary' : 'bg-white/20 text-white hover:bg-white hover:text-primary'}`}
-                      >
-                        <MoreVertical size={20} />
-                      </button>
-                      {renderDropdown(event)}
-                    </div>
                   </div>
                 </div>
 
