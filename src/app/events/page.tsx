@@ -66,7 +66,7 @@ const CATEGORY_ICONS: Record<string, any> = {
 const EventDiscoveryContent = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, updateToken } = useAuth();
   const [discoveryData, setDiscoveryData] = useState<DiscoveryData>({
     featured: [],
     upcoming: [],
@@ -230,6 +230,44 @@ const EventDiscoveryContent = () => {
   };
 
   const isSearching = searchTerm || locationTerm || activeCategory !== "All" || eventType !== "All";
+
+  const handleHostEventClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+
+    if (!user) {
+      router.push("/host-event");
+      return;
+    }
+
+    if (user.role?.includes('organizer')) {
+      if (user.activeRole === 'organizer') {
+        router.push("/organizer/dashboard/events/create");
+        return;
+      }
+
+      // Silent role switch for organizers
+      try {
+        Swal.showLoading();
+        const response = await api.post('/auth/switch-role', { role: 'organizer' });
+        const data = response.data.data || response.data;
+        const token = data.accessToken || data.token;
+
+        if (token) {
+          updateToken(token, "/organizer/dashboard/events/create");
+        } else {
+          throw new Error("No token received from server");
+        }
+      } catch (error) {
+        console.error("Failed to switch to organizer role:", error);
+        // Fallback to manual redirect if silent switch fails
+        router.push("/organizer/dashboard/events/create");
+      } finally {
+        Swal.close();
+      }
+    } else {
+      router.push("/host-event");
+    }
+  };
 
   const renderEventCard = (event: Event, variant: 'featured' | 'standard' = 'standard') => {
     // Component-level state for dropdown
@@ -591,13 +629,13 @@ const EventDiscoveryContent = () => {
                </p>
 
                <div className="flex items-center gap-3 mt-2">
-                  <Link
+                  <button
                     id="discovery-host-event"
-                    href={user?.role?.includes('organizer') ? "/organizer/dashboard/events/create" : "/host-event"}
+                    onClick={handleHostEventClick}
                     className="bg-primary text-white px-6 py-3 rounded-xl text-sm font-semibold uppercase tracking-widest hover:scale-105 transition-all shadow-md shadow-primary/10"
                   >
                     Host an Event
-                  </Link>
+                  </button>
                   <button
                     id="discovery-browse-list"
                     onClick={() => {
