@@ -172,7 +172,7 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, sessions, tickets, agenda
                 <Users size={16} />
               </div>
               <div className="min-w-0">
-                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Capacity</p>
+                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Expected Guest</p>
                 <p className="text-[11px] font-bold text-gray-700 leading-none">{basicInfo.capacity || 0} Slots Available</p>
               </div>
             </div>
@@ -343,6 +343,7 @@ const EditEventContent = () => {
   const [showPreview, setShowPreview] = useState(true);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
+  const [organizerSlug, setOrganizerSlug] = useState<string>("");
   const [showAddFieldDropdown, setShowAddFieldDropdown] = useState(false);
   const [showRegInfo, setShowRegInfo] = useState(false);
   const [keywordInput, setKeywordInput] = useState("");
@@ -425,9 +426,10 @@ const EditEventContent = () => {
   useEffect(() => {
     const fetchEvent = async () => {
       try {
-        const [eventRes, categoriesRes] = await Promise.all([
+        const [eventRes, categoriesRes, profileRes] = await Promise.all([
           api.get(`/events/${eventId}`),
-          api.get("/events/utils/categories")
+          api.get("/events/utils/categories"),
+          api.get("/events/my-organizer-profile")
         ]);
 
         const event = eventRes.data.data;
@@ -435,6 +437,10 @@ const EditEventContent = () => {
         // Populate Categories
         const categoryData = categoriesRes.data.data || [];
         setCategories(categoryData.map((cat: string | { name: string }) => typeof cat === 'string' ? cat : cat.name));
+
+        if (profileRes.data?.data?.slug) {
+          setOrganizerSlug(profileRes.data.data.slug);
+        }
 
         // Format dates for input[type="datetime-local"]
         const formatDate = (dateStr: string) => dateStr ? new Date(dateStr).toISOString().slice(0, 16) : "";
@@ -1196,6 +1202,15 @@ const EditEventContent = () => {
                                 <input type="text" name="title" className="w-full p-4 md:p-6 bg-white border border-gray-300 rounded-2xl md:rounded-3xl text-sm font-bold outline-none" value={basicInfo.title} onChange={handleBasicChange} />
                              </div>
                              <div className="space-y-3">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Event Slug (URL Friendly)</label>
+                                <input type="text" name="slug" className="w-full p-4 md:p-6 bg-white border border-gray-300 rounded-2xl md:rounded-3xl text-sm font-bold outline-none" value={basicInfo.slug} onChange={handleBasicChange} />
+                                {organizerSlug && (
+                                  <p className="text-[10px] font-bold text-primary mt-1 ml-2 break-all">
+                                    Preview: gobokin.com/events/{organizerSlug}/{basicInfo.slug || "event-slug"}
+                                  </p>
+                                )}
+                             </div>
+                             <div className="space-y-3">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Category</label>
                                 <select name="category" className="w-full p-4 md:p-6 bg-white border border-gray-300 rounded-2xl md:rounded-3xl text-sm font-bold outline-none appearance-none" value={basicInfo.category} onChange={handleBasicChange}>
                                    <option value="">Select a category</option>
@@ -1215,7 +1230,7 @@ const EditEventContent = () => {
                                 <input type="text" name="location" className="w-full p-4 md:p-6 bg-white border border-gray-300 rounded-2xl md:rounded-3xl text-sm font-bold outline-none" value={basicInfo.location} onChange={handleBasicChange} />
                              </div>
                              <div className="space-y-3">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Attendee Capacity</label>
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Number of Expected Guest</label>
                                 <input type="number" name="capacity" className="w-full p-4 md:p-6 bg-white border border-gray-300 rounded-2xl md:rounded-3xl text-sm font-bold outline-none" value={basicInfo.capacity} onChange={handleBasicChange} />
                              </div>
                              <div className={`space-y-3 ${showPreview ? "2xl:col-span-2" : "md:col-span-2"}`}>

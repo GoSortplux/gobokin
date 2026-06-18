@@ -182,7 +182,7 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, sessions, tickets, agenda
                 <Users size={16} />
               </div>
               <div className="min-w-0">
-                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Capacity</p>
+                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Expected Guest</p>
                 <p className="text-[11px] font-bold text-gray-700 leading-none">{basicInfo.capacity || 0} Slots Available</p>
               </div>
             </div>
@@ -342,6 +342,7 @@ const CreateEvent = () => {
   const [showPreview, setShowPreview] = useState(true);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
+  const [organizerSlug, setOrganizerSlug] = useState<string>("");
   const [showAddFieldDropdown, setShowAddFieldDropdown] = useState(false);
   const [showRegInfo, setShowRegInfo] = useState(false);
   const [keywordInput, setKeywordInput] = useState("");
@@ -351,20 +352,27 @@ const CreateEvent = () => {
   useOnClickOutside(addFieldDropdownRef, () => setShowAddFieldDropdown(false));
   useOnClickOutside(regInfoRef, () => setShowRegInfo(false));
 
-  // Fetch Categories
+  // Fetch Initial Data
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchInitialData = async () => {
       try {
-        const response = await api.get("/events/utils/categories");
-        const data = response.data.data || [];
-        // Handle both array of strings and array of objects
-        const categoryNames = data.map((cat: string | { name: string }) => typeof cat === 'string' ? cat : cat.name);
+        const [categoriesRes, profileRes] = await Promise.all([
+          api.get("/events/utils/categories"),
+          api.get("/events/my-organizer-profile")
+        ]);
+
+        const categoriesData = categoriesRes.data.data || [];
+        const categoryNames = categoriesData.map((cat: string | { name: string }) => typeof cat === 'string' ? cat : cat.name);
         setCategories(categoryNames);
+
+        if (profileRes.data?.data?.slug) {
+          setOrganizerSlug(profileRes.data.data.slug);
+        }
       } catch (_error) {
-        console.error("Failed to fetch categories:", _error);
+        console.error("Failed to fetch initial data:", _error);
       }
     };
-    fetchCategories();
+    fetchInitialData();
   }, []);
 
   // Form State
@@ -1470,6 +1478,11 @@ const CreateEvent = () => {
                                   value={basicInfo.slug || ""}
                                   onBlur={handleBlur} onChange={handleBasicChange}
                                 />
+                                {organizerSlug && (
+                                  <p className="text-[10px] font-bold text-primary mt-1 ml-2 break-all">
+                                    Preview: gobokin.com/events/{organizerSlug}/{basicInfo.slug || "event-slug"}
+                                  </p>
+                                )}
                              </div>
                              <div className="space-y-3">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Event Category</label>
@@ -1661,7 +1674,7 @@ const CreateEvent = () => {
                                 </div>
                              )}
                              <div className={`space-y-3 ${showPreview ? "2xl:col-span-2" : "md:col-span-2"}`}>
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Attendee Capacity</label>
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Number of Expected Guest</label>
                                 <div className="relative">
                                    <Users size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-primary" />
                                    <input
