@@ -1115,14 +1115,14 @@ const EditEventContent = () => {
   return (
     <div className="max-w-[1600px] mx-auto py-6 lg:py-10 px-4">
       {/* Header Area */}
-      <div className="mb-12 flex flex-col md:flex-row md:items-center justify-between gap-8 px-4">
+      <div className={`mb-12 flex flex-col md:flex-row md:items-center justify-between gap-8 px-4 ${showPreview ? "2xl:px-8" : "xl:px-8"}`}>
         <div>
           <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-400 hover:text-primary transition-all mb-4 group font-black text-[10px] uppercase tracking-[0.2em]">
             <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
             Back to Details
           </button>
-          <h1 className="text-5xl font-black text-primary tracking-tight leading-none mb-3">Edit Event</h1>
-          <p className="text-gray-500 font-medium text-lg">Update your event configuration and schedule.</p>
+          <h1 className="text-4xl md:text-5xl font-black text-primary tracking-tight leading-none mb-3">Edit Event</h1>
+          <p className="text-gray-500 font-medium text-base md:text-lg">Update your event configuration and schedule.</p>
         </div>
 
         <div className="flex items-center gap-4">
@@ -1131,14 +1131,14 @@ const EditEventContent = () => {
               if (window.innerWidth < 1024) setIsPreviewModalOpen(true);
               else setShowPreview(!showPreview);
             }}
-            className="flex items-center gap-2.5 bg-white text-gray-500 font-black px-6 py-4 rounded-2xl border border-gray-100 shadow-sm hover:bg-gray-50 hover:text-primary transition-all text-[10px] uppercase tracking-[0.2em]"
+            className="flex items-center gap-2.5 bg-white text-gray-500 font-black px-5 md:px-6 py-3.5 md:py-4 rounded-2xl border border-gray-100 shadow-sm hover:bg-gray-50 hover:text-primary transition-all text-[10px] uppercase tracking-[0.2em]"
           >
             <Eye size={16} />
             <span className="hidden sm:inline">{showPreview ? "Hide Preview" : "Show Preview"}</span>
             <span className="sm:hidden">Preview</span>
           </button>
 
-          <div className="hidden xl:flex items-center gap-1.5 bg-gray-50 p-2 rounded-[2.5rem] border border-gray-100">
+          <div className={`hidden items-center gap-1.5 bg-gray-50 p-2 rounded-[2.5rem] border border-gray-100 ${showPreview ? "2xl:flex" : "xl:flex"}`}>
             {steps.map((step) => (
               <button
                 key={step.id}
@@ -1158,9 +1158,9 @@ const EditEventContent = () => {
 
       <div className="flex flex-col lg:flex-row gap-10 items-start px-2">
         {/* Main Form Container */}
-        <div className={`flex-1 w-full bg-white rounded-[3rem] border border-gray-100 shadow-2xl shadow-gray-200/40 overflow-hidden`}>
+        <div className={`flex-1 w-full bg-white rounded-[3rem] border border-gray-100 shadow-2xl shadow-gray-200/40 overflow-hidden transition-all duration-500 ease-in-out`}>
 
-          <div className="p-8 md:p-10 lg:p-12">
+          <div className={`p-6 md:p-8 lg:p-10 ${showPreview ? "2xl:p-12" : "xl:p-12"}`}>
             {/* STEP 1: EVENT DETAILS */}
             {currentStep === 1 && (
               <div className="space-y-16">
@@ -1190,35 +1190,35 @@ const EditEventContent = () => {
                                   <p className="text-sm text-gray-400 font-medium">Core personality of your event.</p>
                              </div>
                           </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          <div className={`grid grid-cols-1 gap-8 ${showPreview ? "2xl:grid-cols-2" : "md:grid-cols-2"}`}>
                              <div className="space-y-3">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Title</label>
-                                <input type="text" name="title" className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold outline-none" value={basicInfo.title} onChange={handleBasicChange} />
+                                <input type="text" name="title" className="w-full p-4 md:p-6 bg-white border border-gray-300 rounded-2xl md:rounded-3xl text-sm font-bold outline-none" value={basicInfo.title} onChange={handleBasicChange} />
                              </div>
                              <div className="space-y-3">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Category</label>
-                                <select name="category" className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold outline-none appearance-none" value={basicInfo.category} onChange={handleBasicChange}>
+                                <select name="category" className="w-full p-4 md:p-6 bg-white border border-gray-300 rounded-2xl md:rounded-3xl text-sm font-bold outline-none appearance-none" value={basicInfo.category} onChange={handleBasicChange}>
                                    <option value="">Select a category</option>
                                    {categories.map((cat, idx) => <option key={idx} value={cat}>{cat}</option>)}
                                 </select>
                              </div>
                              <div className="space-y-3">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Commences</label>
-                                <input type="datetime-local" name="startDate" className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold outline-none" value={basicInfo.startDate} onChange={handleBasicChange} />
+                                <input type="datetime-local" name="startDate" className="w-full p-4 md:p-6 bg-white border border-gray-300 rounded-2xl md:rounded-3xl text-sm font-bold outline-none" value={basicInfo.startDate} onChange={handleBasicChange} />
                              </div>
                              <div className="space-y-3">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Concludes</label>
-                                <input type="datetime-local" name="endDate" className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold outline-none" value={basicInfo.endDate} onChange={handleBasicChange} />
+                                <input type="datetime-local" name="endDate" className="w-full p-4 md:p-6 bg-white border border-gray-300 rounded-2xl md:rounded-3xl text-sm font-bold outline-none" value={basicInfo.endDate} onChange={handleBasicChange} />
                              </div>
                              <div className="space-y-3">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Location</label>
-                                <input type="text" name="location" className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold outline-none" value={basicInfo.location} onChange={handleBasicChange} />
+                                <input type="text" name="location" className="w-full p-4 md:p-6 bg-white border border-gray-300 rounded-2xl md:rounded-3xl text-sm font-bold outline-none" value={basicInfo.location} onChange={handleBasicChange} />
                              </div>
                              <div className="space-y-3">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Attendee Capacity</label>
-                                <input type="number" name="capacity" className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold outline-none" value={basicInfo.capacity} onChange={handleBasicChange} />
+                                <input type="number" name="capacity" className="w-full p-4 md:p-6 bg-white border border-gray-300 rounded-2xl md:rounded-3xl text-sm font-bold outline-none" value={basicInfo.capacity} onChange={handleBasicChange} />
                              </div>
-                             <div className="space-y-3 md:col-span-2">
+                             <div className={`space-y-3 ${showPreview ? "2xl:col-span-2" : "md:col-span-2"}`}>
                                 <div className="flex items-center justify-between ml-1">
                                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Search Keywords</label>
                                     <span className="text-[9px] font-bold text-gray-400 uppercase">{basicInfo.tags.length}/5 Keywords</span>
@@ -1375,7 +1375,7 @@ const EditEventContent = () => {
                              <h3 className="text-2xl font-black text-gray-900 tracking-tight">Event Configuration</h3>
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                          <div className={`grid grid-cols-1 md:grid-cols-2 gap-8 ${showPreview ? "2xl:grid-cols-3" : "lg:grid-cols-3"}`}>
                              <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Public Visibility</label>
                                 <div className="flex items-center justify-between">
@@ -1532,10 +1532,10 @@ const EditEventContent = () => {
                                 const isLocationField = field.source === 'COUNTRIES' || field.source === 'STATES' || field.source === 'LGAS';
                                 return (
                                 <React.Fragment key={idx}>
-                                <div className={`p-6 bg-gray-50 rounded-[2.5rem] group relative border border-transparent hover:border-primary/10 hover:bg-white transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50 flex flex-col ${showPreview ? "gap-4" : "gap-6 lg:flex-row lg:items-center lg:gap-8"}`}>
+                                <div className={`p-6 bg-gray-50 rounded-[2.5rem] group relative border border-transparent hover:border-primary/10 hover:bg-white transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50 flex flex-col ${showPreview ? "gap-4 xl:gap-6" : "gap-6 lg:flex-row lg:items-center lg:gap-8"}`}>
                                    {/* First Section: Label and Type */}
-                                   <div className={`flex items-center gap-4 ${showPreview ? "w-full" : "flex-1 flex-col lg:flex-row lg:gap-8"}`}>
-                                      <div className={`space-y-2 ${showPreview ? "flex-[1.5] min-w-0" : "w-full flex-[2]"}`}>
+                                   <div className={`flex items-center gap-4 ${showPreview ? "w-full flex-col xl:flex-row xl:gap-6" : "flex-1 flex-col lg:flex-row lg:gap-8"}`}>
+                                      <div className={`space-y-2 ${showPreview ? "w-full xl:flex-[1.5] min-w-0" : "w-full flex-[2]"}`}>
                                          <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Field Label</label>
                                          <input
                                             type="text"
@@ -1546,7 +1546,7 @@ const EditEventContent = () => {
                                             onChange={(e) => updateField(idx, "label", e.target.value)}
                                          />
                                       </div>
-                                      <div className={`space-y-2 ${showPreview ? "flex-1 min-w-0" : "w-full flex-1"}`}>
+                                      <div className={`space-y-2 ${showPreview ? "w-full xl:flex-1 min-w-0" : "w-full flex-1"}`}>
                                          <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Input Type</label>
                                          <div className="relative">
                                             <select
@@ -1594,7 +1594,7 @@ const EditEventContent = () => {
                                    </div>
 
                                    {/* Toggles and Non-Preview actions */}
-                                   <div className={`flex items-center gap-6 ${showPreview ? "justify-start pl-1" : "flex-1 justify-around px-6 h-16 bg-white/50 rounded-xl border border-gray-100"}`}>
+                                   <div className={`flex items-center gap-6 ${showPreview ? "justify-start pl-1 w-full xl:w-auto" : "flex-1 justify-around px-6 h-16 bg-white/50 rounded-xl border border-gray-100"}`}>
                                       <label className="flex items-center gap-3 cursor-pointer group/toggle">
                                          <input
                                             type="checkbox"
@@ -1784,7 +1784,7 @@ const EditEventContent = () => {
                              </div>
                           </div>
 
-                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                          <div className={`grid grid-cols-1 gap-10 ${showPreview ? "2xl:grid-cols-2" : "lg:grid-cols-2"}`}>
                              <div className={`bg-gray-50 rounded-[3rem] p-8 border-2 border-dashed transition-all duration-500 flex flex-col items-center justify-center space-y-6 group/upload shadow-sm h-full relative overflow-hidden min-h-[300px] ${isUploading ? 'border-primary bg-primary/5' : 'border-gray-200'}`}>
                                 <input type="file" className="absolute inset-0 opacity-0 cursor-pointer z-20" onChange={handleBannerUpload} accept="image/*" disabled={isUploading} />
                                 {mediaInfo.bannerUrl && !isUploading ? (
@@ -2187,8 +2187,8 @@ const EditEventContent = () => {
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                    <div className="md:col-span-2 lg:col-span-3 space-y-3">
+                                <div className={`grid grid-cols-1 gap-8 ${showPreview ? "2xl:grid-cols-2" : "md:grid-cols-2 lg:grid-cols-3"}`}>
+                                    <div className={`space-y-3 ${showPreview ? "2xl:col-span-2" : "md:col-span-2 lg:col-span-3"}`}>
                                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Session Title</label>
                                         <input type="text" placeholder="e.g., Opening Keynote" className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold outline-none focus:border-primary transition-all shadow-sm" value={session.title} onChange={(e) => updateSession(session.id, "title", e.target.value)} />
                                     </div>
@@ -2238,7 +2238,7 @@ const EditEventContent = () => {
                                         </div>
                                     </div>
 
-                                    <div className="md:col-span-2 lg:col-span-3 space-y-5 pt-4">
+                                    <div className={`space-y-5 pt-4 ${showPreview ? "2xl:col-span-3" : "md:col-span-2 lg:col-span-3"}`}>
                                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Assigned Speakers</label>
                                         <div className="flex flex-wrap gap-3">
                                             {speakers.filter(s => s.name).map((speaker, sIdx) => {
@@ -2306,13 +2306,13 @@ const EditEventContent = () => {
           </div>
 
           {/* Action Footer */}
-          <div className="bg-white px-8 md:px-16 py-8 border-t border-gray-50 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className={`bg-white px-6 md:px-10 lg:px-12 py-8 md:py-10 border-t border-gray-50 flex flex-col md:flex-row items-center justify-between gap-6 ${showPreview ? "2xl:px-16" : "xl:px-16"}`}>
              <button onClick={() => router.back()} className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-gray-900 transition-colors order-last md:order-first">Discard Changes</button>
              <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4 w-full md:w-auto">
                 <button
                     onClick={() => saveAllChanges(false)}
                     disabled={saving}
-                    className="flex items-center gap-2.5 bg-white text-gray-900 border border-gray-200 font-black px-6 md:px-8 py-4 md:py-5 rounded-[2rem] shadow-sm hover:border-secondary hover:text-secondary transition-all uppercase tracking-[0.15em] text-[9px] md:text-[10px] disabled:opacity-50"
+                    className="flex items-center gap-2.5 bg-white text-gray-900 border border-gray-200 font-black px-5 md:px-8 py-3.5 md:py-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm hover:border-secondary hover:text-secondary transition-all uppercase tracking-[0.1em] md:tracking-[0.15em] text-[9px] md:text-[10px] disabled:opacity-50"
                 >
                     {saving ? "Saving..." : "Save Changes"}
                     <CheckCircle2 size={16} className="text-emerald-500" />
@@ -2325,7 +2325,7 @@ const EditEventContent = () => {
                             else setCurrentStep(2);
                             window.scrollTo({ top: 0, behavior: 'smooth' });
                         }}
-                        className="flex items-center gap-3 bg-primary text-white font-black px-8 md:px-10 py-4 md:py-5 rounded-[2rem] shadow-3xl shadow-primary/30 uppercase tracking-[0.2em] text-[9px] md:text-[10px]"
+                        className="flex items-center gap-2 md:gap-3 bg-primary text-white font-black px-6 md:px-10 py-3.5 md:py-5 rounded-[1.5rem] md:rounded-[2rem] shadow-3xl shadow-primary/30 uppercase tracking-[0.15em] md:tracking-[0.2em] text-[9px] md:text-[10px]"
                     >
                         {subStep < 5 ? "Continue" : "Next: Ticketing"}
                         <ArrowRight size={18} />
@@ -2337,14 +2337,14 @@ const EditEventContent = () => {
                             setCurrentStep(3);
                             window.scrollTo({ top: 0, behavior: 'smooth' });
                         }}
-                        className="flex items-center gap-3 bg-primary text-white font-black px-8 md:px-10 py-4 md:py-5 rounded-[2rem] shadow-3xl shadow-primary/30 uppercase tracking-[0.2em] text-[9px] md:text-[10px]"
+                        className="flex items-center gap-2 md:gap-3 bg-primary text-white font-black px-6 md:px-10 py-3.5 md:py-5 rounded-[1.5rem] md:rounded-[2rem] shadow-3xl shadow-primary/30 uppercase tracking-[0.15em] md:tracking-[0.2em] text-[9px] md:text-[10px]"
                     >
                         Next: Schedule
                         <ArrowRight size={18} />
                     </button>
                 )}
                 {currentStep === 3 && (
-                    <button onClick={() => saveAllChanges(true)} disabled={saving} className="flex items-center gap-3 bg-secondary text-white font-black px-8 md:px-10 py-4 md:py-5 rounded-[2rem] shadow-3xl shadow-secondary/30 uppercase tracking-[0.2em] text-[9px] md:text-[10px] disabled:opacity-50">
+                    <button onClick={() => saveAllChanges(true)} disabled={saving} className="flex items-center gap-2 md:gap-3 bg-secondary text-white font-black px-6 md:px-10 py-3.5 md:py-5 rounded-[1.5rem] md:rounded-[2rem] shadow-3xl shadow-secondary/30 uppercase tracking-[0.15em] md:tracking-[0.2em] text-[9px] md:text-[10px] disabled:opacity-50">
                         {saving ? "Finalizing..." : "Finalize & Update"}
                         <ShieldCheck size={18} />
                     </button>
@@ -2355,7 +2355,7 @@ const EditEventContent = () => {
 
         {/* Live Preview (Desktop) */}
         {showPreview && (
-          <div className="hidden lg:block w-[400px] xl:w-[480px] shrink-0">
+          <div className="hidden lg:block w-[400px] xl:w-[480px] shrink-0 animate-in fade-in slide-in-from-right-8 duration-500 ease-out">
             <LivePreview basicInfo={basicInfo} mediaInfo={mediaInfo} speakers={speakers} agendaEnabled={basicInfo.agendaEnabled} sessions={sessions} tickets={tickets} />
           </div>
         )}

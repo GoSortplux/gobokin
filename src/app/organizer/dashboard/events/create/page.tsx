@@ -1340,14 +1340,14 @@ const CreateEvent = () => {
   return (
     <div className="max-w-[1600px] mx-auto py-6 lg:py-10 px-4">
       {/* Header Area */}
-      <div className="mb-12 flex flex-col md:flex-row md:items-center justify-between gap-8 px-4">
+      <div className={`mb-12 flex flex-col md:flex-row md:items-center justify-between gap-8 px-4 ${showPreview ? "2xl:px-8" : "xl:px-8"}`}>
         <div>
           <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-400 hover:text-primary transition-all mb-4 group font-black text-[10px] uppercase tracking-[0.2em]">
             <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
             Back to Overview
           </button>
-          <h1 className="text-5xl font-black text-primary tracking-tight leading-none mb-3">Create Event</h1>
-          <p className="text-gray-500 font-medium text-lg">Bring your vision to life in a few simple steps.</p>
+          <h1 className="text-4xl md:text-5xl font-black text-primary tracking-tight leading-none mb-3">Create Event</h1>
+          <p className="text-gray-500 font-medium text-base md:text-lg">Bring your vision to life in a few simple steps.</p>
         </div>
 
         <div className="flex items-center gap-4">
@@ -1359,7 +1359,7 @@ const CreateEvent = () => {
                 setShowPreview(!showPreview);
               }
             }}
-            className="flex items-center gap-2.5 bg-white text-gray-500 font-black px-6 py-4 rounded-2xl border border-gray-100 shadow-sm hover:bg-gray-50 hover:text-primary transition-all text-[10px] uppercase tracking-[0.2em]"
+            className="flex items-center gap-2.5 bg-white text-gray-500 font-black px-5 md:px-6 py-3.5 md:py-4 rounded-2xl border border-gray-100 shadow-sm hover:bg-gray-50 hover:text-primary transition-all text-[10px] uppercase tracking-[0.2em]"
           >
             <Eye size={16} />
             <span className="hidden sm:inline">{showPreview ? "Hide Preview" : "Show Preview"}</span>
@@ -1367,7 +1367,7 @@ const CreateEvent = () => {
           </button>
 
           {/* Step Indicator Desktop */}
-          <div id="event-creation-steps" className="hidden xl:flex items-center gap-1.5 bg-gray-50 p-2 rounded-[2.5rem] border border-gray-100">
+          <div id="event-creation-steps" className={`hidden items-center gap-1.5 bg-gray-50 p-2 rounded-[2.5rem] border border-gray-100 ${showPreview ? "2xl:flex" : "xl:flex"}`}>
             {steps.map((step) => (
               <div
                 key={step.id}
@@ -1395,7 +1395,7 @@ const CreateEvent = () => {
 
       <div className="flex flex-col lg:flex-row gap-10 items-start px-2">
         {/* Main Form Container */}
-        <div id="event-creation-form" className={`flex-1 w-full bg-white rounded-[3rem] border border-gray-100 shadow-2xl shadow-gray-200/40 overflow-hidden transition-all duration-700 ease-in-out`}>
+        <div id="event-creation-form" className={`flex-1 w-full bg-white rounded-[3rem] border border-gray-100 shadow-2xl shadow-gray-200/40 overflow-hidden transition-all duration-500 ease-in-out`}>
           {/* Mobile Progress Bar */}
           <div className="lg:hidden bg-white px-6 py-6 border-b border-gray-50 flex items-center justify-between">
               <div className="flex items-center gap-5">
@@ -1414,7 +1414,7 @@ const CreateEvent = () => {
               </div>
           </div>
 
-          <div className="p-8 md:p-10 lg:p-12">
+          <div className={`p-6 md:p-8 lg:p-10 ${showPreview ? "2xl:p-12" : "xl:p-12"}`}>
             {/* STEP 1: EVENT DETAILS */}
             {currentStep === 1 && (
               <div className="space-y-16 animate-in fade-in slide-in-from-bottom-8 duration-700">
@@ -1447,15 +1447,15 @@ const CreateEvent = () => {
                                   <p className="text-sm text-gray-400 font-medium">Define the core personality of your event.</p>
                              </div>
                           </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+                          <div className={`grid grid-cols-1 gap-6 sm:gap-8 ${showPreview ? "2xl:grid-cols-2" : "md:grid-cols-2"}`}>
                              <div className="space-y-3">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Official Event Title</label>
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Event Title</label>
                                 <input
                                   type="text"
                                   name="title"
                                   required
                                   placeholder="e.g., Annual Tech Summit 2024"
-                                  className="w-full p-5 sm:p-6 bg-white border border-gray-300 rounded-[1.5rem] sm:rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
+                                  className="w-full p-4 md:p-6 bg-white border border-gray-300 rounded-[1.5rem] md:rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
                                   value={basicInfo.title || ""}
                                   onBlur={handleBlur} onChange={handleBasicChange}
                                 />
@@ -1466,7 +1466,7 @@ const CreateEvent = () => {
                                   type="text"
                                   name="slug"
                                   placeholder="e.g., tech-summit-2024"
-                                  className="w-full p-5 sm:p-6 bg-white border border-gray-300 rounded-[1.5rem] sm:rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
+                                  className="w-full p-4 md:p-6 bg-white border border-gray-300 rounded-[1.5rem] md:rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
                                   value={basicInfo.slug || ""}
                                   onBlur={handleBlur} onChange={handleBasicChange}
                                 />
@@ -1477,7 +1477,7 @@ const CreateEvent = () => {
                                    <Layout size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-primary pointer-events-none" />
                                    <select
                                       name="category"
-                                      className="w-full pl-14 pr-12 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none appearance-none shadow-sm cursor-pointer"
+                                      className="w-full pl-12 md:pl-14 pr-12 py-5 md:py-6 bg-white border border-gray-300 rounded-2xl md:rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none appearance-none shadow-sm cursor-pointer"
                                       value={basicInfo.category || ""}
                                       onBlur={handleBlur} onChange={handleBasicChange}
                                    >
@@ -1567,7 +1567,7 @@ const CreateEvent = () => {
                                   <p className="text-sm text-gray-400 font-medium">When should attendees mark their calendars?</p>
                              </div>
                           </div>
-                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+                             <div className={`grid grid-cols-1 gap-6 sm:gap-8 ${showPreview ? "2xl:grid-cols-2" : "md:grid-cols-2"}`}>
                              <div className="space-y-3">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Event Commences</label>
                                 <div className="relative">
@@ -1575,7 +1575,7 @@ const CreateEvent = () => {
                                    <input
                                       type="datetime-local"
                                       name="startDate"
-                                         className="w-full pl-12 sm:pl-14 pr-4 sm:pr-6 py-5 sm:py-6 bg-white border border-gray-300 rounded-[1.5rem] sm:rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
+                                         className="w-full pl-12 md:pl-14 pr-4 md:pr-6 py-4 md:py-6 bg-white border border-gray-300 rounded-[1.5rem] md:rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
                                       value={basicInfo.startDate}
                                       onBlur={handleBlur} onChange={handleBasicChange}
                                    />
@@ -1588,7 +1588,7 @@ const CreateEvent = () => {
                                    <input
                                       type="datetime-local"
                                       name="endDate"
-                                         className="w-full pl-12 sm:pl-14 pr-4 sm:pr-6 py-5 sm:py-6 bg-white border border-gray-300 rounded-[1.5rem] sm:rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
+                                         className="w-full pl-12 md:pl-14 pr-4 md:pr-6 py-4 md:py-6 bg-white border border-gray-300 rounded-[1.5rem] md:rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
                                       value={basicInfo.endDate}
                                       onBlur={handleBlur} onChange={handleBasicChange}
                                    />
@@ -1608,10 +1608,10 @@ const CreateEvent = () => {
                                   <p className="text-sm text-gray-400 font-medium">Choose where the magic happens.</p>
                              </div>
                           </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                             <div className="space-y-3 md:col-span-2">
+                          <div className={`grid grid-cols-1 gap-8 ${showPreview ? "2xl:grid-cols-2" : "md:grid-cols-2"}`}>
+                             <div className={`space-y-3 ${showPreview ? "2xl:col-span-2" : "md:col-span-2"}`}>
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Access Method</label>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+                                <div className={`grid grid-cols-1 gap-4 sm:gap-6 ${showPreview ? "2xl:grid-cols-3" : "sm:grid-cols-3"}`}>
                                    {["PHYSICAL", "ONLINE", "HYBRID"].map((type) => (
                                       <button
                                          key={type}
@@ -1629,7 +1629,7 @@ const CreateEvent = () => {
                                 </div>
                              </div>
                              {basicInfo.type !== "ONLINE" && (
-                                <div className="space-y-3 md:col-span-2">
+                             <div className={`space-y-3 ${showPreview ? "2xl:col-span-2" : "md:col-span-2"}`}>
                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Physical Venue Address</label>
                                    <div className="relative">
                                       <MapPin size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-primary" />
@@ -1637,7 +1637,7 @@ const CreateEvent = () => {
                                          type="text"
                                          name="location"
                                          placeholder="Street address, City, State"
-                                         className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
+                                         className="w-full pl-12 md:pl-14 pr-6 py-5 md:py-6 bg-white border border-gray-300 rounded-2xl md:rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm"
                                          value={basicInfo.location || ""}
                                          onBlur={handleBlur} onChange={handleBasicChange}
                                       />
@@ -1660,14 +1660,14 @@ const CreateEvent = () => {
                                    </div>
                                 </div>
                              )}
-                             <div className="space-y-3 md:col-span-2">
+                             <div className={`space-y-3 ${showPreview ? "2xl:col-span-2" : "md:col-span-2"}`}>
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Attendee Capacity</label>
                                 <div className="relative">
                                    <Users size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-primary" />
                                    <input
                                       type="number"
                                       name="capacity"
-                                      className="w-full pl-14 pr-6 py-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
+                                      className="w-full pl-12 md:pl-14 pr-6 py-5 md:py-6 bg-white border border-gray-300 rounded-2xl md:rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
                                       value={basicInfo.capacity}
                                       onBlur={handleBlur} onChange={handleBasicChange}
                                    />
@@ -1810,7 +1810,7 @@ const CreateEvent = () => {
                              </div>
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                          <div className={`grid grid-cols-1 md:grid-cols-2 gap-8 ${showPreview ? "2xl:grid-cols-3" : "lg:grid-cols-3"}`}>
                              <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
                                    <Globe size={12} />
@@ -2075,13 +2075,13 @@ const CreateEvent = () => {
                                        const isGroupNameField = field.source === 'GROUP_NAME';
                                        return (
                                          <Reorder.Item key={field.name || field.label} value={field}>
-                                           <div className={`p-6 bg-gray-50 rounded-[2.5rem] group relative border-2 border-gray-300 hover:border-primary transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50 flex flex-col ${showPreview ? "gap-4" : "gap-6 lg:flex-row lg:items-center lg:gap-8"}`}>
+                                           <div className={`p-6 bg-gray-50 rounded-[2.5rem] group relative border-2 border-gray-300 hover:border-primary transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50 flex flex-col ${showPreview ? "gap-4 xl:gap-6" : "gap-6 lg:flex-row lg:items-center lg:gap-8"}`}>
                                            <div className="flex absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-12 bg-white rounded-lg border border-gray-100 shadow-sm items-center justify-center cursor-grab active:cursor-grabbing text-gray-300 hover:text-primary transition-colors z-10">
                                                <GripVertical size={20} />
                                              </div>
                                    {/* First Section: Label and Type */}
-                                   <div className={`flex items-center gap-4 ${showPreview ? "w-full" : "flex-1 flex-col lg:flex-row lg:gap-8"}`}>
-                                      <div className={`space-y-2 ${showPreview ? "flex-[1.5] min-w-0" : "w-full flex-[2]"}`}>
+                                   <div className={`flex items-center gap-4 ${showPreview ? "w-full flex-col xl:flex-row xl:gap-6" : "flex-1 flex-col lg:flex-row lg:gap-8"}`}>
+                                      <div className={`space-y-2 ${showPreview ? "w-full xl:flex-[1.5] min-w-0" : "w-full flex-[2]"}`}>
                                          <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Field Label</label>
                                          <input
                                             type="text"
@@ -2092,7 +2092,7 @@ const CreateEvent = () => {
                                             onBlur={handleBlur} onChange={(e) => updateField(idx, "label", e.target.value)}
                                          />
                                       </div>
-                                      <div className={`space-y-2 ${showPreview ? "flex-1 min-w-0" : "w-full flex-1"}`}>
+                                      <div className={`space-y-2 ${showPreview ? "w-full xl:flex-1 min-w-0" : "w-full flex-1"}`}>
                                          <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Input Type</label>
                                          <div className="relative">
                                             <select
@@ -2112,7 +2112,7 @@ const CreateEvent = () => {
                                    </div>
 
                                    {/* Toggles and Non-Preview actions */}
-                                   <div className={`flex items-center gap-6 ${showPreview ? "justify-start pl-1" : "flex-1 justify-around px-6 h-16 bg-white/50 rounded-xl border border-gray-100"}`}>
+                                   <div className={`flex items-center gap-6 ${showPreview ? "justify-start pl-1 w-full xl:w-auto" : "flex-1 justify-around px-6 h-16 bg-white/50 rounded-xl border border-gray-100"}`}>
                                       <label className="flex items-center gap-3 cursor-pointer group/toggle">
                                          <input
                                             type="checkbox"
@@ -2264,12 +2264,12 @@ const CreateEvent = () => {
                                      const isLocationField = field.source === 'COUNTRIES' || field.source === 'STATES' || field.source === 'LGAS';
                                      return (
                                        <Reorder.Item key={field.name || field.label} value={field}>
-                                         <div className={`p-6 bg-gray-50 rounded-[2.5rem] group relative border-2 border-gray-300 hover:border-primary transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50 flex flex-col ${showPreview ? "gap-4" : "gap-6 lg:flex-row lg:items-center lg:gap-8"}`}>
+                                         <div className={`p-6 bg-gray-50 rounded-[2.5rem] group relative border-2 border-gray-300 hover:border-primary transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50 flex flex-col ${showPreview ? "gap-4 xl:gap-6" : "gap-6 lg:flex-row lg:items-center lg:gap-8"}`}>
                                            <div className="flex absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-12 bg-white rounded-lg border border-gray-100 shadow-sm items-center justify-center cursor-grab active:cursor-grabbing text-gray-300 hover:text-primary transition-colors z-10">
                                              <GripVertical size={20} />
                                            </div>
-                                           <div className={`flex items-center gap-4 ${showPreview ? "w-full" : "flex-1 flex-col lg:flex-row lg:gap-8"}`}>
-                                              <div className={`space-y-2 ${showPreview ? "flex-[1.5] min-w-0" : "w-full flex-[2]"}`}>
+                                           <div className={`flex items-center gap-4 ${showPreview ? "w-full flex-col xl:flex-row xl:gap-6" : "flex-1 flex-col lg:flex-row lg:gap-8"}`}>
+                                              <div className={`space-y-2 ${showPreview ? "w-full xl:flex-[1.5] min-w-0" : "w-full flex-[2]"}`}>
                                                  <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Field Label</label>
                                                  <input
                                                     type="text"
@@ -2280,7 +2280,7 @@ const CreateEvent = () => {
                                                     onBlur={handleBlur} onChange={(e) => updateField(idx, "label", e.target.value)}
                                                  />
                                               </div>
-                                              <div className={`space-y-2 ${showPreview ? "flex-1 min-w-0" : "w-full flex-1"}`}>
+                                              <div className={`space-y-2 ${showPreview ? "w-full xl:flex-1 min-w-0" : "w-full flex-1"}`}>
                                                  <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Input Type</label>
                                                  <div className="relative">
                                                     <select
@@ -2299,7 +2299,7 @@ const CreateEvent = () => {
                                               </div>
                                            </div>
 
-                                           <div className={`flex items-center gap-6 ${showPreview ? "justify-start pl-1" : "flex-1 justify-around px-6 h-16 bg-white/50 rounded-xl border border-gray-100"}`}>
+                                           <div className={`flex items-center gap-6 ${showPreview ? "justify-start pl-1 w-full xl:w-auto" : "flex-1 justify-around px-6 h-16 bg-white/50 rounded-xl border border-gray-100"}`}>
                                               <label className="flex items-center gap-3 cursor-pointer group/toggle">
                                                  <input
                                                     type="checkbox"
@@ -2413,12 +2413,12 @@ const CreateEvent = () => {
                                     const isLocationField = field.source === 'COUNTRIES' || field.source === 'STATES' || field.source === 'LGAS';
                                     return (
                                       <Reorder.Item key={field.name || field.label} value={field}>
-                                        <div className={`p-6 bg-gray-50 rounded-[2.5rem] group relative border-2 border-gray-300 hover:border-primary transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50 flex flex-col ${showPreview ? "gap-4" : "gap-6 lg:flex-row lg:items-center lg:gap-8"}`}>
+                                        <div className={`p-6 bg-gray-50 rounded-[2.5rem] group relative border-2 border-gray-300 hover:border-primary transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50 flex flex-col ${showPreview ? "gap-4 xl:gap-6" : "gap-6 lg:flex-row lg:items-center lg:gap-8"}`}>
                                           <div className="flex absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-12 bg-white rounded-lg border border-gray-100 shadow-sm items-center justify-center cursor-grab active:cursor-grabbing text-gray-300 hover:text-primary transition-colors z-10">
                                             <GripVertical size={20} />
                                           </div>
-                                          <div className={`flex items-center gap-4 ${showPreview ? "w-full" : "flex-1 flex-col lg:flex-row lg:gap-8"}`}>
-                                             <div className={`space-y-2 ${showPreview ? "flex-[1.5] min-w-0" : "w-full flex-[2]"}`}>
+                                          <div className={`flex items-center gap-4 ${showPreview ? "w-full flex-col xl:flex-row xl:gap-6" : "flex-1 flex-col lg:flex-row lg:gap-8"}`}>
+                                             <div className={`space-y-2 ${showPreview ? "w-full xl:flex-[1.5] min-w-0" : "w-full flex-[2]"}`}>
                                                 <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Field Label</label>
                                                 <input
                                                    type="text"
@@ -2429,7 +2429,7 @@ const CreateEvent = () => {
                                                    onBlur={handleBlur} onChange={(e) => updateField(idx, "label", e.target.value)}
                                                 />
                                              </div>
-                                             <div className={`space-y-2 ${showPreview ? "flex-1 min-w-0" : "w-full flex-1"}`}>
+                                             <div className={`space-y-2 ${showPreview ? "w-full xl:flex-1 min-w-0" : "w-full flex-1"}`}>
                                                 <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Input Type</label>
                                                 <div className="relative">
                                                    <select
@@ -2448,7 +2448,7 @@ const CreateEvent = () => {
                                              </div>
                                           </div>
 
-                                          <div className={`flex items-center gap-6 ${showPreview ? "justify-start pl-1" : "flex-1 justify-around px-6 h-16 bg-white/50 rounded-xl border border-gray-100"}`}>
+                                          <div className={`flex items-center gap-6 ${showPreview ? "justify-start pl-1 w-full xl:w-auto" : "flex-1 justify-around px-6 h-16 bg-white/50 rounded-xl border border-gray-100"}`}>
                                              <label className="flex items-center gap-3 cursor-pointer group/toggle">
                                                 <input
                                                    type="checkbox"
@@ -2599,7 +2599,7 @@ const CreateEvent = () => {
                              </div>
                           </div>
 
-                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                          <div className={`grid grid-cols-1 gap-10 ${showPreview ? "2xl:grid-cols-2" : "lg:grid-cols-2"}`}>
                              <div
                                 className={`bg-gray-50 rounded-[3rem] p-8 border-2 border-dashed transition-all duration-500 flex flex-col items-center justify-center space-y-6 group/upload shadow-sm h-full relative overflow-hidden min-h-[400px]
                                   ${isUploading ? 'border-primary bg-primary/5' : 'border-gray-200 hover:bg-white hover:border-primary/30 cursor-pointer'}
@@ -3056,8 +3056,8 @@ const CreateEvent = () => {
                                 )}
                              </div>
 
-                             <div className="grid grid-cols-1 md:grid-cols-2 gap-10 relative z-10">
-                                <div className="space-y-3 md:col-span-2">
+                             <div className={`grid grid-cols-1 gap-10 relative z-10 ${showPreview ? "2xl:grid-cols-2" : "md:grid-cols-2"}`}>
+                                <div className={`space-y-3 ${showPreview ? "2xl:col-span-2" : "md:col-span-2"}`}>
                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                                        <Type size={12} className="text-primary" />
                                        Session Title
@@ -3071,7 +3071,7 @@ const CreateEvent = () => {
                                    />
                                 </div>
 
-                                <div className="space-y-3 md:col-span-2">
+                                <div className={`space-y-3 ${showPreview ? "2xl:col-span-2" : "md:col-span-2"}`}>
                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                                        <FileText size={12} className="text-primary" />
                                        Session Description
@@ -3151,7 +3151,7 @@ const CreateEvent = () => {
                                    />
                                 </div>
 
-                                <div className="space-y-3 md:col-span-2">
+                                <div className={`space-y-3 ${showPreview ? "2xl:col-span-2" : "md:col-span-2"}`}>
                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                                        <Users size={12} className="text-primary" />
                                        Assign Speakers
@@ -3210,7 +3210,7 @@ const CreateEvent = () => {
           </div>
 
           {/* Action Footer */}
-          <div className="bg-white px-8 md:px-16 py-12 border-t border-gray-50 flex flex-col sm:flex-row items-center justify-between gap-8">
+          <div className={`bg-white px-6 md:px-10 lg:px-12 py-8 md:py-10 border-t border-gray-50 flex flex-col sm:flex-row items-center justify-between gap-6 md:gap-8 ${showPreview ? "2xl:px-16" : "xl:px-16"}`}>
              <button
                onClick={() => {
                  if (currentStep === 1 && subStep > 1) {
@@ -3220,7 +3220,7 @@ const CreateEvent = () => {
                  }
                }}
                disabled={(currentStep === 1 && subStep === 1) || loading}
-               className={`flex items-center gap-4 font-black text-[10px] uppercase tracking-[0.3em] transition-all px-10 py-5 rounded-3xl border-2 ${
+               className={`flex items-center gap-3 md:gap-4 font-black text-[10px] uppercase tracking-[0.2em] md:tracking-[0.3em] transition-all px-6 md:px-10 py-4 md:py-5 rounded-3xl border-2 ${
                  (currentStep === 1 && subStep === 1) ? "opacity-0 invisible" : "bg-white text-gray-400 border-gray-100 hover:text-gray-900 hover:border-gray-900 shadow-sm"
                }`}
              >
@@ -3228,8 +3228,8 @@ const CreateEvent = () => {
                Back
              </button>
 
-             <div className="flex items-center gap-8">
-                 <div className="hidden sm:flex flex-col items-end">
+             <div className="flex items-center gap-4 md:gap-8">
+                 <div className={`hidden flex-col items-end ${showPreview ? "xl:flex" : "sm:flex"}`}>
                     <p className="text-[9px] font-black text-gray-300 uppercase tracking-[0.4em] mb-1">Next Up</p>
                     <span className="text-xs font-black text-gray-900 uppercase tracking-widest">
                         {currentStep < 3 ? (currentStep === 1 && subStep < 5 ? 'Details' : steps[currentStep].title) : 'Finish'}
@@ -3250,30 +3250,30 @@ const CreateEvent = () => {
                         }
                       }}
                       disabled={loading}
-                      className="flex items-center gap-4 bg-primary text-white font-black px-14 py-6 rounded-[2.5rem] hover:bg-opacity-90 transition-all shadow-3xl shadow-primary/30 uppercase tracking-[0.3em] text-[11px] group active:scale-95"
+                      className={`flex items-center gap-3 md:gap-4 bg-primary text-white font-black px-8 md:px-10 lg:px-12 py-4 md:py-5 rounded-[1.5rem] md:rounded-[2.5rem] hover:bg-opacity-90 transition-all shadow-3xl shadow-primary/30 uppercase tracking-[0.2em] md:tracking-[0.3em] text-[10px] md:text-[11px] group active:scale-95 ${showPreview ? "2xl:px-14 2xl:py-6" : "xl:px-14 xl:py-6"}`}
                     >
-                      {loading ? "Saving..." : subStep < 4 ? "Next" : subStep === 4 ? "Create Event & Add Visuals" : "Continue to Ticketing"}
-                      <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform duration-500" />
+                      {loading ? "Saving..." : subStep < 4 ? "Next" : subStep === 4 ? "Create Event & Media" : "Continue to Tickets"}
+                      <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform duration-500" />
                     </button>
                  )}
                  {currentStep === 2 && (
                     <button
                       onClick={createTickets}
                       disabled={loading}
-                      className="flex items-center gap-4 bg-primary text-white font-black px-14 py-6 rounded-[2.5rem] hover:bg-opacity-90 transition-all shadow-3xl shadow-primary/30 uppercase tracking-[0.3em] text-[11px] group active:scale-95"
+                      className={`flex items-center gap-3 md:gap-4 bg-primary text-white font-black px-8 md:px-10 lg:px-12 py-4 md:py-5 rounded-[1.5rem] md:rounded-[2.5rem] hover:bg-opacity-90 transition-all shadow-3xl shadow-primary/30 uppercase tracking-[0.2em] md:tracking-[0.3em] text-[10px] md:text-[11px] group active:scale-95 ${showPreview ? "2xl:px-14 2xl:py-6" : "xl:px-14 xl:py-6"}`}
                     >
                       {loading ? "Saving..." : "Save Tickets"}
-                      <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform duration-500" />
+                      <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform duration-500" />
                     </button>
                  )}
                  {currentStep === 3 && (
                     <button
                       onClick={createSessions}
                       disabled={loading}
-                      className="flex items-center gap-4 bg-secondary text-white font-black px-14 py-6 rounded-[2.5rem] hover:bg-opacity-90 transition-all shadow-3xl shadow-secondary/30 uppercase tracking-[0.3em] text-[11px] disabled:opacity-50 active:scale-95 group"
+                      className={`flex items-center gap-3 md:gap-4 bg-secondary text-white font-black px-8 md:px-10 lg:px-12 py-4 md:py-5 rounded-[1.5rem] md:rounded-[2.5rem] hover:bg-opacity-90 transition-all shadow-3xl shadow-secondary/30 uppercase tracking-[0.2em] md:tracking-[0.3em] text-[10px] md:text-[11px] disabled:opacity-50 active:scale-95 group ${showPreview ? "2xl:px-14 2xl:py-6" : "xl:px-14 xl:py-6"}`}
                     >
                       {loading ? "Finalizing..." : "Complete Setup"}
-                      <ShieldCheck size={20} className="group-hover:rotate-12 transition-transform" />
+                      <ShieldCheck size={18} className="group-hover:rotate-12 transition-transform" />
                     </button>
                  )}
              </div>
@@ -3282,7 +3282,7 @@ const CreateEvent = () => {
 
         {/* Live Preview Pane (Desktop) */}
         {showPreview && (
-          <div id="event-creation-preview" className="hidden lg:block w-[400px] xl:w-[480px] shrink-0 animate-in fade-in slide-in-from-right-12 duration-1000 ease-out">
+          <div id="event-creation-preview" className="hidden lg:block w-[400px] xl:w-[480px] shrink-0 animate-in fade-in slide-in-from-right-8 duration-500 ease-out">
             <LivePreview
               basicInfo={basicInfo}
               mediaInfo={mediaInfo}
