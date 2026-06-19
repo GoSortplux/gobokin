@@ -1125,55 +1125,109 @@ const CreateEvent = () => {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateField = (index: number, field: string, value: any) => {
-    const newFields = [...registration.fields];
-    const updatedField = { ...newFields[index], [field]: value };
+    setRegistration(prev => {
+        const newFields = [...prev.fields];
+        const updatedField = { ...newFields[index], [field]: value };
 
-    // Auto-setup logic for source selection
-    if (field === "source" && value) {
-        updatedField.type = "select";
-        updatedField.options = [];
-        if (value === "COUNTRIES") {
-            updatedField.label = "Country";
-            updatedField.name = "country";
-        } else if (value === "STATES") {
-            updatedField.label = "State";
-            updatedField.name = "state";
-            // Find a country field to depend on
-            const countryField = newFields.find(f => f.source === 'COUNTRIES');
-            if (countryField) updatedField.dependsOn = countryField.name || "country";
-        } else if (value === "LGAS") {
-            updatedField.label = "LGA";
-            updatedField.name = "lga";
-            // Find a state field to depend on
-            const stateField = newFields.find(f => f.source === 'STATES');
-            if (stateField) updatedField.dependsOn = stateField.name || "state";
+        // Auto-setup logic for source selection
+        if (field === "source" && value) {
+            updatedField.type = "select";
+            updatedField.options = [];
+            if (value === "COUNTRIES") {
+                updatedField.label = "Country";
+                updatedField.name = "country";
+
+                // Check if state/lga already exist, if not, add them
+                const hasState = newFields.some(f => f.source === 'STATES');
+                const hasLGA = newFields.some(f => f.source === 'LGAS');
+
+                if (!hasState) {
+                    newFields.push({
+                        id: Math.random().toString(),
+                        name: "state",
+                        label: "State",
+                        type: "select",
+                        source: "STATES",
+                        dependsOn: "country",
+                        required: updatedField.required,
+                        isPerAttendee: updatedField.isPerAttendee,
+                        options: []
+                    });
+                }
+                if (!hasLGA) {
+                    newFields.push({
+                        id: Math.random().toString(),
+                        name: "lga",
+                        label: "LGA",
+                        type: "select",
+                        source: "LGAS",
+                        dependsOn: "state",
+                        required: updatedField.required,
+                        isPerAttendee: updatedField.isPerAttendee,
+                        options: []
+                    });
+                }
+            } else if (value === "STATES") {
+                updatedField.label = "State";
+                updatedField.name = "state";
+                // Find a country field to depend on
+                const countryField = newFields.find(f => f.source === 'COUNTRIES');
+                if (countryField) updatedField.dependsOn = countryField.name || "country";
+
+                const hasLGA = newFields.some(f => f.source === 'LGAS');
+                if (!hasLGA) {
+                    newFields.push({
+                        id: Math.random().toString(),
+                        name: "lga",
+                        label: "LGA",
+                        type: "select",
+                        source: "LGAS",
+                        dependsOn: "state",
+                        required: updatedField.required,
+                        isPerAttendee: updatedField.isPerAttendee,
+                        options: []
+                    });
+                }
+            } else if (value === "LGAS") {
+                updatedField.label = "LGA";
+                updatedField.name = "lga";
+                // Find a state field to depend on
+                const stateField = newFields.find(f => f.source === 'STATES');
+                if (stateField) updatedField.dependsOn = stateField.name || "state";
+            }
         }
-    }
 
-    newFields[index] = updatedField;
-    setRegistration({ ...registration, fields: newFields });
+        newFields[index] = updatedField;
+        return { ...prev, fields: newFields };
+    });
   };
 
   const addFieldOption = (fieldIdx: number) => {
-    const newFields = [...registration.fields];
-    const currentOptions = newFields[fieldIdx].options || [];
-    newFields[fieldIdx] = { ...newFields[fieldIdx], options: [...currentOptions, ""] };
-    setRegistration({ ...registration, fields: newFields });
+    setRegistration(prev => {
+        const newFields = [...prev.fields];
+        const currentOptions = newFields[fieldIdx].options || [];
+        newFields[fieldIdx] = { ...newFields[fieldIdx], options: [...currentOptions, ""] };
+        return { ...prev, fields: newFields };
+    });
   };
 
   const updateFieldOption = (fieldIdx: number, optionIdx: number, value: string) => {
-    const newFields = [...registration.fields];
-    const newOptions = [...(newFields[fieldIdx].options || [])];
-    newOptions[optionIdx] = value;
-    newFields[fieldIdx] = { ...newFields[fieldIdx], options: newOptions };
-    setRegistration({ ...registration, fields: newFields });
+    setRegistration(prev => {
+        const newFields = [...prev.fields];
+        const newOptions = [...(newFields[fieldIdx].options || [])];
+        newOptions[optionIdx] = value;
+        newFields[fieldIdx] = { ...newFields[fieldIdx], options: newOptions };
+        return { ...prev, fields: newFields };
+    });
   };
 
   const removeFieldOption = (fieldIdx: number, optionIdx: number) => {
-    const newFields = [...registration.fields];
-    const newOptions = (newFields[fieldIdx].options || []).filter((_, i) => i !== optionIdx);
-    newFields[fieldIdx] = { ...newFields[fieldIdx], options: newOptions };
-    setRegistration({ ...registration, fields: newFields });
+    setRegistration(prev => {
+        const newFields = [...prev.fields];
+        const newOptions = (newFields[fieldIdx].options || []).filter((_, i) => i !== optionIdx);
+        newFields[fieldIdx] = { ...newFields[fieldIdx], options: newOptions };
+        return { ...prev, fields: newFields };
+    });
   };
 
   const createEventBase = async () => {
@@ -2410,9 +2464,9 @@ const CreateEvent = () => {
                                                                  }}
                                                              >
                                                                  <option value="">Manual Entry</option>
-                                                                 <option value="COUNTRIES">Automatic: Countries</option>
-                                                                 <option value="STATES">Automatic: States</option>
-                                                                 <option value="LGAS">Automatic: LGAs</option>
+                                                                 <option value="COUNTRIES">Countries</option>
+                                                                 <option value="STATES">States</option>
+                                                                 <option value="LGAS">LGAs</option>
                                                              </select>
                                                              <ChevronDown size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                                                          </div>
@@ -2559,9 +2613,9 @@ const CreateEvent = () => {
                                                                 }}
                                                             >
                                                                 <option value="">Manual Entry</option>
-                                                                <option value="COUNTRIES">Automatic: Countries</option>
-                                                                <option value="STATES">Automatic: States</option>
-                                                                <option value="LGAS">Automatic: LGAs</option>
+                                                                <option value="COUNTRIES">Countries</option>
+                                                                <option value="STATES">States</option>
+                                                                <option value="LGAS">LGAs</option>
                                                             </select>
                                                             <ChevronDown size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                                                         </div>
