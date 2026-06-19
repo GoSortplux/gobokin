@@ -1509,15 +1509,17 @@ const EditEventContent = () => {
                                               </button>
                                            </div>
                                            <div className="space-y-4">
+                                              {registration.mode === 'FULL_DETAILS' ? (
                                               <div className="space-y-1.5">
-                                                 <p className="text-xs font-bold text-primary uppercase">Attendee Registration (Full details)</p>
-                                                 <p className="text-[10px] text-gray-500 font-medium leading-relaxed">Collects comprehensive information for every single attendee. Use this when you need names, emails, or specific data for each person attending.</p>
+                                                 <p className="text-xs font-bold text-primary uppercase italic">Attendee Registration</p>
+                                                 <p className="text-[10px] text-gray-500 font-bold leading-relaxed">Requires every attendee to provide their full details during registration. Ideal for events where individual identification is necessary.</p>
                                               </div>
-                                              <div className="h-[1px] bg-gray-100" />
+                                              ) : (
                                               <div className="space-y-1.5">
-                                                 <p className="text-xs font-bold text-secondary uppercase">Ticket Sales (basic quantity)</p>
-                                                 <p className="text-[10px] text-gray-500 font-medium leading-relaxed">Collects details only from the ticket buyer. Use this for simple events where you just need to know how many tickets were sold to a single person.</p>
+                                                 <p className="text-xs font-bold text-secondary uppercase italic">Ticket Sales</p>
+                                                 <p className="text-[10px] text-gray-500 font-bold leading-relaxed">Only the ticket buyer provides their information, regardless of the quantity purchased. Best for simple ticketing scenarios.</p>
                                               </div>
+                                              )}
                                            </div>
                                            <div className="absolute top-full right-1 w-3 h-3 bg-white border-b border-r border-gray-100 rotate-45 -translate-y-1.5" />
                                         </div>
