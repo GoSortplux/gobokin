@@ -1126,7 +1126,31 @@ const CreateEvent = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateField = (index: number, field: string, value: any) => {
     const newFields = [...registration.fields];
-    newFields[index] = { ...newFields[index], [field]: value };
+    const updatedField = { ...newFields[index], [field]: value };
+
+    // Auto-setup logic for source selection
+    if (field === "source" && value) {
+        updatedField.type = "select";
+        updatedField.options = [];
+        if (value === "COUNTRIES") {
+            updatedField.label = "Country";
+            updatedField.name = "country";
+        } else if (value === "STATES") {
+            updatedField.label = "State";
+            updatedField.name = "state";
+            // Find a country field to depend on
+            const countryField = newFields.find(f => f.source === 'COUNTRIES');
+            if (countryField) updatedField.dependsOn = countryField.name || "country";
+        } else if (value === "LGAS") {
+            updatedField.label = "LGA";
+            updatedField.name = "lga";
+            // Find a state field to depend on
+            const stateField = newFields.find(f => f.source === 'STATES');
+            if (stateField) updatedField.dependsOn = stateField.name || "state";
+        }
+    }
+
+    newFields[index] = updatedField;
     setRegistration({ ...registration, fields: newFields });
   };
 
@@ -2201,9 +2225,9 @@ const CreateEvent = () => {
                                                         }}
                                                     >
                                                         <option value="">Manual Entry</option>
-                                                        <option value="COUNTRIES">Automatic: Countries</option>
-                                                        <option value="STATES">Automatic: States</option>
-                                                        <option value="LGAS">Automatic: LGAs</option>
+                                                        <option value="COUNTRIES">Countries</option>
+                                                        <option value="STATES">States</option>
+                                                        <option value="LGAS">LGAs</option>
                                                     </select>
                                                     <ChevronDown size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                                                 </div>
