@@ -532,9 +532,6 @@ const CreateEvent = () => {
       }
 
       const { status: _status, ...patchPayload } = basePayload as Record<string, unknown>;
-      // Ensure status is DRAFT if we're autosaving
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (patchPayload as any).status = "DRAFT";
 
       const response = await api.patch(`/events/${eventId}`, patchPayload);
       if (response.data.data.speakers) {
@@ -660,8 +657,7 @@ const CreateEvent = () => {
     }, 10000); // Every 10 seconds
 
     return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [saveToLocalStorage]); // Removing saveToBackend from deps to prevent reset on every state change
+  }, [saveToLocalStorage, saveToBackend]);
 
   // Load draft on mount
   useEffect(() => {
