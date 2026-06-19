@@ -342,12 +342,32 @@ const CreateEvent = () => {
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
   const [organizerSlug, setOrganizerSlug] = useState<string>("");
-  const [showAddFieldDropdown, setShowAddFieldDropdown] = useState(false);
-  const [showRegInfo, setShowRegInfo] = useState(false);
-  const [keywordInput, setKeywordInput] = useState("");
+
+  // Form State
+  const [basicInfo, setBasicInfo] = useState({
+    title: "",
+    description: "",
+    slug: "",
+    type: "PHYSICAL" as EventType,
+    startDate: "",
+    endDate: "",
+    location: "",
+    virtualLink: "",
+    capacity: 0,
+    category: "",
+    tags: [] as string[],
+    isPublic: true,
+    agendaEnabled: false,
+    status: "UPCOMING",
+  });
+
   const visibleSteps = useMemo(() =>
     basicInfo.agendaEnabled ? steps : steps.slice(0, 2),
   [basicInfo.agendaEnabled]);
+
+  const [showAddFieldDropdown, setShowAddFieldDropdown] = useState(false);
+  const [showRegInfo, setShowRegInfo] = useState(false);
+  const [keywordInput, setKeywordInput] = useState("");
   const addFieldDropdownRef = useRef<HTMLDivElement>(null);
   const regInfoRef = useRef<HTMLDivElement>(null);
 
@@ -376,24 +396,6 @@ const CreateEvent = () => {
     };
     fetchInitialData();
   }, []);
-
-  // Form State
-  const [basicInfo, setBasicInfo] = useState({
-    title: "",
-    description: "",
-    slug: "",
-    type: "PHYSICAL" as EventType,
-    startDate: "",
-    endDate: "",
-    location: "",
-    virtualLink: "",
-    capacity: 0,
-    category: "",
-    tags: [] as string[],
-    isPublic: true,
-    agendaEnabled: false,
-    status: "UPCOMING",
-  });
 
   const [mediaInfo, setMediaInfo] = useState({
     bannerUrl: "",

@@ -344,17 +344,6 @@ const EditEventContent = () => {
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
   const [organizerSlug, setOrganizerSlug] = useState<string>("");
-  const visibleSteps = useMemo(() =>
-    basicInfo.agendaEnabled ? steps : steps.slice(0, 2),
-  [basicInfo.agendaEnabled]);
-  const [showAddFieldDropdown, setShowAddFieldDropdown] = useState(false);
-  const [showRegInfo, setShowRegInfo] = useState(false);
-  const [keywordInput, setKeywordInput] = useState("");
-  const addFieldDropdownRef = useRef<HTMLDivElement>(null);
-  const regInfoRef = useRef<HTMLDivElement>(null);
-
-  useOnClickOutside(addFieldDropdownRef, () => setShowAddFieldDropdown(false));
-  useOnClickOutside(regInfoRef, () => setShowRegInfo(false));
 
   // Form State
   const [basicInfo, setBasicInfo] = useState({
@@ -374,6 +363,19 @@ const EditEventContent = () => {
     agendaEnabled: false,
     isWaitlistEnabled: false,
   });
+
+  const visibleSteps = useMemo(() =>
+    basicInfo.agendaEnabled ? steps : steps.slice(0, 2),
+  [basicInfo.agendaEnabled]);
+
+  const [showAddFieldDropdown, setShowAddFieldDropdown] = useState(false);
+  const [showRegInfo, setShowRegInfo] = useState(false);
+  const [keywordInput, setKeywordInput] = useState("");
+  const addFieldDropdownRef = useRef<HTMLDivElement>(null);
+  const regInfoRef = useRef<HTMLDivElement>(null);
+
+  useOnClickOutside(addFieldDropdownRef, () => setShowAddFieldDropdown(false));
+  useOnClickOutside(regInfoRef, () => setShowRegInfo(false));
 
   const [mediaInfo, setMediaInfo] = useState({
     bannerUrl: "",
