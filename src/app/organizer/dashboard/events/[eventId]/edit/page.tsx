@@ -1532,7 +1532,7 @@ const EditEventContent = () => {
                                          className="w-full px-6 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors flex items-center gap-3"
                                       >
                                          <MapPin size={14} />
-                                         Location
+                                         Country / Cities
                                       </button>
                                       )}
                                       <button
