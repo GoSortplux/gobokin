@@ -20,6 +20,13 @@ import { translateError } from "@/utils/errors";
 import { useAuth } from "@/context/AuthContext";
 import LoginRequiredModal from "@/components/auth/LoginRequiredModal";
 
+const NIGERIA_ID = '69aff562d1c0a2766615663c';
+
+const isNigeria = (countryValue: string, countries: { _id: string; name: string }[]) => {
+  if (!countryValue) return false;
+  return countryValue === NIGERIA_ID || countries.find(c => c._id === countryValue)?.name === 'Nigeria';
+};
+
 const RegistrationForm = () => {
   const { organizerSlug, eventSlug } = useParams();
   const searchParams = useSearchParams();
@@ -183,25 +190,35 @@ const RegistrationForm = () => {
   const fetchDependentData = async (field: RegistrationField, parentValue: string) => {
     if (!parentValue) return;
 
-    if (field.source === 'STATES' && !states[parentValue]) {
-      try {
-        const res = await api.get(`/locations/states/${parentValue}`);
-        // Filter out invalid/empty data
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const filteredStates = (res.data.data || []).filter((s: any) => s && s.name && s._id);
-        setStates(prev => ({ ...prev, [parentValue]: filteredStates }));
-      } catch (err) {
-        console.error("Failed to fetch states:", err);
+    if (field.source === 'STATES') {
+      if (!isNigeria(parentValue, countries)) return;
+
+      if (!states[parentValue]) {
+        try {
+          const res = await api.get(`/locations/states/${parentValue}`);
+          // Filter out invalid/empty data
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const filteredStates = (res.data.data || []).filter((s: any) => s && s.name && s._id);
+          setStates(prev => ({ ...prev, [parentValue]: filteredStates }));
+        } catch (err) {
+          console.error("Failed to fetch states:", err);
+        }
       }
-    } else if (field.source === 'LGAS' && !lgas[parentValue]) {
-      try {
-        const res = await api.get(`/locations/lgas/${parentValue}`);
-        // Filter out invalid/empty data
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const filteredLgas = (res.data.data || []).filter((l: any) => l && l.name && l._id);
-        setLgas(prev => ({ ...prev, [parentValue]: filteredLgas }));
-      } catch (err) {
-        console.error("Failed to fetch LGAs:", err);
+    } else if (field.source === 'LGAS') {
+      // Check if parent state is Nigerian (exists in our states cache)
+      const isNigerianState = Object.values(states).some(list => list.some(s => s._id === parentValue));
+      if (!isNigerianState) return;
+
+      if (!lgas[parentValue]) {
+        try {
+          const res = await api.get(`/locations/lgas/${parentValue}`);
+          // Filter out invalid/empty data
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const filteredLgas = (res.data.data || []).filter((l: any) => l && l.name && l._id);
+          setLgas(prev => ({ ...prev, [parentValue]: filteredLgas }));
+        } catch (err) {
+          console.error("Failed to fetch LGAs:", err);
+        }
       }
     }
   };
@@ -405,9 +422,15 @@ const RegistrationForm = () => {
                                    {field.name === 'email' && <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />}
                                    {field.name === 'phone' && <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />}
 
-                                   {(field.type === 'text' || field.type === 'number') && !field.source ? (
+                                   {((field.type === 'text' || field.type === 'number') && !field.source) ||
+                                    ((field.source === 'STATES' || field.source === 'LGAS') && (() => {
+                                       const countryField = (event.registrationFields || []).find(f => f.source === 'COUNTRIES');
+                                       if (!countryField) return false;
+                                       const countryValue = countryField.isPerAttendee ? attendees[index][countryField.name] : sharedData[countryField.name];
+                                       return countryValue && !isNigeria(countryValue, countries);
+                                    })()) ? (
                                       <input
-                                        type={field.type}
+                                        type={field.type === 'number' ? 'number' : 'text'}
                                         name={field.name}
                                         placeholder={`Enter ${field.label}`}
                                         required={field.required}
