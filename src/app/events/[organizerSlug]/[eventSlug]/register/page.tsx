@@ -226,23 +226,25 @@ const RegistrationForm = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleAttendeeChange = (index: number, field: RegistrationField, value: any) => {
     const fieldName = field.name;
-    const newAttendees = [...attendees];
-    const attendee = { ...newAttendees[index] };
-    attendee[fieldName] = value;
 
-    // Recursive reset of dependent fields
-    const resetDependents = (name: string) => {
-      (event?.registrationFields || []).forEach(f => {
-        if (f.dependsOn === name && f.isPerAttendee) {
-          attendee[f.name] = "";
-          resetDependents(f.name);
-        }
-      });
-    };
+    setAttendees(prev => {
+      const newAttendees = [...prev];
+      const attendee = { ...newAttendees[index] };
+      attendee[fieldName] = value;
 
-    resetDependents(fieldName);
-    newAttendees[index] = attendee;
-    setAttendees(newAttendees);
+      const resetDependents = (name: string) => {
+        (event?.registrationFields || []).forEach(f => {
+          if (f.dependsOn === name && f.isPerAttendee) {
+            attendee[f.name] = f.type === 'checkbox' ? false : "";
+            resetDependents(f.name);
+          }
+        });
+      };
+
+      resetDependents(fieldName);
+      newAttendees[index] = attendee;
+      return newAttendees;
+    });
 
     // Fetch dependent data if needed
     const dependentFields = (event?.registrationFields || []).filter(f => f.dependsOn === fieldName);
@@ -252,29 +254,28 @@ const RegistrationForm = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleSharedChange = (field: RegistrationField, value: any) => {
     const fieldName = field.name;
+
     setSharedData(prev => {
       const newShared = { ...prev, [fieldName]: value };
-
       const resetDependents = (name: string) => {
         (event?.registrationFields || []).forEach(f => {
           if (f.dependsOn === name && !f.isPerAttendee) {
-            newShared[f.name] = "";
+            newShared[f.name] = f.type === 'checkbox' ? false : "";
             resetDependents(f.name);
           }
         });
       };
-
       resetDependents(fieldName);
       return newShared;
     });
 
     // Reset dependent fields in attendees as well
-    setAttendees(prevAttendees => prevAttendees.map(att => {
+    setAttendees(prev => prev.map(att => {
         const newAtt = { ...att };
         const resetAttDependents = (name: string) => {
             (event?.registrationFields || []).forEach(f => {
                 if (f.dependsOn === name && f.isPerAttendee) {
-                    newAtt[f.name] = "";
+                    newAtt[f.name] = f.type === 'checkbox' ? false : "";
                     resetAttDependents(f.name);
                 }
             });

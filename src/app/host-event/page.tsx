@@ -1,6 +1,7 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import useOnClickOutside from "@/hooks/useOnClickOutside";
 import {
   ArrowLeft,
   ArrowRight,
@@ -17,6 +18,11 @@ import {
   FileText,
   CheckCircle2,
   Zap,
+  GripVertical,
+  Layout,
+  Tag,
+  Info,
+  X,
   Eye,
   EyeOff,
   Image as ImageIcon,
@@ -28,10 +34,12 @@ import {
 import api from "@/services/api";
 import axios from "axios";
 import Image from "next/image";
+import { Reorder } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
-import { EventType, RegistrationMode, Speaker, TicketType, Ticket as ITicket } from "@/types";
+import { EventType, RegistrationMode, RegistrationField, Speaker, TicketType, Ticket as ITicket } from "@/types";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
+import LoginRequiredModal from "@/components/auth/LoginRequiredModal";
 
 const steps = [
   { id: 1, title: "Identity", icon: Type },
@@ -309,6 +317,15 @@ const HostEventPage = () => {
   const [isFinalizing, setIsFinalizing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
+  const [showAddFieldDropdown, setShowAddFieldDropdown] = useState(false);
+  const [showRegInfo, setShowRegInfo] = useState(false);
+  const addFieldDropdownRef = useRef<HTMLDivElement>(null);
+  const regInfoRef = useRef<HTMLDivElement>(null);
+
+  useOnClickOutside(addFieldDropdownRef, () => setShowAddFieldDropdown(false));
+  useOnClickOutside(regInfoRef, () => setShowRegInfo(false));
 
   const [formData, setFormData] = useState({
     eventId: null as string | null,
@@ -335,6 +352,15 @@ const HostEventPage = () => {
     speakers: [] as Speaker[],
     registration: {
       mode: "FULL_DETAILS" as RegistrationMode,
+      isGroupingEnabled: false,
+      enforceUniqueGroupNames: true,
+      fields: [
+        { name: "full-name", label: "Full Name", type: "text", required: true, isPerAttendee: true },
+        { name: "email", label: "Email Address", type: "text", required: true, isPerAttendee: true },
+        { name: "country", label: "Country", type: "select", source: "COUNTRIES", required: true, isPerAttendee: true },
+        { name: "state", label: "State", type: "select", source: "STATES", dependsOn: "country", required: true, isPerAttendee: true },
+        { name: "lga", label: "LGA", type: "select", source: "LGAS", dependsOn: "state", required: true, isPerAttendee: true },
+      ] as RegistrationField[],
     },
     tickets: [{
       id: "1",
@@ -509,6 +535,363 @@ const HostEventPage = () => {
           }
       }
       setFormData(prev => ({ ...prev, mediaInfo: { ...prev.mediaInfo, mediaUrls: prev.mediaInfo.mediaUrls.filter((_, i) => i !== idx) } }));
+  };
+
+  const addField = (fieldType: 'custom' | 'location' | 'address' = 'custom') => {
+    const isPerAttendee = formData.registration.isGroupingEnabled ? true : false;
+
+    if (fieldType === 'location') {
+      setFormData(prev => ({
+        ...prev,
+        registration: {
+          ...prev.registration,
+          fields: [
+            ...prev.registration.fields,
+            {
+              id: Math.random().toString(),
+              name: "country",
+              label: "Country",
+              type: "select",
+              source: "COUNTRIES",
+              required: true,
+              isPerAttendee,
+              options: []
+            },
+            {
+              id: Math.random().toString(),
+              name: "state",
+              label: "State",
+              type: "select",
+              source: "STATES",
+              dependsOn: "country",
+              required: true,
+              isPerAttendee,
+              options: []
+            },
+            {
+              id: Math.random().toString(),
+              name: "lga",
+              label: "LGA",
+              type: "select",
+              source: "LGAS",
+              dependsOn: "state",
+              required: true,
+              isPerAttendee,
+              options: []
+            }
+          ]
+        }
+      }));
+    } else if (fieldType === 'address') {
+      setFormData(prev => ({
+        ...prev,
+        registration: {
+          ...prev.registration,
+          fields: [...prev.registration.fields, {
+            id: Math.random().toString(),
+            name: "address",
+            label: "Address",
+            type: "text",
+            required: false,
+            isPerAttendee,
+            options: []
+          }]
+        }
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        registration: {
+          ...prev.registration,
+          fields: [...prev.registration.fields, {
+            id: Math.random().toString(),
+            name: "",
+            label: "",
+            type: "text",
+            required: false,
+            isPerAttendee,
+            options: []
+          }]
+        }
+      }));
+    }
+    setShowAddFieldDropdown(false);
+  };
+
+  const removeField = (index: number) => {
+    setFormData(prev => {
+        const newFields = [...prev.registration.fields];
+        newFields.splice(index, 1);
+        return { ...prev, registration: { ...prev.registration, fields: newFields } };
+    });
+  };
+
+  const renderFieldCard = (field: RegistrationField, idx: number) => {
+    const isLocationField = field.source === 'COUNTRIES' || field.source === 'STATES' || field.source === 'LGAS';
+    return (
+        <div key={field.id || field.name || idx} className="space-y-4">
+            <div className={`p-6 bg-gray-50 rounded-[2.5rem] group relative border-2 border-gray-300 hover:border-primary transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50 flex flex-col lg:flex-row lg:items-center gap-6 lg:gap-8`}>
+                <div className="flex absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-12 bg-white rounded-lg border border-gray-100 shadow-sm items-center justify-center cursor-grab active:cursor-grabbing text-gray-300 hover:text-primary transition-colors z-10">
+                  <GripVertical size={20} />
+                </div>
+                <div className="flex-1 flex flex-col lg:flex-row lg:gap-8 gap-4">
+                    <div className="flex-[2] space-y-2">
+                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Field Label</label>
+                        <input
+                            type="text"
+                            placeholder="e.g., Job Title"
+                            disabled={isLocationField}
+                            className={`w-full p-3.5 bg-white border border-gray-200 rounded-xl text-[11px] font-bold focus:border-primary transition-all outline-none ${isLocationField ? 'opacity-60 cursor-not-allowed' : ''}`}
+                            value={field.label}
+                            onChange={(e) => updateField(idx, "label", e.target.value)}
+                        />
+                    </div>
+                    <div className="flex-1 space-y-2">
+                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Input Type</label>
+                        <div className="relative">
+                            <select
+                                disabled={isLocationField}
+                                className={`w-full p-3.5 bg-white border border-gray-200 rounded-xl text-[11px] font-bold appearance-none outline-none focus:border-primary transition-all ${isLocationField ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                value={field.type}
+                                onChange={(e) => updateField(idx, "type", e.target.value)}
+                            >
+                                <option value="text">Text</option>
+                                <option value="number">Number</option>
+                                <option value="select">Dropdown</option>
+                                <option value="checkbox">Checkbox</option>
+                            </select>
+                            <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex-1 flex justify-around px-6 h-16 bg-white/50 rounded-xl border border-gray-100 items-center gap-6">
+                    <label className="flex items-center gap-3 cursor-pointer group/toggle">
+                        <input
+                            type="checkbox"
+                            checked={field.required}
+                            onChange={(e) => updateField(idx, "required", e.target.checked)}
+                            className="w-6 h-6 rounded-lg border-gray-200 text-primary cursor-pointer shadow-sm transition-all"
+                        />
+                        <span className="text-[10px] font-black text-gray-400 group-hover/toggle:text-gray-900 uppercase tracking-widest transition-colors">Required</span>
+                    </label>
+                    <label className={`flex items-center gap-3 group/toggle ${!formData.registration.isGroupingEnabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}>
+                        <input
+                            type="checkbox"
+                            disabled={!formData.registration.isGroupingEnabled}
+                            checked={field.isPerAttendee}
+                            onChange={(e) => updateField(idx, "isPerAttendee", e.target.checked)}
+                            className="w-6 h-6 rounded-lg border-gray-200 text-primary cursor-pointer shadow-sm transition-all"
+                        />
+                        <span className="text-[10px] font-black text-gray-400 group-hover/toggle:text-gray-900 uppercase tracking-widest transition-colors">Per Attendee</span>
+                    </label>
+                </div>
+
+                <button onClick={() => removeField(idx)} className="text-gray-300 hover:text-secondary rounded-xl flex items-center justify-center transition-all">
+                    <Trash2 size={16} />
+                </button>
+            </div>
+
+            {(field.type === 'select' || field.type === 'checkbox' || !!field.source) && (
+                <div className="bg-gray-50/50 rounded-[2rem] p-6 border border-gray-100 mt-2 ml-4 mr-4 space-y-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        {!isLocationField && (
+                            <div className="space-y-2">
+                                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Choice Source</label>
+                                <div className="relative">
+                                    <select
+                                        className="w-full p-3.5 bg-white border border-gray-200 rounded-xl text-xs font-bold appearance-none outline-none focus:border-primary transition-all shadow-sm"
+                                        value={field.source || ""}
+                                        onChange={(e) => {
+                                            const newSource = e.target.value || undefined;
+                                            updateField(idx, "source", newSource);
+                                            if (newSource) {
+                                                updateField(idx, "options", []);
+                                            }
+                                        }}
+                                    >
+                                        <option value="">Manual Entry</option>
+                                        <option value="COUNTRIES">Countries</option>
+                                        <option value="STATES">States</option>
+                                        <option value="LGAS">LGAs</option>
+                                    </select>
+                                    <ChevronDown size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                </div>
+                            </div>
+                        )}
+                        {field.source && !isLocationField && (
+                            <div className="space-y-2">
+                                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Link to Field</label>
+                                <div className="relative">
+                                    <select
+                                        className="w-full p-3.5 bg-white border border-gray-200 rounded-xl text-xs font-bold appearance-none outline-none focus:border-primary transition-all shadow-sm"
+                                        value={field.dependsOn || ""}
+                                        onChange={(e) => updateField(idx, "dependsOn", e.target.value || undefined)}
+                                    >
+                                        <option value="">Independent</option>
+                                        {formData.registration.fields.filter((_, i) => i !== idx).map((f, i) => (
+                                            <option key={i} value={f.name || f.label.toLowerCase().replace(/\s+/g, '-')}>{f.label}</option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between px-1">
+                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                                {field.source ? "Auto-Managed" : "Your Options"}
+                            </p>
+                            {!field.source && !isLocationField && (
+                                <button onClick={() => addFieldOption(idx)} className="text-[9px] font-black text-primary uppercase tracking-widest hover:underline flex items-center gap-1">
+                                    <Plus size={10} strokeWidth={3} /> Add
+                                </button>
+                            )}
+                        </div>
+                        <div className="flex flex-wrap gap-2.5">
+                            {field.source ? (
+                                <div className="flex items-center gap-2.5 p-3.5 bg-primary/5 rounded-xl border border-primary/10 w-full">
+                                    <Info size={14} className="text-primary shrink-0" />
+                                    <p className="text-[9px] font-semibold text-primary/80 leading-relaxed uppercase tracking-wider">
+                                        Pops from {field.source}.
+                                        {field.dependsOn && <span> Linked to {field.dependsOn}.</span>}
+                                    </p>
+                                </div>
+                            ) : (
+                                <>
+                                    {(field.options || []).map((opt, oIdx) => (
+                                        <div key={oIdx} className="flex items-center gap-1.5 bg-white p-1.5 pl-3 rounded-lg border border-gray-100 shadow-sm group/opt transition-all hover:border-primary/20">
+                                            <input
+                                                type="text"
+                                                value={opt}
+                                                onChange={(e) => updateFieldOption(idx, oIdx, e.target.value)}
+                                                placeholder="Option"
+                                                className="bg-transparent border-none outline-none text-[10px] font-bold text-gray-600 w-20"
+                                            />
+                                            <button onClick={() => removeFieldOption(idx, oIdx)} className="w-5 h-5 rounded flex items-center justify-center text-gray-300 hover:text-secondary transition-all">
+                                                <X size={12} strokeWidth={3} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    {(field.options || []).length === 0 && (
+                                        <p className="text-[9px] text-gray-400 italic px-1">Add options for your guests to select.</p>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const updateField = (index: number, field: string, value: any) => {
+    setFormData(prev => {
+        const newFields = [...prev.registration.fields];
+        const updatedField = { ...newFields[index], [field]: value };
+
+        // Auto-setup logic for source selection
+        if (field === "source" && value) {
+            updatedField.type = "select";
+            updatedField.options = [];
+            if (value === "COUNTRIES") {
+                updatedField.label = "Country";
+                updatedField.name = "country";
+
+                // Check if state/lga already exist, if not, add them
+                const hasState = newFields.some(f => f.source === 'STATES');
+                const hasLGA = newFields.some(f => f.source === 'LGAS');
+
+                if (!hasState) {
+                    newFields.push({
+                        id: Math.random().toString(),
+                        name: "state",
+                        label: "State",
+                        type: "select",
+                        source: "STATES",
+                        dependsOn: "country",
+                        required: updatedField.required,
+                        isPerAttendee: updatedField.isPerAttendee,
+                        options: []
+                    });
+                }
+                if (!hasLGA) {
+                    newFields.push({
+                        id: Math.random().toString(),
+                        name: "lga",
+                        label: "LGA",
+                        type: "select",
+                        source: "LGAS",
+                        dependsOn: "state",
+                        required: updatedField.required,
+                        isPerAttendee: updatedField.isPerAttendee,
+                        options: []
+                    });
+                }
+            } else if (value === "STATES") {
+                updatedField.label = "State";
+                updatedField.name = "state";
+                // Find a country field to depend on
+                const countryField = newFields.find(f => f.source === 'COUNTRIES');
+                if (countryField) updatedField.dependsOn = countryField.name || "country";
+
+                const hasLGA = newFields.some(f => f.source === 'LGAS');
+                if (!hasLGA) {
+                    newFields.push({
+                        id: Math.random().toString(),
+                        name: "lga",
+                        label: "LGA",
+                        type: "select",
+                        source: "LGAS",
+                        dependsOn: "state",
+                        required: updatedField.required,
+                        isPerAttendee: updatedField.isPerAttendee,
+                        options: []
+                    });
+                }
+            } else if (value === "LGAS") {
+                updatedField.label = "LGA";
+                updatedField.name = "lga";
+                // Find a state field to depend on
+                const stateField = newFields.find(f => f.source === 'STATES');
+                if (stateField) updatedField.dependsOn = stateField.name || "state";
+            }
+        }
+
+        newFields[index] = updatedField;
+        return { ...prev, registration: { ...prev.registration, fields: newFields } };
+    });
+  };
+
+  const addFieldOption = (fieldIdx: number) => {
+    setFormData(prev => {
+        const newFields = [...prev.registration.fields];
+        const currentOptions = newFields[fieldIdx].options || [];
+        newFields[fieldIdx] = { ...newFields[fieldIdx], options: [...currentOptions, ""] };
+        return { ...prev, registration: { ...prev.registration, fields: newFields } };
+    });
+  };
+
+  const updateFieldOption = (fieldIdx: number, optionIdx: number, value: string) => {
+    setFormData(prev => {
+        const newFields = [...prev.registration.fields];
+        const newOptions = [...(newFields[fieldIdx].options || [])];
+        newOptions[optionIdx] = value;
+        newFields[fieldIdx] = { ...newFields[fieldIdx], options: newOptions };
+        return { ...prev, registration: { ...prev.registration, fields: newFields } };
+    });
+  };
+
+  const removeFieldOption = (fieldIdx: number, optionIdx: number) => {
+    setFormData(prev => {
+        const newFields = [...prev.registration.fields];
+        const newOptions = (newFields[fieldIdx].options || []).filter((_, i) => i !== optionIdx);
+        newFields[fieldIdx] = { ...newFields[fieldIdx], options: newOptions };
+        return { ...prev, registration: { ...prev.registration, fields: newFields } };
+    });
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -743,7 +1126,7 @@ const HostEventPage = () => {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
         localStorage.setItem("gobokin_host_event_resume_step_5", "true");
         localStorage.setItem("returnUrl", "/host-event");
-        router.push("/auth/register");
+        setShowLoginModal(true);
         return;
     }
 
@@ -766,14 +1149,18 @@ const HostEventPage = () => {
             tags: (formData.basicInfo.tags || "").split(',').map(tag => tag.trim()).filter(tag => tag !== ""),
             agendaEnabled: formData.basicInfo.agendaEnabled,
             registrationMode: formData.registration.mode,
-            // Default registration fields as expected by the dashboard
-            registrationFields: [
-                { name: "full-name", label: "Full Name", type: "text", required: true, isPerAttendee: true },
-                { name: "email", label: "Email Address", type: "text", required: true, isPerAttendee: true },
-                { name: "country", label: "Country", type: "select", source: "COUNTRIES", required: true, isPerAttendee: true },
-                { name: "state", label: "State", type: "select", source: "STATES", dependsOn: "country", required: true, isPerAttendee: true },
-                { name: "lga", label: "LGA", type: "select", source: "LGAS", dependsOn: "state", required: true, isPerAttendee: true },
-            ],
+            isGroupingEnabled: formData.registration.isGroupingEnabled,
+            enforceUniqueGroupNames: formData.registration.enforceUniqueGroupNames,
+            registrationFields: formData.registration.fields.map(f => ({
+                name: f.name || f.label.toLowerCase().replace(/\s+/g, '-'),
+                label: f.label,
+                type: f.type,
+                required: f.required,
+                isPerAttendee: f.isPerAttendee,
+                options: (f.type === 'select' || f.type === 'checkbox') && !f.source ? f.options : undefined,
+                source: f.source,
+                dependsOn: f.dependsOn
+            })),
             speakers: formData.speakers.map(s => ({
                 name: s.name,
                 title: s.title,
@@ -815,6 +1202,12 @@ const HostEventPage = () => {
 
   return (
     <div className="min-h-screen bg-white pt-24 pb-20 px-4 md:px-6">
+      <LoginRequiredModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        title="Sign in required"
+        message="You need to sign in to finalize your event and go live."
+      />
       <div className="max-w-[1500px] mx-auto">
         <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-1">
@@ -1066,7 +1459,42 @@ const HostEventPage = () => {
                       </div>
                       <div className="p-8 bg-gray-50/50 rounded-2xl border border-gray-100 md:col-span-2 space-y-6">
                         <div className="space-y-1">
-                          <h4 className="text-sm font-semibold text-gray-900">Registration Mode</h4>
+                          <h4 className="text-sm font-semibold text-gray-900 flex items-center justify-between">
+                            Registration Mode
+                            <div className="relative" ref={regInfoRef}>
+                              <button
+                                type="button"
+                                onClick={() => setShowRegInfo(!showRegInfo)}
+                                className="text-primary hover:text-primary/80 transition-colors focus:outline-none"
+                              >
+                                <Info size={14} />
+                              </button>
+                              {showRegInfo && (
+                                <div className="absolute bottom-full right-0 mb-3 w-72 p-6 bg-white border border-gray-100 text-gray-900 rounded-[2rem] shadow-2xl z-[100] animate-in fade-in slide-in-from-bottom-2 duration-200">
+                                   <div className="flex items-center justify-between mb-4">
+                                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Registration Modes Explained</p>
+                                      <button onClick={() => setShowRegInfo(false)} className="text-gray-400 hover:text-gray-600">
+                                         <X size={14} />
+                                      </button>
+                                   </div>
+                                   <div className="space-y-4">
+                                      {formData.registration.mode === 'FULL_DETAILS' ? (
+                                      <div className="space-y-1.5">
+                                         <p className="text-xs font-bold text-primary uppercase italic">Attendee Registration</p>
+                                         <p className="text-[10px] text-gray-500 font-bold leading-relaxed">Requires every attendee to provide their full details during registration.</p>
+                                      </div>
+                                      ) : (
+                                      <div className="space-y-1.5">
+                                         <p className="text-xs font-bold text-secondary uppercase italic">Ticket Sales</p>
+                                         <p className="text-[10px] text-gray-500 font-bold leading-relaxed">Only the ticket buyer provides their information.</p>
+                                      </div>
+                                      )}
+                                   </div>
+                                   <div className="absolute top-full right-1 w-3 h-3 bg-white border-b border-r border-gray-100 rotate-45 -translate-y-1.5" />
+                                </div>
+                              )}
+                            </div>
+                          </h4>
                           <p className="text-xs text-gray-500">Choose how guest data is captured.</p>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1079,7 +1507,7 @@ const HostEventPage = () => {
                             }`}
                           >
                             <p className="text-xs font-bold uppercase tracking-wider mb-2">Full Details</p>
-                            <p className="text-xs text-gray-500 font-medium leading-relaxed">Collect information for every single attendee in an order.</p>
+                            <p className="text-xs text-gray-500 font-medium leading-relaxed">Collect information for every attendee.</p>
                           </button>
                           <button
                             onClick={() => handleChange("registration", "mode", "BASIC_QUANTITY")}
@@ -1090,10 +1518,250 @@ const HostEventPage = () => {
                             }`}
                           >
                             <p className="text-xs font-bold uppercase tracking-wider mb-2">Basic Quantity</p>
-                            <p className="text-xs text-gray-500 font-medium leading-relaxed">Only collect the buyer&apos;s information, regardless of quantity.</p>
+                            <p className="text-xs text-gray-500 font-medium leading-relaxed">Only collect the buyer&apos;s information.</p>
                           </button>
                         </div>
                       </div>
+
+                      <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between gap-6 hover:bg-gray-50/50 transition-colors">
+                        <div className="space-y-1">
+                          <h4 className="text-sm font-semibold text-gray-900">Group Registration</h4>
+                          <p className="text-xs text-gray-500">Allow guests to register as a team.</p>
+                        </div>
+                        <button
+                          onClick={() => {
+                             const newGroupingEnabled = !formData.registration.isGroupingEnabled;
+                             setFormData(prev => ({
+                                ...prev,
+                                registration: {
+                                    ...prev.registration,
+                                    isGroupingEnabled: newGroupingEnabled,
+                                    fields: prev.registration.fields.map(f => ({ ...f, isPerAttendee: newGroupingEnabled ? f.isPerAttendee : false }))
+                                }
+                             }));
+                          }}
+                          className={`w-12 h-7 rounded-full transition-all relative ${formData.registration.isGroupingEnabled ? "bg-primary" : "bg-gray-200"}`}
+                        >
+                          <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all ${formData.registration.isGroupingEnabled ? "left-6" : "left-1"}`} />
+                        </button>
+                      </div>
+
+                      {formData.registration.isGroupingEnabled && (
+                        <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between gap-6 hover:bg-gray-50/50 transition-colors">
+                            <div className="space-y-1">
+                                <h4 className="text-sm font-semibold text-gray-900">Unique Group Names</h4>
+                                <p className="text-xs text-gray-500">Prevent duplicate group names.</p>
+                            </div>
+                            <button
+                                onClick={() => setFormData(prev => ({ ...prev, registration: { ...prev.registration, enforceUniqueGroupNames: !prev.registration.enforceUniqueGroupNames } }))}
+                                className={`w-12 h-7 rounded-full transition-all relative ${formData.registration.enforceUniqueGroupNames ? "bg-primary" : "bg-gray-200"}`}
+                            >
+                                <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all ${formData.registration.enforceUniqueGroupNames ? "left-6" : "left-1"}`} />
+                            </button>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-10 mt-12">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-gray-100 pb-10">
+                            <div>
+                                <h3 className="text-2xl font-semibold text-gray-900 tracking-tight">Registration Fields</h3>
+                                <p className="text-sm text-gray-500 font-medium">Capture specific attendee data.</p>
+                            </div>
+                            <div className="relative" ref={addFieldDropdownRef}>
+                                <button
+                                    onClick={() => setShowAddFieldDropdown(!showAddFieldDropdown)}
+                                    className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white font-semibold rounded-xl hover:bg-black transition-all text-sm shadow-lg"
+                                >
+                                    <Plus size={18} />
+                                    Add Fields
+                                </button>
+                                {showAddFieldDropdown && (
+                                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-gray-100 py-3 z-[100] animate-in fade-in zoom-in duration-200">
+                                      {!(formData.registration.fields.some(f => f.source === 'COUNTRIES') &&
+                                         formData.registration.fields.some(f => f.source === 'STATES') &&
+                                         formData.registration.fields.some(f => f.source === 'LGAS')) && (
+                                      <button
+                                         onClick={() => addField('location')}
+                                         className="w-full px-6 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors flex items-center gap-3"
+                                      >
+                                         <MapPin size={14} />
+                                         Country / Cities
+                                      </button>
+                                      )}
+                                      {formData.registration.isGroupingEnabled && (
+                                        <div className="border-t border-gray-50 my-1 py-1">
+                                          <p className="px-6 py-1 text-[8px] font-black text-gray-400 uppercase tracking-widest">Group Fields</p>
+                                          {!formData.registration.fields.some(f => f.label.toLowerCase() === 'organization') && (
+                                            <button
+                                              onClick={() => {
+                                                setFormData({
+                                                  ...formData,
+                                                  registration: {
+                                                    ...formData.registration,
+                                                    fields: [...formData.registration.fields, {
+                                                      name: "organization",
+                                                      label: "Organization",
+                                                      type: "text",
+                                                      required: false,
+                                                      isPerAttendee: false,
+                                                      options: []
+                                                    }]
+                                                  }
+                                                });
+                                                setShowAddFieldDropdown(false);
+                                              }}
+                                              className="w-full px-6 py-2.5 text-left text-[10px] font-black uppercase tracking-widest text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors flex items-center gap-3"
+                                            >
+                                              <Layout size={14} />
+                                              Organization
+                                            </button>
+                                          )}
+                                          {!formData.registration.fields.some(f => f.label.toLowerCase() === 'team category') && (
+                                            <button
+                                              onClick={() => {
+                                                setFormData({
+                                                  ...formData,
+                                                  registration: {
+                                                    ...formData.registration,
+                                                    fields: [...formData.registration.fields, {
+                                                      name: "team-category",
+                                                      label: "Team Category",
+                                                      type: "text",
+                                                      required: false,
+                                                      isPerAttendee: false,
+                                                      options: []
+                                                    }]
+                                                  }
+                                                });
+                                                setShowAddFieldDropdown(false);
+                                              }}
+                                              className="w-full px-6 py-2.5 text-left text-[10px] font-black uppercase tracking-widest text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors flex items-center gap-3"
+                                            >
+                                              <Tag size={14} />
+                                              Team Category
+                                            </button>
+                                          )}
+                                          {!formData.registration.fields.some(f => f.label.toLowerCase() === 'coach name') && (
+                                            <button
+                                              onClick={() => {
+                                                setFormData({
+                                                  ...formData,
+                                                  registration: {
+                                                    ...formData.registration,
+                                                    fields: [...formData.registration.fields, {
+                                                      name: "coach-name",
+                                                      label: "Coach Name",
+                                                      type: "text",
+                                                      required: false,
+                                                      isPerAttendee: false,
+                                                      options: []
+                                                    }]
+                                                  }
+                                                });
+                                                setShowAddFieldDropdown(false);
+                                              }}
+                                              className="w-full px-6 py-2.5 text-left text-[10px] font-black uppercase tracking-widest text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors flex items-center gap-3"
+                                            >
+                                              <User size={14} />
+                                              Coach Name
+                                            </button>
+                                          )}
+                                        </div>
+                                      )}
+                                      <div className="border-t border-gray-50 my-1 py-1">
+                                        {formData.registration.isGroupingEnabled && <p className="px-6 py-1 text-[8px] font-black text-gray-400 uppercase tracking-widest">Attendee Fields</p>}
+                                        <button
+                                          onClick={() => addField('custom')}
+                                          className="w-full px-6 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors flex items-center gap-3"
+                                        >
+                                          <Plus size={14} />
+                                          Empty Field
+                                        </button>
+                                      </div>
+                                   </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-12">
+                            {formData.registration.mode === 'FULL_DETAILS' && formData.registration.isGroupingEnabled ? (
+                                <>
+                                    {/* Group Fields */}
+                                    <div className="space-y-6">
+                                        <div className="flex items-center gap-3 px-2">
+                                            <div className="w-1.5 h-6 bg-primary rounded-full"></div>
+                                            <h4 className="text-sm font-black text-gray-900 uppercase tracking-widest">Group Information</h4>
+                                        </div>
+                                        <Reorder.Group
+                                            axis="y"
+                                            values={formData.registration.fields.filter(f => !f.isPerAttendee)}
+                                            onReorder={(newFields) => {
+                                                const otherFields = formData.registration.fields.filter(f => f.isPerAttendee);
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    registration: { ...prev.registration, fields: [...newFields, ...otherFields] }
+                                                }));
+                                            }}
+                                            className="grid grid-cols-1 gap-6"
+                                        >
+                                            {formData.registration.fields.filter(f => !f.isPerAttendee).map((field) => {
+                                                const idx = formData.registration.fields.indexOf(field);
+                                                return (
+                                                    <Reorder.Item key={field.id || field.name || field.label} value={field}>
+                                                        {renderFieldCard(field, idx)}
+                                                    </Reorder.Item>
+                                                );
+                                            })}
+                                        </Reorder.Group>
+                                    </div>
+                                    {/* Attendee Fields */}
+                                    <div className="space-y-6">
+                                        <div className="flex items-center gap-3 px-2">
+                                            <div className="w-1.5 h-6 bg-secondary rounded-full"></div>
+                                            <h4 className="text-sm font-black text-gray-900 uppercase tracking-widest">Attendee Information</h4>
+                                        </div>
+                                        <Reorder.Group
+                                            axis="y"
+                                            values={formData.registration.fields.filter(f => f.isPerAttendee)}
+                                            onReorder={(newFields) => {
+                                                const otherFields = formData.registration.fields.filter(f => !f.isPerAttendee);
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    registration: { ...prev.registration, fields: [...otherFields, ...newFields] }
+                                                }));
+                                            }}
+                                            className="grid grid-cols-1 gap-6"
+                                        >
+                                            {formData.registration.fields.filter(f => f.isPerAttendee).map((field) => {
+                                                const idx = formData.registration.fields.indexOf(field);
+                                                return (
+                                                    <Reorder.Item key={field.id || field.name || field.label} value={field}>
+                                                        {renderFieldCard(field, idx)}
+                                                    </Reorder.Item>
+                                                );
+                                            })}
+                                        </Reorder.Group>
+                                    </div>
+                                </>
+                            ) : (
+                                <Reorder.Group
+                                    axis="y"
+                                    values={formData.registration.fields}
+                                    onReorder={(newFields) => setFormData(prev => ({
+                                        ...prev,
+                                        registration: { ...prev.registration, fields: newFields }
+                                    }))}
+                                    className="grid grid-cols-1 gap-6"
+                                >
+                                    {formData.registration.fields.map((field, idx) => (
+                                        <Reorder.Item key={field.id || field.name || field.label} value={field}>
+                                            {renderFieldCard(field, idx)}
+                                        </Reorder.Item>
+                                    ))}
+                                </Reorder.Group>
+                            )}
+                        </div>
                     </div>
                   </div>
                 )}
