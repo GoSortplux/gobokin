@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useCallback, useRef, useMemo } from "react";
+import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import useOnClickOutside from "@/hooks/useOnClickOutside";
@@ -42,7 +42,6 @@ import {
 } from "lucide-react";
 import api from "@/services/api";
 import axios from "axios";
-import { useEffect } from "react";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 import {  EventType, RegistrationMode, RegistrationField, Speaker, TicketType, Ticket as ITicket } from "@/types";

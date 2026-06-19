@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useCallback, useEffect, useRef, Suspense } from "react";
+import React, { useState, useCallback, useEffect, useRef, useMemo, Suspense } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import useOnClickOutside from "@/hooks/useOnClickOutside";
