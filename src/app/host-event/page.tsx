@@ -321,6 +321,7 @@ const HostEventPage = () => {
 
   const [showAddFieldDropdown, setShowAddFieldDropdown] = useState(false);
   const [showRegInfo, setShowRegInfo] = useState(false);
+  const [keywordInput, setKeywordInput] = useState("");
   const addFieldDropdownRef = useRef<HTMLDivElement>(null);
   const regInfoRef = useRef<HTMLDivElement>(null);
 
@@ -333,7 +334,7 @@ const HostEventPage = () => {
       title: "",
       slug: "",
       category: "",
-      tags: "",
+      tags: [] as string[],
       startDate: "",
       endDate: "",
       type: "PHYSICAL" as EventType,
@@ -418,7 +419,17 @@ const HostEventPage = () => {
     if (savedDraft) {
       try {
         const draft = JSON.parse(savedDraft);
-        setFormData(draft);
+        setFormData(prev => ({
+            ...prev,
+            ...draft,
+            basicInfo: { ...prev.basicInfo, ...(draft.basicInfo || {}) },
+            mediaInfo: { ...prev.mediaInfo, ...(draft.mediaInfo || {}) },
+            registration: {
+                ...prev.registration,
+                ...(draft.registration || {}),
+                fields: draft.registration?.fields || prev.registration.fields
+            }
+        }));
         if (resumeAtStep5 === "true") {
            // We'll handle the actual redirection to Step 5 inside another useEffect
            // that waits for 'user' to be available and performs the POST if needed.
@@ -1146,7 +1157,7 @@ const HostEventPage = () => {
             virtualLink: formData.basicInfo.virtualLink || undefined,
             capacity: formData.basicInfo.capacity,
             category: formData.basicInfo.category,
-            tags: (formData.basicInfo.tags || "").split(',').map(tag => tag.trim()).filter(tag => tag !== ""),
+            tags: formData.basicInfo.tags,
             agendaEnabled: formData.basicInfo.agendaEnabled,
             registrationMode: formData.registration.mode,
             isGroupingEnabled: formData.registration.isGroupingEnabled,
@@ -1294,14 +1305,64 @@ const HostEventPage = () => {
                         </div>
                       </div>
                       <div className="space-y-2 md:col-span-2">
-                        <label className="text-sm font-semibold text-gray-700 ml-1">Search Keywords</label>
-                        <input
-                          type="text"
-                          placeholder="Add tags separated by commas (e.g. Music, Outdoor)"
-                          className="w-full px-5 py-4 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-gray-400 shadow-sm"
-                          value={formData.basicInfo.tags}
-                          onChange={(e) => handleChange("basicInfo", "tags", e.target.value)}
-                        />
+                        <div className="flex items-center justify-between ml-1">
+                            <label className="text-sm font-semibold text-gray-700">Search Keywords</label>
+                            <span className="text-[10px] font-bold text-gray-400 uppercase">{(formData.basicInfo.tags || []).length}/5 Keywords</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2 p-4 bg-white border border-gray-200 rounded-xl min-h-[100px] focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all shadow-sm">
+                           {(formData.basicInfo.tags || []).map((tag, index) => (
+                              <span key={index} className="flex items-center gap-2 px-3 py-1.5 bg-primary/5 text-primary rounded-xl text-[11px] font-black uppercase tracking-wider border border-primary/10 animate-in zoom-in duration-300">
+                                 {tag}
+                                 <button
+                                    type="button"
+                                    onClick={() => {
+                                       const newTags = [...(formData.basicInfo.tags || [])];
+                                       newTags.splice(index, 1);
+                                       handleChange("basicInfo", "tags", newTags);
+                                    }}
+                                    className="hover:text-secondary transition-colors"
+                                 >
+                                    <X size={12} strokeWidth={3} />
+                                 </button>
+                              </span>
+                           ))}
+                           {(formData.basicInfo.tags || []).length < 5 && (
+                              <input
+                                 type="text"
+                                 placeholder={(formData.basicInfo.tags || []).length === 0 ? "Enter keywords (comma separated)" : "Add more..."}
+                                 className="flex-1 min-w-[120px] bg-transparent outline-none text-sm font-medium placeholder:text-gray-400 px-2 h-fit self-center"
+                                 value={keywordInput}
+                                 onChange={(e) => {
+                                    const value = e.target.value;
+                                    if (value.endsWith(',')) {
+                                       const newTag = value.slice(0, -1).trim();
+                                       if (newTag && !(formData.basicInfo.tags || []).includes(newTag) && (formData.basicInfo.tags || []).length < 5) {
+                                          handleChange("basicInfo", "tags", [...(formData.basicInfo.tags || []), newTag]);
+                                          setKeywordInput("");
+                                       } else {
+                                          setKeywordInput(value.slice(0, -1));
+                                       }
+                                    } else {
+                                       setKeywordInput(value);
+                                    }
+                                 }}
+                                 onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                       e.preventDefault();
+                                       const newTag = keywordInput.trim();
+                                       if (newTag && !(formData.basicInfo.tags || []).includes(newTag) && (formData.basicInfo.tags || []).length < 5) {
+                                          handleChange("basicInfo", "tags", [...(formData.basicInfo.tags || []), newTag]);
+                                          setKeywordInput("");
+                                       }
+                                    } else if (e.key === 'Backspace' && !keywordInput && (formData.basicInfo.tags || []).length > 0) {
+                                       const newTags = [...(formData.basicInfo.tags || [])];
+                                       newTags.pop();
+                                       handleChange("basicInfo", "tags", newTags);
+                                    }
+                                 }}
+                              />
+                           )}
+                        </div>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-semibold text-gray-700 ml-1">Starts On</label>
@@ -1695,9 +1756,9 @@ const HostEventPage = () => {
                                         </div>
                                         <Reorder.Group
                                             axis="y"
-                                            values={formData.registration.fields.filter(f => !f.isPerAttendee)}
+                                            values={(formData.registration.fields || []).filter(f => !f.isPerAttendee)}
                                             onReorder={(newFields) => {
-                                                const otherFields = formData.registration.fields.filter(f => f.isPerAttendee);
+                                                const otherFields = (formData.registration.fields || []).filter(f => f.isPerAttendee);
                                                 setFormData(prev => ({
                                                     ...prev,
                                                     registration: { ...prev.registration, fields: [...newFields, ...otherFields] }
@@ -1705,8 +1766,8 @@ const HostEventPage = () => {
                                             }}
                                             className="grid grid-cols-1 gap-6"
                                         >
-                                            {formData.registration.fields.filter(f => !f.isPerAttendee).map((field) => {
-                                                const idx = formData.registration.fields.indexOf(field);
+                                            {(formData.registration.fields || []).filter(f => !f.isPerAttendee).map((field) => {
+                                                const idx = (formData.registration.fields || []).indexOf(field);
                                                 return (
                                                     <Reorder.Item key={field.id || field.name || field.label} value={field}>
                                                         {renderFieldCard(field, idx)}
@@ -1723,9 +1784,9 @@ const HostEventPage = () => {
                                         </div>
                                         <Reorder.Group
                                             axis="y"
-                                            values={formData.registration.fields.filter(f => f.isPerAttendee)}
+                                            values={(formData.registration.fields || []).filter(f => f.isPerAttendee)}
                                             onReorder={(newFields) => {
-                                                const otherFields = formData.registration.fields.filter(f => !f.isPerAttendee);
+                                                const otherFields = (formData.registration.fields || []).filter(f => !f.isPerAttendee);
                                                 setFormData(prev => ({
                                                     ...prev,
                                                     registration: { ...prev.registration, fields: [...otherFields, ...newFields] }
@@ -1733,8 +1794,8 @@ const HostEventPage = () => {
                                             }}
                                             className="grid grid-cols-1 gap-6"
                                         >
-                                            {formData.registration.fields.filter(f => f.isPerAttendee).map((field) => {
-                                                const idx = formData.registration.fields.indexOf(field);
+                                            {(formData.registration.fields || []).filter(f => f.isPerAttendee).map((field) => {
+                                                const idx = (formData.registration.fields || []).indexOf(field);
                                                 return (
                                                     <Reorder.Item key={field.id || field.name || field.label} value={field}>
                                                         {renderFieldCard(field, idx)}
@@ -1754,7 +1815,7 @@ const HostEventPage = () => {
                                     }))}
                                     className="grid grid-cols-1 gap-6"
                                 >
-                                    {formData.registration.fields.map((field, idx) => (
+                                    {(formData.registration.fields || []).map((field, idx) => (
                                         <Reorder.Item key={field.id || field.name || field.label} value={field}>
                                             {renderFieldCard(field, idx)}
                                         </Reorder.Item>
