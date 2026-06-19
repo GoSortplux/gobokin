@@ -687,7 +687,10 @@ const CreateEvent = () => {
                     mode: draft.registration.mode || prev.mode,
                     isGroupingEnabled: draft.registration.isGroupingEnabled !== undefined ? draft.registration.isGroupingEnabled : prev.isGroupingEnabled,
                     enforceUniqueGroupNames: draft.registration.enforceUniqueGroupNames !== undefined ? draft.registration.enforceUniqueGroupNames : prev.enforceUniqueGroupNames,
-                    fields: Array.isArray(draft.registration.fields) ? draft.registration.fields : prev.fields
+                    fields: Array.isArray(draft.registration.fields) ? draft.registration.fields.map((f: RegistrationField) => ({
+                      ...f,
+                      id: f.id || Math.random().toString()
+                    })) : prev.fields
                 }));
             }
             if (draft.eventId) {
@@ -736,7 +739,16 @@ const CreateEvent = () => {
             if (draft.speakers) setSpeakers(draft.speakers);
             if (draft.sessions) setSessions(draft.sessions);
             if (draft.tickets) setTickets(draft.tickets);
-            if (draft.registration) setRegistration(draft.registration);
+            if (draft.registration) {
+              const reg = { ...draft.registration };
+              if (Array.isArray(reg.fields)) {
+                reg.fields = reg.fields.map((f: RegistrationField) => ({
+                  ...f,
+                  id: f.id || Math.random().toString()
+                }));
+              }
+              setRegistration(reg);
+            }
             if (draft.currentStep) setCurrentStep(draft.currentStep);
             if (draft.subStep) setSubStep(draft.subStep);
             if (draft.eventId) setEventId(draft.eventId);
@@ -1024,6 +1036,7 @@ const CreateEvent = () => {
         fields: [
           ...prev.fields,
           {
+            id: Math.random().toString(),
             name: "country",
             label: "Country",
             type: "select",
@@ -1033,6 +1046,7 @@ const CreateEvent = () => {
             options: []
           },
           {
+            id: Math.random().toString(),
             name: "state",
             label: "State",
             type: "select",
@@ -1043,6 +1057,7 @@ const CreateEvent = () => {
             options: []
           },
           {
+            id: Math.random().toString(),
             name: "lga",
             label: "LGA",
             type: "select",
@@ -1058,6 +1073,7 @@ const CreateEvent = () => {
       setRegistration({
         ...registration,
         fields: [...registration.fields, {
+          id: Math.random().toString(),
           name: "address",
           label: "Address",
           type: "text",
@@ -1071,6 +1087,7 @@ const CreateEvent = () => {
       setRegistration({
         ...registration,
         fields: [...registration.fields, {
+          id: Math.random().toString(),
           name: "group-name",
           label: "Group Name",
           type: "text",
@@ -1085,6 +1102,7 @@ const CreateEvent = () => {
       setRegistration({
         ...registration,
         fields: [...registration.fields, {
+          id: Math.random().toString(),
           name: "",
           label: "",
           type: "text",
@@ -2104,7 +2122,7 @@ const CreateEvent = () => {
                                        const isLocationField = field.source === 'COUNTRIES' || field.source === 'STATES' || field.source === 'LGAS';
                                        const isGroupNameField = field.source === 'GROUP_NAME';
                                        return (
-                                         <Reorder.Item key={field.name || field.label} value={field}>
+                                         <Reorder.Item key={field.id || field.name || field.label} value={field}>
                                            <div className={`p-6 bg-gray-50 rounded-[2.5rem] group relative border-2 border-gray-300 hover:border-primary transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50 flex flex-col ${showPreview ? "gap-4 xl:gap-6" : "gap-6 lg:flex-row lg:items-center lg:gap-8"}`}>
                                            <div className="flex absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-12 bg-white rounded-lg border border-gray-100 shadow-sm items-center justify-center cursor-grab active:cursor-grabbing text-gray-300 hover:text-primary transition-colors z-10">
                                                <GripVertical size={20} />
@@ -2293,7 +2311,7 @@ const CreateEvent = () => {
                                      const idx = registration.fields.indexOf(field);
                                      const isLocationField = field.source === 'COUNTRIES' || field.source === 'STATES' || field.source === 'LGAS';
                                      return (
-                                       <Reorder.Item key={field.name || field.label} value={field}>
+                                       <Reorder.Item key={field.id || field.name || field.label} value={field}>
                                          <div className={`p-6 bg-gray-50 rounded-[2.5rem] group relative border-2 border-gray-300 hover:border-primary transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50 flex flex-col ${showPreview ? "gap-4 xl:gap-6" : "gap-6 lg:flex-row lg:items-center lg:gap-8"}`}>
                                            <div className="flex absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-12 bg-white rounded-lg border border-gray-100 shadow-sm items-center justify-center cursor-grab active:cursor-grabbing text-gray-300 hover:text-primary transition-colors z-10">
                                              <GripVertical size={20} />
@@ -2442,7 +2460,7 @@ const CreateEvent = () => {
                                   {registration.fields.map((field, idx) => {
                                     const isLocationField = field.source === 'COUNTRIES' || field.source === 'STATES' || field.source === 'LGAS';
                                     return (
-                                      <Reorder.Item key={field.name || field.label} value={field}>
+                                      <Reorder.Item key={field.id || field.name || field.label} value={field}>
                                         <div className={`p-6 bg-gray-50 rounded-[2.5rem] group relative border-2 border-gray-300 hover:border-primary transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50 flex flex-col ${showPreview ? "gap-4 xl:gap-6" : "gap-6 lg:flex-row lg:items-center lg:gap-8"}`}>
                                           <div className="flex absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-12 bg-white rounded-lg border border-gray-100 shadow-sm items-center justify-center cursor-grab active:cursor-grabbing text-gray-300 hover:text-primary transition-colors z-10">
                                             <GripVertical size={20} />

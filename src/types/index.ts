@@ -475,6 +475,7 @@ export interface Session {
 }
 
 export interface RegistrationField {
+  id?: string;
   name: string;
   type: string;
   label: string;

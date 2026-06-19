@@ -509,10 +509,13 @@ const EditEventContent = () => {
           mode: event.registrationMode || "FULL_DETAILS",
           isGroupingEnabled: !!event.isGroupingEnabled,
           enforceUniqueGroupNames: !!event.enforceUniqueGroupNames,
-          fields: event.registrationFields || [
+          fields: (event.registrationFields || [
             { name: "full-name", label: "Full Name", type: "text", required: true, isPerAttendee: true },
             { name: "email", label: "Email Address", type: "text", required: true, isPerAttendee: true },
-          ],
+          ]).map((f: RegistrationField) => ({
+            ...f,
+            id: f.id || f.name || Math.random().toString()
+          })),
         });
 
       } catch (error) {
@@ -680,6 +683,7 @@ const EditEventContent = () => {
         fields: [
           ...prev.fields,
           {
+            id: Math.random().toString(),
             name: "country",
             label: "Country",
             type: "select",
@@ -689,6 +693,7 @@ const EditEventContent = () => {
             options: []
           },
           {
+            id: Math.random().toString(),
             name: "state",
             label: "State",
             type: "select",
@@ -699,6 +704,7 @@ const EditEventContent = () => {
             options: []
           },
           {
+            id: Math.random().toString(),
             name: "lga",
             label: "LGA",
             type: "select",
@@ -714,6 +720,7 @@ const EditEventContent = () => {
       setRegistration({
         ...registration,
         fields: [...registration.fields, {
+          id: Math.random().toString(),
           name: "address",
           label: "Address",
           type: "text",
@@ -726,6 +733,7 @@ const EditEventContent = () => {
       setRegistration({
         ...registration,
         fields: [...registration.fields, {
+          id: Math.random().toString(),
           name: "",
           label: "",
           type: "text",
@@ -1551,7 +1559,7 @@ const EditEventContent = () => {
                              {registration.fields.map((field, idx) => {
                                 const isLocationField = field.source === 'COUNTRIES' || field.source === 'STATES' || field.source === 'LGAS';
                                 return (
-                                <React.Fragment key={idx}>
+                                <React.Fragment key={field.id || field.name || idx}>
                                 <div className={`p-6 bg-gray-50 rounded-[2.5rem] group relative border border-transparent hover:border-primary/10 hover:bg-white transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50 flex flex-col ${showPreview ? "gap-4 xl:gap-6" : "gap-6 lg:flex-row lg:items-center lg:gap-8"}`}>
                                    {/* First Section: Label and Type */}
                                    <div className={`flex items-center gap-4 ${showPreview ? "w-full flex-col xl:flex-row xl:gap-6" : "flex-1 flex-col lg:flex-row lg:gap-8"}`}>
