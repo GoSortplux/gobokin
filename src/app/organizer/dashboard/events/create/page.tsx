@@ -346,6 +346,9 @@ const CreateEvent = () => {
   const [showAddFieldDropdown, setShowAddFieldDropdown] = useState(false);
   const [showRegInfo, setShowRegInfo] = useState(false);
   const [keywordInput, setKeywordInput] = useState("");
+  const visibleSteps = useMemo(() =>
+    basicInfo.agendaEnabled ? steps : steps.slice(0, 2),
+  [basicInfo.agendaEnabled]);
   const addFieldDropdownRef = useRef<HTMLDivElement>(null);
   const regInfoRef = useRef<HTMLDivElement>(null);
 
@@ -1205,6 +1208,57 @@ const CreateEvent = () => {
     }
   };
 
+  const finalizeEventCreation = useCallback(async (isSkipSessions = false) => {
+    if (!eventId) return;
+
+    const result = await Swal.fire({
+        title: isSkipSessions ? "Event Tickets Saved!" : "Event Sessions Saved!",
+        text: isSkipSessions
+          ? "Your event and tickets have been successfully created. Would you like to publish your event now to make it live for attendees?"
+          : "Your event, tickets, and sessions have been successfully created. Would you like to publish your event now to make it live for attendees?",
+        icon: "success",
+        showCancelButton: true,
+        confirmButtonText: "Publish Event Now",
+        cancelButtonText: "Go to Dashboard",
+        confirmButtonColor: "#295FA7",
+        cancelButtonColor: "#6B7280",
+    });
+
+    if (result.isConfirmed) {
+        try {
+            Swal.showLoading();
+            await api.post(`/events/${eventId}/publish`);
+            await Swal.fire({
+                title: "Event Published!",
+                text: "Your event is now live and visible to the public.",
+                icon: "success",
+                timer: 2000,
+                showConfirmButton: false
+            });
+        } catch (pubErr) {
+            console.error("Publishing failed:", pubErr);
+            Swal.fire("Publishing Failed", (isSkipSessions ? "Tickets were saved" : "Sessions were saved") + ", but we couldn't publish the event. You can do it manually from the dashboard.", "warning");
+        }
+    }
+
+    clearDraft();
+
+    const isFirstEventFlow = localStorage.getItem('gobokin_is_first_event_flow') === 'true';
+    if (isFirstEventFlow) {
+        try {
+            const refreshRes = await api.post('/auth/refresh-token');
+            if (refreshRes.data?.data?.accessToken) {
+                updateToken(refreshRes.data.data.accessToken, null);
+            }
+        } catch (e) {
+            console.error("Token refresh failed", e);
+        }
+        localStorage.setItem('gobokin_show_profile_update_modal', 'true');
+    }
+
+    router.push(`/organizer/dashboard/events/${eventId}`);
+  }, [eventId, clearDraft, router, updateToken]);
+
   const createTickets = async () => {
       if (!eventId) return;
 
@@ -1246,14 +1300,19 @@ const CreateEvent = () => {
               })
           };
           await api.post(`/events/${eventId}/tickets`, payload);
-          setCurrentStep(3);
-          Swal.fire({
-              title: 'Step 2 Complete',
-              text: 'Tickets configured. Finally, add your event sessions.',
-              icon: 'success',
-              timer: 1500,
-              showConfirmButton: false
-          });
+
+          if (!basicInfo.agendaEnabled) {
+            finalizeEventCreation(true);
+          } else {
+            setCurrentStep(3);
+            Swal.fire({
+                title: 'Step 2 Complete',
+                text: 'Tickets configured. Finally, add your event sessions.',
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+            });
+          }
       } catch (_error) {
           console.error("Failed to create tickets:", _error);
           Swal.fire("Error", translateError(_error), "error");
@@ -1293,50 +1352,7 @@ const CreateEvent = () => {
               await api.post(`/events/${eventId}/sessions`, payload);
           }
 
-          const result = await Swal.fire({
-              title: "Event Sessions Saved!",
-              text: "Your event, tickets, and sessions have been successfully created. Would you like to publish your event now to make it live for attendees?",
-              icon: "success",
-              showCancelButton: true,
-              confirmButtonText: "Publish Event Now",
-              cancelButtonText: "Go to Dashboard",
-              confirmButtonColor: "#295FA7",
-              cancelButtonColor: "#6B7280",
-          });
-
-          if (result.isConfirmed) {
-              try {
-                  Swal.showLoading();
-                  await api.post(`/events/${eventId}/publish`);
-                  await Swal.fire({
-                      title: "Event Published!",
-                      text: "Your event is now live and visible to the public.",
-                      icon: "success",
-                      timer: 2000,
-                      showConfirmButton: false
-                  });
-              } catch (pubErr) {
-                  console.error("Publishing failed:", pubErr);
-                  Swal.fire("Publishing Failed", "Sessions were saved, but we couldn't publish the event. You can do it manually from the dashboard.", "warning");
-              }
-          }
-
-          clearDraft();
-
-          const isFirstEventFlow = localStorage.getItem('gobokin_is_first_event_flow') === 'true';
-          if (isFirstEventFlow) {
-              try {
-                  const refreshRes = await api.post('/auth/refresh-token');
-                  if (refreshRes.data?.data?.accessToken) {
-                      updateToken(refreshRes.data.data.accessToken, null);
-                  }
-              } catch (e) {
-                  console.error("Token refresh failed", e);
-              }
-              localStorage.setItem('gobokin_show_profile_update_modal', 'true');
-          }
-
-          router.push(`/organizer/dashboard/events/${eventId}`);
+          finalizeEventCreation(false);
       } catch (_error) {
           console.error("Failed to create sessions:", _error);
           Swal.fire("Error", translateError(_error), "error");
@@ -1376,7 +1392,7 @@ const CreateEvent = () => {
 
           {/* Step Indicator Desktop */}
           <div id="event-creation-steps" className={`hidden items-center gap-1.5 bg-gray-50 p-2 rounded-[2.5rem] border border-gray-100 ${showPreview ? "2xl:flex" : "xl:flex"}`}>
-            {steps.map((step) => (
+            {visibleSteps.map((step) => (
               <div
                 key={step.id}
                 className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-500 relative group cursor-help ${
@@ -1416,7 +1432,7 @@ const CreateEvent = () => {
                  </div>
               </div>
               <div className="flex gap-1.5">
-                 {steps.map(s => (
+                 {visibleSteps.map(s => (
                     <div key={s.id} className={`w-2 h-2 rounded-full transition-all duration-500 ${s.id === currentStep ? 'w-6 bg-primary' : s.id < currentStep ? 'bg-secondary' : 'bg-gray-200'}`}></div>
                  ))}
               </div>
@@ -3245,7 +3261,7 @@ const CreateEvent = () => {
                  <div className={`hidden flex-col items-end ${showPreview ? "xl:flex" : "sm:flex"}`}>
                     <p className="text-[9px] font-black text-gray-300 uppercase tracking-[0.4em] mb-1">Next Up</p>
                     <span className="text-xs font-black text-gray-900 uppercase tracking-widest">
-                        {currentStep < 3 ? (currentStep === 1 && subStep < 5 ? 'Details' : steps[currentStep].title) : 'Finish'}
+                        {currentStep === 1 && subStep < 5 ? 'Details' : (currentStep === 1 && subStep === 5 ? steps[1].title : (currentStep === 2 ? (basicInfo.agendaEnabled ? steps[2].title : 'Finish') : 'Finish'))}
                     </span>
                  </div>
                  {currentStep === 1 && (
@@ -3273,10 +3289,10 @@ const CreateEvent = () => {
                     <button
                       onClick={createTickets}
                       disabled={loading}
-                      className={`flex items-center gap-3 md:gap-4 bg-primary text-white font-black px-8 md:px-10 lg:px-12 py-4 md:py-5 rounded-[1.5rem] md:rounded-[2.5rem] hover:bg-opacity-90 transition-all shadow-3xl shadow-primary/30 uppercase tracking-[0.2em] md:tracking-[0.3em] text-[10px] md:text-[11px] group active:scale-95 ${showPreview ? "2xl:px-14 2xl:py-6" : "xl:px-14 xl:py-6"}`}
+                      className={`flex items-center gap-3 md:gap-4 ${!basicInfo.agendaEnabled ? 'bg-secondary' : 'bg-primary'} text-white font-black px-8 md:px-10 lg:px-12 py-4 md:py-5 rounded-[1.5rem] md:rounded-[2.5rem] hover:bg-opacity-90 transition-all ${!basicInfo.agendaEnabled ? 'shadow-secondary/30' : 'shadow-primary/30'} shadow-3xl uppercase tracking-[0.2em] md:tracking-[0.3em] text-[10px] md:text-[11px] group active:scale-95 ${showPreview ? "2xl:px-14 2xl:py-6" : "xl:px-14 xl:py-6"}`}
                     >
-                      {loading ? "Saving..." : "Save Tickets"}
-                      <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform duration-500" />
+                      {loading ? "Saving..." : !basicInfo.agendaEnabled ? "Complete Setup" : "Save Tickets"}
+                      {!basicInfo.agendaEnabled ? <ShieldCheck size={18} className="group-hover:rotate-12 transition-transform" /> : <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform duration-500" />}
                     </button>
                  )}
                  {currentStep === 3 && (

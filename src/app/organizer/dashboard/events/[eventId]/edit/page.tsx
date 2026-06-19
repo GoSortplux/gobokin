@@ -344,6 +344,9 @@ const EditEventContent = () => {
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
   const [organizerSlug, setOrganizerSlug] = useState<string>("");
+  const visibleSteps = useMemo(() =>
+    basicInfo.agendaEnabled ? steps : steps.slice(0, 2),
+  [basicInfo.agendaEnabled]);
   const [showAddFieldDropdown, setShowAddFieldDropdown] = useState(false);
   const [showRegInfo, setShowRegInfo] = useState(false);
   const [keywordInput, setKeywordInput] = useState("");
@@ -1145,7 +1148,7 @@ const EditEventContent = () => {
           </button>
 
           <div className={`hidden items-center gap-1.5 bg-gray-50 p-2 rounded-[2.5rem] border border-gray-100 ${showPreview ? "2xl:flex" : "xl:flex"}`}>
-            {steps.map((step) => (
+            {visibleSteps.map((step) => (
               <button
                 key={step.id}
                 onClick={() => setCurrentStep(step.id)}
@@ -2349,13 +2352,17 @@ const EditEventContent = () => {
                 {currentStep === 2 && (
                     <button
                         onClick={() => {
-                            setCurrentStep(3);
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                            if (!basicInfo.agendaEnabled) {
+                                saveAllChanges(true);
+                            } else {
+                                setCurrentStep(3);
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }
                         }}
-                        className="flex items-center gap-2 md:gap-3 bg-primary text-white font-black px-6 md:px-10 py-3.5 md:py-5 rounded-[1.5rem] md:rounded-[2rem] shadow-3xl shadow-primary/30 uppercase tracking-[0.15em] md:tracking-[0.2em] text-[9px] md:text-[10px]"
+                        className={`flex items-center gap-2 md:gap-3 ${!basicInfo.agendaEnabled ? 'bg-secondary' : 'bg-primary'} text-white font-black px-6 md:px-10 py-3.5 md:py-5 rounded-[1.5rem] md:rounded-[2rem] shadow-3xl ${!basicInfo.agendaEnabled ? 'shadow-secondary/30' : 'shadow-primary/30'} uppercase tracking-[0.15em] md:tracking-[0.2em] text-[9px] md:text-[10px]`}
                     >
-                        Next: Schedule
-                        <ArrowRight size={18} />
+                        {!basicInfo.agendaEnabled ? "Finalize & Update" : "Next: Schedule"}
+                        {!basicInfo.agendaEnabled ? <ShieldCheck size={18} /> : <ArrowRight size={18} />}
                     </button>
                 )}
                 {currentStep === 3 && (
