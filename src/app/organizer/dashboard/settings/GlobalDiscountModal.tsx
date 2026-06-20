@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Tag, Percent, Calendar, UserCheck, Hash, CheckSquare, Square, ChevronDown, Filter } from 'lucide-react';
-import { Event } from '@/types';
+import { X, Tag, Percent, Calendar, UserCheck, Hash, CheckSquare, Square, ChevronDown, Filter, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Event, GlobalDiscount } from '@/types';
 import api from '@/services/api';
 import useOnClickOutside from '@/hooks/useOnClickOutside';
 
@@ -16,11 +16,15 @@ interface GlobalDiscountModalProps {
     maxUsagePerGuest: number;
     maxUsage: number;
     applicableEventIds: string[];
+    isActive?: boolean;
   }) => void;
   loading?: boolean;
+  discount?: GlobalDiscount | null;
 }
 
-const GlobalDiscountModal: React.FC<GlobalDiscountModalProps> = ({ isOpen, onClose, onSubmit, loading }) => {
+const GlobalDiscountModal: React.FC<GlobalDiscountModalProps> = ({ isOpen, onClose, onSubmit, loading, discount }) => {
+  const isEdit = !!discount;
+
   const [formData, setFormData] = useState({
     code: '',
     discountPercentage: 0,
@@ -29,6 +33,7 @@ const GlobalDiscountModal: React.FC<GlobalDiscountModalProps> = ({ isOpen, onClo
     maxUsage: 100,
   });
 
+  const [isActive, setIsActive] = useState(true);
   const [applyToAll, setApplyToAll] = useState(true);
   const [selectedEventIds, setSelectedEventIds] = useState<string[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
@@ -40,18 +45,38 @@ const GlobalDiscountModal: React.FC<GlobalDiscountModalProps> = ({ isOpen, onClo
 
   useEffect(() => {
     if (isOpen) {
-      setFormData({
-        code: '',
-        discountPercentage: 0,
-        expiryDate: '',
-        maxUsagePerGuest: 1,
-        maxUsage: 100,
-      });
-      setApplyToAll(true);
-      setSelectedEventIds([]);
+      if (discount) {
+        // Convert UTC to local for datetime-local input
+        const localDate = discount.expiryDate ? new Date(discount.expiryDate) : null;
+        const formattedDate = localDate
+          ? new Date(localDate.getTime() - localDate.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+          : '';
+
+        setFormData({
+          code: discount.code,
+          discountPercentage: discount.discountPercentage,
+          expiryDate: formattedDate,
+          maxUsagePerGuest: discount.maxUsagePerGuest,
+          maxUsage: discount.maxUsage || 100,
+        });
+        setIsActive(discount.isActive);
+        setApplyToAll(!discount.applicableEventIds || discount.applicableEventIds.length === 0);
+        setSelectedEventIds(discount.applicableEventIds || []);
+      } else {
+        setFormData({
+          code: '',
+          discountPercentage: 0,
+          expiryDate: '',
+          maxUsagePerGuest: 1,
+          maxUsage: 100,
+        });
+        setIsActive(true);
+        setApplyToAll(true);
+        setSelectedEventIds([]);
+      }
       fetchEvents();
     }
-  }, [isOpen]);
+  }, [isOpen, discount]);
 
   const fetchEvents = async () => {
     try {
@@ -83,10 +108,16 @@ const GlobalDiscountModal: React.FC<GlobalDiscountModalProps> = ({ isOpen, onClo
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!formData.expiryDate) {
+        return; // HTML5 'required' should catch this, but safety first
+    }
+
     const submissionData = {
         ...formData,
         expiryDate: new Date(formData.expiryDate).toISOString(),
-        applicableEventIds: applyToAll ? [] : selectedEventIds
+        applicableEventIds: applyToAll ? [] : selectedEventIds,
+        isActive: isActive
     };
     onSubmit(submissionData);
   };
@@ -120,10 +151,10 @@ const GlobalDiscountModal: React.FC<GlobalDiscountModalProps> = ({ isOpen, onClo
               <Tag size={32} className="hidden sm:block" />
             </div>
             <h2 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tighter uppercase italic leading-tight">
-              Global <span className="text-primary not-italic">Discount</span>
+              {isEdit ? 'Update' : 'Global'} <span className="text-primary not-italic">{isEdit ? 'Discount' : 'Discount'}</span>
             </h2>
             <p className="text-xs sm:text-sm text-gray-500 font-medium mt-1">
-              Create a discount code that applies to your events.
+              {isEdit ? 'Update existing discount code details.' : 'Create a discount code that applies to your events.'}
             </p>
           </div>
 
@@ -214,6 +245,27 @@ const GlobalDiscountModal: React.FC<GlobalDiscountModalProps> = ({ isOpen, onClo
                     </div>
                 </div>
             </div>
+
+            {isEdit && (
+              <div className="space-y-1.5 sm:space-y-2">
+                <label className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Status</label>
+                <button
+                  type="button"
+                  onClick={() => setIsActive(!isActive)}
+                  className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${
+                    isActive
+                    ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                    : 'bg-rose-50 border-rose-200 text-rose-700'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    {isActive ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
+                    <span className="text-sm font-bold uppercase tracking-widest">{isActive ? 'Active' : 'Inactive'}</span>
+                  </div>
+                  <span className="text-[10px] font-medium opacity-60">Click to toggle</span>
+                </button>
+              </div>
+            )}
 
             <div className="space-y-3">
               <label className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Apply To</label>
@@ -313,7 +365,7 @@ const GlobalDiscountModal: React.FC<GlobalDiscountModalProps> = ({ isOpen, onClo
                 disabled={loading || (!applyToAll && selectedEventIds.length === 0)}
                 className="flex-1 py-3 sm:py-4 rounded-xl sm:rounded-2xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-white bg-primary hover:bg-opacity-90 transition-all shadow-xl shadow-primary/20 disabled:opacity-50"
               >
-                {loading ? '...' : 'Create Discount'}
+                {loading ? '...' : isEdit ? 'Update Discount' : 'Create Discount'}
               </button>
             </div>
           </form>

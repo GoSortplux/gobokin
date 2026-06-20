@@ -14,11 +14,10 @@ import {
   Globe,
   User,
   ExternalLink,
-  Clock,
   Tag,
   PlusCircle,
   Trash2,
-  AlertCircle,
+  Pencil,
   Info,
   Calendar
 } from "lucide-react";
@@ -46,6 +45,7 @@ const OrganizerSettings = () => {
   const [saving, setSaving] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
+  const [selectedDiscount, setSelectedDiscount] = useState<GlobalDiscount | null>(null);
 
   const [selectedEventId, setSelectedEventId] = useState<string>("");
   const [purchasingId, setPurchasingId] = useState<string | null>(null);
@@ -159,20 +159,27 @@ const OrganizerSettings = () => {
     }
   };
 
-  const handleCreateDiscount = async (discountData: {
+  const handleDiscountSubmit = async (discountData: {
     code: string;
     discountPercentage: number;
     expiryDate: string;
     maxUsagePerGuest: number;
     maxUsage: number;
     applicableEventIds: string[];
+    isActive?: boolean;
   }) => {
     try {
         setDiscountsLoading(true);
         Swal.showLoading();
-        await api.post("/events/my-organizer-profile/global-discounts", discountData);
-        Swal.fire('Created!', 'Global discount code created successfully.', 'success');
+        if (selectedDiscount) {
+            await api.patch(`/events/my-organizer-profile/global-discounts/${selectedDiscount.id}`, discountData);
+            Swal.fire('Updated!', 'Global discount code updated successfully.', 'success');
+        } else {
+            await api.post("/events/my-organizer-profile/global-discounts", discountData);
+            Swal.fire('Created!', 'Global discount code created successfully.', 'success');
+        }
         setIsDiscountModalOpen(false);
+        setSelectedDiscount(null);
         fetchDiscounts();
     } catch (error) {
         Swal.fire('Error', translateError(error), 'error');
@@ -686,7 +693,10 @@ const OrganizerSettings = () => {
                                     </div>
                                 </div>
                                 <button
-                                    onClick={() => setIsDiscountModalOpen(true)}
+                                    onClick={() => {
+                                        setSelectedDiscount(null);
+                                        setIsDiscountModalOpen(true);
+                                    }}
                                     className="flex items-center gap-2 bg-primary text-white font-black px-4 py-2 rounded-xl hover:bg-opacity-90 transition-all shadow-lg shadow-primary/20 text-xs"
                                 >
                                     <PlusCircle size={16} />
@@ -731,12 +741,25 @@ const OrganizerSettings = () => {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <button
-                                                    onClick={() => handleDeleteDiscount(discount.id)}
-                                                    className="p-3 bg-white text-rose-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all shadow-sm border border-gray-100 self-end md:self-auto"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
+                                                <div className="flex items-center gap-2 self-end md:self-auto">
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedDiscount(discount);
+                                                            setIsDiscountModalOpen(true);
+                                                        }}
+                                                        className="p-3 bg-white text-primary rounded-xl hover:bg-primary hover:text-white transition-all shadow-sm border border-gray-100"
+                                                        title="Edit Discount"
+                                                    >
+                                                        <Pencil size={16} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteDiscount(discount.id)}
+                                                        className="p-3 bg-white text-rose-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all shadow-sm border border-gray-100"
+                                                        title="Delete Discount"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
@@ -771,9 +794,13 @@ const OrganizerSettings = () => {
 
       <GlobalDiscountModal
         isOpen={isDiscountModalOpen}
-        onClose={() => setIsDiscountModalOpen(false)}
-        onSubmit={handleCreateDiscount}
+        onClose={() => {
+            setIsDiscountModalOpen(false);
+            setSelectedDiscount(null);
+        }}
+        onSubmit={handleDiscountSubmit}
         loading={discountsLoading}
+        discount={selectedDiscount}
       />
     </div>
   );
