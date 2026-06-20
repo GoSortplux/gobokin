@@ -10,7 +10,8 @@ import {
   Info,
   ShieldCheck,
   CreditCard,
-  Ticket
+  Ticket,
+  Tag
 } from "lucide-react";
 import api from "@/services/api";
 import { Event, Ticket as TicketType, RegistrationField } from "@/types";
@@ -51,6 +52,7 @@ const RegistrationForm = () => {
   const [attendees, setAttendees] = useState<any[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [sharedData, setSharedData] = useState<Record<string, any>>({});
+  const [discountCode, setDiscountCode] = useState("");
 
   useEffect(() => {
     const fetchRegistrationData = async () => {
@@ -324,6 +326,7 @@ const RegistrationForm = () => {
         },
         attendees: mappedAttendees,
         sharedData: sharedData,
+        discountCode: discountCode || undefined,
       };
 
       const response = await api.post(`/events/${event?.id}/orders`, payload);
@@ -487,6 +490,29 @@ const RegistrationForm = () => {
                        </div>
                     </div>
                  ))}
+              </div>
+
+              {/* Discount Code Section */}
+              <div className="p-8 bg-white rounded-[2.5rem] border border-gray-100 space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
+                    <Tag size={20} />
+                  </div>
+                  <h4 className="font-black text-gray-900">Discount Code</h4>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">
+                    Voucher / Promo Code (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Enter discount code"
+                    className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 transition-all font-bold tracking-widest uppercase"
+                    value={discountCode}
+                    onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                  />
+                  <p className="text-[10px] font-bold text-gray-400 ml-1">If you have a referral or promo code, enter it here.</p>
+                </div>
               </div>
 
               {/* Order Summary Footer */}
