@@ -32,6 +32,73 @@ import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 
+const SpeakerCard = ({ speaker }: { speaker: Speaker }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const bioRef = useRef<HTMLParagraphElement>(null);
+  const [isTruncated, setIsTruncated] = useState(false);
+
+  useEffect(() => {
+    if (bioRef.current) {
+      setIsTruncated(bioRef.current.scrollHeight > bioRef.current.clientHeight);
+    }
+  }, [speaker.bio]);
+
+  return (
+    <div className="bg-gray-50 rounded-2xl border border-transparent hover:bg-white hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 transition-all duration-500 group overflow-hidden">
+      <div className="p-6">
+        <div className="flex flex-col items-center text-center space-y-4">
+          <div className="relative w-24 h-24 rounded-2xl overflow-hidden border-2 border-white shadow-md">
+            {speaker.imageUrl ? (
+              <Image
+                src={speaker.imageUrl}
+                alt={speaker.name}
+                fill
+                className="object-cover group-hover:scale-110 transition-transform duration-500"
+              />
+            ) : (
+              <div className="w-full h-full bg-primary/10 flex items-center justify-center text-primary">
+                <User size={40} />
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-1">
+            <h4 className="font-bold text-gray-900 text-lg tracking-tight group-hover:text-primary transition-colors">
+              {speaker.name}
+            </h4>
+            <p className="text-[10px] font-bold text-primary uppercase tracking-widest">
+              {speaker.title}
+            </p>
+          </div>
+
+          {speaker.bio && (
+            <div className="relative w-full">
+              <p
+                ref={bioRef}
+                className={`text-gray-500 text-sm font-medium leading-relaxed ${!isExpanded ? 'line-clamp-3' : ''}`}
+              >
+                {speaker.bio}
+              </p>
+              {(isTruncated || isExpanded) && (
+                <button
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="mt-2 mx-auto text-primary text-xs font-bold uppercase tracking-widest flex items-center gap-1 hover:underline"
+                >
+                  {isExpanded ? (
+                    <>Show Less <ChevronUp size={14} /></>
+                  ) : (
+                    <>Read More <ChevronDown size={14} /></>
+                  )}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const SessionCard = ({ session }: { session: Session }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const descriptionRef = useRef<HTMLParagraphElement>(null);
@@ -428,22 +495,61 @@ const EventDetailClient = () => {
             {/* Content Tabs */}
             <div className="space-y-8">
                <div className="flex items-center gap-2 p-1.5 bg-gray-50 rounded-xl border border-gray-100 w-fit">
-                  {["overview", "schedule", "tickets"].map(tab => (
-                    <button
-                      key={tab}
-                      onClick={() => setActiveTab(tab)}
-                      className={`px-8 py-3 rounded-lg text-xs font-semibold uppercase tracking-widest transition-all duration-300 ${
-                        activeTab === tab ? "bg-white text-primary shadow-sm" : "text-gray-500 hover:text-gray-900 hover:bg-gray-100/50"
-                      }`}
-                    >
-                      {tab}
-                    </button>
-                  ))}
+                  {(() => {
+                    const tabs = ["overview"];
+                    if (event.speakers && event.speakers.length > 0) {
+                      tabs.push("speakers");
+                    }
+                    tabs.push("schedule", "tickets");
+                    return tabs.map(tab => (
+                      <button
+                        key={tab}
+                        onClick={() => setActiveTab(tab)}
+                        className={`px-8 py-3 rounded-lg text-xs font-semibold uppercase tracking-widest transition-all duration-300 ${
+                          activeTab === tab ? "bg-white text-primary shadow-sm" : "text-gray-500 hover:text-gray-900 hover:bg-gray-100/50"
+                        }`}
+                      >
+                        {tab}
+                      </button>
+                    ));
+                  })()}
                </div>
 
                <div className="bg-white p-8 lg:p-12 rounded-2xl border border-gray-100 shadow-sm min-h-[400px] relative overflow-hidden">
                   {/* Decorative element */}
                   <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[100px] -mr-32 -mt-32"></div>
+
+                  {activeTab === "speakers" && (
+                    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10">
+                      <div className="flex items-center justify-between gap-4">
+                        <h3 className="text-2xl font-semibold text-gray-900 tracking-tighter flex items-center gap-3">
+                          <div className="w-1.5 h-8 bg-primary rounded-full"></div>
+                          Featured Speakers
+                        </h3>
+                        {event.speakers && event.speakers.length > 0 && (
+                          <span className="px-4 py-1.5 bg-gray-50 rounded-full text-[10px] font-bold text-gray-400 uppercase tracking-widest border border-gray-100">
+                             {event.speakers.length} Speakers
+                          </span>
+                        )}
+                      </div>
+
+                      {event.speakers && event.speakers.length > 0 ? (
+                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
+                          {event.speakers.map((speaker, i) => (
+                            <SpeakerCard key={speaker.id || i} speaker={speaker} />
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="py-32 text-center">
+                           <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-6 text-gray-300">
+                             <Users size={40} />
+                           </div>
+                           <h4 className="text-xl font-semibold text-gray-900 mb-2">Speakers to be announced</h4>
+                           <p className="text-gray-500 font-medium">We&apos;re bringing together some incredible voices for this event.</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {activeTab === "overview" && (
                     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10">
