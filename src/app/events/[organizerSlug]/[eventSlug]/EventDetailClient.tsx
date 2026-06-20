@@ -11,8 +11,6 @@ import {
   Users,
   ArrowRight,
   CheckCircle2,
-  ShieldCheck,
-  Tag,
   Share2,
   Clock,
   ChevronRight,
