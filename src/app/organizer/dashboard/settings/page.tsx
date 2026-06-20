@@ -166,7 +166,6 @@ const OrganizerSettings = () => {
     maxUsagePerGuest: number;
     maxUsage: number;
     applicableEventIds: string[];
-    isActive?: boolean;
   }) => {
     try {
         setDiscountsLoading(true);
@@ -718,11 +717,10 @@ const OrganizerSettings = () => {
                                                     <div>
                                                         <div className="flex items-center gap-2">
                                                             <span className="font-black text-gray-900 text-lg uppercase tracking-tight">{discount.code}</span>
-                                                            {!discount.isActive && (
-                                                                <span className="bg-rose-50 text-rose-600 text-[8px] font-black px-1.5 py-0.5 rounded border border-rose-100 uppercase">Inactive</span>
-                                                            )}
-                                                            {new Date(discount.expiryDate) < new Date() && (
-                                                                <span className="bg-amber-50 text-amber-600 text-[8px] font-black px-1.5 py-0.5 rounded border border-amber-100 uppercase">Expired</span>
+                                                            {new Date(discount.expiryDate) < new Date() ? (
+                                                                <span className="bg-rose-50 text-rose-600 text-[8px] font-black px-1.5 py-0.5 rounded border border-rose-100 uppercase">Expired</span>
+                                                            ) : (
+                                                                <span className="bg-emerald-50 text-emerald-600 text-[8px] font-black px-1.5 py-0.5 rounded border border-emerald-100 uppercase">Active</span>
                                                             )}
                                                         </div>
                                                         <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
