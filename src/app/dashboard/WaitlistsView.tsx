@@ -17,10 +17,16 @@ const WaitlistsView = () => {
     const fetchWaitlists = async () => {
       try {
         setLoading(true);
-        // Using a general my-waitlists if available, or we might need to fetch per event.
-        // Given the instructions, I'll assume there's a way to get user's waitlists.
-        // If not, I'll use a placeholder or handle it gracefully.
+        // Using a general my-waitlists if available
         const response = await api.get("/events/my-waitlists");
+
+        // Handle cases where the server returns HTML instead of JSON (common if endpoint doesn't exist)
+        if (typeof response.data === 'string' && response.data.trim().startsWith('<!DOCTYPE html>')) {
+          console.warn("Received HTML instead of JSON from /events/my-waitlists. Treating as empty.");
+          setWaitlists([]);
+          return;
+        }
+
         const data = response.data.data || response.data;
         setWaitlists(Array.isArray(data) ? data : []);
       } catch (error) {
