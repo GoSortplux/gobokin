@@ -1,9 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { X, Calendar, MapPin, Ticket, User, Mail, Phone, Info, Clock, ExternalLink, RotateCcw, CreditCard } from "lucide-react";
+import { X, Calendar, MapPin, Ticket, User, Clock, ExternalLink, RotateCcw, CreditCard } from "lucide-react";
 import api from "@/services/api";
-import { Event, Registration } from "@/types";
+import { Event, Registration, PricingBreakdown } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
+import CheckoutBreakdownModal from "@/components/shared/CheckoutBreakdownModal";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 import RefundRequestModal from "@/components/RefundRequestModal";
@@ -20,6 +21,9 @@ const RegistrationDetailsModal: React.FC<RegistrationDetailsModalProps> = ({ reg
   const [loading, setLoading] = useState(true);
   const [showRefundModal, setShowRefundModal] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [showBreakdownModal, setShowBreakdownModal] = useState(false);
+  const [pricingBreakdown, setPricingBreakdown] = useState<PricingBreakdown | null>(null);
+  const [checkoutUrl, setCheckoutUrl] = useState("");
 
   const handlePayNow = async () => {
     if (!registration.orderId) {
@@ -31,9 +35,15 @@ const RegistrationDetailsModal: React.FC<RegistrationDetailsModalProps> = ({ reg
       setIsProcessingPayment(true);
       Swal.showLoading();
       const response = await api.get(`/events/orders/${registration.orderId}/checkout`);
-      const checkoutUrl = response.data.data.checkoutUrl;
+      const { checkoutUrl, pricingBreakdown } = response.data.data;
 
-      if (checkoutUrl) {
+      if (checkoutUrl && pricingBreakdown) {
+        setPricingBreakdown(pricingBreakdown);
+        setCheckoutUrl(checkoutUrl);
+        setShowBreakdownModal(true);
+        setIsProcessingPayment(false);
+        Swal.close();
+      } else if (checkoutUrl) {
         window.location.href = checkoutUrl;
       } else {
         throw new Error("Checkout URL not found.");
@@ -80,6 +90,16 @@ const RegistrationDetailsModal: React.FC<RegistrationDetailsModalProps> = ({ reg
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      {pricingBreakdown && (
+        <CheckoutBreakdownModal
+          isOpen={showBreakdownModal}
+          onClose={() => setShowBreakdownModal(false)}
+          onConfirm={() => {
+            window.location.href = checkoutUrl;
+          }}
+          breakdown={pricingBreakdown}
+        />
+      )}
       <div className="absolute inset-0" onClick={onClose} />
 
       <div className="relative w-full max-w-4xl bg-white rounded-[3rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in duration-300">

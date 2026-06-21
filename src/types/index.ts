@@ -852,3 +852,41 @@ export interface WaitlistEntry {
     location: string;
   };
 }
+
+export interface PricingBreakdown {
+  currency: string;
+  ticketId: string;
+  ticketName: string;
+  quantity: number;
+  groupSize: number;
+  totalUnits: number;
+  originalUnitPrice: number;
+  finalUnitPrice: number;
+  originalSubtotal: number;
+  discounts: {
+    automatic?: {
+      type: string;
+      label: string;
+      percentage: number;
+      amount: number;
+    };
+    code?: {
+      code: string;
+      applied: boolean;
+      type: string;
+      discountType: string;
+      percentage: number;
+      amount: number;
+      message: string;
+    };
+    totalAmount: number;
+  };
+  totalPayable: number;
+  perAttendeePrice: number;
+}
+
+export interface CheckoutBreakdown {
+  checkoutUrl: string;
+  alreadyPaid?: boolean;
+  pricingBreakdown: PricingBreakdown;
+}

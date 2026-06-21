@@ -14,12 +14,13 @@ import {
   Tag
 } from "lucide-react";
 import api from "@/services/api";
-import { Event, Ticket as TicketType, RegistrationField } from "@/types";
+import { Event, Ticket as TicketType, RegistrationField, PricingBreakdown } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 import { useAuth } from "@/context/AuthContext";
 import LoginRequiredModal from "@/components/auth/LoginRequiredModal";
+import CheckoutBreakdownModal from "@/components/shared/CheckoutBreakdownModal";
 
 const NIGERIA_ID = '69aff562d1c0a2766615663c';
 
@@ -41,6 +42,9 @@ const RegistrationForm = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showBreakdownModal, setShowBreakdownModal] = useState(false);
+  const [pricingBreakdown, setPricingBreakdown] = useState<PricingBreakdown | null>(null);
+  const [checkoutUrl, setCheckoutUrl] = useState("");
 
   // Dynamic data for selects
   const [countries, setCountries] = useState<{ _id: string; name: string }[]>([]);
@@ -348,8 +352,16 @@ const RegistrationForm = () => {
            registrationIds: registrationIds
         });
 
-        if (paymentRes.data.data.checkoutUrl) {
-           window.location.href = paymentRes.data.data.checkoutUrl;
+        const { checkoutUrl, pricingBreakdown } = paymentRes.data.data;
+
+        if (checkoutUrl && pricingBreakdown) {
+          setPricingBreakdown(pricingBreakdown);
+          setCheckoutUrl(checkoutUrl);
+          setShowBreakdownModal(true);
+          setSubmitting(false);
+          Swal.close();
+        } else if (checkoutUrl) {
+           window.location.href = checkoutUrl;
         } else {
            throw new Error("Failed to get payment checkout URL");
         }
@@ -373,6 +385,16 @@ const RegistrationForm = () => {
         title="Sign in required"
         message="You need to sign in to complete your ticket purchase."
       />
+      {pricingBreakdown && (
+        <CheckoutBreakdownModal
+          isOpen={showBreakdownModal}
+          onClose={() => setShowBreakdownModal(false)}
+          onConfirm={() => {
+            window.location.href = checkoutUrl;
+          }}
+          breakdown={pricingBreakdown}
+        />
+      )}
       <div className="container mx-auto px-4 max-w-4xl">
         <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-500 hover:text-primary transition-colors font-bold mb-8 group">
           <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import Image from "next/image";
 import { format } from "date-fns";
 import {
@@ -9,7 +9,6 @@ import {
   ChevronRight,
   CalendarPlus,
   Download,
-  ExternalLink,
   Ticket as TicketIcon,
   Clock,
   RotateCcw,
@@ -21,7 +20,8 @@ import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 import useOnClickOutside from "@/hooks/useOnClickOutside";
 import RefundRequestModal from "@/components/RefundRequestModal";
-import { Registration } from "@/types";
+import { Registration, PricingBreakdown } from "@/types";
+import CheckoutBreakdownModal from "@/components/shared/CheckoutBreakdownModal";
 
 interface EventTicketCardProps {
   registration: Registration;
@@ -32,6 +32,9 @@ const EventTicketCard: React.FC<EventTicketCardProps> = ({ registration, onViewD
   const [showCalendarOptions, setShowCalendarOptions] = useState(false);
   const [showRefundModal, setShowRefundModal] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [showBreakdownModal, setShowBreakdownModal] = useState(false);
+  const [pricingBreakdown, setPricingBreakdown] = useState<PricingBreakdown | null>(null);
+  const [checkoutUrl, setCheckoutUrl] = useState("");
   const calendarRef = useRef<HTMLDivElement>(null);
   useOnClickOutside(calendarRef, () => setShowCalendarOptions(false));
 
@@ -48,9 +51,15 @@ const EventTicketCard: React.FC<EventTicketCardProps> = ({ registration, onViewD
       setIsProcessingPayment(true);
       Swal.showLoading();
       const response = await api.get(`/events/orders/${registration.orderId}/checkout`);
-      const checkoutUrl = response.data.data.checkoutUrl;
+      const { checkoutUrl, pricingBreakdown } = response.data.data;
 
-      if (checkoutUrl) {
+      if (checkoutUrl && pricingBreakdown) {
+        setPricingBreakdown(pricingBreakdown);
+        setCheckoutUrl(checkoutUrl);
+        setShowBreakdownModal(true);
+        setIsProcessingPayment(false);
+        Swal.close();
+      } else if (checkoutUrl) {
         window.location.href = checkoutUrl;
       } else {
         throw new Error("Checkout URL not found.");
@@ -119,6 +128,18 @@ const EventTicketCard: React.FC<EventTicketCardProps> = ({ registration, onViewD
       className="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-emerald-500/5 transition-all duration-500 group overflow-hidden cursor-pointer flex flex-col h-full"
       onClick={() => onViewDetails(registration)}
     >
+      {pricingBreakdown && (
+        <div onClick={(e) => e.stopPropagation()}>
+          <CheckoutBreakdownModal
+            isOpen={showBreakdownModal}
+            onClose={() => setShowBreakdownModal(false)}
+            onConfirm={() => {
+              window.location.href = checkoutUrl;
+            }}
+            breakdown={pricingBreakdown}
+          />
+        </div>
+      )}
       {/* Top Section: Banner & Date Badge */}
       <div className="relative h-40 w-full bg-gray-100 flex-shrink-0">
         {registration.event.bannerUrl ? (
