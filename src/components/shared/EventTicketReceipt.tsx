@@ -167,6 +167,12 @@ const EventTicketReceipt: React.FC<EventTicketReceiptProps> = ({ order, isSucces
                     <Calendar size={14} className="text-primary" />
                     <span>{formattedDate(order.event?.startDate)}</span>
                   </div>
+                  {order.event?.category && (
+                    <div className="flex items-center gap-2 text-gray-600 text-sm mb-2">
+                      <Ticket size={14} className="text-primary" />
+                      <span className="capitalize">{order.event.category} Event</span>
+                    </div>
+                  )}
                   <div className="flex items-start gap-2 text-gray-600 text-sm">
                     <MapPin size={14} className="text-primary mt-1" />
                     <span>{order.event?.location || 'N/A'}</span>
@@ -193,15 +199,41 @@ const EventTicketReceipt: React.FC<EventTicketReceiptProps> = ({ order, isSucces
                   <Ticket size={16} />
                   <span>Your Tickets ({order.registrations.length})</span>
                 </div>
-                <div className="bg-gray-50 p-6 rounded-2xl space-y-4">
+                <div className="space-y-4">
                   {order.registrations.map((reg, index) => (
-                    <div key={index} className="flex justify-between items-center pb-3 border-b border-gray-200 last:border-0 last:pb-0">
-                      <div>
-                        <p className="font-black text-gray-800 text-sm">{reg.ticket?.name || 'General Admission'}</p>
-                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{reg.ticketNumber}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-gray-900 text-sm">₦{(reg.pricePaid || 0).toLocaleString()}</p>
+                    <div key={index} className="bg-gray-50 p-6 rounded-2xl border border-gray-100">
+                      <div className="flex flex-col md:flex-row justify-between gap-6">
+                        <div className="flex-1 space-y-3">
+                          <div className="flex items-center gap-2">
+                            <User size={14} className="text-primary" />
+                            <p className="font-bold text-gray-900">{reg.attendeeData?.fullName || order.buyerInfo?.fullName}</p>
+                          </div>
+
+                          <div>
+                            <p className="font-black text-primary text-sm uppercase tracking-tight">{reg.ticket?.name || 'General Admission'}</p>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Ticket #: {reg.ticketNumber}</p>
+                            {reg.transactionId && (
+                                <p className="text-[9px] text-gray-400 font-medium uppercase tracking-wider mt-0.5">Ref: {reg.transactionId}</p>
+                            )}
+                          </div>
+
+                          <div className="pt-2">
+                            <p className="font-black text-gray-900 text-lg">₦{(reg.pricePaid || 0).toLocaleString()}</p>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col items-center justify-center p-3 bg-white rounded-xl shadow-sm border border-gray-100 w-full md:w-32 shrink-0">
+                             <div className="relative w-24 h-24">
+                                <Image
+                                  src={reg.qrCodeUrl || `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${reg.ticketNumber}`}
+                                  alt={`QR Code for ${reg.ticketNumber}`}
+                                  fill
+                                  className="object-contain"
+                                  unoptimized
+                                />
+                             </div>
+                             <p className="text-[8px] font-bold text-gray-400 mt-2 uppercase tracking-tighter">Scan to Check-in</p>
+                        </div>
                       </div>
                     </div>
                   ))}

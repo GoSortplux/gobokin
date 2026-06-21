@@ -129,9 +129,6 @@ const VerifyPaymentContent = () => {
   }, [router]);
 
   useEffect(() => {
-    // Prevent double invocation in strict mode
-    if (verifyInitiated.current) return;
-
     // Handle potential double-query string bug (?reference=REG-123?paymentReference=REG-123)
     const rawUrl = typeof window !== 'undefined' ? window.location.href : '';
     let extractedReference = '';
@@ -158,16 +155,12 @@ const VerifyPaymentContent = () => {
     const type = searchParams.get('type');
 
     if (reference) {
+      if (verifyInitiated.current) return;
       verifyInitiated.current = true;
-      // Introduce a 3-second initial delay before the first verification call
-      // to allow for webhook processing time.
+
       setPaymentStatus({ status: 'loading', message: 'Connecting to payment provider...', attempts: 0 });
 
-      const timer = setTimeout(() => {
-        verify(reference, type);
-      }, 1000); // Reduced delay to 1 second for better UX
-
-      return () => clearTimeout(timer);
+      verify(reference, type);
     } else {
       setPaymentStatus({ status: 'error', message: 'No payment reference found.' });
       setTimeout(() => {

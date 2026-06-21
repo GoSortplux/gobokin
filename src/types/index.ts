@@ -796,7 +796,8 @@ export interface Registration {
   };
   pricePaid: number;
   paymentStatus: string;
-  qrCodeUrl: string;
+  transactionId?: string;
+  qrCodeUrl: string | null;
   checkInStatus: boolean;
   checkedInAt: string | null;
   checkedInBy?: {
