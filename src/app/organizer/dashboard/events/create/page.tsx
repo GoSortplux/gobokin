@@ -43,6 +43,7 @@ import {
 import api from "@/services/api";
 import axios from "axios";
 import Swal from "@/utils/sweetalert";
+import { triggerSuccessConfetti } from "@/utils/confetti";
 import { translateError } from "@/utils/errors";
 import {  EventType, RegistrationMode, RegistrationField, Speaker, TicketType, Ticket as ITicket } from "@/types";
 import { useAuth } from "@/context/AuthContext";
@@ -1297,6 +1298,7 @@ const CreateEvent = () => {
         try {
             Swal.showLoading();
             await api.post(`/events/${eventId}/publish`);
+            triggerSuccessConfetti();
             await Swal.fire({
                 title: "Event Published!",
                 text: "Your event is now live and visible to the public.",

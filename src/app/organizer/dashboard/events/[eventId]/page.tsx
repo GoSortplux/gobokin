@@ -43,6 +43,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Event, Analytics, StaffMember, WaitlistEntry } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
+import { triggerSuccessConfetti } from "@/utils/confetti";
 import { translateError } from "@/utils/errors";
 import AssignStaffModal from "@/components/organizer/AssignStaffModal";
 import WalkInRegistrationModal from "@/components/organizer/WalkInRegistrationModal";
@@ -369,6 +370,7 @@ const EventDetails = () => {
         setIsActionLoading(true);
         Swal.showLoading();
         await api.post(`/events/${eventId}/publish`);
+        triggerSuccessConfetti();
         Swal.fire('Published!', 'Your event is now live.', 'success');
         // Refresh event data
         const eventRes = await api.get(`/events/${eventId}`);
