@@ -194,19 +194,6 @@ const EventTicketReceipt: React.FC<EventTicketReceiptProps> = ({ order, isSucces
               <section className="pt-8 border-t border-gray-100">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-8 h-8 rounded-lg bg-primary/5 flex items-center justify-center">
-                    <User size={14} className="text-primary" />
-                  </div>
-                  <span className="text-gray-900 font-black uppercase italic text-[10px] tracking-wider">Buyer</span>
-                </div>
-                <div>
-                  <p className="font-black text-gray-900 uppercase italic text-sm">{order.buyerInfo?.fullName}</p>
-                  <p className="text-gray-400 font-bold text-[10px] mt-1">{order.buyerInfo?.email}</p>
-                </div>
-              </section>
-
-              <section className="pt-8 border-t border-gray-100">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-8 h-8 rounded-lg bg-primary/5 flex items-center justify-center">
                     <ShieldCheck size={14} className="text-primary" />
                   </div>
                   <span className="text-gray-900 font-black uppercase italic text-[10px] tracking-wider">Status</span>
@@ -250,23 +237,25 @@ const EventTicketReceipt: React.FC<EventTicketReceiptProps> = ({ order, isSucces
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-2 gap-8">
+                          <div className="space-y-6">
                             <div>
-                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Attendee</p>
-                                <p className="text-sm font-black text-gray-800 uppercase italic truncate">{reg.attendeeData?.fullName || order.buyerInfo?.fullName}</p>
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Attendee Name</p>
+                                <p className="text-base font-black text-gray-900 uppercase italic leading-tight">{reg.attendeeData?.fullName || order.buyerInfo?.fullName}</p>
                             </div>
-                            <div>
-                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Ticket No.</p>
-                                <p className="text-sm font-black text-primary font-mono">{reg.ticketNumber}</p>
+
+                            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-50">
+                                <div>
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Ticket No.</p>
+                                    <p className="text-sm font-black text-primary font-mono">{reg.ticketNumber}</p>
+                                </div>
+                                {reg.transactionId && (
+                                    <div className="text-right">
+                                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Ref No.</p>
+                                        <p className="text-[9px] font-black text-gray-600 uppercase tracking-widest bg-gray-50 px-3 py-1 rounded-full inline-block">{reg.transactionId}</p>
+                                    </div>
+                                )}
                             </div>
                           </div>
-
-                          {reg.transactionId && (
-                            <div className="mt-8 pt-6 border-t border-gray-50 flex items-center justify-between">
-                                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Transaction Reference</p>
-                                <p className="text-[9px] font-black text-gray-600 uppercase tracking-widest bg-gray-50 px-3 py-1 rounded-full">{reg.transactionId}</p>
-                            </div>
-                          )}
                         </div>
 
                         {/* QR Code Section */}
