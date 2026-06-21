@@ -482,9 +482,6 @@ const CreateEvent = () => {
     return basicInfo.title && basicInfo.title.trim() !== "";
   }, [basicInfo.title]);
 
-  // Ref for debouncing
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-
   const saveToBackend = useCallback(async () => {
     if (!eventId || isAutosaving || !validateForAutosave()) return;
 
@@ -595,7 +592,7 @@ const CreateEvent = () => {
           }
       }
 
-      console.log("Autosave to backend successful");
+      console.log("Save to backend successful");
     } catch (error) {
       console.error("Autosave to backend failed", error);
     } finally {
@@ -605,13 +602,7 @@ const CreateEvent = () => {
 
   const handleBlur = useCallback(() => {
     saveToLocalStorage();
-
-    // Debounce backend save
-    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    debounceTimerRef.current = setTimeout(() => {
-      saveToBackend();
-    }, 1000); // 1s debounce
-  }, [saveToLocalStorage, saveToBackend]);
+  }, [saveToLocalStorage]);
 
   const groupFields = useMemo(() =>
     registration.fields.filter(f => !f.isPerAttendee),
@@ -653,11 +644,10 @@ const CreateEvent = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       saveToLocalStorage();
-      saveToBackend();
     }, 10000); // Every 10 seconds
 
     return () => clearInterval(interval);
-  }, [saveToLocalStorage, saveToBackend]);
+  }, [saveToLocalStorage]);
 
   // Load draft on mount
   useEffect(() => {
@@ -1214,6 +1204,7 @@ const CreateEvent = () => {
   const createEventBase = async () => {
     // If event already created, just move to media phase
     if (eventId) {
+        saveToBackend();
         setSubStep(5);
         return;
     }
@@ -1350,34 +1341,8 @@ const CreateEvent = () => {
       setLoading(true);
       try {
           Swal.showLoading();
-          const payload = {
-              tickets: tickets.map(({ id: _, ...rest }) => {
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  const tPayload: any = {
-                      name: rest.name,
-                      description: rest.description,
-                      type: rest.type,
-                      price: rest.type === 'FREE' ? 0 : rest.price,
-                      totalQuantity: Math.max(1, rest.totalQuantity || 1),
-                      groupSize: rest.groupSize,
-                      allocationType: rest.allocationType,
-                      maxPerOrder: rest.maxPerOrder,
-                      salesStart: rest.salesStart ? new Date(rest.salesStart).toISOString() : undefined,
-                      salesEnd: rest.salesEnd ? new Date(rest.salesEnd).toISOString() : undefined,
-                      isOffline: rest.isOffline,
-                      quantityDiscounts: rest.quantityDiscounts
-                  };
-
-                  if (rest.type !== 'FREE' && (rest.earlyBirdLimit || 0) > 0 && (rest.earlyBirdPrice || 0) > 0) {
-                      tPayload.earlyBirdPrice = rest.earlyBirdPrice;
-                      tPayload.earlyBirdLimit = rest.earlyBirdLimit;
-                      tPayload.earlyBirdExpiry = rest.earlyBirdExpiry ? new Date(rest.earlyBirdExpiry).toISOString() : undefined;
-                  }
-
-                  return tPayload;
-              })
-          };
-          await api.post(`/events/${eventId}/tickets`, payload);
+          // We call saveToBackend which now includes ticket logic for currentStep === 2
+          await saveToBackend();
 
           if (!basicInfo.agendaEnabled) {
             finalizeEventCreation(true);
@@ -1411,24 +1376,8 @@ const CreateEvent = () => {
       setLoading(true);
       try {
           Swal.showLoading();
-          const payload = {
-              sessions: validSessions.map(({ id: _, ...rest }) => ({
-                  title: rest.title,
-                  description: rest.description,
-                  startTime: rest.startTime ? new Date(rest.startTime).toISOString() : undefined,
-                  endTime: rest.endTime ? new Date(rest.endTime).toISOString() : undefined,
-                  location: rest.location || (basicInfo.type === 'ONLINE' ? 'Virtual' : (basicInfo.location || 'Virtual')),
-                  room: rest.room || undefined,
-                  stage: rest.stage || undefined,
-                  sessionType: rest.sessionType || undefined,
-                  speakerIds: rest.speakerIds && rest.speakerIds.length > 0 ? rest.speakerIds : undefined,
-                  speakerNames: rest.speakerNames && rest.speakerNames.length > 0 ? rest.speakerNames : undefined,
-              }))
-          };
-
-          if (payload.sessions.length > 0) {
-              await api.post(`/events/${eventId}/sessions`, payload);
-          }
+          // We call saveToBackend which now includes session logic for currentStep === 3
+          await saveToBackend();
 
           finalizeEventCreation(false);
       } catch (_error) {
@@ -3340,11 +3289,13 @@ const CreateEvent = () => {
                       onClick={() => {
                         if (subStep < 4) {
                           setSubStep(subStep + 1);
+                          saveToBackend();
                           window.scrollTo({ top: 0, behavior: 'smooth' });
                         } else if (subStep === 4) {
                           createEventBase();
                         } else {
                           // Phase 5 completed, go to step 2
+                          saveToBackend();
                           setCurrentStep(2);
                           window.scrollTo({ top: 0, behavior: 'smooth' });
                         }
