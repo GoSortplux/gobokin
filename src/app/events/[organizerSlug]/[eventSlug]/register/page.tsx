@@ -165,7 +165,8 @@ const RegistrationForm = () => {
               }
             });
             // Defensive fallbacks for buyerInfo requirements
-            if (!attendeeObj["full-name"]) attendeeObj["full-name"] = "";
+            const fullNameKey = (eventData.registrationFields || []).find(f => f.name === 'fullName' || f.name === 'full-name')?.name || 'fullName';
+            if (!attendeeObj[fullNameKey]) attendeeObj[fullNameKey] = "";
             if (!attendeeObj["email"]) attendeeObj["email"] = "";
             return attendeeObj;
           });
@@ -314,17 +315,21 @@ const RegistrationForm = () => {
     try {
       Swal.showLoading();
 
-      // Map attendees to use 'fullName' instead of 'full-name' and include buyerInfo
+      // Find the key used for full name (could be 'full-name' or 'fullName')
+      const fullNameKey = (event?.registrationFields || []).find(f => f.name === 'fullName' || f.name === 'full-name')?.name || 'fullName';
+
+      // Map attendees to ensure both 'fullName' (for backend structure) and original dynamic key exist
       const mappedAttendees = attendees.map(att => ({
         ...att,
-        fullName: att["full-name"],
+        fullName: att[fullNameKey],
       }));
 
       const payload = {
         ticketId: ticketId,
         quantity: quantity,
         buyerInfo: {
-          fullName: attendees[0]["full-name"],
+          ...attendees[0],
+          fullName: attendees[0][fullNameKey],
           email: attendees[0]["email"],
           phone: attendees[0]["phone"],
         },
@@ -444,7 +449,7 @@ const RegistrationForm = () => {
                                   {field.label} {field.required && <span className="text-red-500">*</span>}
                                 </label>
                                 <div className="relative">
-                                   {field.name === 'full-name' && <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />}
+                                   {(field.name === 'full-name' || field.name === 'fullName') && <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />}
                                    {field.name === 'email' && <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />}
                                    {field.name === 'phone' && <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />}
 

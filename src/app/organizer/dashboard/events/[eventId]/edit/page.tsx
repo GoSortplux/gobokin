@@ -510,7 +510,7 @@ const EditEventContent = () => {
           isGroupingEnabled: !!event.isGroupingEnabled,
           enforceUniqueGroupNames: !!event.enforceUniqueGroupNames,
           fields: (event.registrationFields || [
-            { name: "full-name", label: "Full Name", type: "text", required: true, isPerAttendee: true },
+            { name: "fullName", label: "Full Name", type: "text", required: true, isPerAttendee: true },
             { name: "email", label: "Email Address", type: "text", required: true, isPerAttendee: true },
           ]).map((f: RegistrationField) => ({
             ...f,
