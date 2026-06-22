@@ -25,7 +25,7 @@ import {
   User
 } from "lucide-react";
 import api from "@/services/api";
-import { Event, Ticket as TicketType, Session, Registration } from "@/types";
+import { Event, Ticket as TicketType, Session, Registration, Speaker } from "@/types";
 import { eventTracking } from "@/services/eventTracking";
 import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
