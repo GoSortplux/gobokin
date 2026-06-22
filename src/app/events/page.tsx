@@ -33,8 +33,10 @@ import {
 import Image from "next/image";
 import api from "@/services/api";
 import { Event } from "@/types";
+import { eventTracking } from "@/services/eventTracking";
 import { motion, AnimatePresence } from "framer-motion";
 import useOnClickOutside from "@/hooks/useOnClickOutside";
+import useIntersectionObserver from "@/hooks/useIntersectionObserver";
 import Swal from "@/utils/sweetalert";
 import LoginRequiredModal from "@/components/auth/LoginRequiredModal";
 import Slider from "react-slick";
@@ -269,20 +271,61 @@ const EventDiscoveryContent = () => {
     }
   };
 
-  const renderEventCard = (event: Event, variant: 'featured' | 'standard' = 'standard') => {
-    // Component-level state for dropdown
-    // Note: This would normally be its own component for proper state management
+  const renderEventCard = (
+    event: Event,
+    variant: 'featured' | 'standard' = 'standard',
+    surface: string = 'events-list',
+    position?: number
+  ) => {
     return (
-      <EventCard key={event.id} event={event} variant={variant} />
+      <EventCard
+        key={event.id}
+        event={event}
+        variant={variant}
+        surface={surface}
+        position={position}
+      />
     );
   };
 
-  const EventCard = ({ event, variant, className }: { event: Event, variant: 'featured' | 'standard', className?: string }) => {
+  const EventCard = ({
+    event,
+    variant,
+    className,
+    surface,
+    position
+  }: {
+    event: Event,
+    variant: 'featured' | 'standard',
+    className?: string,
+    surface: string,
+    position?: number
+  }) => {
     const [showCalendarOptions, setShowCalendarOptions] = useState(false);
     const [isBookmarking, setIsBookmarking] = useState(false);
     const [isBookmarked, setIsBookmarked] = useState(event.isBookmarked || false);
     const calendarRef = React.useRef<HTMLDivElement>(null);
+    const cardRef = React.useRef<HTMLDivElement>(null);
     useOnClickOutside(calendarRef, () => setShowCalendarOptions(false));
+
+    const isVisible = useIntersectionObserver(cardRef, { threshold: 0.5 });
+
+    useEffect(() => {
+      if (isVisible) {
+        eventTracking.logInteraction(event.id, 'IMPRESSION', {
+          surface,
+          viewportRatio: 0.5,
+          position
+        });
+      }
+    }, [isVisible, event.id, surface, position]);
+
+    const handleTrackClick = () => {
+      eventTracking.logInteraction(event.id, 'CLICK', {
+        surface,
+        position
+      });
+    };
 
     const handleDownloadICS = async (e: React.MouseEvent) => {
       e.preventDefault();
@@ -363,16 +406,17 @@ const EventDiscoveryContent = () => {
     };
 
     const eventUrl = event.organizer?.slug && event.slug
-      ? `/events/${event.organizer.slug}/${event.slug}`
-      : `/events/${event.id}`;
+      ? `/events/${event.organizer.slug}/${event.slug}?src=${surface}`
+      : `/events/${event.id}?src=${surface}`;
 
     return (
     <div
+      ref={cardRef}
       className={`bg-white border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-all duration-500 group relative ${
         variant === 'featured' ? 'rounded-2xl' : 'rounded-xl'
       } ${className || ""}`}
     >
-      <Link href={eventUrl} className="block">
+      <Link href={eventUrl} className="block" onClick={handleTrackClick}>
       <div className={`relative w-full overflow-hidden ${variant === 'featured' ? 'h-64' : 'h-48'}`}>
         {event.bannerUrl ? (
           <Image src={event.bannerUrl} alt={event.title} fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
@@ -721,7 +765,7 @@ const EventDiscoveryContent = () => {
               {viewMode === 'grid' ? (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                    {searchResults.map(event => renderEventCard(event))}
+                    {searchResults.map((event, idx) => renderEventCard(event, 'standard', 'search-results', idx + 1))}
                   </div>
 
                   {searchResults.length === 0 && (
@@ -813,7 +857,7 @@ const EventDiscoveryContent = () => {
                      </Link>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                    {discoveryData.featured.slice(0, 3).map(event => renderEventCard(event, 'featured'))}
+                    {discoveryData.featured.slice(0, 3).map((event, idx) => renderEventCard(event, 'featured', 'featured-experiences', idx + 1))}
                   </div>
                 </div>
               )}
@@ -831,7 +875,7 @@ const EventDiscoveryContent = () => {
                      </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                    {discoveryData.nearby.slice(0, 6).map(event => renderEventCard(event))}
+                    {discoveryData.nearby.slice(0, 6).map((event, idx) => renderEventCard(event, 'standard', 'happening-near-you', idx + 1))}
                   </div>
                 </div>
               )}
@@ -849,7 +893,7 @@ const EventDiscoveryContent = () => {
                      </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                    {discoveryData.upcoming.map(event => renderEventCard(event))}
+                    {discoveryData.upcoming.map((event, idx) => renderEventCard(event, 'standard', 'upcoming-wonders', idx + 1))}
                   </div>
                 </div>
               )}
@@ -867,7 +911,7 @@ const EventDiscoveryContent = () => {
                        </button>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                      {events && Array.isArray(events) && events.slice(0, 3).map(event => renderEventCard(event))}
+                      {events && Array.isArray(events) && events.slice(0, 3).map((event, i) => renderEventCard(event, 'standard', `category-${category.toLowerCase().replace(/\s+/g, '-')}`, i + 1))}
                     </div>
                  </div>
               ))}
@@ -912,9 +956,9 @@ const EventDiscoveryContent = () => {
                         }
                       ]}
                     >
-                      {discoveryData.bookmarks.map(event => (
+                      {discoveryData.bookmarks.map((event, idx) => (
                         <div key={event.id} className="px-3 pb-8">
-                          {renderEventCard(event, 'standard')}
+                          {renderEventCard(event, 'standard', 'bookmarks', idx + 1)}
                         </div>
                       ))}
                     </Slider>

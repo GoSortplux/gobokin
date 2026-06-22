@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 import LoginRequiredModal from "@/components/auth/LoginRequiredModal";
@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import api from "@/services/api";
 import { Event, Ticket as TicketType, Session, Registration } from "@/types";
+import { eventTracking } from "@/services/eventTracking";
 import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
@@ -200,6 +201,7 @@ const SessionCard = ({ session }: { session: Session }) => {
 const EventDetailClient = () => {
   const { organizerSlug, eventSlug } = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
@@ -288,9 +290,15 @@ const EventDetailClient = () => {
       if (data?.id) {
         fetchWaitlistStatus(data.id);
         fetchUserRegistration(data.id);
+
+        // Log DETAIL_VIEW interaction
+        eventTracking.logInteraction(data.id, 'DETAIL_VIEW', {
+          surface: 'event-detail',
+          source: searchParams.get('src') || undefined
+        });
       }
     });
-  }, [organizerSlug, eventSlug, user]);
+  }, [organizerSlug, eventSlug, user, searchParams]);
 
   const handleJoinWaitlist = async (ticket: TicketType) => {
     if (!user || !event) {
