@@ -306,17 +306,19 @@ const EventDiscoveryContent = () => {
     const [isBookmarked, setIsBookmarked] = useState(event.isBookmarked || false);
     const calendarRef = React.useRef<HTMLDivElement>(null);
     const cardRef = React.useRef<HTMLDivElement>(null);
+    const impressionTracked = React.useRef(false);
     useOnClickOutside(calendarRef, () => setShowCalendarOptions(false));
 
     const isVisible = useIntersectionObserver(cardRef, { threshold: 0.5 });
 
     useEffect(() => {
-      if (isVisible) {
+      if (isVisible && !impressionTracked.current) {
         eventTracking.logInteraction(event.id, 'IMPRESSION', {
           surface,
           viewportRatio: 0.5,
           position
         });
+        impressionTracked.current = true;
       }
     }, [isVisible, event.id, surface, position]);
 

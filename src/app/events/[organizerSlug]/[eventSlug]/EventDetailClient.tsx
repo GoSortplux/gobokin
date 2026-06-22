@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
@@ -214,6 +214,30 @@ const EventDetailClient = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [isRegistered, setIsRegistered] = useState(false);
 
+  const fetchUserRegistration = useCallback(async (id: string) => {
+    if (!user) return;
+    try {
+      const response = await api.get("/events/my-registrations");
+      const registrations = response.data.data || response.data;
+      if (Array.isArray(registrations)) {
+        const registered = registrations.some((reg: Registration) => reg.event.id === id);
+        setIsRegistered(registered);
+      }
+    } catch (_error) {
+      setIsRegistered(false);
+    }
+  }, [user]);
+
+  const fetchWaitlistStatus = useCallback(async (id: string, isWaitlistEnabled?: boolean) => {
+    if (!user || !isWaitlistEnabled) return;
+    try {
+      const response = await api.get(`/events/${id}/waitlist/status`);
+      setWaitlistStatus(response.data.data);
+    } catch (_error) {
+      setWaitlistStatus(null);
+    }
+  }, [user]);
+
   const getTicketSalesStatus = (ticket: TicketType | null) => {
     if (!ticket) return "INACTIVE";
     const now = new Date();
@@ -234,30 +258,6 @@ const EventDetailClient = () => {
   };
 
   useEffect(() => {
-    const fetchUserRegistration = async (id: string) => {
-      if (!user) return;
-      try {
-        const response = await api.get("/events/my-registrations");
-        const registrations = response.data.data || response.data;
-        if (Array.isArray(registrations)) {
-          const registered = registrations.some((reg: Registration) => reg.event.id === id);
-          setIsRegistered(registered);
-        }
-      } catch (_error) {
-        setIsRegistered(false);
-      }
-    };
-
-    const fetchWaitlistStatus = async (id: string) => {
-      if (!user) return;
-      try {
-        const response = await api.get(`/events/${id}/waitlist/status`);
-        setWaitlistStatus(response.data.data);
-      } catch (_error) {
-        setWaitlistStatus(null);
-      }
-    };
-
     const fetchEvent = async () => {
       try {
         setLoading(true);
@@ -288,7 +288,9 @@ const EventDetailClient = () => {
     };
     fetchEvent().then((data) => {
       if (data?.id) {
-        fetchWaitlistStatus(data.id);
+        if (data.isWaitlistEnabled) {
+          fetchWaitlistStatus(data.id, data.isWaitlistEnabled);
+        }
         fetchUserRegistration(data.id);
 
         // Log DETAIL_VIEW interaction
@@ -298,7 +300,7 @@ const EventDetailClient = () => {
         });
       }
     });
-  }, [organizerSlug, eventSlug, user, searchParams]);
+  }, [organizerSlug, eventSlug, user, searchParams, fetchWaitlistStatus, fetchUserRegistration]);
 
   const handleJoinWaitlist = async (ticket: TicketType) => {
     if (!user || !event) {
@@ -314,6 +316,7 @@ const EventDetailClient = () => {
         ticketTypeId: ticket.id
       });
       Swal.fire("Joined Waitlist", "You have successfully joined the waitlist for this ticket tier.", "success");
+      fetchWaitlistStatus(event.id, event.isWaitlistEnabled);
     } catch (_error) {
       console.error("Failed to join waitlist:", _error);
       Swal.fire("Error", translateError(_error), "error");
