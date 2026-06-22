@@ -841,7 +841,7 @@ const EventDetailClient = () => {
                               disabled={isJoiningWaitlist || !selectedTicket}
                               className="w-full font-semibold py-5 rounded-2xl transition-all flex items-center justify-center gap-3 text-lg group bg-rose-600 text-white shadow-xl shadow-rose-600/20 hover:brightness-110"
                             >
-                              {isJoiningWaitlist ? 'Joining...' : waitlistStatus ? `Waitlisted (Pos: #${waitlistStatus.position})` : 'Join Waitlist'}
+                              {isJoiningWaitlist ? 'Joining...' : waitlistStatus ? `You're #${waitlistStatus.position} on the waitlist` : 'Join Waitlist'}
                               <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform" />
                             </button>
                           );
