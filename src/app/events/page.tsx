@@ -407,6 +407,10 @@ const EventDiscoveryContent = () => {
       }
     };
 
+    const isSoldOut = event.isSoldOut || event.availabilityStatus === 'SOLD_OUT';
+    const isWaitlistEnabled = !!event.isWaitlistEnabled;
+    const showWaitlist = isSoldOut && isWaitlistEnabled;
+
     const eventUrl = event.organizer?.slug && event.slug
       ? `/events/${event.organizer.slug}/${event.slug}?src=${surface}`
       : `/events/${event.id}?src=${surface}`;
@@ -537,19 +541,19 @@ const EventDiscoveryContent = () => {
         <div className="flex items-center justify-between pt-5 border-t border-gray-50">
           <div className="space-y-0.5">
             <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-widest">
-              {(event.isSoldOut || event.availabilityStatus === 'SOLD_OUT') ? "Status" : "Starts from"}
+              {showWaitlist ? "Waitlist" : "Starts from"}
             </p>
-            <p className={`text-xl font-semibold ${ (event.isSoldOut || event.availabilityStatus === 'SOLD_OUT') ? 'text-rose-600' : 'text-gray-900'}`}>
-              {(event.isSoldOut || event.availabilityStatus === 'SOLD_OUT')
-                ? "SOLD OUT"
+            <p className={`text-xl font-semibold ${showWaitlist ? 'text-rose-600' : 'text-gray-900'}`}>
+              {showWaitlist
+                ? "JOIN WAITLIST"
                 : (event.tickets && event.tickets[0]?.price > 0 ? `₦${event.tickets[0].price.toLocaleString()}` : "Free")
               }
             </p>
           </div>
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-md transition-all ${
-            (event.isSoldOut || event.availabilityStatus === 'SOLD_OUT')
-              ? 'bg-gray-100 text-gray-400'
-              : 'bg-primary text-white shadow-primary/10 group-hover:scale-110'
+            (!isSoldOut || isWaitlistEnabled)
+              ? 'bg-primary text-white shadow-primary/10 group-hover:scale-110'
+              : 'bg-gray-100 text-gray-400'
           }`}>
             <ArrowRight size={18} />
           </div>
