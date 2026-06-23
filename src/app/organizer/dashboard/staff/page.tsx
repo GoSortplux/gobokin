@@ -1,18 +1,14 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Users,
   Search,
-  PlusCircle,
   Mail,
-  Phone,
   Trash2,
   ShieldCheck,
   UserPlus,
   MoreVertical,
-  CheckCircle2,
-  XCircle,
-  AlertCircle
+  Settings2
 } from "lucide-react";
 import api from "@/services/api";
 import { StaffMember } from "@/types";
@@ -20,6 +16,7 @@ import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 import OrganizerStaffModal from "@/components/organizer/OrganizerStaffModal";
+import useOnClickOutside from "@/hooks/useOnClickOutside";
 
 const StaffPool = () => {
   const [staff, setStaff] = useState<StaffMember[]>([]);
@@ -27,6 +24,10 @@ const StaffPool = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useOnClickOutside(menuRef, () => setActiveMenu(null));
 
   useEffect(() => {
     fetchStaff();
@@ -61,6 +62,7 @@ const StaffPool = () => {
   };
 
   const handleRemoveStaff = async (staffId: string) => {
+    setActiveMenu(null);
     const result = await Swal.fire({
       title: 'Remove Staff?',
       text: 'This staff member will lose access to all your events.',
@@ -75,6 +77,31 @@ const StaffPool = () => {
         Swal.showLoading();
         await api.delete(`/events/my-organizer-profile/staff/${staffId}`);
         Swal.fire('Removed!', 'Staff member removed successfully.', 'success');
+        fetchStaff();
+      } catch (error) {
+        Swal.fire('Error', translateError(error), 'error');
+      }
+    }
+  };
+
+  const handleUpdatePermissions = async (member: StaffMember) => {
+    setActiveMenu(null);
+    const result = await Swal.fire({
+      title: 'Update Permissions',
+      text: `Change guest registration permission for ${member.fullName || member.email}?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: member.canRegisterGuests ? 'Revoke Access' : 'Grant Access',
+      confirmButtonColor: member.canRegisterGuests ? '#ef4444' : '#10b981',
+    });
+
+    if (result.isConfirmed) {
+      try {
+        Swal.showLoading();
+        await api.patch(`/events/my-organizer-profile/staff/${member.id}/permissions`, {
+          canRegisterGuests: !member.canRegisterGuests
+        });
+        Swal.fire('Updated!', 'Permissions have been updated successfully.', 'success');
         fetchStaff();
       } catch (error) {
         Swal.fire('Error', translateError(error), 'error');
@@ -148,18 +175,50 @@ const StaffPool = () => {
                      {member.email}
                   </div>
                   <div className="flex items-center gap-3 text-sm text-gray-500 font-medium">
-                     <ShieldCheck size={16} className="text-emerald-500" />
-                     {member.canRegisterGuests ? "Can Register Guests" : "Check-in Access Only"}
+                     <ShieldCheck size={16} className={member.canRegisterGuests ? "text-emerald-500" : "text-amber-500"} />
+                     {member.canRegisterGuests ? "Full Registration Access" : "Check-in Access Only"}
                   </div>
                </div>
 
-               <button
-                 onClick={() => handleRemoveStaff(member.id)}
-                 className="absolute top-4 right-4 p-2.5 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all border border-rose-100 z-20 shadow-sm"
-                 title="Remove Staff"
-               >
-                  <Trash2 size={16} />
-               </button>
+               <div className="absolute top-4 right-4 z-20">
+                 <button
+                   onClick={(e) => {
+                     e.stopPropagation();
+                     setActiveMenu(activeMenu === member.id ? null : member.id);
+                   }}
+                   className={`p-2.5 rounded-xl transition-all border shadow-sm ${
+                     activeMenu === member.id
+                       ? 'bg-primary text-white border-primary'
+                       : 'bg-gray-50 text-gray-500 border-gray-100 hover:bg-gray-100'
+                   }`}
+                 >
+                   <MoreVertical size={16} />
+                 </button>
+
+                 {activeMenu === member.id && (
+                   <div
+                     ref={menuRef}
+                     className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2"
+                     onClick={(e) => e.stopPropagation()}
+                   >
+                     <button
+                       onClick={() => handleUpdatePermissions(member)}
+                       className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors"
+                     >
+                       <Settings2 size={16} className="text-primary" />
+                       Edit Permissions
+                     </button>
+                     <div className="h-px bg-gray-50 my-1"></div>
+                     <button
+                       onClick={() => handleRemoveStaff(member.id)}
+                       className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-rose-600 hover:bg-rose-50 transition-colors"
+                     >
+                       <Trash2 size={16} />
+                       Remove Staff
+                     </button>
+                   </div>
+                 )}
+               </div>
             </div>
           ))
         ) : (
