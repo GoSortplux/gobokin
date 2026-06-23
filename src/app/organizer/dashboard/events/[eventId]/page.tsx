@@ -64,6 +64,8 @@ const EventDetails = () => {
   const [loading, setLoading] = useState(true);
   const [attendeesLoading, setAttendeesLoading] = useState(false);
   const [waitlistLoading, setWaitlistLoading] = useState(false);
+  const [attendeeSearchTerm, setAttendeeSearchTerm] = useState("");
+  const [waitlistSearchTerm, setWaitlistSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
   const [isStaffModalOpen, setIsStaffModalOpen] = useState(false);
   const [isWalkInModalOpen, setIsWalkInModalOpen] = useState(false);
@@ -74,6 +76,24 @@ const EventDetails = () => {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   useOnClickOutside(menuRef, () => setActiveMenu(null));
+
+  const filteredAttendees = attendees.filter(attendee => {
+    const searchLower = attendeeSearchTerm.toLowerCase();
+    return (
+      attendee.attendeeName?.toLowerCase().includes(searchLower) ||
+      attendee.attendeeEmail?.toLowerCase().includes(searchLower) ||
+      attendee.ticketNumber?.toLowerCase().includes(searchLower) ||
+      attendee.id?.toLowerCase().includes(searchLower)
+    );
+  });
+
+  const filteredWaitlist = waitlist.filter(entry => {
+    const searchLower = waitlistSearchTerm.toLowerCase();
+    return (
+      entry.fullName?.toLowerCase().includes(searchLower) ||
+      entry.email?.toLowerCase().includes(searchLower)
+    );
+  });
 
   const getEffectiveStatus = (event: Event) => {
     if (event.status === "CANCELLED") return "CANCELLED";
@@ -1103,10 +1123,22 @@ const EventDetails = () => {
             {activeTab === "waitlist" && (
               <div className="space-y-8 animate-in fade-in duration-500">
                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
+                    <div className="flex-1">
                        <h3 className="text-lg font-black text-gray-900">Event Waitlist</h3>
                        <p className="text-xs text-gray-500 font-medium mt-1">Guests waiting for ticket tiers that are sold out.</p>
                     </div>
+
+                    <div className="relative w-full md:w-64">
+                       <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                       <input
+                         type="text"
+                         placeholder="Search waitlist..."
+                         className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+                         value={waitlistSearchTerm}
+                         onChange={(e) => setWaitlistSearchTerm(e.target.value)}
+                       />
+                    </div>
+
                     <div className="flex items-center gap-3">
                        <button className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-700 font-bold text-xs rounded-xl border border-gray-100 hover:bg-gray-100 transition-all">
                           <Download size={14} />
@@ -1132,8 +1164,8 @@ const EventDetails = () => {
                                </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50">
-                               {waitlist.length > 0 ? (
-                                 waitlist.map((entry, idx) => (
+                               {filteredWaitlist.length > 0 ? (
+                                 filteredWaitlist.map((entry, idx) => (
                                    <tr key={entry.id || idx} className="hover:bg-gray-50/50 transition-colors group">
                                       <td className="px-6 py-6">
                                          <div className="flex items-center gap-3">
@@ -1196,10 +1228,22 @@ const EventDetails = () => {
             {activeTab === "attendees" && (
               <div className="space-y-8 animate-in fade-in duration-500">
                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
+                    <div className="flex-1">
                        <h3 className="text-lg font-black text-gray-900">Registered Attendees</h3>
                        <p className="text-xs text-gray-500 font-medium mt-1">Manage and track all guest registrations for this event.</p>
                     </div>
+
+                    <div className="relative w-full md:w-64">
+                       <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                       <input
+                         type="text"
+                         placeholder="Search attendees..."
+                         className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+                         value={attendeeSearchTerm}
+                         onChange={(e) => setAttendeeSearchTerm(e.target.value)}
+                       />
+                    </div>
+
                     <div className="flex items-center gap-3">
                        <button className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-700 font-bold text-xs rounded-xl border border-gray-100 hover:bg-gray-100 transition-all">
                           <Download size={14} />
@@ -1236,8 +1280,8 @@ const EventDetails = () => {
                                </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50">
-                               {attendees.length > 0 ? (
-                                 attendees.map((attendee, idx) => (
+                               {filteredAttendees.length > 0 ? (
+                                 filteredAttendees.map((attendee, idx) => (
                                    <tr key={attendee.id || idx} className="hover:bg-gray-50/50 transition-colors group">
                                       <td className="px-6 py-6">
                                          <div className="flex items-center gap-3">

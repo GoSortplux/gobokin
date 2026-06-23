@@ -29,6 +29,14 @@ const StaffPool = () => {
 
   useOnClickOutside(menuRef, () => setActiveMenu(null));
 
+  const filteredStaff = staff.filter(member => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      member.fullName?.toLowerCase().includes(searchLower) ||
+      member.email?.toLowerCase().includes(searchLower)
+    );
+  });
+
   useEffect(() => {
     fetchStaff();
   }, []);
@@ -150,8 +158,8 @@ const StaffPool = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {staff.length > 0 ? (
-          staff.map((member) => (
+        {filteredStaff.length > 0 ? (
+          filteredStaff.map((member) => (
             <div key={member.id} className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-blue-900/5 transition-all duration-500 group relative overflow-hidden">
                <div className="absolute -top-12 -right-12 w-32 h-32 bg-gray-50 rounded-full group-hover:bg-primary/5 transition-colors duration-500"></div>
 

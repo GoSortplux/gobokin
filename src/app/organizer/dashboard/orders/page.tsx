@@ -28,6 +28,17 @@ const OrdersView = () => {
 
   const isStaff = user?.role?.includes('organizer-staff');
 
+  const filteredOrders = orders.filter(order => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      order.ticketNumber?.toLowerCase().includes(searchLower) ||
+      order.attendeeName?.toLowerCase().includes(searchLower) ||
+      order.eventTitle?.toLowerCase().includes(searchLower) ||
+      order.attendeeEmail?.toLowerCase().includes(searchLower) ||
+      order.orderId?.toLowerCase().includes(searchLower)
+    );
+  });
+
   useEffect(() => {
     const init = async () => {
         setLoading(true);
@@ -233,8 +244,8 @@ const OrdersView = () => {
                   </tr>
                </thead>
                <tbody className="divide-y divide-gray-50">
-                  {orders.length > 0 ? (
-                    orders.map((order) => (
+                  {filteredOrders.length > 0 ? (
+                    filteredOrders.map((order) => (
                       <tr key={order.id} className="hover:bg-gray-50 transition-colors group">
                         <td className="px-6 py-6">
                            <p className="font-black text-gray-900">{order.ticketNumber}</p>
@@ -322,8 +333,8 @@ const OrdersView = () => {
 
          {/* Mobile Card Layout */}
          <div className="lg:hidden divide-y divide-gray-50">
-            {orders.length > 0 ? (
-                orders.map((order) => (
+            {filteredOrders.length > 0 ? (
+                filteredOrders.map((order) => (
                     <div key={order.id} className="p-5 hover:bg-gray-50 transition-colors space-y-4">
                         <div className="flex items-start justify-between">
                             <div className="flex items-center gap-3">
