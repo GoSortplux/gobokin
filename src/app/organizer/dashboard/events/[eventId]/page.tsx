@@ -35,7 +35,8 @@ import {
   Mail,
   Trash2,
   MousePointer2,
-  Percent
+  Percent,
+  Search
 } from "lucide-react";
 import Image from "next/image";
 import api from "@/services/api";
