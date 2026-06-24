@@ -347,23 +347,37 @@ const EventDetails = () => {
   };
 
   const handleNotifyGuest = async (entry: WaitlistEntry) => {
-    const { value: message, isConfirmed } = await Swal.fire({
+    const { value: formValues, isConfirmed } = await Swal.fire({
       title: 'Notify Waitlisted Guest',
-      text: `Send a direct notification to ${entry.fullName}.`,
-      input: 'textarea',
-      inputPlaceholder: 'Tell them a spot has opened up...',
+      html: `
+        <div class="space-y-4">
+          <p class="text-sm text-gray-500 mb-4">Send a direct notification to <b>${entry.fullName}</b> (${entry.email}).</p>
+          <input id="swal-subject" class="swal2-input w-full" placeholder="Subject" value="Waitlist Update: ${event?.title}">
+          <textarea id="swal-body" class="swal2-textarea w-full" placeholder="Type your message here..."></textarea>
+        </div>
+      `,
+      focusConfirm: false,
       showCancelButton: true,
       confirmButtonText: 'Send Notification',
       confirmButtonColor: '#295FA7',
+      preConfirm: () => {
+        const subject = (document.getElementById('swal-subject') as HTMLInputElement).value;
+        const body = (document.getElementById('swal-body') as HTMLTextAreaElement).value;
+        if (!subject || !body) {
+          Swal.showValidationMessage('Please enter both subject and message body');
+          return false;
+        }
+        return { subject, body };
+      }
     });
 
-    if (isConfirmed && message) {
+    if (isConfirmed && formValues) {
       try {
         Swal.showLoading();
-        // Assuming we can use broadcast or a similar notify endpoint
         await api.post(`/events/${eventId}/broadcast`, {
-          message,
-          recipientEmails: [entry.email]
+          subject: formValues.subject,
+          body: formValues.body,
+          segments: [entry.email]
         });
         Swal.fire('Sent!', 'Guest has been notified.', 'success');
       } catch (error) {
