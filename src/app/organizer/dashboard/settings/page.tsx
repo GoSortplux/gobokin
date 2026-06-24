@@ -28,6 +28,7 @@ import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 import OrganizerProfileModal from "./OrganizerProfileModal";
 import GlobalDiscountModal from "./GlobalDiscountModal";
+import VerificationModal from "./VerificationModal";
 
 type TabType = 'profile' | 'subscriptions' | 'discounts';
 
@@ -45,6 +46,7 @@ const OrganizerSettings = () => {
   const [saving, setSaving] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
+  const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
   const [selectedDiscount, setSelectedDiscount] = useState<GlobalDiscount | null>(null);
 
   const [selectedEventId, setSelectedEventId] = useState<string>("");
@@ -335,10 +337,25 @@ const OrganizerSettings = () => {
                   Upgrade Potential
                </h4>
                <p className="text-blue-100 text-sm leading-relaxed">Achieve <span className="text-white font-bold underline">VERIFIED</span> status to unlock the lowest commission rate (2.5%) and instant T+1 payouts.</p>
-               <button className="w-full bg-white text-gray-900 font-black py-4 rounded-[2rem] hover:bg-primary hover:text-white transition-all shadow-lg text-sm flex items-center justify-center gap-2 group">
-                  Apply for Verification
-                  <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-               </button>
+               {profile?.status === 'VERIFIED' ? (
+                  <div className="w-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-black py-4 rounded-[2rem] text-sm flex items-center justify-center gap-2">
+                    <CheckCircle2 size={18} />
+                    Verified Organizer
+                  </div>
+               ) : profile?.status === 'PENDING' ? (
+                  <div className="w-full bg-amber-500/10 border border-amber-500/20 text-amber-400 font-black py-4 rounded-[2rem] text-sm flex items-center justify-center gap-2">
+                    <Calendar size={18} />
+                    Application Pending
+                  </div>
+               ) : (
+                  <button
+                    onClick={() => setIsVerificationModalOpen(true)}
+                    className="w-full bg-white text-gray-900 font-black py-4 rounded-[2rem] hover:bg-primary hover:text-white transition-all shadow-lg text-sm flex items-center justify-center gap-2 group"
+                  >
+                    Apply for Verification
+                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                  </button>
+               )}
             </div>
          </div>
 
@@ -799,6 +816,12 @@ const OrganizerSettings = () => {
         onSubmit={handleDiscountSubmit}
         loading={discountsLoading}
         discount={selectedDiscount}
+      />
+
+      <VerificationModal
+        isOpen={isVerificationModalOpen}
+        onClose={() => setIsVerificationModalOpen(false)}
+        onSuccess={fetchProfile}
       />
     </div>
   );
