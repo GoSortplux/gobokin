@@ -27,6 +27,7 @@ import {
 import api from "@/services/api";
 import { Event, Ticket as TicketType, Session, Registration, Speaker } from "@/types";
 import { eventTracking } from "@/services/eventTracking";
+import PublicOrganizerProfileModal from "@/components/organizer/PublicOrganizerProfileModal";
 import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
@@ -213,6 +214,7 @@ const EventDetailClient = () => {
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState("overview");
   const [isRegistered, setIsRegistered] = useState(false);
+  const [showOrganizerModal, setShowOrganizerModal] = useState(false);
 
   const fetchUserRegistration = useCallback(async (id: string) => {
     if (!user) return;
@@ -421,6 +423,12 @@ const EventDetailClient = () => {
       <LoginRequiredModal
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}
+      />
+
+      <PublicOrganizerProfileModal
+        isOpen={showOrganizerModal}
+        onClose={() => setShowOrganizerModal(false)}
+        slug={event.organizer?.slug || (organizerSlug as string)}
       />
 
       <div className="container mx-auto px-4 max-w-7xl">
@@ -938,7 +946,12 @@ const EventDetailClient = () => {
                   <div className="flex-1 overflow-hidden">
                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-0.5">Organized by</p>
                      <h4 className="font-semibold text-gray-900 tracking-tight truncate">{event.organizer?.userProfile?.fullName || "Verified Organizer"}</h4>
-                     <button className="text-[10px] font-semibold text-primary uppercase tracking-[0.15em] mt-1 hover:underline">View Profile</button>
+                     <button
+                       onClick={() => setShowOrganizerModal(true)}
+                       className="text-[10px] font-semibold text-primary uppercase tracking-[0.15em] mt-1 hover:underline"
+                     >
+                       View Profile
+                     </button>
                   </div>
                </div>
             </div>
