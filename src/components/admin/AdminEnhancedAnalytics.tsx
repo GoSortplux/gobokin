@@ -123,7 +123,17 @@ interface AdminAnalyticsData {
   dataComparison: DataComparison;
 }
 
-const formatCurrency = (amount: number) => new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(amount);
+const formatCurrency = (amount: number) => new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0 }).format(amount);
+
+const safeFormatCurrency = (amount: number | undefined | null) => {
+    if (amount === undefined || amount === null) return 'N/A';
+    return formatCurrency(amount);
+};
+
+const safeFormatNumber = (value: number | undefined | null) => {
+    if (value === undefined || value === null) return 'N/A';
+    return value.toLocaleString();
+};
 
 const TrendIndicator = ({ percentage }: { percentage: string }) => {
     const isPositive = !percentage.startsWith('-');
@@ -253,18 +263,18 @@ const AdminEnhancedAnalytics = ({ defaultView = 'venues' }: { defaultView?: 'ven
     }
   };
 
-  const topHallsData = venueData?.hallPerformance?.mostActiveHalls.slice(0, 5).map(venue => ({ name: venue.name, Revenue: venue.revenue })) || [];
+  const topHallsData = venueData?.hallPerformance?.mostActiveHalls.slice(0, 5).map(venue => ({ name: venue.name, Revenue: venue.revenue || 0 })) || [];
   const revenueBreakdownData = venueData ? [
-    { name: 'Booking Commission', value: venueData.platformRevenue.bookingCommissionRevenue },
-    { name: 'Subscription Revenue', value: venueData.platformRevenue.subscriptionRevenue },
+    { name: 'Booking Commission', value: venueData.platformRevenue.bookingCommissionRevenue || 0 },
+    { name: 'Subscription Revenue', value: venueData.platformRevenue.subscriptionRevenue || 0 },
   ] : [];
   const COLORS = ['#295FA7', '#B68945'];
 
   const eventTrendData = eventAnalytics?.trends?.map(t => ({
     name: t.date,
-    revenue: t.revenue,
-    registrations: t.registrations,
-    views: t.views
+    revenue: t.revenue || 0,
+    registrations: t.registrations || 0,
+    views: t.views || 0
   })) || [];
 
   return (
@@ -356,19 +366,19 @@ const AdminEnhancedAnalytics = ({ defaultView = 'venues' }: { defaultView?: 'ven
                 ) : null}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              <AdminStatCard title="System Gross Volume" value={formatCurrency(venueData.overallStats.systemGrossVolume)} icon={DollarSign} />
-              <AdminStatCard title="Total Owner Payouts" value={formatCurrency(venueData.overallStats.totalOwnerPayouts)} icon={Briefcase} />
-              <AdminStatCard title="Total Refunded" value={formatCurrency(venueData.overallStats.totalRefunded)} icon={TrendingDown} />
-              <AdminStatCard title="Platform Net" value={formatCurrency(venueData.overallStats.totalPlatformNet)} icon={TrendingUp} />
-              <AdminStatCard title="Total Views" value={venueData.overallStats.totalViews.toLocaleString()} icon={TrendingUp} />
-              <AdminStatCard title="Contact Attempts" value={venueData.overallStats.totalDemoBookings} icon={Briefcase} />
+              <AdminStatCard title="System Gross Volume" value={safeFormatCurrency(venueData.overallStats.systemGrossVolume)} icon={DollarSign} />
+              <AdminStatCard title="Total Owner Payouts" value={safeFormatCurrency(venueData.overallStats.totalOwnerPayouts)} icon={Briefcase} />
+              <AdminStatCard title="Total Refunded" value={safeFormatCurrency(venueData.overallStats.totalRefunded)} icon={TrendingDown} />
+              <AdminStatCard title="Platform Net" value={safeFormatCurrency(venueData.overallStats.totalPlatformNet)} icon={TrendingUp} />
+              <AdminStatCard title="Total Views" value={safeFormatNumber(venueData.overallStats.totalViews)} icon={TrendingUp} />
+              <AdminStatCard title="Contact Attempts" value={safeFormatNumber(venueData.overallStats.totalDemoBookings)} icon={Briefcase} />
               {user?.outstandingReferralCommission !== undefined && (
                   <div className={`p-6 rounded-xl shadow-md flex items-center justify-between transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border ${user.outstandingReferralCommission > 0 ? 'bg-rose-50 border-rose-100' : 'bg-white border-gray-100'}`}>
                       <div className="flex items-center space-x-4">
                           <div className={`p-4 rounded-xl ${user.outstandingReferralCommission > 0 ? 'bg-white text-rose-600 shadow-sm' : 'bg-blue-50 text-primary'}`}><Wallet className="h-6 w-6" /></div>
                           <div>
                               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Referral Debt</p>
-                              <p className={`text-2xl font-black mt-0.5 ${user.outstandingReferralCommission > 0 ? 'text-rose-700' : 'text-gray-900'}`}>{formatCurrency(user.outstandingReferralCommission)}</p>
+                              <p className={`text-2xl font-black mt-0.5 ${user.outstandingReferralCommission > 0 ? 'text-rose-700' : 'text-gray-900'}`}>{safeFormatCurrency(user.outstandingReferralCommission)}</p>
                           </div>
                       </div>
                       {user.outstandingReferralCommission > 0 && (
@@ -388,10 +398,10 @@ const AdminEnhancedAnalytics = ({ defaultView = 'venues' }: { defaultView?: 'ven
           <div className="space-y-2">
             <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Gobokin Revenue Performance</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              <AdminStatCard title="Platform Net Revenue" value={formatCurrency(venueData.platformRevenue.totalPlatformNet)} icon={DollarSign} />
-              <AdminStatCard title="Booking Commission" value={formatCurrency(venueData.platformRevenue.bookingCommissionRevenue)} icon={Percent} trend={venueData.dataComparison.change.bookingRevenuePercentage} />
-              <AdminStatCard title="Subscription Revenue" value={formatCurrency(venueData.platformRevenue.subscriptionRevenue)} icon={Shield} trend={venueData.dataComparison.change.subscriptionRevenuePercentage} />
-              <AdminStatCard title="Commission Rate" value={venueData.platformRevenue.commissionRate} icon={Percent} />
+              <AdminStatCard title="Platform Net Revenue" value={safeFormatCurrency(venueData.platformRevenue.totalPlatformNet)} icon={DollarSign} />
+              <AdminStatCard title="Booking Commission" value={safeFormatCurrency(venueData.platformRevenue.bookingCommissionRevenue)} icon={Percent} trend={venueData.dataComparison.change.bookingRevenuePercentage} />
+              <AdminStatCard title="Subscription Revenue" value={safeFormatCurrency(venueData.platformRevenue.subscriptionRevenue)} icon={Shield} trend={venueData.dataComparison.change.subscriptionRevenuePercentage} />
+              <AdminStatCard title="Commission Rate" value={(venueData.platformRevenue.commissionRate !== undefined && venueData.platformRevenue.commissionRate !== null) ? venueData.platformRevenue.commissionRate : 'N/A'} icon={Percent} />
             </div>
           </div>
 
@@ -401,15 +411,15 @@ const AdminEnhancedAnalytics = ({ defaultView = 'venues' }: { defaultView?: 'ven
               <div className="grid grid-cols-3 gap-4">
                 <div className="bg-emerald-50 p-4 rounded-2xl text-center">
                   <p className="text-[10px] font-bold text-emerald-600 uppercase mb-1">Confirmed</p>
-                  <p className="text-2xl font-black text-emerald-700">{venueData.overallStats.totalBookings.confirmed}</p>
+                  <p className="text-2xl font-black text-emerald-700">{safeFormatNumber(venueData.overallStats.totalBookings.confirmed)}</p>
                 </div>
                 <div className="bg-amber-50 p-4 rounded-2xl text-center">
                   <p className="text-[10px] font-bold text-amber-600 uppercase mb-1">Pending</p>
-                  <p className="text-2xl font-black text-amber-700">{venueData.overallStats.totalBookings.pending}</p>
+                  <p className="text-2xl font-black text-amber-700">{safeFormatNumber(venueData.overallStats.totalBookings.pending)}</p>
                 </div>
                 <div className="bg-rose-50 p-4 rounded-2xl text-center">
                   <p className="text-[10px] font-bold text-rose-600 uppercase mb-1">Cancelled</p>
-                  <p className="text-2xl font-black text-rose-700">{venueData.overallStats.totalBookings.cancelled}</p>
+                  <p className="text-2xl font-black text-rose-700">{safeFormatNumber(venueData.overallStats.totalBookings.cancelled)}</p>
                 </div>
               </div>
             </div>
@@ -418,19 +428,19 @@ const AdminEnhancedAnalytics = ({ defaultView = 'venues' }: { defaultView?: 'ven
               <div className="grid grid-cols-4 gap-2 sm:gap-4">
                 <div className="bg-blue-50 p-4 rounded-2xl text-center">
                   <p className="text-[10px] font-bold text-blue-600 uppercase mb-1">New</p>
-                  <p className="text-xl font-black text-blue-700">{venueData.overallStats.totalReservations.new}</p>
+                  <p className="text-xl font-black text-blue-700">{safeFormatNumber(venueData.overallStats.totalReservations.new)}</p>
                 </div>
                 <div className="bg-indigo-50 p-4 rounded-2xl text-center">
                   <p className="text-[10px] font-bold text-indigo-600 uppercase mb-1">Active</p>
-                  <p className="text-xl font-black text-indigo-700">{venueData.overallStats.totalReservations.active}</p>
+                  <p className="text-xl font-black text-indigo-700">{safeFormatNumber(venueData.overallStats.totalReservations.active)}</p>
                 </div>
                 <div className="bg-emerald-50 p-4 rounded-2xl text-center">
                   <p className="text-[10px] font-bold text-emerald-600 uppercase mb-1">Conv.</p>
-                  <p className="text-xl font-black text-emerald-700">{venueData.overallStats.totalReservations.converted}</p>
+                  <p className="text-xl font-black text-emerald-700">{safeFormatNumber(venueData.overallStats.totalReservations.converted)}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-2xl text-center">
                   <p className="text-[10px] font-bold text-gray-600 uppercase mb-1">Exp.</p>
-                  <p className="text-xl font-black text-gray-700">{venueData.overallStats.totalReservations.expired}</p>
+                  <p className="text-xl font-black text-gray-700">{safeFormatNumber(venueData.overallStats.totalReservations.expired)}</p>
                 </div>
               </div>
             </div>
@@ -446,11 +456,11 @@ const AdminEnhancedAnalytics = ({ defaultView = 'venues' }: { defaultView?: 'ven
                       <BarChart data={topHallsData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                           <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: '#64748b' }} dy={10} />
-                          <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: '#64748b' }} tickFormatter={(value) => new Intl.NumberFormat('en-NG', { notation: 'compact', compactDisplay: 'short' }).format(value as number)} />
+                          <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: '#64748b' }} tickFormatter={(value) => new Intl.NumberFormat('en-NG', { notation: 'compact', compactDisplay: 'short' }).format((value || 0) as number)} />
                           <Tooltip
                             cursor={{ fill: '#f8fafc' }}
                             contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', padding: '12px' }}
-                            formatter={(value) => [formatCurrency(value as number), 'Revenue']}
+                            formatter={(value) => [safeFormatCurrency(value as number), 'Revenue']}
                           />
                           <Bar dataKey="Revenue" fill="#295FA7" radius={[6, 6, 0, 0]} barSize={40} />
                       </BarChart>
@@ -474,7 +484,7 @@ const AdminEnhancedAnalytics = ({ defaultView = 'venues' }: { defaultView?: 'ven
                           >
                               {revenueBreakdownData.map((entry, index) => (<Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} strokeWidth={0} />))}
                           </Pie>
-                          <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)' }} formatter={(value) => `${formatCurrency(value as number)}`} />
+                          <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)' }} formatter={(value) => `${safeFormatCurrency(value as number)}`} />
                           <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px', fontSize: '12px', fontWeight: 600 }} />
                       </PieChart>
                   </ResponsiveContainer>
@@ -486,14 +496,14 @@ const AdminEnhancedAnalytics = ({ defaultView = 'venues' }: { defaultView?: 'ven
           <div className="space-y-2">
             <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Platform Event Metrics</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <AdminStatCard title="Total Platform Revenue" value={formatCurrency(eventAnalytics.summary.grossRevenue)} icon={DollarSign} />
-              <AdminStatCard title="Total Registrations" value={eventAnalytics.summary.totalRegistrations.toLocaleString()} icon={Users} />
-              <AdminStatCard title="Platform Net Revenue" value={formatCurrency(eventAnalytics.summary.netRevenue)} icon={Wallet} />
-              <AdminStatCard title="Avg. Conversion Rate" value={`${eventAnalytics.summary.conversionRate}%`} icon={MousePointerClick} />
-              <AdminStatCard title="Total Orders" value={eventAnalytics.summary.totalOrders.toLocaleString()} icon={ShoppingBag} />
-              <AdminStatCard title="Total Platform Views" value={eventAnalytics.summary.totalViews.toLocaleString()} icon={Eye} />
-              <AdminStatCard title="Attendance Rate" value={`${eventAnalytics.summary.attendanceRate}%`} icon={BarChart3} />
-              <AdminStatCard title="Total Platform Events" value={eventAnalytics.summary.totalEvents.toLocaleString()} icon={Ticket} />
+              <AdminStatCard title="Total Platform Revenue" value={safeFormatCurrency(eventAnalytics.summary.grossRevenue)} icon={DollarSign} />
+              <AdminStatCard title="Total Registrations" value={safeFormatNumber(eventAnalytics.summary.totalRegistrations)} icon={Users} />
+              <AdminStatCard title="Platform Net Revenue" value={safeFormatCurrency(eventAnalytics.summary.netRevenue)} icon={Wallet} />
+              <AdminStatCard title="Avg. Conversion Rate" value={(eventAnalytics.summary.conversionRate !== undefined && eventAnalytics.summary.conversionRate !== null) ? `${eventAnalytics.summary.conversionRate}%` : 'N/A'} icon={MousePointerClick} />
+              <AdminStatCard title="Total Orders" value={safeFormatNumber(eventAnalytics.summary.totalOrders)} icon={ShoppingBag} />
+              <AdminStatCard title="Total Platform Views" value={safeFormatNumber(eventAnalytics.summary.totalViews)} icon={Eye} />
+              <AdminStatCard title="Attendance Rate" value={(eventAnalytics.summary.attendanceRate !== undefined && eventAnalytics.summary.attendanceRate !== null) ? `${eventAnalytics.summary.attendanceRate}%` : 'N/A'} icon={BarChart3} />
+              <AdminStatCard title="Total Platform Events" value={safeFormatNumber(eventAnalytics.summary.totalEvents)} icon={Ticket} />
             </div>
           </div>
 
@@ -521,12 +531,12 @@ const AdminEnhancedAnalytics = ({ defaultView = 'venues' }: { defaultView?: 'ven
                                 axisLine={false}
                                 tickLine={false}
                                 tick={{ fontSize: 10, fontWeight: 700, fill: '#64748b' }}
-                                tickFormatter={(value) => `₦${value.toLocaleString()}`}
+                                tickFormatter={(value) => `₦${(value || 0).toLocaleString()}`}
                             />
                             <Tooltip
                                 contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', padding: '12px' }}
                                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                formatter={(value: any) => [`₦${value.toLocaleString()}`, 'Revenue']}
+                                formatter={(value: any) => [`₦${(value || 0).toLocaleString()}`, 'Revenue']}
                             />
                             <Area type="monotone" dataKey="revenue" stroke="#295FA7" strokeWidth={4} fillOpacity={1} fill="url(#colorRevenue)" />
                         </AreaChart>
@@ -541,10 +551,10 @@ const AdminEnhancedAnalytics = ({ defaultView = 'venues' }: { defaultView?: 'ven
                         <PieChart>
                             <Pie
                                 data={[
-                                    { name: 'Upcoming', value: eventAnalytics.summary.upcomingEvents, color: '#295FA7' },
-                                    { name: 'Ongoing', value: eventAnalytics.summary.ongoingEvents, color: '#10B981' },
-                                    { name: 'Completed', value: eventAnalytics.summary.completedEvents, color: '#F59E0B' },
-                                    { name: 'Cancelled', value: eventAnalytics.summary.cancelledEvents, color: '#EF4444' },
+                                    { name: 'Upcoming', value: eventAnalytics.summary.upcomingEvents || 0, color: '#295FA7' },
+                                    { name: 'Ongoing', value: eventAnalytics.summary.ongoingEvents || 0, color: '#10B981' },
+                                    { name: 'Completed', value: eventAnalytics.summary.completedEvents || 0, color: '#F59E0B' },
+                                    { name: 'Cancelled', value: eventAnalytics.summary.cancelledEvents || 0, color: '#EF4444' },
                                 ]}
                                 innerRadius={70}
                                 outerRadius={90}
@@ -565,15 +575,15 @@ const AdminEnhancedAnalytics = ({ defaultView = 'venues' }: { defaultView?: 'ven
                     </ResponsiveContainer>
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total</span>
-                        <span className="text-2xl font-black text-gray-900">{eventAnalytics.summary.totalEvents}</span>
+                        <span className="text-2xl font-black text-gray-900">{safeFormatNumber(eventAnalytics.summary.totalEvents)}</span>
                     </div>
                 </div>
                 <div className="mt-8 space-y-3">
                     {[
-                        { name: 'Upcoming', value: eventAnalytics.summary.upcomingEvents, color: '#295FA7' },
-                        { name: 'Ongoing', value: eventAnalytics.summary.ongoingEvents, color: '#10B981' },
-                        { name: 'Completed', value: eventAnalytics.summary.completedEvents, color: '#F59E0B' },
-                        { name: 'Cancelled', value: eventAnalytics.summary.cancelledEvents, color: '#EF4444' },
+                        { name: 'Upcoming', value: eventAnalytics.summary.upcomingEvents || 0, color: '#295FA7' },
+                        { name: 'Ongoing', value: eventAnalytics.summary.ongoingEvents || 0, color: '#10B981' },
+                        { name: 'Completed', value: eventAnalytics.summary.completedEvents || 0, color: '#F59E0B' },
+                        { name: 'Cancelled', value: eventAnalytics.summary.cancelledEvents || 0, color: '#EF4444' },
                     ].map((item, i) => (
                         <div key={i} className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
@@ -607,11 +617,11 @@ const AdminEnhancedAnalytics = ({ defaultView = 'venues' }: { defaultView?: 'ven
                                       <div className="text-sm font-bold text-gray-900">{event.title}</div>
                                       <div className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">{event.status}</div>
                                   </td>
-                                  <td className="py-4 text-center text-sm font-bold text-gray-600">{event.views.toLocaleString()}</td>
-                                  <td className="py-4 text-center text-sm font-bold text-gray-600">{event.orders.toLocaleString()}</td>
-                                  <td className="py-4 text-center text-sm font-bold text-gray-600">{event.registrations.toLocaleString()}</td>
+                                  <td className="py-4 text-center text-sm font-bold text-gray-600">{safeFormatNumber(event.views)}</td>
+                                  <td className="py-4 text-center text-sm font-bold text-gray-600">{safeFormatNumber(event.orders)}</td>
+                                  <td className="py-4 text-center text-sm font-bold text-gray-600">{safeFormatNumber(event.registrations)}</td>
                                   <td className="py-4 text-right text-sm font-black text-gray-900">
-                                      {formatCurrency(event.grossRevenue)}
+                                      {safeFormatCurrency(event.grossRevenue)}
                                   </td>
                               </tr>
                           ))}
