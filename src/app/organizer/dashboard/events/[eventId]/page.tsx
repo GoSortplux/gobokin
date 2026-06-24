@@ -1396,7 +1396,7 @@ const EventDetails = () => {
                                                 className={`px-3 py-1.5 font-bold text-[10px] rounded-lg border transition-all ${
                                                   attendee.status === 'PENDING' || attendee.status === 'FAILED'
                                                     ? 'bg-gray-50 text-gray-400 border-gray-100 cursor-not-allowed opacity-60'
-                                                    : 'bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-600 hover:text-white'
+                                                    : 'bg-blue-50 text-primary border-blue-100 hover:bg-primary hover:text-white'
                                                 }`}
                                               >
                                                 Check-in

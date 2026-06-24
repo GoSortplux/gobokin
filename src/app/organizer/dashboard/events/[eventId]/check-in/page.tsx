@@ -115,7 +115,7 @@ const CheckInInterface = () => {
 
       await Swal.fire({
         title: "Check-in Successful!",
-        text: `${searchResult?.attendeeData?.fullName || searchResult?.attendeeData?.["full-name"] || "Guest"} has been checked in.`,
+        text: `${searchResult?.attendeeName || searchResult?.attendeeData?.fullName || searchResult?.attendeeData?.["full-name"] || "Guest"} has been checked in.`,
         icon: "success",
         timer: 2000,
         showConfirmButton: false
@@ -256,7 +256,7 @@ const CheckInInterface = () => {
                   <div className="flex flex-col md:flex-row items-center gap-8">
                      <div className="relative">
                         <div className="w-28 h-28 bg-primary/10 text-primary rounded-[2.5rem] flex items-center justify-center font-black text-4xl shadow-inner border border-primary/5">
-                           {(searchResult.attendeeData?.fullName || searchResult.attendeeData?.["full-name"] || "G")[0]}
+                           {(searchResult.attendeeName || searchResult.attendeeData?.fullName || searchResult.attendeeData?.["full-name"] || "G")[0]}
                         </div>
                         {!searchResult.checkInStatus && (
                           <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-white p-2 rounded-xl shadow-lg border-4 border-white">
@@ -266,7 +266,7 @@ const CheckInInterface = () => {
                      </div>
                      <div className="flex-1 text-center md:text-left">
                         <h3 className="text-3xl font-black text-gray-900 tracking-tight leading-tight mb-2">
-                          {searchResult.attendeeData?.fullName || searchResult.attendeeData?.["full-name"] || "Attendee Name N/A"}
+                          {searchResult.attendeeName || searchResult.attendeeData?.fullName || searchResult.attendeeData?.["full-name"] || "Attendee Name N/A"}
                         </h3>
                         <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
                           <span className="text-gray-500 font-bold flex items-center gap-2 bg-gray-50 px-4 py-1.5 rounded-full text-sm">
@@ -275,7 +275,7 @@ const CheckInInterface = () => {
                           </span>
                           <span className="text-gray-500 font-bold flex items-center gap-2 bg-gray-50 px-4 py-1.5 rounded-full text-sm">
                             <Mail size={16} className="text-primary" />
-                            {searchResult.attendeeData?.email || "No email provided"}
+                            {searchResult.attendeeEmail || searchResult.attendeeData?.email || "No email provided"}
                           </span>
                         </div>
                      </div>
@@ -310,17 +310,19 @@ const CheckInInterface = () => {
                            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-primary shadow-sm border border-gray-100">
                               <Ticket size={18} />
                            </div>
-                           <p className="text-lg font-black text-gray-900">Standard Access</p>
+                           <p className="text-lg font-black text-gray-900">{searchResult.ticketName || "Standard Access"}</p>
                         </div>
                     </div>
 
                     <div className="p-6 bg-gray-50 rounded-3xl border border-gray-100 group hover:bg-white hover:border-primary/20 transition-all">
                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Payment Status</p>
                         <div className="flex items-center gap-3">
-                           <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 shadow-sm border border-emerald-100">
+                           <div className={`w-10 h-10 ${searchResult.paymentStatus === 'PAID' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100'} rounded-xl flex items-center justify-center shadow-sm border`}>
                               <ShieldCheck size={18} />
                            </div>
-                           <p className="text-lg font-black text-emerald-600">PAID & VERIFIED</p>
+                           <p className={`text-lg font-black ${searchResult.paymentStatus === 'PAID' ? 'text-emerald-600' : 'text-amber-600'}`}>
+                             {searchResult.paymentStatus || 'PENDING'}
+                           </p>
                         </div>
                     </div>
                   </div>
