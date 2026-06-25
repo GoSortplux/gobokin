@@ -11,7 +11,14 @@ interface TimeLeft {
 }
 
 const calculateTimeLeft = (targetDate: string): TimeLeft => {
-  const difference = +new Date(targetDate) - +new Date();
+  if (!targetDate) return { days: 0, hours: 0, minutes: 0, seconds: 0, total: 0 };
+
+  const target = new Date(targetDate);
+  if (isNaN(target.getTime())) {
+    return { days: 0, hours: 0, minutes: 0, seconds: 0, total: 0 };
+  }
+
+  const difference = target.getTime() - Date.now();
   let timeLeft: TimeLeft = {
     days: 0,
     hours: 0,
@@ -35,8 +42,10 @@ const calculateTimeLeft = (targetDate: string): TimeLeft => {
 
 const EventCountdown = ({ targetDate }: { targetDate: string }) => {
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
     // Initial calculation
     setTimeLeft(calculateTimeLeft(targetDate));
 
@@ -51,7 +60,7 @@ const EventCountdown = ({ targetDate }: { targetDate: string }) => {
     return () => clearInterval(timer);
   }, [targetDate]);
 
-  if (!timeLeft || timeLeft.total <= 0) {
+  if (!isMounted || !timeLeft || timeLeft.total <= 0) {
     return null;
   }
 
@@ -60,7 +69,7 @@ const EventCountdown = ({ targetDate }: { targetDate: string }) => {
   const formatNumber = (num: number) => num.toString().padStart(2, "0");
 
   return (
-    <div className={`flex items-center gap-2 px-4 py-2 rounded-xl backdrop-blur-md shadow-sm border ${
+    <div className={`flex items-center gap-2 px-4 py-2 rounded-xl backdrop-blur-md shadow-sm border z-20 ${
       isUrgent
         ? "bg-rose-50 border-rose-100 text-rose-600 animate-pulse"
         : "bg-white/90 border-gray-100 text-gray-700"
