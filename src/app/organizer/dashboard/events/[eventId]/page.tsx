@@ -348,37 +348,55 @@ const EventDetails = () => {
 
   const handleNotifyGuest = async (entry: WaitlistEntry) => {
     const { value: formValues, isConfirmed } = await Swal.fire({
-      title: 'Notify Guest',
+      title: 'Direct Notification',
       html: `
-        <div class="space-y-4">
-          <p class="text-sm text-gray-500 mb-4">Send a notification to <b>${entry.fullName}</b> or a group.</p>
+        <div class="text-left space-y-6 pt-4 px-1">
+          <div class="p-4 bg-blue-50 rounded-2xl border border-blue-100 flex items-start gap-3">
+             <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-primary shadow-sm shrink-0 border border-blue-100">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 17a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9.5C2 7 4 5 6.5 5H18c2.2 0 4 1.8 4 4v8Z"/><polyline points="15,9 18,9 18,11"/><path d="M6.5 5C9 5 11 7 11 9.5V17a2 2 0 0 1-2 2v0"/></svg>
+             </div>
+             <div class="overflow-hidden">
+                <p class="text-[9px] font-black text-primary uppercase tracking-widest opacity-70">Target Guest</p>
+                <p class="text-sm font-bold text-gray-700 truncate">${entry.fullName}</p>
+                <p class="text-[10px] text-primary/60 font-medium truncate">${entry.email}</p>
+             </div>
+          </div>
 
-          <div class="text-left">
-            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Target Audience</label>
-            <select id="swal-segment" class="swal2-input w-full mt-1">
-              <option value="custom">This Guest Only (${entry.email})</option>
-              <option value="all">All Attendees</option>
-              <option value="registered">Registered Only</option>
-              <option value="checked-in">Checked-in Only</option>
-              <option value="not_checked_in">Not Checked-in</option>
+          <div class="space-y-2">
+            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              Broaden Audience (Optional)
+            </label>
+            <select id="swal-segment" class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl text-sm font-bold focus:border-primary outline-none transition-all cursor-pointer">
+              <option value="custom">Send to this Guest only</option>
+              <option value="all">Send to ALL Attendees</option>
+              <option value="registered">Send to Registered Only</option>
+              <option value="checked-in">Send to Checked-in Only</option>
+              <option value="not_checked_in">Send to Not Checked-in Only</option>
             </select>
           </div>
 
-          <div class="text-left">
-            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Subject</label>
-            <input id="swal-subject" class="swal2-input w-full mt-1" placeholder="Subject" value="Waitlist Update: ${event?.title}">
+          <div class="space-y-2">
+            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Subject Line</label>
+            <input id="swal-subject" type="text" class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl text-sm font-bold focus:border-primary outline-none transition-all" value="Waitlist Update: ${event?.title}">
           </div>
 
-          <div class="text-left">
+          <div class="space-y-2">
             <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Message Body</label>
-            <textarea id="swal-body" class="swal2-textarea w-full mt-1" placeholder="Type your message here..."></textarea>
+            <textarea id="swal-body" rows="4" class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl text-sm font-medium focus:border-primary outline-none transition-all resize-none" placeholder="Enter your message here..."></textarea>
           </div>
         </div>
       `,
+      customClass: {
+        popup: 'rounded-[2.5rem] border-none shadow-2xl p-6',
+        title: 'text-2xl font-black tracking-tight text-gray-900 pt-4',
+        confirmButton: 'bg-primary text-white px-10 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-primary/30 hover:shadow-primary/40 hover:-translate-y-0.5 transition-all border-none mx-2',
+        cancelButton: 'px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors bg-transparent border-none mx-2'
+      },
+      buttonsStyling: false,
       focusConfirm: false,
       showCancelButton: true,
-      confirmButtonText: 'Send Notification',
-      confirmButtonColor: '#295FA7',
+      confirmButtonText: 'Deliver Message',
       preConfirm: () => {
         const segment = (document.getElementById('swal-segment') as HTMLSelectElement).value;
         const subject = (document.getElementById('swal-subject') as HTMLInputElement).value;
