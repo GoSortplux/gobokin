@@ -105,7 +105,7 @@ const BroadcastModal = ({ isOpen, onClose, eventId, tickets }: BroadcastModalPro
 
     setIsSending(true);
     try {
-      const segments = segmentType === "tickets" ? selectedTickets : segmentType;
+      const segments = segmentType === "tickets" ? { tickets: selectedTickets } : segmentType;
 
       const payload = {
         subject,

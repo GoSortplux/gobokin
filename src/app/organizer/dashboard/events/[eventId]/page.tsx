@@ -377,7 +377,7 @@ const EventDetails = () => {
         await api.post(`/events/${eventId}/broadcast`, {
           subject: formValues.subject,
           body: formValues.body,
-          segments: entry.email
+          segments: { emails: [entry.email] }
         });
         Swal.fire('Sent!', 'Guest has been notified.', 'success');
       } catch (error) {
