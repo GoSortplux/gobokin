@@ -2427,7 +2427,6 @@ const EditEventContent = () => {
                 {currentStep === 1 && (
                     <button
                         onClick={() => {
-                            saveAllChanges(false);
                             if (subStep < 5) setSubStep(subStep + 1);
                             else setCurrentStep(2);
                             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2444,7 +2443,6 @@ const EditEventContent = () => {
                             if (!basicInfo.agendaEnabled) {
                                 saveAllChanges(true);
                             } else {
-                                saveAllChanges(false);
                                 setCurrentStep(3);
                                 window.scrollTo({ top: 0, behavior: 'smooth' });
                             }
