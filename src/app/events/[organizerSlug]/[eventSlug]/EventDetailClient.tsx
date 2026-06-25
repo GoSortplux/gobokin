@@ -29,6 +29,7 @@ import { Event, Ticket as TicketType, Session, Registration, Speaker } from "@/t
 import { eventTracking } from "@/services/eventTracking";
 import PublicOrganizerProfileModal from "@/components/organizer/PublicOrganizerProfileModal";
 import CustomLoader from "@/components/CustomLoader";
+import EventCountdown from "@/components/events/EventCountdown";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 
@@ -458,9 +459,9 @@ const EventDetailClient = () => {
                     </div>
                   )}
 
-                  {/* Floating Date Badge */}
-                  <div className="absolute top-6 left-6">
-                     <div className="bg-white/95 backdrop-blur-md px-4 py-2 rounded-xl shadow-md flex items-center gap-3.5">
+                  {/* Floating Date Badge & Countdown */}
+                  <div className="absolute top-6 left-6 flex flex-col gap-3">
+                     <div className="bg-white/95 backdrop-blur-md px-4 py-2 rounded-xl shadow-md flex items-center gap-3.5 w-fit">
                         <div className="flex flex-col items-center">
                            <span className="text-[10px] font-semibold uppercase tracking-widest text-primary mb-0.5">
                              {new Date(event.startDate).toLocaleDateString(undefined, { month: 'short' })}
@@ -479,6 +480,8 @@ const EventDetailClient = () => {
                            </p>
                         </div>
                      </div>
+
+                     <EventCountdown targetDate={event.startDate} />
                   </div>
                </div>
 
