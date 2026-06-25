@@ -348,12 +348,31 @@ const EventDetails = () => {
 
   const handleNotifyGuest = async (entry: WaitlistEntry) => {
     const { value: formValues, isConfirmed } = await Swal.fire({
-      title: 'Notify Waitlisted Guest',
+      title: 'Notify Guest',
       html: `
         <div class="space-y-4">
-          <p class="text-sm text-gray-500 mb-4">Send a direct notification to <b>${entry.fullName}</b> (${entry.email}).</p>
-          <input id="swal-subject" class="swal2-input w-full" placeholder="Subject" value="Waitlist Update: ${event?.title}">
-          <textarea id="swal-body" class="swal2-textarea w-full" placeholder="Type your message here..."></textarea>
+          <p class="text-sm text-gray-500 mb-4">Send a notification to <b>${entry.fullName}</b> or a group.</p>
+
+          <div class="text-left">
+            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Target Audience</label>
+            <select id="swal-segment" class="swal2-input w-full mt-1">
+              <option value="custom">This Guest Only (${entry.email})</option>
+              <option value="all">All Attendees</option>
+              <option value="registered">Registered Only</option>
+              <option value="checked-in">Checked-in Only</option>
+              <option value="not_checked_in">Not Checked-in</option>
+            </select>
+          </div>
+
+          <div class="text-left">
+            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Subject</label>
+            <input id="swal-subject" class="swal2-input w-full mt-1" placeholder="Subject" value="Waitlist Update: ${event?.title}">
+          </div>
+
+          <div class="text-left">
+            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Message Body</label>
+            <textarea id="swal-body" class="swal2-textarea w-full mt-1" placeholder="Type your message here..."></textarea>
+          </div>
         </div>
       `,
       focusConfirm: false,
@@ -361,13 +380,14 @@ const EventDetails = () => {
       confirmButtonText: 'Send Notification',
       confirmButtonColor: '#295FA7',
       preConfirm: () => {
+        const segment = (document.getElementById('swal-segment') as HTMLSelectElement).value;
         const subject = (document.getElementById('swal-subject') as HTMLInputElement).value;
         const body = (document.getElementById('swal-body') as HTMLTextAreaElement).value;
         if (!subject || !body) {
           Swal.showValidationMessage('Please enter both subject and message body');
           return false;
         }
-        return { subject, body };
+        return { segment, subject, body };
       }
     });
 
@@ -377,7 +397,7 @@ const EventDetails = () => {
         await api.post(`/events/${eventId}/broadcast`, {
           subject: formValues.subject,
           body: formValues.body,
-          segments: { emails: [entry.email] }
+          segments: formValues.segment === 'custom' ? { emails: [entry.email] } : formValues.segment
         });
         Swal.fire('Sent!', 'Guest has been notified.', 'success');
       } catch (error) {
