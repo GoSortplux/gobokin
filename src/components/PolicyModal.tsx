@@ -104,7 +104,7 @@ const PolicyModal = ({
   const [scrollProgress, setScrollProgress] = useState(0);
   const scrollableContentRef = useRef<HTMLDivElement>(null);
 
-  const userRole = user?.role?.join(',');
+  const userRole = Array.isArray(user?.role) ? user?.role?.join(',') : '';
 
   const fetchPolicies = useCallback(async () => {
     setLoading(true);

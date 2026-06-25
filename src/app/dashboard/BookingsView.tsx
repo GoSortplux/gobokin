@@ -5,11 +5,12 @@ import api from "../../services/api";
 import BookingCard from "./BookingCard";
 import BookingDetailsModal from "./BookingDetailsModal";
 import ReviewModal from "./ReviewModal";
+import ReservationsList from "@/components/ReservationsList";
 import Swal from "@/utils/sweetalert";
 import CustomLoader from "@/components/CustomLoader";
 import { useAuth } from "@/context/AuthContext";
 import { Booking, Review, Venue } from "@/types";
-import { Search } from "lucide-react";
+import { Search, Clock } from "lucide-react";
 
 const BookingsView = () => {
   const router = useRouter();
@@ -149,7 +150,7 @@ const BookingsView = () => {
         </div>
       )}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl lg:text-3xl font-black text-gray-900 tracking-tight">My Bookings</h2>
+        <h2 className="text-2xl lg:text-3xl font-black text-gray-900 tracking-tight">Venue Bookings</h2>
         <div className="hidden lg:flex items-center gap-2 text-sm text-gray-500 font-medium bg-gray-100/50 px-4 py-2 rounded-full">
            <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
            {bookings.length} Total Bookings
@@ -157,22 +158,23 @@ const BookingsView = () => {
       </div>
 
       <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8 gap-6 bg-white p-2 rounded-2xl shadow-sm border border-gray-100">
-        <div className="flex p-1 bg-gray-50 rounded-xl w-full lg:w-auto">
-          {["upcoming", "past", "pending"].map((tab) => (
+        <div className="flex p-1 bg-gray-50 rounded-xl w-full lg:w-auto overflow-x-auto no-scrollbar">
+          {["upcoming", "past", "pending", "reservations"].map((tab) => (
             <button
               key={tab}
-              className={`flex-1 lg:flex-none px-6 py-2.5 text-sm font-bold capitalize transition-all duration-200 rounded-lg ${
+              className={`flex-1 lg:flex-none px-6 py-2.5 text-sm font-bold capitalize transition-all duration-200 rounded-lg flex items-center justify-center gap-2 ${
                 activeTab === tab
                   ? "bg-white text-primary shadow-sm"
                   : "text-gray-500 hover:text-gray-700"
               }`}
               onClick={() => setActiveTab(tab)}
             >
+              {tab === "reservations" && <Clock size={14} />}
               {tab === "pending" ? "Pending Payment" : tab}
             </button>
           ))}
         </div>
-        <div className="flex items-center w-full lg:max-w-md relative">
+        <div className={`flex items-center w-full lg:max-w-md relative ${activeTab === 'reservations' ? 'opacity-50 pointer-events-none' : ''}`}>
           <input
             type="text"
             placeholder="Search by booking ID..."
@@ -192,7 +194,9 @@ const BookingsView = () => {
         </div>
       </div>
 
-      {filteredBookings.length > 0 ? (
+      {activeTab === "reservations" ? (
+        <ReservationsList />
+      ) : filteredBookings.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredBookings.map((booking: Booking) => (
             <BookingCard

@@ -103,14 +103,6 @@ const ReservationsList = () => {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
-        <h2 className="text-2xl lg:text-3xl font-black text-gray-900 tracking-tight">My Reservations</h2>
-        <div className="hidden lg:flex items-center gap-2 text-sm text-gray-500 font-medium bg-gray-100/50 px-4 py-2 rounded-full border border-gray-100">
-           <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-           {reservations.length} Active Reservations
-        </div>
-      </div>
-
       {reservations.length === 0 ? (
         <div className="text-center py-20 bg-white rounded-3xl shadow-sm border border-gray-100">
           <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
