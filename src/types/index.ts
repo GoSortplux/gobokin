@@ -622,6 +622,8 @@ export interface Ticket {
   earlyBirdExpiry?: string;
   groupSize: number;
   isOffline: boolean;
+  isSpecial?: boolean;
+  guestCategoryId?: string;
   quantityDiscounts?: QuantityDiscount[];
 }
 

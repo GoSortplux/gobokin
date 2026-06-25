@@ -309,19 +309,44 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, sessions, tickets, agenda
               )}
 
               {activeTab === "tickets" && (
-                <div className="space-y-4 animate-in fade-in duration-500">
-                   {tickets.map((ticket, i) => (
-                     <div key={i} className="p-5 rounded-[1.5rem] border border-gray-100 bg-gray-50/50 space-y-4 transition-all hover:bg-white hover:shadow-xl hover:shadow-gray-200/20 group">
-                        <div className="flex justify-between items-center">
-                          <p className="text-[11px] font-black text-gray-900 group-hover:text-primary transition-colors">{ticket.name || "Unnamed Ticket Type"}</p>
-                          <span className="text-[8px] font-black text-secondary bg-secondary/5 px-2 py-1 rounded-lg uppercase tracking-widest border border-secondary/10">{ticket.type}</span>
-                        </div>
-                        <div className="flex items-end gap-1">
-                            <p className="text-xl font-black text-gray-900 tracking-tight">₦{ticket.price.toLocaleString()}</p>
-                            <span className="text-[9px] text-gray-400 font-bold mb-1 uppercase">/ pax</span>
-                        </div>
+                <div className="space-y-6 animate-in fade-in duration-500">
+                   {tickets.filter(t => !t.isSpecial).length > 0 && (
+                     <div className="space-y-3">
+                        <p className="text-[8px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">Standard Access</p>
+                        {tickets.filter(t => !t.isSpecial).map((ticket, i) => (
+                          <div key={i} className="p-5 rounded-[1.5rem] border border-gray-100 bg-gray-50/50 space-y-4 transition-all hover:bg-white hover:shadow-xl hover:shadow-gray-200/20 group">
+                              <div className="flex justify-between items-center">
+                                <p className="text-[11px] font-black text-gray-900 group-hover:text-primary transition-colors">{ticket.name || "Unnamed Ticket Type"}</p>
+                                <span className="text-[8px] font-black text-secondary bg-secondary/5 px-2 py-1 rounded-lg uppercase tracking-widest border border-secondary/10">{ticket.type}</span>
+                              </div>
+                              <div className="flex items-end gap-1">
+                                  <p className="text-xl font-black text-gray-900 tracking-tight">₦{ticket.price.toLocaleString()}</p>
+                                  <span className="text-[9px] text-gray-400 font-bold mb-1 uppercase">/ pax</span>
+                              </div>
+                          </div>
+                        ))}
                      </div>
-                   ))}
+                   )}
+                   {tickets.filter(t => t.isSpecial).length > 0 && (
+                     <div className="space-y-3 pt-2">
+                        <p className="text-[8px] font-black text-amber-500 uppercase tracking-[0.2em] ml-2">Special Access</p>
+                        {tickets.filter(t => t.isSpecial).map((ticket, i) => (
+                          <div key={i} className="p-5 rounded-[1.5rem] border border-amber-100 bg-amber-50/30 space-y-4 transition-all hover:bg-white hover:shadow-xl hover:shadow-amber-200/20 group">
+                              <div className="flex justify-between items-center">
+                                <p className="text-[11px] font-black text-gray-900 group-hover:text-amber-600 transition-colors">{ticket.name || "Unnamed Ticket Type"}</p>
+                                <div className="flex gap-1.5">
+                                  <span className="text-[8px] font-black text-amber-600 bg-amber-100 px-2 py-1 rounded-lg uppercase tracking-widest border border-amber-200/50">Special</span>
+                                  <span className="text-[8px] font-black text-secondary bg-secondary/5 px-2 py-1 rounded-lg uppercase tracking-widest border border-secondary/10">{ticket.type}</span>
+                                </div>
+                              </div>
+                              <div className="flex items-end gap-1">
+                                  <p className="text-xl font-black text-gray-900 tracking-tight">₦{ticket.price.toLocaleString()}</p>
+                                  <span className="text-[9px] text-gray-400 font-bold mb-1 uppercase">/ pax</span>
+                              </div>
+                          </div>
+                        ))}
+                     </div>
+                   )}
                 </div>
               )}
            </div>
@@ -438,6 +463,7 @@ const CreateEvent = () => {
     earlyBirdLimit: 0,
     earlyBirdExpiry: "",
     isOffline: false,
+    isSpecial: false,
     quantityDiscounts: []
   }]);
 
@@ -555,6 +581,7 @@ const CreateEvent = () => {
                           salesStart: rest.salesStart ? new Date(rest.salesStart).toISOString() : undefined,
                           salesEnd: rest.salesEnd ? new Date(rest.salesEnd).toISOString() : undefined,
                           isOffline: rest.isOffline,
+                          isSpecial: rest.isSpecial || false,
                           quantityDiscounts: rest.quantityDiscounts
                       };
 
@@ -954,6 +981,7 @@ const CreateEvent = () => {
         earlyBirdLimit: 0,
         earlyBirdExpiry: "",
         isOffline: false,
+        isSpecial: false,
         quantityDiscounts: []
     }]);
   };
@@ -3001,6 +3029,34 @@ const CreateEvent = () => {
                                                 <p className="text-[9px] text-gray-400 font-medium ml-7 leading-relaxed">
                                                     Reserve tickets for offline sales and generate ticket IDs for printing.
                                                 </p>
+                                            </div>
+                                            <div className="space-y-3">
+                                                <div className="flex items-start gap-3 pt-4">
+                                                    <input
+                                                        type="checkbox"
+                                                        id={`isSpecial-${ticket.id}`}
+                                                        className="w-4 h-4 mt-1 rounded text-primary focus:ring-primary border-gray-300"
+                                                        checked={ticket.isSpecial || false}
+                                                        onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id!, "isSpecial", e.target.checked)}
+                                                    />
+                                                    <div className="space-y-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <label htmlFor={`isSpecial-${ticket.id}`} className="text-[10px] font-black text-gray-900 uppercase tracking-widest cursor-pointer">
+                                                                Special Ticket
+                                                            </label>
+                                                            <div className="group relative">
+                                                                <Info size={12} className="text-primary cursor-help" />
+                                                                <div className="absolute bottom-full left-0 mb-2 w-64 p-4 bg-gray-900 text-white text-[10px] font-bold leading-relaxed rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl border border-gray-800">
+                                                                    Mark this ticket as a Special Ticket for facilitators, vendors, resource persons, and other designated guests. You can set any price, including free, and attendees will automatically be assigned to the selected guest category for easier tracking and reporting.
+                                                                    <div className="absolute top-full left-4 w-3 h-3 bg-gray-900 rotate-45 -translate-y-1.5 border-b border-r border-gray-800"></div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-tight leading-tight">
+                                                            (For Facilitators/Speakers, Special guests, Vendors, Resource Persons, and other designated guests)
+                                                        </p>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

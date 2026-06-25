@@ -214,6 +214,7 @@ const EventDetailClient = () => {
   const [selectedTicket, setSelectedTicket] = useState<TicketType | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState("overview");
+  const [isSpecialTicketsExpanded, setIsSpecialTicketsExpanded] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
   const [showOrganizerModal, setShowOrganizerModal] = useState(false);
 
@@ -655,91 +656,196 @@ const EventDetailClient = () => {
 
                   {activeTab === "tickets" && (
                      <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10">
-                        <h3 className="text-2xl font-semibold text-gray-900 tracking-tighter flex items-center gap-3">
-                          <div className="w-1.5 h-8 bg-primary rounded-full"></div>
-                          Choose your Experience
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                           {event.tickets && event.tickets.map((ticket) => {
-                             const isTicketSoldOut = ticket.isSoldOut || (ticket.remainingTickets !== undefined && ticket.remainingTickets <= 0) || (ticket.availableQuantity !== undefined && ticket.availableQuantity <= 0);
-                             const ticketStatus = getTicketSalesStatus(ticket);
+                        <div className="space-y-6">
+                           <h3 className="text-2xl font-semibold text-gray-900 tracking-tighter flex items-center gap-3">
+                              <div className="w-1.5 h-8 bg-primary rounded-full"></div>
+                              {event.tickets && event.tickets.some(t => t.isSpecial) ? "Standard Access" : "Choose your Experience"}
+                           </h3>
+                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              {event.tickets && event.tickets.filter(t => !t.isSpecial).map((ticket) => {
+                                const isTicketSoldOut = ticket.isSoldOut || (ticket.remainingTickets !== undefined && ticket.remainingTickets <= 0) || (ticket.availableQuantity !== undefined && ticket.availableQuantity <= 0);
+                                const ticketStatus = getTicketSalesStatus(ticket);
 
-                             return (
-                               <button
-                                 key={ticket.id}
-                                 onClick={() => !isTicketSoldOut && setSelectedTicket(ticket)}
-                                 className={`p-6 rounded-2xl text-left border transition-all duration-500 relative overflow-hidden group ${
-                                   selectedTicket?.id === ticket.id
-                                     ? "border-primary bg-primary/5 shadow-sm"
-                                     : isTicketSoldOut
-                                       ? "border-gray-100 bg-gray-50 opacity-60 grayscale cursor-not-allowed"
-                                       : "border-gray-100 hover:border-gray-200 hover:bg-gray-50"
-                                 }`}
-                               >
-                                  <div className="flex items-center justify-between mb-6">
-                                     <div className="flex flex-wrap gap-2">
-                                       <div className={`px-4 py-1.5 rounded-xl text-[9px] font-semibold uppercase tracking-widest ${ticket.type === 'FREE' ? 'bg-gray-100 text-gray-600' : 'bg-emerald-100 text-emerald-700'}`}>
-                                          {ticket.type} PASS
-                                       </div>
-                                       {isTicketSoldOut ? (
-                                         <div className="px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-rose-100 text-rose-600">
-                                            SOLD OUT
-                                         </div>
-                                       ) : (
-                                          <>
-                                            {ticketStatus === "UPCOMING" && (
-                                              <div className="px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-amber-100 text-amber-700">
-                                                STARTING SOON
-                                              </div>
-                                            )}
-                                            {ticketStatus === "ENDED" && (
-                                              <div className="px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-gray-100 text-gray-600">
-                                                SALES ENDED
-                                              </div>
-                                            )}
-                                          </>
-                                       )}
+                                return (
+                                  <button
+                                    key={ticket.id}
+                                    onClick={() => !isTicketSoldOut && setSelectedTicket(ticket)}
+                                    className={`p-6 rounded-2xl text-left border transition-all duration-500 relative overflow-hidden group ${
+                                      selectedTicket?.id === ticket.id
+                                        ? "border-primary bg-primary/5 shadow-sm"
+                                        : isTicketSoldOut
+                                          ? "border-gray-100 bg-gray-50 opacity-60 grayscale cursor-not-allowed"
+                                          : "border-gray-100 hover:border-gray-200 hover:bg-gray-50"
+                                    }`}
+                                  >
+                                     <div className="flex items-center justify-between mb-6">
+                                        <div className="flex flex-wrap gap-2">
+                                          <div className={`px-4 py-1.5 rounded-xl text-[9px] font-semibold uppercase tracking-widest ${ticket.type === 'FREE' ? 'bg-gray-100 text-gray-600' : 'bg-emerald-100 text-emerald-700'}`}>
+                                             {ticket.type} PASS
+                                          </div>
+                                          {isTicketSoldOut ? (
+                                            <div className="px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-rose-100 text-rose-600">
+                                               SOLD OUT
+                                            </div>
+                                          ) : (
+                                             <>
+                                               {ticketStatus === "UPCOMING" && (
+                                                 <div className="px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-amber-100 text-amber-700">
+                                                   STARTING SOON
+                                                 </div>
+                                               )}
+                                               {ticketStatus === "ENDED" && (
+                                                 <div className="px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-gray-100 text-gray-600">
+                                                   SALES ENDED
+                                                 </div>
+                                               )}
+                                             </>
+                                          )}
+                                        </div>
+                                        {selectedTicket?.id === ticket.id && !isTicketSoldOut && (
+                                          <div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center animate-in zoom-in duration-500 shadow-md shadow-primary/20">
+                                             <CheckCircle2 size={16} />
+                                          </div>
+                                        )}
                                      </div>
-                                     {selectedTicket?.id === ticket.id && !isTicketSoldOut && (
-                                       <div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center animate-in zoom-in duration-500 shadow-md shadow-primary/20">
-                                          <CheckCircle2 size={16} />
-                                       </div>
-                                     )}
-                                  </div>
-                                  <h4 className={`text-2xl font-semibold mb-3 tracking-tight ${isTicketSoldOut ? 'text-gray-400' : 'text-gray-900'}`}>{ticket.name}</h4>
-                                  <div className="flex items-baseline gap-2">
-                                     <p className={`text-3xl font-semibold ${isTicketSoldOut ? 'text-gray-400' : 'text-gray-900'}`}>
-                                        {ticket.price > 0 ? `₦${ticket.price.toLocaleString()}` : "FREE"}
-                                     </p>
-                                     {ticket.price > 0 && <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">/ seat</span>}
-                                  </div>
+                                     <h4 className={`text-2xl font-semibold mb-3 tracking-tight ${isTicketSoldOut ? 'text-gray-400' : 'text-gray-900'}`}>{ticket.name}</h4>
+                                     <div className="flex items-baseline gap-2">
+                                        <p className={`text-3xl font-semibold ${isTicketSoldOut ? 'text-gray-400' : 'text-gray-900'}`}>
+                                           {ticket.price > 0 ? `₦${ticket.price.toLocaleString()}` : "FREE"}
+                                        </p>
+                                        {ticket.price > 0 && <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">/ seat</span>}
+                                     </div>
 
-                                  <div className="mt-8 pt-8 border-t border-gray-100 flex items-center justify-between">
-                                     <div className="flex items-center gap-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-[0.1em]">
-                                        <Users size={14} className={isTicketSoldOut ? 'text-gray-300' : 'text-primary'} />
-                                        {isTicketSoldOut ? '0' : (ticket.remainingTickets ?? ticket.availableQuantity)} Slots Left
+                                     <div className="mt-8 pt-8 border-t border-gray-100 flex items-center justify-between">
+                                        <div className="flex items-center gap-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-[0.1em]">
+                                           <Users size={14} className={isTicketSoldOut ? 'text-gray-300' : 'text-primary'} />
+                                           {isTicketSoldOut ? '0' : (ticket.remainingTickets ?? ticket.availableQuantity)} Slots Left
+                                        </div>
+                                        {!isTicketSoldOut ? (
+                                          <p className="text-[10px] font-semibold text-primary group-hover:translate-x-2 transition-transform flex items-center gap-1.5">
+                                             <ChevronRight size={14} />
+                                          </p>
+                                        ) : event.isWaitlistEnabled && (
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleJoinWaitlist(ticket);
+                                            }}
+                                            disabled={isJoiningWaitlist}
+                                            className="text-[10px] font-black text-rose-600 hover:text-rose-700 transition-colors flex items-center gap-1.5"
+                                          >
+                                            JOIN WAITLIST <ChevronRight size={14} />
+                                          </button>
+                                        )}
                                      </div>
-                                     {!isTicketSoldOut ? (
-                                       <p className="text-[10px] font-semibold text-primary group-hover:translate-x-2 transition-transform flex items-center gap-1.5">
-                                          <ChevronRight size={14} />
-                                       </p>
-                                     ) : event.isWaitlistEnabled && (
-                                       <button
-                                         onClick={(e) => {
-                                           e.stopPropagation();
-                                           handleJoinWaitlist(ticket);
-                                         }}
-                                         disabled={isJoiningWaitlist}
-                                         className="text-[10px] font-black text-rose-600 hover:text-rose-700 transition-colors flex items-center gap-1.5"
-                                       >
-                                         JOIN WAITLIST <ChevronRight size={14} />
-                                       </button>
-                                     )}
-                                  </div>
-                               </button>
-                             );
-                           })}
+                                  </button>
+                                );
+                              })}
+                           </div>
                         </div>
+
+                        {event.tickets && event.tickets.some(t => t.isSpecial) && (
+                           <div className="space-y-6 pt-6 border-t border-gray-50">
+                              <button
+                                 onClick={() => setIsSpecialTicketsExpanded(!isSpecialTicketsExpanded)}
+                                 className="w-full flex items-center justify-between group"
+                              >
+                                 <h3 className="text-2xl font-semibold text-gray-900 tracking-tighter flex items-center gap-3">
+                                    <div className="w-1.5 h-8 bg-amber-400 rounded-full"></div>
+                                    Special Access
+                                    <span className="text-sm font-bold text-gray-400 ml-2">({event.tickets.filter(t => t.isSpecial).length})</span>
+                                 </h3>
+                                 <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:text-primary group-hover:bg-primary/5 transition-all">
+                                    {isSpecialTicketsExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                                 </div>
+                              </button>
+
+                              {isSpecialTicketsExpanded && (
+                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in slide-in-from-top-4 duration-500">
+                                    {event.tickets.filter(t => t.isSpecial).map((ticket) => {
+                                       const isTicketSoldOut = ticket.isSoldOut || (ticket.remainingTickets !== undefined && ticket.remainingTickets <= 0) || (ticket.availableQuantity !== undefined && ticket.availableQuantity <= 0);
+                                       const ticketStatus = getTicketSalesStatus(ticket);
+
+                                       return (
+                                          <button
+                                             key={ticket.id}
+                                             onClick={() => !isTicketSoldOut && setSelectedTicket(ticket)}
+                                             className={`p-6 rounded-2xl text-left border transition-all duration-500 relative overflow-hidden group ${
+                                                selectedTicket?.id === ticket.id
+                                                   ? "border-amber-400 bg-amber-50/30 shadow-sm"
+                                                   : isTicketSoldOut
+                                                      ? "border-gray-100 bg-gray-50 opacity-60 grayscale cursor-not-allowed"
+                                                      : "border-gray-100 hover:border-amber-200 hover:bg-amber-50/10"
+                                             }`}
+                                          >
+                                             <div className="flex items-center justify-between mb-6">
+                                                <div className="flex flex-wrap gap-2">
+                                                   <div className={`px-4 py-1.5 rounded-xl text-[9px] font-semibold uppercase tracking-widest ${ticket.type === 'FREE' ? 'bg-gray-100 text-gray-600' : 'bg-amber-100 text-amber-700'}`}>
+                                                      {ticket.type} PASS
+                                                   </div>
+                                                   {isTicketSoldOut ? (
+                                                      <div className="px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-rose-100 text-rose-600">
+                                                         SOLD OUT
+                                                      </div>
+                                                   ) : (
+                                                      <>
+                                                         {ticketStatus === "UPCOMING" && (
+                                                            <div className="px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-amber-100 text-amber-700">
+                                                               STARTING SOON
+                                                            </div>
+                                                         )}
+                                                         {ticketStatus === "ENDED" && (
+                                                            <div className="px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-gray-100 text-gray-600">
+                                                               SALES ENDED
+                                                            </div>
+                                                         )}
+                                                      </>
+                                                   )}
+                                                </div>
+                                                {selectedTicket?.id === ticket.id && !isTicketSoldOut && (
+                                                   <div className="w-8 h-8 bg-amber-400 text-white rounded-full flex items-center justify-center animate-in zoom-in duration-500 shadow-md shadow-amber-400/20">
+                                                      <CheckCircle2 size={16} />
+                                                   </div>
+                                                )}
+                                             </div>
+                                             <h4 className={`text-2xl font-semibold mb-3 tracking-tight ${isTicketSoldOut ? 'text-gray-400' : 'text-gray-900'}`}>{ticket.name}</h4>
+                                             {ticket.description && <p className="text-xs text-gray-500 font-medium mb-4 line-clamp-2">{ticket.description}</p>}
+                                             <div className="flex items-baseline gap-2">
+                                                <p className={`text-3xl font-semibold ${isTicketSoldOut ? 'text-gray-400' : 'text-gray-900'}`}>
+                                                   {ticket.price > 0 ? `₦${ticket.price.toLocaleString()}` : "FREE"}
+                                                </p>
+                                                {ticket.price > 0 && <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">/ seat</span>}
+                                             </div>
+
+                                             <div className="mt-8 pt-8 border-t border-gray-100 flex items-center justify-between">
+                                                <div className="flex items-center gap-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-[0.1em]">
+                                                   <Users size={14} className={isTicketSoldOut ? 'text-gray-300' : 'text-amber-500'} />
+                                                   {isTicketSoldOut ? '0' : (ticket.remainingTickets ?? ticket.availableQuantity)} Slots Left
+                                                </div>
+                                                {!isTicketSoldOut ? (
+                                                   <p className="text-[10px] font-semibold text-amber-600 group-hover:translate-x-2 transition-transform flex items-center gap-1.5">
+                                                      <ChevronRight size={14} />
+                                                   </p>
+                                                ) : event.isWaitlistEnabled && (
+                                                   <button
+                                                      onClick={(e) => {
+                                                         e.stopPropagation();
+                                                         handleJoinWaitlist(ticket);
+                                                      }}
+                                                      disabled={isJoiningWaitlist}
+                                                      className="text-[10px] font-black text-rose-600 hover:text-rose-700 transition-colors flex items-center gap-1.5"
+                                                   >
+                                                      JOIN WAITLIST <ChevronRight size={14} />
+                                                   </button>
+                                                )}
+                                             </div>
+                                          </button>
+                                       );
+                                    })}
+                                 </div>
+                              )}
+                           </div>
+                        )}
                      </div>
                   )}
                </div>

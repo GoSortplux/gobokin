@@ -1028,10 +1028,16 @@ const EventDetails = () => {
                     </div>
                  )}
 
-                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {event.tickets && event.tickets.length > 0 ? (
-                      event.tickets.map((ticket, i) => (
-                        <div key={i} className="p-6 rounded-3xl border border-gray-100 bg-white hover:shadow-xl transition-all duration-500 group relative flex flex-col">
+                 <div className="space-y-12">
+                   {event.tickets && event.tickets.filter(t => !t.isSpecial).length > 0 && (
+                     <div className="space-y-6">
+                        <div className="flex items-center gap-3">
+                           <div className="w-1.5 h-6 bg-primary rounded-full"></div>
+                           <h4 className="text-sm font-black text-gray-900 uppercase tracking-widest">Standard Tickets</h4>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {event.tickets.filter(t => !t.isSpecial).map((ticket, i) => (
+                            <div key={i} className="p-6 rounded-3xl border border-gray-100 bg-white hover:shadow-xl transition-all duration-500 group relative flex flex-col">
                            <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 overflow-hidden pointer-events-none"></div>
 
                            <div className="flex items-center justify-between mb-4 relative z-10">
@@ -1162,13 +1168,149 @@ const EventDetails = () => {
                              </div>
                            )}
                         </div>
-                      ))
-                    ) : (
-                      <div className="col-span-full text-center py-20 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
-                         <Ticket className="mx-auto mb-4 text-gray-300" size={48} />
-                         <p className="text-gray-400 font-medium">No ticket types created yet for this event.</p>
+                          ))}
+                        </div>
+                     </div>
+                   )}
+
+                   {event.tickets && event.tickets.filter(t => t.isSpecial).length > 0 && (
+                     <div className="space-y-6">
+                        <div className="flex items-center gap-3">
+                           <div className="w-1.5 h-6 bg-amber-400 rounded-full"></div>
+                           <h4 className="text-sm font-black text-gray-900 uppercase tracking-widest text-amber-600">Special Tickets</h4>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {event.tickets.filter(t => t.isSpecial).map((ticket, i) => (
+                            <div key={i} className="p-6 rounded-3xl border border-amber-100 bg-amber-50/5 hover:shadow-xl transition-all duration-500 group relative flex flex-col">
+                               <div className="absolute top-0 right-0 w-24 h-24 bg-amber-400/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 overflow-hidden pointer-events-none"></div>
+
+                               <div className="flex items-center justify-between mb-4 relative z-10">
+                                  <div className="flex flex-wrap gap-1.5">
+                                     <span className="px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider bg-amber-100 text-amber-700">
+                                        SPECIAL
+                                     </span>
+                                     <span className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider ${ticket.type === 'FREE' ? 'bg-gray-100 text-gray-500' : 'bg-emerald-50 text-emerald-600'}`}>
+                                        {ticket.type}
+                                     </span>
+                                     {ticket.isOffline && (
+                                       <span className="px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider bg-amber-50 text-amber-600">
+                                          OFFLINE
+                                       </span>
+                                     )}
+                                  </div>
+                                  {!isStaff && (
+                                    <div className="relative">
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setActiveMenu(activeMenu === ticket.id ? null : ticket.id!);
+                                        }}
+                                        className="p-1.5 text-gray-400 hover:text-primary hover:bg-gray-50 rounded-lg transition-all"
+                                      >
+                                        <MoreVertical size={16} />
+                                      </button>
+
+                                      {activeMenu === ticket.id && (
+                                        <div
+                                          ref={menuRef}
+                                          className="absolute right-0 mt-1 w-48 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-[100] animate-in fade-in zoom-in duration-200"
+                                        >
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              router.push(`/organizer/dashboard/events/${eventId}/edit?step=2`);
+                                            }}
+                                            className="w-full px-4 py-2 text-left text-[10px] font-black uppercase tracking-widest text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors flex items-center gap-2 cursor-pointer"
+                                          >
+                                            <Settings size={14} />
+                                            Edit Ticket
+                                          </button>
+
+                                          {(ticket.isSalesSuspended || ticket.salesStatus === 'PAUSED' || ticket.availabilityStatus === 'SALES_PAUSED') ? (
+                                            <button
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleResumeTicketSales(ticket.id!);
+                                                setActiveMenu(null);
+                                              }}
+                                              disabled={isActionLoading}
+                                              className="w-full px-4 py-2 text-left text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:bg-gray-50 transition-colors flex items-center gap-2 cursor-pointer"
+                                            >
+                                              <PlayCircle size={14} />
+                                              Resume Sales
+                                            </button>
+                                          ) : (
+                                            <button
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSuspendConfig({ type: "ticket", title: `Suspend ${ticket.name}`, ticketId: ticket.id });
+                                                setIsSuspendModalOpen(true);
+                                                setActiveMenu(null);
+                                              }}
+                                              disabled={isActionLoading}
+                                              className="w-full px-4 py-2 text-left text-[10px] font-black uppercase tracking-widest text-amber-600 hover:bg-gray-50 transition-colors flex items-center gap-2 cursor-pointer"
+                                            >
+                                              <PauseCircle size={14} />
+                                              Suspend Sales
+                                            </button>
+                                          )}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                               </div>
+
+                               <div className="flex-1">
+                                  <h4 className="font-black text-gray-900 text-lg mb-1 relative z-10 leading-tight">{ticket.name}</h4>
+                                  <p className="text-gray-400 text-[10px] mb-3 line-clamp-2 font-medium">{ticket.description || "No description provided."}</p>
+
+                                  <div className="flex items-baseline gap-1 mb-4 relative z-10">
+                                     <p className="text-2xl font-black text-amber-600">
+                                       {Number(ticket.price) > 0 ? `₦${Number(ticket.price).toLocaleString()}` : "Free"}
+                                     </p>
+                                     {Number(ticket.price) > 0 && <span className="text-[10px] font-bold text-gray-300 uppercase">/ pax</span>}
+                                  </div>
+
+                                  <div className="grid grid-cols-2 gap-x-4 gap-y-3 pt-4 border-t border-gray-50 relative z-10 mb-5">
+                                     <div>
+                                        <p className="text-[8px] font-black text-gray-300 uppercase tracking-widest mb-0.5">Quantity</p>
+                                        <p className="text-[11px] font-bold text-gray-600">{ticket.availableQuantity} / {ticket.totalQuantity}</p>
+                                     </div>
+                                     <div>
+                                        <p className="text-[8px] font-black text-gray-300 uppercase tracking-widest mb-0.5">Min Order</p>
+                                        <p className="text-[11px] font-bold text-gray-600">{ticket.groupSize || 1} pax</p>
+                                     </div>
+                                     <div className="col-span-2">
+                                        <p className="text-[8px] font-black text-gray-300 uppercase tracking-widest mb-0.5">Allocation</p>
+                                        <p className="text-[11px] font-bold text-gray-600 uppercase">{ticket.allocationType || "GENERAL"}</p>
+                                     </div>
+                                  </div>
+                               </div>
+
+                               <div className="space-y-3 relative z-10">
+                                  <div className="flex items-center justify-between text-[9px] font-black text-gray-400 uppercase tracking-wider">
+                                     <span>Sales Progress</span>
+                                     <span className="text-amber-600">{Math.round(((ticket.totalQuantity - (ticket.availableQuantity || 0)) / (ticket.totalQuantity || 1)) * 100)}%</span>
+                                  </div>
+                                  <div className="w-full h-1.5 bg-gray-50 rounded-full overflow-hidden">
+                                     <div
+                                       className="h-full bg-amber-400 rounded-full transition-all duration-1000"
+                                       style={{ width: `${Math.min(100, ((ticket.totalQuantity - (ticket.availableQuantity || 0)) / (ticket.totalQuantity || 1)) * 100)}%` }}
+                                     ></div>
+                                  </div>
+                               </div>
                       </div>
-                    )}
+                          ))}
+                        </div>
+                     </div>
+                   )}
+
+                   {(!event.tickets || event.tickets.length === 0) && (
+                     <div className="text-center py-20 bg-gray-50 rounded-3xl border border-gray-100">
+                        <Ticket className="mx-auto mb-4 text-gray-300" size={48} />
+                        <p className="text-gray-400 font-medium">No ticket types created yet for this event.</p>
+                     </div>
+                   )}
                  </div>
               </div>
             )}
