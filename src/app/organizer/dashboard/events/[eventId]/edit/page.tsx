@@ -2151,6 +2151,39 @@ const EditEventContent = () => {
 
                                    <div className="space-y-8 pl-4 border-l-2 border-gray-100">
                                        <div className="space-y-6">
+                                               <h6 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Ticket Selling Start and End Date</h6>
+                                               <div className={`grid gap-6 ${showPreview ? "grid-cols-1 2xl:grid-cols-3" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"}`}>
+                                                   <div className="space-y-2">
+                                                       <label className="text-[9px] font-bold text-gray-400 uppercase">Sales Start Date</label>
+                                                       <input
+                                                           type="datetime-local"
+                                                           className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-[10px] font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
+                                                           value={ticket.salesStart}
+                                                           onChange={(e) => updateTicket(ticket.id, "salesStart", e.target.value)}
+                                                       />
+                                                   </div>
+                                                   <div className="space-y-2">
+                                                       <label className="text-[9px] font-bold text-gray-400 uppercase">Sales End Date</label>
+                                                       <input
+                                                           type="datetime-local"
+                                                           className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-[10px] font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
+                                                           value={ticket.salesEnd}
+                                                           onChange={(e) => updateTicket(ticket.id, "salesEnd", e.target.value)}
+                                                       />
+                                                   </div>
+                                                   <div className="space-y-2">
+                                                       <label className="text-[9px] font-bold text-gray-400 uppercase">Maximum Tickets per Order</label>
+                                                       <input
+                                                           type="number"
+                                                           className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
+                                                           value={ticket.maxPerOrder}
+                                                           onChange={(e) => updateTicket(ticket.id, "maxPerOrder", parseInt(e.target.value))}
+                                                       />
+                                                   </div>
+                                               </div>
+                                           </div>
+
+                                           <div className="pt-8 border-t border-gray-50 space-y-6">
                                            <h6 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Early Bird Discount (Optional)</h6>
                                            <div className={`grid gap-6 ${showPreview ? "grid-cols-1 2xl:grid-cols-3" : "grid-cols-1 sm:grid-cols-3"}`}>
                                                <div className="space-y-2">
@@ -2184,39 +2217,6 @@ const EditEventContent = () => {
                                                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none disabled:bg-gray-100 disabled:opacity-50"
                                                        value={ticket.earlyBirdExpiry}
                                                        onChange={(e) => updateTicket(ticket.id, "earlyBirdExpiry", e.target.value)}
-                                                   />
-                                               </div>
-                                           </div>
-                                       </div>
-
-                                       <div className="pt-8 border-t border-gray-50 space-y-6">
-                                           <h6 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Advance Sales Configuration</h6>
-                                           <div className={`grid gap-6 ${showPreview ? "grid-cols-1 2xl:grid-cols-3" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"}`}>
-                                               <div className="space-y-2">
-                                                   <label className="text-[9px] font-bold text-gray-400 uppercase">Sales Start Date</label>
-                                                   <input
-                                                       type="datetime-local"
-                                                       className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-[10px] font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
-                                                       value={ticket.salesStart}
-                                                       onChange={(e) => updateTicket(ticket.id, "salesStart", e.target.value)}
-                                                   />
-                                               </div>
-                                               <div className="space-y-2">
-                                                   <label className="text-[9px] font-bold text-gray-400 uppercase">Sales End Date</label>
-                                                   <input
-                                                       type="datetime-local"
-                                                       className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-[10px] font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
-                                                       value={ticket.salesEnd}
-                                                       onChange={(e) => updateTicket(ticket.id, "salesEnd", e.target.value)}
-                                                   />
-                                               </div>
-                                               <div className="space-y-2">
-                                                   <label className="text-[9px] font-bold text-gray-400 uppercase">Maximum Tickets per Order</label>
-                                                   <input
-                                                       type="number"
-                                                       className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
-                                                       value={ticket.maxPerOrder}
-                                                       onChange={(e) => updateTicket(ticket.id, "maxPerOrder", parseInt(e.target.value))}
                                                    />
                                                </div>
                                            </div>
