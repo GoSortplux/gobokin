@@ -1016,7 +1016,7 @@ const CreateEvent = () => {
   const addQuantityDiscount = (ticketId: string) => {
     setTickets(tickets.map(t => t.id === ticketId ? {
       ...t,
-      quantityDiscounts: [...(t.quantityDiscounts || []), { minQuantity: 0, discountPercentage: 0 }]
+      quantityDiscounts: [...(t.quantityDiscounts || []), { minQuantity: 2, discountPercentage: 0 }]
     } : t));
   };
 
@@ -2930,9 +2930,10 @@ const CreateEvent = () => {
                                    </label>
                                    <input
                                       type="number"
+                                      min="1"
                                       className="w-full px-5 py-5 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none shadow-sm"
                                       value={ticket.groupSize}
-                                      onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id!, "groupSize", parseInt(e.target.value))}
+                                      onBlur={handleBlur} onChange={(e) => updateTicket(ticket.id!, "groupSize", Math.max(1, parseInt(e.target.value) || 1))}
                                    />
                                 </div>
                              </div>
@@ -3061,20 +3062,21 @@ const CreateEvent = () => {
                                                         <label className="text-[8px] font-bold text-gray-400 uppercase">Min Quantity</label>
                                                         <input
                                                             type="number"
+                                                            min="2"
                                                             className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold outline-none"
                                                             value={discount.minQuantity}
-                                                            onBlur={handleBlur} onChange={(e) => updateQuantityDiscount(ticket.id!, dIndex, "minQuantity", parseInt(e.target.value))}
+                                                            onBlur={handleBlur} onChange={(e) => updateQuantityDiscount(ticket.id!, dIndex, "minQuantity", Math.max(2, parseInt(e.target.value) || 2))}
                                                         />
                                                     </div>
                                                     <div className="space-y-2">
-                                                        <label className="text-[8px] font-bold text-gray-400 uppercase">Discount Price</label>
+                                                        <label className="text-[8px] font-bold text-gray-400 uppercase">Discount Percentage</label>
                                                         <div className="relative">
-                                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-primary font-black text-[9px]">₦</span>
+                                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-primary font-black text-[9px]">%</span>
                                                             <input
                                                                 type="number"
-                                                                className="w-full pl-6 pr-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold outline-none"
-                                                                value={discount.price}
-                                                                onBlur={handleBlur} onChange={(e) => updateQuantityDiscount(ticket.id!, dIndex, "price", parseFloat(e.target.value))}
+                                                                className="w-full pr-8 pl-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold outline-none"
+                                                                value={discount.discountPercentage}
+                                                                onBlur={handleBlur} onChange={(e) => updateQuantityDiscount(ticket.id!, dIndex, "discountPercentage", parseFloat(e.target.value))}
                                                             />
                                                         </div>
                                                     </div>

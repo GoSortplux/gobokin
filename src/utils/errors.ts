@@ -79,6 +79,22 @@ const translateErrorMessage = (message: string): string => {
     return 'We had trouble saving or finding a file. Please try again.';
   }
 
+  // Handle nested validation errors (e.g. "quantity discount #1 -> ...")
+  if (lowerMessage.includes('→') || lowerMessage.includes('must be') || lowerMessage.includes('required')) {
+    let cleanMessage = message
+      .replace(/quantity discount #\d+ →\s*/gi, '')
+      .replace(/#\d+\s*→\s*/g, '')
+      .trim();
+
+    // Capitalize first letter
+    cleanMessage = cleanMessage.charAt(0).toUpperCase() + cleanMessage.slice(1);
+
+    // Replace dots with space if they are in the middle of sentences and not followed by space
+    cleanMessage = cleanMessage.replace(/\.([a-zA-Z])/g, '. $1');
+
+    return cleanMessage;
+  }
+
   // If no translation found, and it looks technical, return a generic friendly message
   if (lowerMessage.includes('load venues') || lowerMessage.includes('fetch venues') || lowerMessage.includes('venue')) {
     return "We're having trouble loading the venues right now. Please try again in a moment.";
