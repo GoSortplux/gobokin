@@ -2190,23 +2190,6 @@ const EditEventContent = () => {
                                                    />
                                                </div>
                                                <div className="space-y-3">
-                                                   <div className="flex items-center gap-3 pt-4">
-                                                       <input
-                                                           type="checkbox"
-                                                           id={`isOffline-${ticket.id}`}
-                                                           className="w-4 h-4 rounded text-secondary focus:ring-secondary border-gray-300"
-                                                           checked={ticket.isOffline}
-                                                           onChange={(e) => updateTicket(ticket.id, "isOffline", e.target.checked)}
-                                                       />
-                                                       <label htmlFor={`isOffline-${ticket.id}`} className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                                                           Offline Sales Allocation
-                                                       </label>
-                                                   </div>
-                                                   <p className="text-[9px] text-gray-400 font-medium ml-7 leading-relaxed">
-                                                       Reserve tickets for offline sales and generate ticket IDs for printing.
-                                                   </p>
-                                               </div>
-                                               <div className="space-y-3">
                                                    <div className="flex items-start gap-3 pt-4">
                                                        <input
                                                            type="checkbox"
