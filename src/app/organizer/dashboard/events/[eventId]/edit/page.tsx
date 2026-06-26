@@ -2022,6 +2022,35 @@ const EditEventContent = () => {
 
                             <div className="space-y-8">
                                 <div className="space-y-3">
+                                   <div className="flex items-start gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10 mb-2">
+                                       <input
+                                           type="checkbox"
+                                           id={`isSpecial-${ticket.id}`}
+                                           className="w-4 h-4 mt-1 rounded text-primary focus:ring-primary border-gray-300"
+                                           checked={ticket.isSpecial || false}
+                                           onChange={(e) => updateTicket(ticket.id, "isSpecial", e.target.checked)}
+                                       />
+                                       <div className="space-y-1">
+                                           <div className="flex items-center gap-2">
+                                               <label htmlFor={`isSpecial-${ticket.id}`} className="text-[10px] font-black text-gray-900 uppercase tracking-widest cursor-pointer">
+                                                   Special Ticket
+                                               </label>
+                                               <div className="group relative">
+                                                   <Info size={12} className="text-primary cursor-help" />
+                                                   <div className="absolute bottom-full left-0 mb-2 w-64 p-4 bg-gray-900 text-white text-[10px] font-bold leading-relaxed rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl border border-gray-800">
+                                                       Mark this ticket as a Special Ticket for facilitators, vendors, resource persons, and other designated guests. You can set any price, including free, and attendees will automatically be assigned to the selected guest category for easier tracking and reporting.
+                                                       <div className="absolute top-full left-4 w-3 h-3 bg-gray-900 rotate-45 -translate-y-1.5 border-b border-r border-gray-800"></div>
+                                                   </div>
+                                               </div>
+                                           </div>
+                                           <p className="text-[10px] font-black text-gray-400 uppercase tracking-tight leading-tight">
+                                               (For Facilitators/Speakers, Special guests, Vendors, Resource Persons, and other designated guests)
+                                           </p>
+                                       </div>
+                                   </div>
+                                </div>
+
+                                <div className="space-y-3">
                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                                        <Type size={12} className="text-secondary" />
                                        Ticket Name
@@ -2189,34 +2218,6 @@ const EditEventContent = () => {
                                                        value={ticket.maxPerOrder}
                                                        onChange={(e) => updateTicket(ticket.id, "maxPerOrder", parseInt(e.target.value))}
                                                    />
-                                               </div>
-                                               <div className="space-y-3">
-                                                   <div className="flex items-start gap-3 pt-4">
-                                                       <input
-                                                           type="checkbox"
-                                                           id={`isSpecial-${ticket.id}`}
-                                                           className="w-4 h-4 mt-1 rounded text-primary focus:ring-primary border-gray-300"
-                                                           checked={ticket.isSpecial || false}
-                                                           onChange={(e) => updateTicket(ticket.id, "isSpecial", e.target.checked)}
-                                                       />
-                                                       <div className="space-y-1">
-                                                           <div className="flex items-center gap-2">
-                                                               <label htmlFor={`isSpecial-${ticket.id}`} className="text-[10px] font-black text-gray-900 uppercase tracking-widest cursor-pointer">
-                                                                   Special Ticket
-                                                               </label>
-                                                               <div className="group relative">
-                                                                   <Info size={12} className="text-primary cursor-help" />
-                                                                   <div className="absolute bottom-full left-0 mb-2 w-64 p-4 bg-gray-900 text-white text-[10px] font-bold leading-relaxed rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl border border-gray-800">
-                                                                       Mark this ticket as a Special Ticket for facilitators, vendors, resource persons, and other designated guests. You can set any price, including free, and attendees will automatically be assigned to the selected guest category for easier tracking and reporting.
-                                                                       <div className="absolute top-full left-4 w-3 h-3 bg-gray-900 rotate-45 -translate-y-1.5 border-b border-r border-gray-800"></div>
-                                                                   </div>
-                                                               </div>
-                                                           </div>
-                                                           <p className="text-[10px] font-black text-gray-400 uppercase tracking-tight leading-tight">
-                                                               (For Facilitators/Speakers, Special guests, Vendors, Resource Persons, and other designated guests)
-                                                           </p>
-                                                       </div>
-                                                   </div>
                                                </div>
                                            </div>
                                        </div>
