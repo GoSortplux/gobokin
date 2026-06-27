@@ -76,6 +76,7 @@ interface LivePreviewProps {
     name: string;
     price: number;
     type: string;
+    isSpecial?: boolean;
   }[];
 }
 
