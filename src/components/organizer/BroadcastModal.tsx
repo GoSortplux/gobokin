@@ -139,28 +139,28 @@ const BroadcastModal = ({ isOpen, onClose, eventId, tickets }: BroadcastModalPro
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+      <div className="bg-white w-full max-w-2xl rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col max-h-[95vh] sm:max-h-[none]">
         {/* Header */}
-        <div className="bg-primary p-8 text-white relative">
+        <div className="bg-primary p-6 sm:p-8 text-white relative shrink-0">
           <button
             onClick={onClose}
-            className="absolute top-6 right-6 p-2 hover:bg-white/10 rounded-xl transition-colors"
+            className="absolute top-4 sm:top-6 right-4 sm:right-6 p-2 hover:bg-white/10 rounded-xl transition-colors"
           >
-            <X size={24} />
+            <X className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
-          <div className="flex items-center gap-4 mb-2">
-            <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
-              <Send size={24} />
+          <div className="flex items-center gap-3 sm:gap-4 mb-1 sm:mb-2">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-xl sm:rounded-2xl flex items-center justify-center backdrop-blur-md">
+              <Send className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div>
-              <h2 className="text-2xl font-black tracking-tight">Event Broadcast</h2>
-              <p className="text-white/70 text-sm font-medium">Reach your attendees instantly via Email & App</p>
+              <h2 className="text-xl sm:text-2xl font-black tracking-tight">Event Broadcast</h2>
+              <p className="text-white/70 text-[11px] sm:text-sm font-medium">Reach your attendees instantly via Email & App</p>
             </div>
           </div>
         </div>
 
-        <div className="p-8 space-y-8 max-h-[calc(100vh-200px)] overflow-y-auto no-scrollbar">
+        <div className="p-5 sm:p-8 space-y-6 sm:space-y-8 overflow-y-auto no-scrollbar flex-1">
           {/* Segmentation */}
           <div className="space-y-4">
             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2 ml-1">
@@ -299,42 +299,44 @@ const BroadcastModal = ({ isOpen, onClose, eventId, tickets }: BroadcastModalPro
         </div>
 
         {/* Footer */}
-        <div className="p-8 bg-gray-50/80 backdrop-blur-md border-t border-gray-100 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-             <div className="flex items-center gap-1.5 text-gray-400">
-                <Mail size={14} />
-                <span className="text-[9px] font-black uppercase">Email</span>
-             </div>
-             <div className="w-1 h-1 rounded-full bg-gray-300"></div>
-             <div className="flex items-center gap-1.5 text-gray-400">
-                <Smartphone size={14} />
-                <span className="text-[9px] font-black uppercase">Push</span>
-             </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={onClose}
-              className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSendBroadcast}
-              disabled={isSending || isUploading}
-              className="flex items-center gap-3 bg-primary text-white px-10 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-primary/30 hover:shadow-primary/40 hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50 disabled:pointer-events-none"
-            >
-              {isSending ? (
-                <>
-                  <Loader2 size={16} className="animate-spin" />
-                  Sending...
-                </>
-              ) : (
-                <>
-                  <Send size={16} />
-                  Send Broadcast
-                </>
-              )}
-            </button>
+        <div className="p-5 sm:p-8 bg-gray-50/80 backdrop-blur-md border-t border-gray-100 shrink-0">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 sm:gap-4">
+            <div className="flex items-center gap-4 order-2 sm:order-1">
+               <div className="flex items-center gap-1.5 text-gray-400">
+                  <Mail size={14} />
+                  <span className="text-[9px] font-black uppercase">Email</span>
+               </div>
+               <div className="w-1 h-1 rounded-full bg-gray-300"></div>
+               <div className="flex items-center gap-1.5 text-gray-400">
+                  <Smartphone size={14} />
+                  <span className="text-[9px] font-black uppercase">Push</span>
+               </div>
+            </div>
+            <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto order-1 sm:order-2">
+              <button
+                onClick={onClose}
+                className="flex-1 sm:flex-none px-4 sm:px-6 py-3 sm:py-4 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSendBroadcast}
+                disabled={isSending || isUploading}
+                className="flex-1 sm:flex-none flex items-center justify-center gap-2 sm:gap-3 bg-primary text-white px-6 sm:px-10 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black text-[10px] uppercase tracking-[0.1em] sm:tracking-[0.2em] shadow-xl shadow-primary/30 hover:shadow-primary/40 hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50 disabled:pointer-events-none"
+              >
+                {isSending ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Send size={16} />
+                    <span className="whitespace-nowrap">Send Broadcast</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>
