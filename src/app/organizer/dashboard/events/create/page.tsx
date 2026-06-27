@@ -1681,6 +1681,38 @@ const CreateEvent = () => {
                                    />
                                 </div>
                              </div>
+                             <div className={`pt-4 ${showPreview ? "2xl:col-span-2" : "md:col-span-2"}`}>
+                                <div className="flex items-center justify-between p-6 bg-gray-50 rounded-[2rem] border border-gray-100 hover:bg-white hover:shadow-xl transition-all duration-500 group/agenda">
+                                   <div className="flex items-center gap-5">
+                                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 ${basicInfo.agendaEnabled ? 'bg-secondary text-white shadow-lg shadow-secondary/20' : 'bg-white text-gray-300 border border-gray-100'}`}>
+                                         <Calendar size={20} />
+                                      </div>
+                                      <div>
+                                         <h4 className="text-[11px] font-black text-gray-900 uppercase tracking-widest">Enable Event Agenda</h4>
+                                         <p className="text-[9px] text-gray-400 font-bold uppercase tracking-tighter mt-0.5">Sessions, Schedule & Speakers</p>
+                                      </div>
+                                   </div>
+                                   <button
+                                      type="button"
+                                      onClick={() => {
+                                         const newVal = !basicInfo.agendaEnabled;
+                                         setBasicInfo(prev => ({ ...prev, agendaEnabled: newVal }));
+                                         handleBlur();
+                                      }}
+                                      className={`w-14 h-8 rounded-full transition-all relative ${basicInfo.agendaEnabled ? 'bg-secondary' : 'bg-gray-200'}`}
+                                   >
+                                      <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all shadow-sm ${basicInfo.agendaEnabled ? 'left-7' : 'left-1'}`} />
+                                   </button>
+                                </div>
+                                {basicInfo.agendaEnabled && (
+                                    <div className="mt-4 p-5 bg-secondary/5 border border-secondary/10 rounded-2xl flex items-start gap-3 animate-in slide-in-from-top-2 duration-300">
+                                        <Info size={14} className="text-secondary shrink-0 mt-0.5" />
+                                        <p className="text-[10px] font-bold text-secondary/80 leading-relaxed uppercase">
+                                            Agenda enabled: You&apos;ll be required to add at least one session in Step 3.
+                                        </p>
+                                    </div>
+                                )}
+                             </div>
                           </div>
                        </div>
 
@@ -1844,42 +1876,6 @@ const CreateEvent = () => {
                           </div>
                        </div>
 
-                       {/* Section 7: Agenda Toggle */}
-                       <div className="space-y-10 group/section">
-                          <div className="p-8 bg-gray-50 rounded-[3rem] border border-gray-100 flex flex-col md:flex-row items-center justify-between gap-6 hover:bg-white hover:shadow-xl transition-all duration-500">
-                             <div className="flex items-center gap-5">
-                                <div className="w-14 h-14 rounded-2xl bg-white text-secondary flex items-center justify-center shadow-sm border border-gray-100 group-hover/section:bg-secondary group-hover/section:text-white transition-all">
-                                   <Calendar size={24} />
-                                </div>
-                                <div>
-                                   <h3 className="text-xl font-black text-gray-900 tracking-tight">Enable Event Agenda</h3>
-                                   <p className="text-xs text-gray-400 font-medium">Allow timeline, session pages, and speaker scheduling.</p>
-                                </div>
-                             </div>
-                             <div className="flex items-center gap-4">
-                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{basicInfo.agendaEnabled ? 'Enabled' : 'Disabled'}</span>
-                                <button
-                                   onClick={() => {
-                                      const newVal = !basicInfo.agendaEnabled;
-                                      setBasicInfo(prev => ({ ...prev, agendaEnabled: newVal }));
-                                      handleBlur();
-                                   }}
-                                   className={`w-16 h-9 rounded-full transition-all relative ${basicInfo.agendaEnabled ? 'bg-secondary' : 'bg-gray-200'}`}
-                                >
-                                   <div className={`absolute top-1.5 w-6 h-6 bg-white rounded-full transition-all shadow-sm ${basicInfo.agendaEnabled ? 'left-8' : 'left-1.5'}`} />
-                                </button>
-                             </div>
-                          </div>
-
-                          {basicInfo.agendaEnabled && (
-                            <div className="bg-secondary/5 border border-secondary/10 p-6 rounded-[2rem] flex items-start gap-4">
-                                <Info size={18} className="text-secondary shrink-0 mt-0.5" />
-                                <p className="text-[11px] font-medium text-secondary/80 leading-relaxed">
-                                    When Agenda is enabled, you&apos;ll be required to add at least one session in the &quot;Schedule&quot; step before publishing your event.
-                                </p>
-                            </div>
-                          )}
-                       </div>
                     </div>
                  )}
 

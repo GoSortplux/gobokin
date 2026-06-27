@@ -380,7 +380,6 @@ const EditEventContent = () => {
 
   // Deferred Uploads State
   const [bannerFile, setBannerFile] = useState<File | null>(null);
-  const [bannerPreview, setBannerPreview] = useState<string>("");
 
   // Form State
   const [basicInfo, setBasicInfo] = useState({
@@ -604,7 +603,6 @@ const EditEventContent = () => {
 
     const previewUrl = URL.createObjectURL(file);
     setBannerFile(file);
-    setBannerPreview(previewUrl);
     setMediaInfo(prev => ({ ...prev, bannerUrl: previewUrl }));
     Swal.toast.fire({ icon: 'success', title: 'Banner art selected (pending save)!' });
   }, []);
@@ -1397,6 +1395,34 @@ const EditEventContent = () => {
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Number of Expected Guest</label>
                                 <input type="number" name="capacity" className="w-full p-4 md:p-6 bg-white border border-gray-300 rounded-2xl md:rounded-3xl text-sm font-bold outline-none" value={basicInfo.capacity} onChange={handleBasicChange} />
                              </div>
+                             <div className={`pt-4 ${showPreview ? "2xl:col-span-2" : "md:col-span-2"}`}>
+                                <div className="flex items-center justify-between p-6 bg-gray-50 rounded-[2rem] border border-gray-100 hover:bg-white hover:shadow-xl transition-all duration-500 group/agenda">
+                                   <div className="flex items-center gap-5">
+                                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 ${basicInfo.agendaEnabled ? 'bg-secondary text-white shadow-lg shadow-secondary/20' : 'bg-white text-gray-300 border border-gray-100'}`}>
+                                         <Calendar size={20} />
+                                      </div>
+                                      <div>
+                                         <h4 className="text-[11px] font-black text-gray-900 uppercase tracking-widest">Enable Event Agenda</h4>
+                                         <p className="text-[9px] text-gray-400 font-bold uppercase tracking-tighter mt-0.5">Sessions, Schedule & Speakers</p>
+                                      </div>
+                                   </div>
+                                   <button
+                                      type="button"
+                                      onClick={() => setBasicInfo(prev => ({ ...prev, agendaEnabled: !prev.agendaEnabled }))}
+                                      className={`w-14 h-8 rounded-full transition-all relative ${basicInfo.agendaEnabled ? 'bg-secondary' : 'bg-gray-200'}`}
+                                   >
+                                      <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all shadow-sm ${basicInfo.agendaEnabled ? 'left-7' : 'left-1'}`} />
+                                   </button>
+                                </div>
+                                {basicInfo.agendaEnabled && (
+                                    <div className="mt-4 p-5 bg-secondary/5 border border-secondary/10 rounded-2xl flex items-start gap-3 animate-in slide-in-from-top-2 duration-300">
+                                        <Info size={14} className="text-secondary shrink-0 mt-0.5" />
+                                        <p className="text-[10px] font-bold text-secondary/80 leading-relaxed uppercase">
+                                            Agenda enabled: You&apos;ll be required to add at least one session in Step 3.
+                                        </p>
+                                    </div>
+                                )}
+                             </div>
                              <div className={`space-y-3 ${showPreview ? "2xl:col-span-2" : "md:col-span-2"}`}>
                                 <div className="flex items-center justify-between ml-1">
                                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Search Keywords</label>
@@ -1500,46 +1526,6 @@ const EditEventContent = () => {
                              ))}
                           </div>
 
-                          <div className="pt-10 border-t border-gray-100">
-                             <div className="bg-gray-50/50 rounded-[3rem] p-10 border border-gray-100 flex flex-col md:flex-row items-center justify-between gap-10">
-                                <div className="flex items-center gap-8">
-                                   <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center shadow-2xl transition-all duration-500 ${basicInfo.agendaEnabled ? 'bg-primary text-white scale-110 shadow-primary/30' : 'bg-white text-gray-300'}`}>
-                                      <Calendar size={32} strokeWidth={2.5} />
-                                   </div>
-                                   <div className="space-y-2">
-                                      <div className="flex items-center gap-3">
-                                         <h3 className="text-2xl font-black text-gray-900 tracking-tight leading-none">Enable Event Agenda</h3>
-                                         <span className={`px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${basicInfo.agendaEnabled ? 'bg-primary/5 text-primary border-primary/10' : 'bg-gray-100 text-gray-400 border-gray-200'}`}>
-                                            {basicInfo.agendaEnabled ? 'Active' : 'Disabled'}
-                                         </span>
-                                      </div>
-                                      <p className="text-sm text-gray-400 font-medium max-w-md">Allow timeline, session pages, and speaker scheduling for this event.</p>
-                                   </div>
-                                </div>
-                                <button
-                                   onClick={() => setBasicInfo(prev => ({ ...prev, agendaEnabled: !prev.agendaEnabled }))}
-                                   className={`relative w-24 h-12 rounded-full transition-all duration-500 p-1.5 flex items-center shadow-inner ${basicInfo.agendaEnabled ? 'bg-primary' : 'bg-gray-200'}`}
-                                >
-                                   <div className={`w-9 h-9 bg-white rounded-full shadow-xl transition-all duration-500 transform flex items-center justify-center ${basicInfo.agendaEnabled ? 'translate-x-12' : 'translate-x-0'}`}>
-                                      <div className={`w-2 h-2 rounded-full ${basicInfo.agendaEnabled ? 'bg-primary animate-pulse' : 'bg-gray-200'}`} />
-                                   </div>
-                                </button>
-                             </div>
-
-                             {basicInfo.agendaEnabled && (
-                                <div className="mt-8 p-6 bg-primary/5 rounded-[2rem] border border-primary/10 flex items-start gap-4 animate-in slide-in-from-top-4 duration-500">
-                                   <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-primary shadow-sm shrink-0">
-                                      <Info size={18} />
-                                   </div>
-                                   <div className="space-y-1">
-                                      <p className="text-xs font-black text-primary uppercase tracking-widest">Agenda Policy</p>
-                                      <p className="text-xs text-primary/70 font-medium leading-relaxed">
-                                         With Agenda enabled, you must define at least one session in Step 3. You will be able to assign speakers to sessions and set a detailed timeline for your attendees.
-                                      </p>
-                                   </div>
-                                </div>
-                             )}
-                          </div>
                        </div>
                     </div>
                  )}
