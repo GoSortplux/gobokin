@@ -35,7 +35,7 @@ const MyEvents = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [activeFilter, setActiveFilter] = useState<"ALL" | "UPCOMING" | "ONGOING" | "COMPLETED" | "CANCELLED">("ALL");
+  const [activeFilter, setActiveFilter] = useState<"ALL" | "UPCOMING" | "DRAFT" | "ONGOING" | "COMPLETED" | "CANCELLED">("ALL");
   const [selectedEventForWalkIn, setSelectedEventForWalkIn] = useState<Event | null>(null);
   const [isWalkInModalOpen, setIsWalkInModalOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
@@ -92,6 +92,7 @@ const MyEvents = () => {
   };
 
   const getEffectiveStatus = (event: Event) => {
+    if (!event.isPublished) return "DRAFT";
     if (event.status === "CANCELLED") return "CANCELLED";
 
     const now = new Date();
@@ -113,6 +114,7 @@ const MyEvents = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "UPCOMING": return "bg-blue-50 text-blue-600 border border-blue-100";
+      case "DRAFT": return "bg-purple-50 text-purple-600 border border-purple-100";
       case "ONGOING": return "bg-emerald-50 text-emerald-600 border border-emerald-100";
       case "COMPLETED": return "bg-gray-50 text-gray-600 border border-gray-100";
       case "CANCELLED": return "bg-rose-50 text-rose-600 border border-rose-100";
@@ -251,7 +253,7 @@ const MyEvents = () => {
         </div>
 
         <div className="flex items-center gap-2 w-full lg:w-auto overflow-x-auto no-scrollbar py-1 scroll-smooth">
-          {["ALL", "UPCOMING", "ONGOING", "COMPLETED", "CANCELLED"].map((filter) => (
+          {["ALL", "UPCOMING", "DRAFT", "ONGOING", "COMPLETED", "CANCELLED"].map((filter) => (
             <button
               key={filter}
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -455,8 +457,7 @@ const MyEvents = () => {
                             </div>
                          </div>
                       </td>
-                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                      {!isStaff && <td className="px-6 py-5 font-black text-emerald-600 text-sm">₦{((event as any).totalRevenue || 0).toLocaleString()}</td>}
+                      {!isStaff && <td className="px-6 py-5 font-black text-emerald-600 text-sm">₦{(event.totalRevenue || 0).toLocaleString()}</td>}
                       <td className="px-6 py-5 text-right">
                         <div className="flex items-center justify-end gap-3">
                             {!isStaff ? (
@@ -560,8 +561,7 @@ const MyEvents = () => {
                             {!isStaff && (
                                 <div>
                                     <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-1">Revenue</p>
-                                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                                    <p className="text-xs font-bold text-emerald-600">₦{((event as any).totalRevenue || 0).toLocaleString()}</p>
+                                    <p className="text-xs font-bold text-emerald-600">₦{(event.totalRevenue || 0).toLocaleString()}</p>
                                 </div>
                             )}
                         </div>

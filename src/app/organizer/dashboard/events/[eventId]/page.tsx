@@ -99,6 +99,7 @@ const EventDetails = () => {
   });
 
   const getEffectiveStatus = (event: Event) => {
+    if (!event.isPublished) return "DRAFT";
     if (event.status === "CANCELLED") return "CANCELLED";
 
     const now = new Date();
