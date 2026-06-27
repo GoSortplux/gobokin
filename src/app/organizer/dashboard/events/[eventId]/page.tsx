@@ -591,12 +591,12 @@ const EventDetails = () => {
         {(isStaff ? [
           { label: "Ticket Sales", value: analytics?.orders || 0, icon: Ticket, color: "text-blue-600", bg: "bg-blue-50" },
           { label: "Checked-in", value: analytics?.summary?.checkedInGuests || 0, icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50" },
-          { label: "Registrations", value: analytics?.registrations || 0, icon: Users, color: "text-purple-600", bg: "bg-purple-50" },
+          { label: "Registrations", value: event?.soldQuantity || analytics?.registrations || 0, icon: Users, color: "text-purple-600", bg: "bg-purple-50" },
           { label: "Attendance Rate", value: `${analytics?.summary?.attendanceRate || 0}%`, icon: TrendingUp, color: "text-amber-600", bg: "bg-amber-50" },
         ] : [
           { label: "Ticket Sales", value: analytics?.orders || 0, icon: Ticket, color: "text-blue-600", bg: "bg-blue-50" },
           { label: "Revenue", value: `₦${analytics?.totalRevenue?.toLocaleString() || 0}`, icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-50" },
-          { label: "Registrations", value: analytics?.registrations || 0, icon: Users, color: "text-purple-600", bg: "bg-purple-50" },
+          { label: "Registrations", value: event?.soldQuantity || analytics?.registrations || 0, icon: Users, color: "text-purple-600", bg: "bg-purple-50" },
           { label: "Detail Views", value: (event?.analytics?.detailViews || analytics?.views || 0).toLocaleString(), icon: Eye, color: "text-amber-600", bg: "bg-amber-50" },
           { label: "Impressions", value: (event?.analytics?.impressions || 0).toLocaleString(), icon: Eye, color: "text-blue-600", bg: "bg-blue-50" },
           { label: "Clicks", value: (event?.analytics?.clicks || 0).toLocaleString(), icon: MousePointer2, color: "text-emerald-600", bg: "bg-emerald-50" },
@@ -695,15 +695,15 @@ const EventDetails = () => {
                         <div className="bg-gray-50 rounded-3xl p-6 space-y-6 border border-gray-100">
                            <div className="flex items-center justify-between">
                               <span className="text-sm font-bold text-gray-500">Capacity Utilization</span>
-                              <span className="text-sm font-black text-gray-900">{Math.round((analytics?.registrations || 0) / (event.capacity || 1) * 100)}%</span>
+                              <span className="text-sm font-black text-gray-900">{Math.round((event.soldQuantity || analytics?.registrations || 0) / (event.capacity || 1) * 100)}%</span>
                            </div>
                            <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
                               <div
                                 className="h-full bg-primary rounded-full transition-all duration-1000"
-                                style={{ width: `${Math.min(100, ((analytics?.registrations || 0) / (event.capacity || 1) * 100))}%` }}
+                                style={{ width: `${Math.min(100, ((event.soldQuantity || analytics?.registrations || 0) / (event.capacity || 1) * 100))}%` }}
                               ></div>
                            </div>
-                           <p className="text-xs text-gray-400 font-medium">Currently {analytics?.registrations || 0} registered out of {event.capacity} total slots.</p>
+                           <p className="text-xs text-gray-400 font-medium">Currently {event.soldQuantity || analytics?.registrations || 0} registered out of {event.capacity} total slots.</p>
                         </div>
                       </div>
 
