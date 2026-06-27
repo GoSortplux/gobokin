@@ -696,6 +696,11 @@ export interface Event {
   staff?: StaffMember[];
   totalRevenue?: number;
   analytics?: EventAnalytics;
+  _count?: {
+    registrations: number;
+    tickets: number;
+    [key: string]: number;
+  };
 }
 
 export interface Transaction {

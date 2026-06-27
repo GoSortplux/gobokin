@@ -449,11 +449,9 @@ const MyEvents = () => {
                       </td>
                       <td className="px-6 py-5">
                          <div className="space-y-1">
-                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                            <p className="text-sm font-black text-gray-900">{(event as any).soldQuantity || (event as any).registrationCount || 0} / {event.capacity}</p>
+                            <p className="text-sm font-black text-gray-900">{event._count?.registrations ?? event.soldQuantity ?? event.registrationCount ?? 0} / {event.capacity}</p>
                             <div className="w-24 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                               {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                               <div className="w-full h-full bg-primary rounded-full" style={{ width: `${Math.min(100, (((event as any).soldQuantity || (event as any).registrationCount || 0) / event.capacity) * 100)}%` }}></div>
+                               <div className="w-full h-full bg-primary rounded-full" style={{ width: `${Math.min(100, ((event._count?.registrations ?? event.soldQuantity ?? event.registrationCount ?? 0) / event.capacity) * 100)}%` }}></div>
                             </div>
                          </div>
                       </td>
@@ -553,8 +551,7 @@ const MyEvents = () => {
                             </div>
                             <div>
                                 <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-1">Registrations</p>
-                                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                                <p className="text-xs font-bold text-gray-700">{(event as any).soldQuantity || (event as any).registrationCount || 0} / {event.capacity}</p>
+                                <p className="text-xs font-bold text-gray-700">{event._count?.registrations ?? event.soldQuantity ?? event.registrationCount ?? 0} / {event.capacity}</p>
                             </div>
                             <div>
                                 <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-1">Impressions</p>
