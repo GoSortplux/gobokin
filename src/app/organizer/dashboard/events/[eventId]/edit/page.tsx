@@ -61,11 +61,11 @@ interface LivePreviewProps {
   };
   mediaInfo: {
     bannerUrl: string;
-    mediaUrls: string[];
+    mediaUrls: (string | { file: File; preview: string })[];
     seoTitle: string;
     seoDescription: string;
   };
-  speakers: Speaker[];
+  speakers: (Speaker & { previewUrl?: string })[];
   agendaEnabled: boolean;
   sessions: {
     title: string;
@@ -217,19 +217,26 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, sessions, tickets, agenda
                             <p className="text-[10px] font-black text-gray-900 uppercase tracking-widest">Gallery</p>
                           </div>
                           <div className="grid grid-cols-2 gap-3">
-                              {mediaInfo.mediaUrls.map((url, i) => (
-                                  <div key={i} className="relative aspect-square rounded-2xl overflow-hidden bg-gray-100">
-                                      {url && typeof url === 'string' && url.match(/\.(mp4|webm|ogg)$/) ? (
-                                          <video src={url} className="w-full h-full object-cover" />
-                                      ) : url ? (
-                                          <Image src={url} alt="Gallery" fill unoptimized={true} className="object-cover" />
-                                      ) : (
-                                          <div className="w-full h-full flex items-center justify-center text-gray-300">
-                                              <ImageIcon size={20} />
-                                          </div>
-                                      )}
-                                  </div>
-                              ))}
+                              {mediaInfo.mediaUrls.map((item, i) => {
+                                  const url = typeof item === 'string' ? item : item.preview;
+                                  const isVideo = typeof item === 'string'
+                                    ? item.match(/\.(mp4|webm|ogg)$/)
+                                    : item.file.type.startsWith('video/');
+
+                                  return (
+                                    <div key={i} className="relative aspect-square rounded-2xl overflow-hidden bg-gray-100">
+                                        {url && isVideo ? (
+                                            <video src={url} className="w-full h-full object-cover" />
+                                        ) : url ? (
+                                            <Image src={url} alt="Gallery" fill unoptimized={true} className="object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                                <ImageIcon size={20} />
+                                            </div>
+                                        )}
+                                    </div>
+                                  );
+                              })}
                           </div>
                       </div>
                   )}
@@ -370,6 +377,10 @@ const EditEventContent = () => {
   const [categories, setCategories] = useState<string[]>([]);
   const [organizerSlug, setOrganizerSlug] = useState<string>("");
 
+  // Deferred Uploads State
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string>("");
+
   // Form State
   const [basicInfo, setBasicInfo] = useState({
     title: "",
@@ -404,13 +415,13 @@ const EditEventContent = () => {
 
   const [mediaInfo, setMediaInfo] = useState({
     bannerUrl: "",
-    mediaUrls: [] as string[],
+    mediaUrls: [] as (string | { file: File; preview: string })[],
     seoTitle: "",
     seoDescription: "",
     socialImage: "",
   });
 
-  const [speakers, setSpeakers] = useState<Speaker[]>([]);
+  const [speakers, setSpeakers] = useState<(Speaker & { pendingFile?: File; previewUrl?: string })[]>([]);
 
   const [sessions, setSessions] = useState<{
     id: string;
@@ -496,7 +507,7 @@ const EditEventContent = () => {
 
         setMediaInfo({
           bannerUrl: event.bannerUrl || "",
-          mediaUrls: event.mediaUrls || [],
+          mediaUrls: (event.mediaUrls || []) as (string | { file: File; preview: string })[],
           seoTitle: event.seoTitle || "",
           seoDescription: event.seoDescription || "",
           socialImage: event.socialImage || "",
@@ -505,7 +516,11 @@ const EditEventContent = () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setSpeakers((event.speakers || []).map((s: any) => ({
           ...s,
-          id: s.id || s._id
+          id: s.id || s._id,
+          name: s.name || "",
+          title: s.title || "",
+          bio: s.bio || "",
+          imageUrl: s.imageUrl || ""
         })));
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -586,40 +601,24 @@ const EditEventContent = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setIsUploading(true);
-    setUploadProgress(0);
-
-    try {
-      const fileUrl = await uploadMedia(file);
-      setMediaInfo(prev => ({ ...prev, bannerUrl: fileUrl }));
-      Swal.toast.fire({ icon: 'success', title: 'Banner uploaded (pending save)!' });
-    } catch (_error) {
-      Swal.fire('Error', 'Failed to upload banner.', 'error');
-    } finally {
-      setIsUploading(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [eventId, uploadMedia]);
+    const previewUrl = URL.createObjectURL(file);
+    setBannerFile(file);
+    setBannerPreview(previewUrl);
+    setMediaInfo(prev => ({ ...prev, bannerUrl: previewUrl }));
+    Swal.toast.fire({ icon: 'success', title: 'Banner art selected (pending save)!' });
+  }, []);
 
   const handleMediaUrlUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    setIsUploading(true);
-    setUploadProgress(0);
-    try {
-      const urls: string[] = [];
-      for (let i = 0; i < files.length; i++) {
-          const url = await uploadMedia(files[i]);
-          urls.push(url);
-      }
-      setMediaInfo(prev => ({ ...prev, mediaUrls: [...prev.mediaUrls, ...urls] }));
-      Swal.toast.fire({ icon: 'success', title: 'Media added (pending save)!' });
-    } catch (_error) {
-      Swal.fire('Error', 'Some uploads failed', 'error');
-    } finally {
-      setIsUploading(false);
-    }
+    const newMedia = Array.from(files).map(file => ({
+      file,
+      preview: URL.createObjectURL(file)
+    }));
+
+    setMediaInfo(prev => ({ ...prev, mediaUrls: [...prev.mediaUrls, ...newMedia] }));
+    Swal.toast.fire({ icon: 'success', title: 'Media added (pending save)!' });
   };
 
   const removeMediaUrl = async (idx: number) => {
@@ -663,14 +662,19 @@ const EditEventContent = () => {
   const handleSpeakerImageUpload = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    try {
-      Swal.showLoading();
-      const fileUrl = await uploadMedia(file);
-      updateSpeaker(index, 'imageUrl', fileUrl);
-      Swal.close();
-    } catch (_error) {
-      Swal.fire('Error', 'Upload failed', 'error');
-    }
+
+    const previewUrl = URL.createObjectURL(file);
+    setSpeakers(prev => {
+      const updated = [...prev];
+      updated[index] = {
+        ...updated[index],
+        pendingFile: file,
+        previewUrl: previewUrl,
+        imageUrl: previewUrl
+      };
+      return updated;
+    });
+    Swal.toast.fire({ icon: 'success', title: 'Speaker image selected (pending save)!' });
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1082,9 +1086,42 @@ const EditEventContent = () => {
 
     setSaving(true);
     try {
-      Swal.showLoading();
+      Swal.fire({
+          title: 'Saving Changes...',
+          text: 'Please wait while we process your updates and upload any new media.',
+          allowOutsideClick: false,
+          didOpen: () => {
+              Swal.showLoading();
+          }
+      });
 
-      // 1. Save Event Base Details
+      // 1. Handle deferred uploads
+      let finalBannerUrl = mediaInfo.bannerUrl;
+      if (bannerFile) {
+          finalBannerUrl = await uploadMedia(bannerFile);
+      }
+
+      setIsUploading(true);
+      const finalMediaUrls = await Promise.all(mediaInfo.mediaUrls.map(async (item) => {
+          if (typeof item === 'string') return item;
+          return await uploadMedia(item.file);
+      }));
+
+      const finalSpeakers = await Promise.all(speakers.map(async (s) => {
+          let imageUrl = s.imageUrl;
+          if (s.pendingFile) {
+              imageUrl = await uploadMedia(s.pendingFile);
+          }
+          return {
+              ...s,
+              imageUrl: imageUrl,
+              pendingFile: undefined,
+              previewUrl: undefined
+          };
+      }));
+      setIsUploading(false);
+
+      // 2. Save Event Base Details
       const basePayload = {
         title: basicInfo.title,
         description: basicInfo.description,
@@ -1099,7 +1136,7 @@ const EditEventContent = () => {
         agendaEnabled: basicInfo.agendaEnabled,
         isWaitlistEnabled: basicInfo.isWaitlistEnabled,
         tags: basicInfo.tags,
-        speakers: speakers.map(s => ({ name: s.name, title: s.title, bio: s.bio, imageUrl: s.imageUrl })),
+        speakers: finalSpeakers,
         registrationMode: registration.mode,
         isGroupingEnabled: registration.isGroupingEnabled,
         enforceUniqueGroupNames: registration.enforceUniqueGroupNames,
@@ -1113,8 +1150,8 @@ const EditEventContent = () => {
           source: f.source,
           dependsOn: f.dependsOn
         })),
-        bannerUrl: mediaInfo.bannerUrl,
-        mediaUrls: mediaInfo.mediaUrls,
+        bannerUrl: finalBannerUrl,
+        mediaUrls: finalMediaUrls,
       };
 
       // Fix: Remove restricted fields
@@ -1225,6 +1262,13 @@ const EditEventContent = () => {
       }
 
       Swal.fire("Success", "Event updated successfully", "success");
+
+      // Clear pending uploads state
+      setBannerFile(null);
+      setBannerPreview("");
+      setMediaInfo(prev => ({ ...prev, bannerUrl: finalBannerUrl, mediaUrls: finalMediaUrls }));
+      setSpeakers(finalSpeakers);
+
       if (shouldRedirect) {
           router.push(`/organizer/dashboard/events/${eventId}`);
       }
@@ -1438,7 +1482,7 @@ const EditEventContent = () => {
                                    <button onClick={() => setSpeakers(speakers.filter((_, i) => i !== idx))} className="absolute top-6 right-6 text-gray-300 hover:text-secondary transition-colors"><Trash2 size={16} /></button>
                                    <div className={`flex items-center gap-6 ${showPreview ? "flex-col 2xl:flex-row" : "flex-col sm:flex-row"}`}>
                                       <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-white shadow-lg border border-gray-100 group/img shrink-0">
-                                         {speaker.imageUrl ? <Image src={speaker.imageUrl} alt="Speaker" fill className="object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-200"><Users size={32} /></div>}
+                                         {speaker.imageUrl ? <Image src={speaker.imageUrl} alt="Speaker" fill unoptimized={true} className="object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-200"><Users size={32} /></div>}
                                          <label className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center cursor-pointer z-10">
                                             <Upload size={20} className="text-white" /><input type="file" className="hidden" onChange={(e) => handleSpeakerImageUpload(idx, e)} />
                                          </label>
@@ -1925,7 +1969,7 @@ const EditEventContent = () => {
                                 <input type="file" className="absolute inset-0 opacity-0 cursor-pointer z-20" onChange={handleBannerUpload} accept="image/*" disabled={isUploading} />
                                 {mediaInfo.bannerUrl && !isUploading ? (
                                    <div className="relative w-full h-full rounded-[2rem] overflow-hidden shadow-2xl">
-                                      <Image src={mediaInfo.bannerUrl} alt="Banner" fill className="object-cover" />
+                                      <Image src={mediaInfo.bannerUrl} alt="Banner" fill unoptimized={true} className="object-cover" />
                                    </div>
                                 ) : (
                                    <div className="text-center">
@@ -1940,12 +1984,19 @@ const EditEventContent = () => {
                                     <p className="text-[10px] text-gray-400 font-medium">Add photos that help attendees learn more about your event.</p>
                                 </div>
                                 <div className="flex flex-wrap gap-4">
-                                    {mediaInfo.mediaUrls.map((url, idx) => (
-                                        <div key={idx} className="relative w-24 h-24 rounded-2xl overflow-hidden group">
-                                            {url && typeof url === 'string' && url.match(/\.(mp4|webm|ogg)$/) ? <video src={url} className="w-full h-full object-cover" /> : <Image src={url} alt="Media" fill className="object-cover" />}
-                                            <button onClick={() => removeMediaUrl(idx)} className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white"><Trash2 size={16} /></button>
-                                        </div>
-                                    ))}
+                                    {mediaInfo.mediaUrls.map((item, idx) => {
+                                        const url = typeof item === 'string' ? item : item.preview;
+                                        const isVideo = typeof item === 'string'
+                                          ? item.match(/\.(mp4|webm|ogg)$/)
+                                          : item.file.type.startsWith('video/');
+
+                                        return (
+                                          <div key={idx} className="relative w-24 h-24 rounded-2xl overflow-hidden group">
+                                              {url && isVideo ? <video src={url} className="w-full h-full object-cover" /> : <Image src={url} alt="Media" fill unoptimized={true} className="object-cover" />}
+                                              <button onClick={() => removeMediaUrl(idx)} className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white"><Trash2 size={16} /></button>
+                                          </div>
+                                        );
+                                    })}
                                     <label className="w-24 h-24 rounded-2xl border-2 border-dashed border-gray-200 flex items-center justify-center text-gray-300 hover:border-primary hover:text-primary cursor-pointer transition-all">
                                         <Plus size={24} /><input type="file" multiple className="hidden" onChange={handleMediaUrlUpload} accept="image/*,video/*" />
                                     </label>
@@ -2428,7 +2479,7 @@ const EditEventContent = () => {
                                                         }`}
                                                     >
                                                         <div className="w-6 h-6 rounded-lg overflow-hidden bg-gray-100 shrink-0">
-                                                            {speaker.imageUrl && <Image src={speaker.imageUrl} alt={speaker.name} width={24} height={24} className="object-cover" />}
+                                                            {speaker.imageUrl && <Image src={speaker.imageUrl} alt={speaker.name} width={24} height={24} unoptimized={true} className="object-cover" />}
                                                         </div>
                                                         <span className="text-[10px] font-black uppercase tracking-widest">{speaker.name}</span>
                                                         {isAssigned && <ShieldCheck size={12} strokeWidth={3} />}
