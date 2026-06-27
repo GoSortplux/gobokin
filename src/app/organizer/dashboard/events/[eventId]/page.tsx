@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import useOnClickOutside from "@/hooks/useOnClickOutside";
@@ -76,7 +76,9 @@ const EventDetails = () => {
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  useOnClickOutside(menuRef, () => setActiveMenu(null));
+
+  const closeMenu = useCallback(() => setActiveMenu(null), []);
+  useOnClickOutside(menuRef, closeMenu);
 
   const filteredAttendees = attendees.filter(attendee => {
     const searchLower = attendeeSearchTerm.toLowerCase();
@@ -1057,30 +1059,31 @@ const EventDetails = () => {
                                  )}
                               </div>
                               {!isStaff && (
-                                <div className="relative">
+                                <div className="relative" ref={activeMenu === ticket.id ? menuRef : null}>
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       setActiveMenu(activeMenu === ticket.id ? null : ticket.id!);
                                     }}
-                                    className="p-1.5 text-gray-400 hover:text-primary hover:bg-gray-50 rounded-lg transition-all"
+                                    className={`p-2 rounded-xl transition-all ${activeMenu === ticket.id ? 'bg-primary/10 text-primary' : 'text-gray-400 hover:text-primary hover:bg-gray-50'}`}
                                   >
-                                    <MoreVertical size={16} />
+                                    <MoreVertical size={18} />
                                   </button>
 
                                   {activeMenu === ticket.id && (
                                     <div
-                                      ref={menuRef}
-                                      className="absolute right-0 mt-1 w-48 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-[100] animate-in fade-in zoom-in duration-200"
+                                      className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2.5 z-[100] animate-in fade-in zoom-in duration-150 origin-top-right"
                                     >
                                       <button
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           router.push(`/organizer/dashboard/events/${eventId}/edit?step=2`);
                                         }}
-                                        className="w-full px-4 py-2 text-left text-[10px] font-black uppercase tracking-widest text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors flex items-center gap-2 cursor-pointer"
+                                        className="w-full px-5 py-3.5 text-left text-[11px] font-black uppercase tracking-[0.1em] text-gray-600 hover:bg-blue-50 hover:text-primary transition-all flex items-center gap-3 cursor-pointer group"
                                       >
-                                        <Settings size={14} />
+                                        <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center group-hover:bg-white transition-colors">
+                                          <Settings size={16} />
+                                        </div>
                                         Edit Ticket
                                       </button>
 
@@ -1092,9 +1095,11 @@ const EventDetails = () => {
                                             setActiveMenu(null);
                                           }}
                                           disabled={isActionLoading}
-                                          className="w-full px-4 py-2 text-left text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:bg-gray-50 transition-colors flex items-center gap-2 cursor-pointer"
+                                          className="w-full px-5 py-3.5 text-left text-[11px] font-black uppercase tracking-[0.1em] text-emerald-600 hover:bg-emerald-50 transition-all flex items-center gap-3 cursor-pointer group"
                                         >
-                                          <PlayCircle size={14} />
+                                          <div className="w-8 h-8 rounded-lg bg-emerald-50/50 flex items-center justify-center group-hover:bg-white transition-colors">
+                                            <PlayCircle size={16} />
+                                          </div>
                                           Resume Sales
                                         </button>
                                       ) : (
@@ -1106,9 +1111,11 @@ const EventDetails = () => {
                                             setActiveMenu(null);
                                           }}
                                           disabled={isActionLoading}
-                                          className="w-full px-4 py-2 text-left text-[10px] font-black uppercase tracking-widest text-amber-600 hover:bg-gray-50 transition-colors flex items-center gap-2 cursor-pointer"
+                                          className="w-full px-5 py-3.5 text-left text-[11px] font-black uppercase tracking-[0.1em] text-amber-600 hover:bg-amber-50 transition-all flex items-center gap-3 cursor-pointer group"
                                         >
-                                          <PauseCircle size={14} />
+                                          <div className="w-8 h-8 rounded-lg bg-amber-50/50 flex items-center justify-center group-hover:bg-white transition-colors">
+                                            <PauseCircle size={16} />
+                                          </div>
                                           Suspend Sales
                                         </button>
                                       )}
@@ -1199,30 +1206,31 @@ const EventDetails = () => {
                                      )}
                                   </div>
                                   {!isStaff && (
-                                    <div className="relative">
+                                    <div className="relative" ref={activeMenu === ticket.id ? menuRef : null}>
                                       <button
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           setActiveMenu(activeMenu === ticket.id ? null : ticket.id!);
                                         }}
-                                        className="p-1.5 text-gray-400 hover:text-primary hover:bg-gray-50 rounded-lg transition-all"
+                                        className={`p-2 rounded-xl transition-all ${activeMenu === ticket.id ? 'bg-primary/10 text-primary' : 'text-gray-400 hover:text-primary hover:bg-gray-50'}`}
                                       >
-                                        <MoreVertical size={16} />
+                                        <MoreVertical size={18} />
                                       </button>
 
                                       {activeMenu === ticket.id && (
                                         <div
-                                          ref={menuRef}
-                                          className="absolute right-0 mt-1 w-48 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-[100] animate-in fade-in zoom-in duration-200"
+                                          className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2.5 z-[100] animate-in fade-in zoom-in duration-150 origin-top-right"
                                         >
                                           <button
                                             onClick={(e) => {
                                               e.stopPropagation();
                                               router.push(`/organizer/dashboard/events/${eventId}/edit?step=2`);
                                             }}
-                                            className="w-full px-4 py-2 text-left text-[10px] font-black uppercase tracking-widest text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors flex items-center gap-2 cursor-pointer"
+                                            className="w-full px-5 py-3.5 text-left text-[11px] font-black uppercase tracking-[0.1em] text-gray-600 hover:bg-blue-50 hover:text-primary transition-all flex items-center gap-3 cursor-pointer group"
                                           >
-                                            <Settings size={14} />
+                                            <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center group-hover:bg-white transition-colors">
+                                              <Settings size={16} />
+                                            </div>
                                             Edit Ticket
                                           </button>
 
@@ -1234,9 +1242,11 @@ const EventDetails = () => {
                                                 setActiveMenu(null);
                                               }}
                                               disabled={isActionLoading}
-                                              className="w-full px-4 py-2 text-left text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:bg-gray-50 transition-colors flex items-center gap-2 cursor-pointer"
+                                              className="w-full px-5 py-3.5 text-left text-[11px] font-black uppercase tracking-[0.1em] text-emerald-600 hover:bg-emerald-50 transition-all flex items-center gap-3 cursor-pointer group"
                                             >
-                                              <PlayCircle size={14} />
+                                              <div className="w-8 h-8 rounded-lg bg-emerald-50/50 flex items-center justify-center group-hover:bg-white transition-colors">
+                                                <PlayCircle size={16} />
+                                              </div>
                                               Resume Sales
                                             </button>
                                           ) : (
@@ -1248,9 +1258,11 @@ const EventDetails = () => {
                                                 setActiveMenu(null);
                                               }}
                                               disabled={isActionLoading}
-                                              className="w-full px-4 py-2 text-left text-[10px] font-black uppercase tracking-widest text-amber-600 hover:bg-gray-50 transition-colors flex items-center gap-2 cursor-pointer"
+                                              className="w-full px-5 py-3.5 text-left text-[11px] font-black uppercase tracking-[0.1em] text-amber-600 hover:bg-amber-50 transition-all flex items-center gap-3 cursor-pointer group"
                                             >
-                                              <PauseCircle size={14} />
+                                              <div className="w-8 h-8 rounded-lg bg-amber-50/50 flex items-center justify-center group-hover:bg-white transition-colors">
+                                                <PauseCircle size={16} />
+                                              </div>
                                               Suspend Sales
                                             </button>
                                           )}
