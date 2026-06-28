@@ -1,7 +1,8 @@
 "use client";
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
+import Slider from "react-slick";
 import { useAuth } from "@/context/AuthContext";
 import LoginRequiredModal from "@/components/auth/LoginRequiredModal";
 import {
@@ -217,6 +218,20 @@ const EventDetailClient = () => {
   const [isSpecialTicketsExpanded, setIsSpecialTicketsExpanded] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
   const [showOrganizerModal, setShowOrganizerModal] = useState(false);
+
+  const allMedia = useMemo(() => {
+    if (!event) return [];
+    const media = [];
+    if (event.bannerUrl) media.push(event.bannerUrl);
+    if (event.mediaUrls && Array.isArray(event.mediaUrls)) {
+      event.mediaUrls.forEach(url => {
+        if (url !== event.bannerUrl) {
+          media.push(url);
+        }
+      });
+    }
+    return media;
+  }, [event]);
 
   const fetchUserRegistration = useCallback(async (id: string) => {
     if (!user) return;
@@ -451,8 +466,32 @@ const EventDetailClient = () => {
 
             {/* High-Impact Hero Section */}
             <div className="space-y-6">
-               <div className="relative aspect-video lg:aspect-[21/10] rounded-2xl overflow-hidden shadow-sm group border border-gray-100">
-                  {event.bannerUrl ? (
+               <div className="relative aspect-video lg:aspect-[21/10] rounded-2xl overflow-hidden shadow-sm group border border-gray-100 banner-slider-container">
+                  {allMedia.length > 1 ? (
+                    <Slider
+                      dots={true}
+                      infinite={true}
+                      speed={500}
+                      slidesToShow={1}
+                      slidesToScroll={1}
+                      autoplay={true}
+                      autoplaySpeed={5000}
+                      arrows={false}
+                      className="h-full"
+                    >
+                      {allMedia.map((url, index) => (
+                        <div key={index} className="relative aspect-video lg:aspect-[21/10]">
+                          <Image
+                            src={url}
+                            alt={`${event.title} - ${index + 1}`}
+                            fill
+                            className="object-cover"
+                            priority={index === 0}
+                          />
+                        </div>
+                      ))}
+                    </Slider>
+                  ) : event.bannerUrl ? (
                     <Image src={event.bannerUrl} alt={event.title} fill className="object-cover group-hover:scale-105 transition-transform duration-1000" />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
