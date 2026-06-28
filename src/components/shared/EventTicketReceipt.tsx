@@ -4,7 +4,7 @@ import React, { useRef } from 'react';
 import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
 import { Registration, Event } from '@/types';
-import { CheckCircle, Download, Share2, Printer, MapPin, Calendar, Ticket, User, ShieldCheck } from 'lucide-react';
+import { CheckCircle, Download, Share2, Printer, MapPin, Calendar, Ticket, ShieldCheck } from 'lucide-react';
 import Image from 'next/image';
 import Swal from '@/utils/sweetalert';
 
