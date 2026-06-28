@@ -26,6 +26,8 @@ interface Resource {
   title: string;
   description: string;
   fileUrl: string;
+  resourceFile?: string;
+  externalLink?: string;
   fileName: string;
   fileType: string;
   mimeType: string;
@@ -55,6 +57,8 @@ export const ResourcesTab: React.FC<ResourcesTabProps> = ({ eventId, ticketTypes
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [selectedTicketIds, setSelectedTicketIds] = useState<string[]>([]);
+  const [resourceType, setResourceType] = useState<'file' | 'link'>('file');
+  const [externalLink, setExternalLink] = useState('');
   const [uploadedFile, setUploadedFile] = useState<{ url: string; name: string; size: number; type: string; mimeType: string } | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -131,8 +135,8 @@ export const ResourcesTab: React.FC<ResourcesTabProps> = ({ eventId, ticketTypes
   };
 
   const handleCreateResource = async () => {
-    if (!title || !uploadedFile) {
-      toast.error('Please provide a title and upload a file');
+    if (!title || (resourceType === 'file' && !uploadedFile) || (resourceType === 'link' && !externalLink)) {
+      toast.error(resourceType === 'file' ? 'Please provide a title and upload a file' : 'Please provide a title and a link');
       return;
     }
 
@@ -142,11 +146,12 @@ export const ResourcesTab: React.FC<ResourcesTabProps> = ({ eventId, ticketTypes
       const payload = {
         title,
         description,
-        fileUrl: uploadedFile.url,
-        fileName: uploadedFile.name,
-        fileType: uploadedFile.type,
-        mimeType: uploadedFile.mimeType,
-        fileSize: uploadedFile.size,
+        resourceFile: resourceType === 'file' ? uploadedFile?.url : undefined,
+        externalLink: resourceType === 'link' ? externalLink : undefined,
+        fileName: resourceType === 'file' ? uploadedFile?.name : 'External Link',
+        fileType: resourceType === 'file' ? uploadedFile?.type : 'link',
+        mimeType: resourceType === 'file' ? uploadedFile?.mimeType : 'text/html',
+        fileSize: resourceType === 'file' ? uploadedFile?.size : 0,
         guestCategoryIds: selectedTicketIds,
       };
 
@@ -171,6 +176,8 @@ export const ResourcesTab: React.FC<ResourcesTabProps> = ({ eventId, ticketTypes
     setDescription('');
     setSelectedTicketIds([]);
     setUploadedFile(null);
+    setExternalLink('');
+    setResourceType('file');
   };
 
   const handleDeleteResource = async (resourceId: string) => {
@@ -236,6 +243,7 @@ export const ResourcesTab: React.FC<ResourcesTabProps> = ({ eventId, ticketTypes
     switch (type) {
       case 'image': return <ImageIcon className="w-5 h-5 text-blue-500" />;
       case 'video': return <VideoIcon className="w-5 h-5 text-purple-500" />;
+      case 'link': return <ExternalLink className="w-5 h-5 text-emerald-500" />;
       default: return <FileIcon className="w-5 h-5 text-gray-500" />;
     }
   };
@@ -330,7 +338,7 @@ export const ResourcesTab: React.FC<ResourcesTabProps> = ({ eventId, ticketTypes
                   {new Date(resource.createdAt).toLocaleDateString()}
                 </div>
                 <a
-                  href={resource.fileUrl}
+                  href={resource.resourceFile || resource.fileUrl || resource.externalLink}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-1.5 text-xs font-bold text-primary hover:underline"
@@ -385,6 +393,28 @@ export const ResourcesTab: React.FC<ResourcesTabProps> = ({ eventId, ticketTypes
               </div>
 
               <div className="space-y-3">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Resource Type</label>
+                <div className="flex gap-4 p-1 bg-gray-50 rounded-2xl w-fit">
+                  <button
+                    onClick={() => setResourceType('file')}
+                    className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                      resourceType === 'file' ? 'bg-white text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'
+                    }`}
+                  >
+                    Upload File
+                  </button>
+                  <button
+                    onClick={() => setResourceType('link')}
+                    className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                      resourceType === 'link' ? 'bg-white text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'
+                    }`}
+                  >
+                    External Link
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-3">
                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Target Audience</label>
                 <div className="flex flex-wrap gap-2">
                   {ticketTypes.map((ticket) => (
@@ -408,8 +438,22 @@ export const ResourcesTab: React.FC<ResourcesTabProps> = ({ eventId, ticketTypes
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">File Material</label>
-                {!uploadedFile ? (
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">
+                  {resourceType === 'file' ? 'File Material' : 'Resource Link'}
+                </label>
+
+                {resourceType === 'link' ? (
+                  <div className="relative">
+                    <ExternalLink className="absolute left-6 top-1/2 -translate-y-1/2 text-primary" size={18} />
+                    <input
+                      type="url"
+                      placeholder="https://example.com/resource"
+                      value={externalLink}
+                      onChange={(e) => setExternalLink(e.target.value)}
+                      className="w-full pl-14 pr-6 py-5 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+                    />
+                  </div>
+                ) : !uploadedFile ? (
                   <div
                     onClick={() => fileInputRef.current?.click()}
                     className={`relative border-2 border-dashed rounded-2xl p-10 text-center transition-all duration-300 cursor-pointer

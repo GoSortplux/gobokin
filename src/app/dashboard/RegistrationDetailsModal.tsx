@@ -233,7 +233,7 @@ const RegistrationDetailsModal: React.FC<RegistrationDetailsModalProps> = ({ reg
                             </div>
                           </div>
                           <a
-                            href={resource.fileUrl}
+                            href={(resource.resourceFile as string) || (resource.fileUrl as string) || (resource.externalLink as string)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="p-3 bg-white hover:bg-primary hover:text-white text-primary rounded-xl transition-all shadow-sm flex items-center gap-2 text-[10px] font-black uppercase tracking-widest"

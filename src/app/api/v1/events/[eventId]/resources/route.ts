@@ -71,6 +71,8 @@ export async function POST(
       title,
       description,
       fileUrl,
+      resourceFile,
+      externalLink,
       fileName,
       fileType,
       mimeType,
@@ -78,10 +80,12 @@ export async function POST(
       guestCategoryIds
     } = body;
 
-    if (!title || !fileUrl) {
+    const resourceLocation = resourceFile || fileUrl || externalLink;
+
+    if (!title || !resourceLocation) {
       return NextResponse.json({
         success: false,
-        message: 'Title and fileUrl are required',
+        message: 'Resource file or external link is required',
       }, { status: 400 });
     }
 
@@ -90,8 +94,10 @@ export async function POST(
       eventId,
       title,
       description: description || '',
-      fileUrl,
-      fileName: fileName || fileUrl.split('/').pop() || 'unknown',
+      fileUrl: resourceLocation,
+      resourceFile: resourceFile || fileUrl,
+      externalLink,
+      fileName: fileName || resourceLocation.split('/').pop() || 'unknown',
       fileType: fileType || 'document',
       mimeType: mimeType || 'application/octet-stream',
       fileSize: fileSize || 0,
