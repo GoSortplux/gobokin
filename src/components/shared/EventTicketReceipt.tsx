@@ -84,7 +84,7 @@ const EventTicketReceipt: React.FC<EventTicketReceiptProps> = ({ order, isSucces
       if (navigator.share && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
-          title: 'Event Ticket Receipt',
+          title: 'Event Ticket',
           text: `I just got my tickets for ${order.event?.title || 'the event'}! Order ID: ${order.id}`,
         });
       } else {
@@ -129,7 +129,7 @@ const EventTicketReceipt: React.FC<EventTicketReceiptProps> = ({ order, isSucces
           className="flex items-center gap-2 px-6 py-3 bg-gray-800 text-white font-bold rounded-xl hover:bg-gray-700 transition-all shadow-lg"
         >
           <Share2 size={20} />
-          Share Receipt
+          Share Ticket
         </button>
       </div>
 
@@ -147,10 +147,10 @@ const EventTicketReceipt: React.FC<EventTicketReceiptProps> = ({ order, isSucces
               <div className="relative w-[180px] h-[60px] mb-4">
                 <Image src="/logo.png" alt="Gobokin Logo" fill className="object-contain object-left" />
               </div>
-              <p className="text-gray-400 font-bold uppercase tracking-[0.2em] text-[10px]">Official Digital Receipt</p>
+              <p className="text-gray-400 font-bold uppercase tracking-[0.2em] text-[10px]">Official Digital Ticket</p>
             </div>
             <div className="mt-8 md:mt-0 md:text-right">
-              <h2 className="text-4xl font-black text-primary italic uppercase leading-none tracking-tighter">Receipt</h2>
+              <h2 className="text-4xl font-black text-primary italic uppercase leading-none tracking-tighter">Ticket</h2>
               <div className="inline-flex items-center gap-2 mt-3 px-4 py-1.5 bg-gray-50 rounded-full border border-gray-100">
                 <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
                 <p className="text-gray-500 font-bold uppercase text-[9px] tracking-widest">ID: {order.id}</p>
