@@ -1264,7 +1264,6 @@ const EditEventContent = () => {
 
       // Clear pending uploads state
       setBannerFile(null);
-      setBannerPreview("");
       setMediaInfo(prev => ({ ...prev, bannerUrl: finalBannerUrl, mediaUrls: finalMediaUrls }));
       setSpeakers(finalSpeakers);
 
