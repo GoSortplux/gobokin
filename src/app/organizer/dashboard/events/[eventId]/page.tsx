@@ -432,6 +432,41 @@ const EventDetails = () => {
     setIsBroadcastModalOpen(true);
   };
 
+  const handleShare = () => {
+    if (!event) return;
+
+    // Construct the public event URL
+    // organizerSlug and eventSlug are needed
+    const organizerSlug = event.organizer?.slug;
+    const eventSlug = event.slug;
+
+    if (!organizerSlug || !eventSlug) {
+      Swal.fire("Error", "Public URL not available yet.", "error");
+      return;
+    }
+
+    const publicUrl = `${window.location.origin}/events/${organizerSlug}/${eventSlug}`;
+
+    const shareData = {
+      title: event.title,
+      text: `Check out ${event.title} on Gobokin!`,
+      url: publicUrl,
+    };
+
+    if (navigator.share) {
+      navigator.share(shareData).catch((_err) => {
+        // Silently handle share cancellation
+      });
+    } else {
+      navigator.clipboard.writeText(publicUrl);
+      Swal.toast.fire({
+        icon: 'success',
+        title: 'Event link copied to clipboard!',
+        timer: 2000
+      });
+    }
+  };
+
   const handlePublish = async () => {
     const result = await Swal.fire({
       title: 'Publish Event?',
@@ -512,7 +547,10 @@ const EventDetails = () => {
           Back to My Events
         </button>
         <div className="flex items-center gap-3">
-          <button onClick={() => {}} className="p-2.5 text-gray-400 hover:text-primary hover:bg-blue-50 rounded-xl transition-all">
+          <button
+            onClick={handleShare}
+            className="p-2.5 text-gray-400 hover:text-primary hover:bg-blue-50 rounded-xl transition-all"
+          >
             <Share2 size={20} />
           </button>
 

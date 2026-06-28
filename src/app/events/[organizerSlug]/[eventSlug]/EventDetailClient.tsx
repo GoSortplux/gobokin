@@ -432,6 +432,29 @@ const EventDetailClient = () => {
     }
   };
 
+  const handleShare = () => {
+    if (!event) return;
+
+    const shareData = {
+      title: event.title,
+      text: `Check out ${event.title} on Gobokin!`,
+      url: window.location.href,
+    };
+
+    if (navigator.share) {
+      navigator.share(shareData).catch((_err) => {
+        // Silently handle share cancellation
+      });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      Swal.toast.fire({
+        icon: 'success',
+        title: 'Event link copied to clipboard!',
+        timer: 2000
+      });
+    }
+  };
+
   if (loading) return <div className="min-h-screen pt-32 flex items-center justify-center bg-gray-50"><CustomLoader /></div>;
   if (!event) return <div className="p-20 text-center bg-gray-50"><h3 className="text-xl font-semibold">Event not found</h3></div>;
 
@@ -1050,7 +1073,10 @@ const EventDetailClient = () => {
                         >
                            <Heart size={18} className={event.isBookmarked ? "fill-current" : ""} />
                         </button>
-                        <button className="p-3 bg-white border-2 border-gray-100 rounded-xl text-gray-400 hover:text-primary hover:border-blue-100 transition-all">
+                        <button
+                          onClick={handleShare}
+                          className="p-3 bg-white border-2 border-gray-100 rounded-xl text-gray-400 hover:text-primary hover:border-blue-100 transition-all"
+                        >
                            <Share2 size={18} />
                         </button>
                      </div>
