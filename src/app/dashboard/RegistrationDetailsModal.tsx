@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { X, Calendar, MapPin, Ticket, User, Clock, ExternalLink, RotateCcw, CreditCard } from "lucide-react";
+import { X, Calendar, MapPin, Ticket, User, Clock, ExternalLink, RotateCcw, CreditCard, FileText, Download } from "lucide-react";
 import api from "@/services/api";
 import { Event, Registration, PricingBreakdown } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
@@ -16,8 +16,18 @@ interface RegistrationDetailsModalProps {
   onClose: () => void;
 }
 
+interface ResourceMetadata {
+  id: string;
+  title: string;
+  fileName: string;
+  fileSize: number;
+  fileUrl: string;
+  [key: string]: unknown;
+}
+
 const RegistrationDetailsModal: React.FC<RegistrationDetailsModalProps> = ({ registration, onClose }) => {
   const [event, setEvent] = useState<Event | null>(null);
+  const [resources, setResources] = useState<ResourceMetadata[]>([]);
   const [loading, setLoading] = useState(true);
   const [showRefundModal, setShowRefundModal] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
@@ -61,11 +71,12 @@ const RegistrationDetailsModal: React.FC<RegistrationDetailsModalProps> = ({ reg
       try {
         setLoading(true);
         // The event object inside registration might not have organizer slug
-        // We use any to bypass strict typing for this dynamic lookup
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const eventAny = registration.event as any;
-        const endpoint = eventAny?.organizer?.slug && eventAny?.slug
-          ? `/events/e/${eventAny.organizer.slug}/${eventAny.slug}`
+        // We use unknown cast to bypass strict typing for this dynamic lookup
+        const eventAny = registration.event as unknown as Record<string, unknown>;
+        const organizer = eventAny?.organizer as { slug?: string } | undefined;
+        const slug = eventAny?.slug as string | undefined;
+        const endpoint = (organizer?.slug && slug)
+          ? `/events/e/${organizer.slug}/${slug}`
           : `/events/${registration.event.id}`;
         const response = await api.get(endpoint);
         setEvent(response.data.data);
@@ -75,8 +86,25 @@ const RegistrationDetailsModal: React.FC<RegistrationDetailsModalProps> = ({ reg
         setLoading(false);
       }
     };
+    const fetchResources = async () => {
+      try {
+        const response = await api.get(`/events/${registration.event.id}/resources`, {
+          headers: {
+            'x-user-role': 'guest',
+            'x-guest-ticket-types': registration.ticket.id
+          }
+        });
+        if (response.data.success) {
+          setResources(response.data.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch event resources:", error);
+      }
+    };
+
     if (registration?.event?.id) {
       fetchEventDetails();
+      fetchResources();
     }
   }, [registration]);
 
@@ -182,6 +210,42 @@ const RegistrationDetailsModal: React.FC<RegistrationDetailsModalProps> = ({ reg
                       </div>
                    </div>
                 </div>
+
+                {/* Event Resources Section */}
+                {resources.length > 0 && (
+                  <div className="space-y-6">
+                    <h3 className="text-lg font-black text-gray-900 uppercase tracking-tight flex items-center gap-3">
+                      <FileText size={20} className="text-primary" />
+                      Resource Materials
+                    </h3>
+                    <div className="grid grid-cols-1 gap-4">
+                      {resources.map((resource) => (
+                        <div key={resource.id} className="bg-blue-50/50 rounded-2xl p-5 border border-blue-100/50 flex items-center justify-between group">
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm text-primary">
+                              <FileText size={20} />
+                            </div>
+                            <div>
+                              <p className="font-black text-gray-900 text-sm leading-none">{resource.title}</p>
+                              <p className="text-[10px] font-bold text-gray-500 mt-1 uppercase tracking-wider">
+                                {resource.fileName.split('.').pop()?.toUpperCase()} • {resource.fileSize ? (resource.fileSize / (1024 * 1024)).toFixed(2) + ' MB' : 'Resource'}
+                              </p>
+                            </div>
+                          </div>
+                          <a
+                            href={resource.fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-3 bg-white hover:bg-primary hover:text-white text-primary rounded-xl transition-all shadow-sm flex items-center gap-2 text-[10px] font-black uppercase tracking-widest"
+                          >
+                            <Download size={14} />
+                            Access
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Event Description (Truncated if needed) */}
                 {loading ? (

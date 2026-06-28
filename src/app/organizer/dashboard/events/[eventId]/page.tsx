@@ -50,6 +50,7 @@ import AssignStaffModal from "@/components/organizer/AssignStaffModal";
 import WalkInRegistrationModal from "@/components/organizer/WalkInRegistrationModal";
 import SuspendModal from "@/components/organizer/SuspendModal";
 import BroadcastModal from "@/components/organizer/BroadcastModal";
+import { ResourcesTab } from "@/components/organizer/ResourcesTab";
 
 const EventDetails = () => {
   const { user } = useAuth();
@@ -617,7 +618,7 @@ const EventDetails = () => {
       {/* Tabs & Detailed Content */}
       <div className="space-y-6">
          <div className="flex items-center gap-2 bg-white p-1.5 rounded-2xl shadow-sm border border-gray-100 w-fit overflow-x-auto no-scrollbar">
-            {["overview", "schedule", "tickets", "attendees", "waitlist", "staff"].filter(t => !isStaff || (t !== "staff" && t !== "waitlist")).map(tab => (
+            {["overview", "schedule", "tickets", "resources", "attendees", "waitlist", "staff"].filter(t => !isStaff || (t !== "staff" && t !== "waitlist")).map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -631,6 +632,13 @@ const EventDetails = () => {
          </div>
 
          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 min-h-[400px]">
+            {activeTab === "resources" && (
+              <ResourcesTab
+                eventId={eventId as string}
+                ticketTypes={event.tickets?.map(t => ({ id: t.id!, name: t.name })) || []}
+              />
+            )}
+
             {activeTab === "overview" && (
               <div className="space-y-16 animate-in fade-in duration-500">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
