@@ -858,9 +858,10 @@ const EditEventContent = () => {
                         options: []
                     });
                 }
-            } else if (value === "LGAS") {
-                updatedField.label = "LGA";
-                updatedField.name = "lga";
+            } else if (value === "LGAS" || value === "CITY") {
+                updatedField.label = value === "CITY" ? "City" : "LGA";
+                updatedField.name = value === "CITY" ? "city" : "lga";
+                updatedField.source = "LGAS";
                 // Find a state field to depend on
                 const stateField = newFields.find(f => f.source === 'STATES');
                 if (stateField) updatedField.dependsOn = stateField.name || "state";
@@ -1819,7 +1820,7 @@ const EditEventContent = () => {
                                                 <div className="relative">
                                                     <select
                                                         className="w-full p-3.5 bg-white border border-gray-200 rounded-xl text-xs font-bold appearance-none outline-none focus:border-primary transition-all shadow-sm"
-                                                        value={field.source || ""}
+                                                        value={field.source === "LGAS" ? (field.label === "City" ? "CITY" : "LGAS") : (field.source || "")}
                                                         onChange={(e) => {
                                                             const newSource = e.target.value || undefined;
                                                             updateField(idx, "source", newSource);
@@ -1832,6 +1833,7 @@ const EditEventContent = () => {
                                                         <option value="COUNTRIES">Countries</option>
                                                         <option value="STATES">States</option>
                                                         <option value="LGAS">LGAs</option>
+                                                        <option value="CITY">City</option>
                                                     </select>
                                                     <ChevronDown size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                                                 </div>
