@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
 import {
   Facebook,
   Instagram
@@ -33,6 +35,17 @@ const Footer = () => {
   return (
     <footer className="bg-gray-100 border-t">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="mb-12">
+          <Link href="/" className="inline-block">
+            <Image
+              src="/logo.png"
+              alt="Gobokin Logo"
+              width={150}
+              height={40}
+              className="h-10 w-auto object-contain"
+            />
+          </Link>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <h3 className="font-bold text-lg text-gray-800">Support</h3>
