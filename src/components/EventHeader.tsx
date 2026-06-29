@@ -117,9 +117,9 @@ const EventHeaderContent = () => {
             <Image
               src="/gobokin-event.png"
               alt="Gobokin"
-              width={120}
-              height={40}
-              className="h-8 w-auto object-contain"
+              width={160}
+              height={50}
+              className="h-10 md:h-12 w-auto object-contain"
             />
           </Link>
         </div>
@@ -313,7 +313,7 @@ const EventHeaderContent = () => {
             >
               <div className="flex items-center justify-between">
                 <Link href="/events" onClick={() => setMobileMenuOpen(false)}>
-                  <Image src="/gobokin-event.png" alt="Logo" width={100} height={30} className="h-8 w-auto object-contain" />
+                  <Image src="/gobokin-event.png" alt="Logo" width={130} height={40} className="h-10 w-auto object-contain" />
                 </Link>
                 <button onClick={() => setMobileMenuOpen(false)} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
                   <X size={20} />

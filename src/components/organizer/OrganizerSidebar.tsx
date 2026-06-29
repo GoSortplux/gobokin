@@ -100,9 +100,9 @@ const OrganizerSidebar = () => {
               <Image
                 src="/gobokin-event.png"
                 alt="Gobokin Logo"
-                width={140}
-                height={36}
-                className="h-8 w-auto object-contain animate-in fade-in slide-in-from-left-4"
+                width={160}
+                height={45}
+                className="h-10 w-auto object-contain animate-in fade-in slide-in-from-left-4"
               />
             ) : (
               <Image
