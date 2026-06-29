@@ -113,16 +113,14 @@ const EventHeaderContent = () => {
       <div className="container mx-auto px-4 h-full flex items-center justify-between gap-4">
         {/* Logo */}
         <div className="flex-shrink-0 flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-2 group">
+          <Link href="/events" className="flex items-center gap-2 group">
             <Image
-              src="/logo.png"
+              src="/gobokin-event.png"
               alt="Gobokin"
               width={120}
               height={40}
               className="h-8 w-auto object-contain"
             />
-            <div className="w-px h-6 bg-gray-200 hidden sm:block"></div>
-            <span className="text-lg font-semibold text-gray-900 tracking-tighter uppercase hidden sm:block">Events</span>
           </Link>
         </div>
 
@@ -314,7 +312,9 @@ const EventHeaderContent = () => {
               className="fixed right-0 top-0 bottom-0 w-[85%] bg-white z-[101] p-6 flex flex-col gap-8 shadow-2xl"
             >
               <div className="flex items-center justify-between">
-                <Image src="/logo.png" alt="Logo" width={100} height={30} className="h-8 w-auto object-contain" />
+                <Link href="/events" onClick={() => setMobileMenuOpen(false)}>
+                  <Image src="/gobokin-event.png" alt="Logo" width={100} height={30} className="h-8 w-auto object-contain" />
+                </Link>
                 <button onClick={() => setMobileMenuOpen(false)} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
                   <X size={20} />
                 </button>

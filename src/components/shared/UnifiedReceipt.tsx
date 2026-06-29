@@ -170,7 +170,7 @@ const UnifiedReceipt: React.FC<UnifiedReceiptProps> = ({ data, isSuccessPage = f
           {/* Header */}
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-12 border-b border-gray-100 pb-8">
             <div>
-              <Image src="/logo.png" alt="Gobokin Logo" width={180} height={60} className="mb-4 object-contain" />
+              <Image src="/gobokin-event.png" alt="Gobokin Logo" width={180} height={60} className="mb-4 object-contain" />
               <p className="text-gray-500 font-medium">Modern Event Booking Platform</p>
             </div>
             <div className="mt-6 lg:mt-0 text-right">

@@ -95,10 +95,10 @@ const OrganizerSidebar = () => {
       `}
       >
         <div className="flex items-center justify-between px-4 py-8 mb-4 relative">
-          <Link href="/" className={`${!isExpanded && !isSidebarOpen && "mx-auto"}`}>
+          <Link href="/events" className={`${!isExpanded && !isSidebarOpen && "mx-auto"}`}>
             {isExpanded || isSidebarOpen ? (
               <Image
-                src="/logo.png"
+                src="/gobokin-event.png"
                 alt="Gobokin Logo"
                 width={140}
                 height={36}

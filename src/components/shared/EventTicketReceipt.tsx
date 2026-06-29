@@ -145,7 +145,7 @@ const EventTicketReceipt: React.FC<EventTicketReceiptProps> = ({ order, isSucces
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-14 border-b border-gray-100 pb-10">
             <div className="flex flex-col">
               <div className="relative w-[180px] h-[60px] mb-4">
-                <Image src="/logo.png" alt="Gobokin Logo" fill className="object-contain object-left" />
+                <Image src="/gobokin-event.png" alt="Gobokin Logo" fill className="object-contain object-left" />
               </div>
               <p className="text-gray-400 font-bold uppercase tracking-[0.2em] text-[10px]">Official Digital Ticket</p>
             </div>

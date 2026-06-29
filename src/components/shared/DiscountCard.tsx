@@ -33,7 +33,7 @@ const DiscountCard: React.FC<DiscountCardProps> = ({
       <div className="p-6 flex justify-between items-center border-b border-dashed border-gray-200">
         <div className="relative w-32 h-10">
           <Image
-            src="/logo.png"
+            src="/gobokin-event.png"
             alt="GoBokin Logo"
             fill
             className="object-contain object-left"
