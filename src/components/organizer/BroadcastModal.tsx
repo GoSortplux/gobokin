@@ -140,12 +140,12 @@ const BroadcastModal = ({ isOpen, onClose, eventId, tickets }: BroadcastModalPro
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="bg-white w-full max-w-2xl rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col max-h-[95vh] sm:max-h-[none]">
+      <div className="bg-white w-full max-w-2xl rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col max-h-[85vh]">
         {/* Header */}
-        <div className="bg-primary p-6 sm:p-8 text-white relative shrink-0">
+        <div className="bg-primary p-5 sm:p-7 text-white relative shrink-0">
           <button
             onClick={onClose}
-            className="absolute top-4 sm:top-6 right-4 sm:right-6 p-2 hover:bg-white/10 rounded-xl transition-colors"
+            className="absolute top-4 sm:top-5 right-4 sm:right-6 p-2 hover:bg-white/10 rounded-xl transition-colors"
           >
             <X className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
@@ -160,7 +160,7 @@ const BroadcastModal = ({ isOpen, onClose, eventId, tickets }: BroadcastModalPro
           </div>
         </div>
 
-        <div className="p-5 sm:p-8 space-y-6 sm:space-y-8 overflow-y-auto no-scrollbar flex-1">
+        <div className="p-5 sm:p-7 space-y-6 sm:space-y-7 overflow-y-auto no-scrollbar flex-1">
           {/* Segmentation */}
           <div className="space-y-4">
             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2 ml-1">
@@ -299,7 +299,7 @@ const BroadcastModal = ({ isOpen, onClose, eventId, tickets }: BroadcastModalPro
         </div>
 
         {/* Footer */}
-        <div className="p-5 sm:p-8 bg-gray-50/80 backdrop-blur-md border-t border-gray-100 shrink-0">
+        <div className="p-5 sm:p-7 bg-gray-50/80 backdrop-blur-md border-t border-gray-100 shrink-0">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6 sm:gap-4">
             <div className="flex items-center gap-4 order-2 sm:order-1">
                <div className="flex items-center gap-1.5 text-gray-400">
@@ -315,14 +315,14 @@ const BroadcastModal = ({ isOpen, onClose, eventId, tickets }: BroadcastModalPro
             <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto order-1 sm:order-2">
               <button
                 onClick={onClose}
-                className="flex-1 sm:flex-none px-4 sm:px-6 py-3 sm:py-4 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors"
+                className="flex-1 sm:flex-none px-4 sm:px-6 py-2.5 sm:py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSendBroadcast}
                 disabled={isSending || isUploading}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-2 sm:gap-3 bg-primary text-white px-6 sm:px-10 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black text-[10px] uppercase tracking-[0.1em] sm:tracking-[0.2em] shadow-xl shadow-primary/30 hover:shadow-primary/40 hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50 disabled:pointer-events-none"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-2 sm:gap-3 bg-primary text-white px-6 sm:px-10 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl font-black text-[10px] uppercase tracking-[0.1em] sm:tracking-[0.2em] shadow-xl shadow-primary/30 hover:shadow-primary/40 hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50 disabled:pointer-events-none"
               >
                 {isSending ? (
                   <>
