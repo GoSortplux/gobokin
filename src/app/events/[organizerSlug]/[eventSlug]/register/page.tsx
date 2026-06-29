@@ -443,10 +443,21 @@ const RegistrationForm = () => {
                           {(event.registrationFields || []).map((field) => {
                             if (!field.isPerAttendee && index !== 0) return null;
 
+                            // Determine if we should show a text input instead of a select for location fields
+                            const countryField = (event.registrationFields || []).find(f => f.source === 'COUNTRIES');
+                            const countryValue = countryField ? (countryField.isPerAttendee ? attendees[index][countryField.name] : sharedData[countryField.name]) : null;
+                            const isNotNigeria = countryValue && !isNigeria(countryValue, countries);
+
+                            let displayLabel = field.label;
+                            if (isNotNigeria) {
+                              if (field.source === 'STATES') displayLabel = 'Province/State';
+                              else if (field.source === 'LGAS') displayLabel = 'City';
+                            }
+
                             return (
                               <div key={field.name} className="space-y-2">
                                 <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">
-                                  {field.label} {field.required && <span className="text-red-500">*</span>}
+                                  {displayLabel} {field.required && <span className="text-red-500">*</span>}
                                 </label>
                                 <div className="relative">
                                    {(field.name === 'full-name' || field.name === 'fullName') && <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />}
@@ -454,18 +465,13 @@ const RegistrationForm = () => {
                                    {field.name === 'phone' && <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />}
 
                                    {((field.type === 'text' || field.type === 'number') && !field.source) ||
-                                    ((field.source === 'STATES' || field.source === 'LGAS') && (() => {
-                                       const countryField = (event.registrationFields || []).find(f => f.source === 'COUNTRIES');
-                                       if (!countryField) return false;
-                                       const countryValue = countryField.isPerAttendee ? attendees[index][countryField.name] : sharedData[countryField.name];
-                                       return countryValue && !isNigeria(countryValue, countries);
-                                    })()) ? (
+                                    ((field.source === 'STATES' || field.source === 'LGAS') && isNotNigeria) ? (
                                       <input
                                         type={field.type === 'number' ? 'number' : 'text'}
                                         name={field.name}
-                                        placeholder={`Enter ${field.label}`}
+                                        placeholder={`Enter ${displayLabel}`}
                                         required={field.required}
-                                        className={`w-full p-4 bg-white border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 transition-all ${['full-name', 'email', 'phone'].includes(field.name) ? 'pl-12' : ''}`}
+                                        className={`w-full p-4 bg-white border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 transition-all ${['full-name', 'fullName', 'email', 'phone'].includes(field.name) ? 'pl-12' : ''}`}
                                         value={field.isPerAttendee ? attendees[index][field.name] || "" : sharedData[field.name] || ""}
                                         onChange={(e) => field.isPerAttendee ? handleAttendeeChange(index, field, e.target.value) : handleSharedChange(field, e.target.value)}
                                       />
