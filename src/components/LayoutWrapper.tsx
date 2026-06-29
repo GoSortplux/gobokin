@@ -29,7 +29,7 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   const isPaymentPage = pathname.startsWith("/payment/verify") ||
                         pathname.startsWith("/payment-success") ||
                         pathname.startsWith("/events/verify");
-  const isEventPage = pathname.startsWith("/events");
+  const isEventPage = pathname.startsWith("/events") || pathname.startsWith("/host-event");
 
   useEffect(() => {
     if (user && !user.hasAcceptedLatestPolicies && !isAuthPage) {
