@@ -391,7 +391,7 @@ export const ResourcesTab: React.FC<ResourcesTabProps> = ({ eventId, ticketTypes
                   placeholder="e.g. Event Itinerary, Presentation Slides"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+                  className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-primary/20 transition-all font-medium"
                 />
               </div>
 
@@ -402,7 +402,7 @@ export const ResourcesTab: React.FC<ResourcesTabProps> = ({ eventId, ticketTypes
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={3}
-                  className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-primary/20 transition-all font-medium resize-none"
+                  className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-primary/20 transition-all font-medium resize-none"
                 />
               </div>
 
@@ -464,7 +464,7 @@ export const ResourcesTab: React.FC<ResourcesTabProps> = ({ eventId, ticketTypes
                       placeholder="https://example.com/resource"
                       value={externalLink}
                       onChange={(e) => setExternalLink(e.target.value)}
-                      className="w-full pl-14 pr-6 py-5 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+                      className="w-full pl-14 pr-6 py-5 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-primary/20 transition-all font-medium"
                     />
                   </div>
                 ) : !uploadedFile ? (
