@@ -77,7 +77,7 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
       <TourGuide />
       {isEventPage ? <EventHeader /> : <Header />}
       {children}
-      {!isEventPage && <Footer />}
+      <Footer />
       <CookieConsent />
       {user && !user.hasAcceptedLatestPolicies && (
         <PolicyModal
