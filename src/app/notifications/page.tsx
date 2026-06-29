@@ -74,4 +74,4 @@ const NotificationsPage = () => {
   );
 };
 
-export default withAuth(NotificationsPage, ["user", "hall-owner", "staff", "super-admin"]);
+export default withAuth(NotificationsPage, ["user", "hall-owner", "staff", "super-admin", "organizer", "organizer-staff"]);

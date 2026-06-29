@@ -2,7 +2,7 @@
 import React, { useState, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useUI } from "@/context/UIContext";
-import { Bell, Menu, User, ChevronDown, LogOut, Users, LayoutDashboard } from "lucide-react";
+import { Menu, User, ChevronDown, LogOut, Users, LayoutDashboard } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import useOnClickOutside from "@/hooks/useOnClickOutside";
@@ -10,6 +10,8 @@ import { getDashboardPath } from "@/utils/redirects";
 import api from "@/services/api";
 import Swal from "@/utils/sweetalert";
 import AccountSwitchModal from "../shared/AccountSwitchModal";
+import NotificationIcon from "../notifications/NotificationIcon";
+import NotificationDropdown from "../notifications/NotificationDropdown";
 
 const formatRole = (role: string) => {
   if (role === 'user') return 'Customer';
@@ -26,11 +28,18 @@ const OrganizerHeader = () => {
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [roleSwitchOpen, setRoleSwitchOpen] = useState(false);
   const [isSwitchingAccount, setIsSwitchingAccount] = useState(false);
+  const [notificationDropdownOpen, setNotificationDropdownOpen] = useState(false);
+
   const userDropdownRef = useRef<HTMLDivElement>(null);
+  const notificationDropdownRef = useRef<HTMLDivElement>(null);
 
   useOnClickOutside(userDropdownRef, () => {
     setUserDropdownOpen(false);
     setRoleSwitchOpen(false);
+  });
+
+  useOnClickOutside(notificationDropdownRef, () => {
+    setNotificationDropdownOpen(false);
   });
 
   const handleRoleSwitch = async (role: string) => {
@@ -66,10 +75,15 @@ const OrganizerHeader = () => {
       </div>
 
       <div className="flex items-center gap-3 lg:gap-6">
-        <button className="p-2.5 text-gray-400 hover:text-primary hover:bg-blue-50 rounded-xl transition-all relative">
-          <Bell size={20} />
-          <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
-        </button>
+        <div className="relative" ref={notificationDropdownRef}>
+          <button
+            onClick={() => setNotificationDropdownOpen(!notificationDropdownOpen)}
+            className="p-2.5 text-gray-400 hover:text-primary hover:bg-blue-50 rounded-xl transition-all relative"
+          >
+            <NotificationIcon />
+          </button>
+          {notificationDropdownOpen && <NotificationDropdown />}
+        </div>
 
         <div className="h-10 w-[1px] bg-gray-100 hidden sm:block"></div>
 

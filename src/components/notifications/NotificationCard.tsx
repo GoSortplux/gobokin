@@ -2,6 +2,7 @@
 import { Check, Circle, ExternalLink } from "lucide-react";
 import { Notification } from "@/types";
 import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
 
 interface NotificationCardProps {
   notification: Notification;
@@ -10,6 +11,7 @@ interface NotificationCardProps {
 }
 
 const NotificationCard = ({ notification, onMarkAsRead, onMarkAsUnread }: NotificationCardProps) => {
+  const { user } = useAuth();
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   const match = notification.message.match(urlRegex);
   const detectedLink = match ? match[0] : null;
@@ -21,10 +23,17 @@ const NotificationCard = ({ notification, onMarkAsRead, onMarkAsUnread }: Notifi
 
   const urlSlug = notification.hallSlug || notification.hallId || "";
 
+  const isOrganizer = user?.activeRole === 'organizer' || user?.role?.includes('organizer');
+  const isTicketNotif = notification.message.toLowerCase().includes('ticket') || notification.message.toLowerCase().includes('sale') || notification.message.toLowerCase().includes('order');
+  const isEventNotif = notification.message.toLowerCase().includes('event');
+
+  const organizerLink = isOrganizer ? (isTicketNotif ? '/organizer/dashboard/orders' : (isEventNotif ? '/organizer/dashboard/events' : null)) : null;
+
   const finalLink = notification.link ||
                     detectedLink ||
                     (detectedBookingId ? `/booking/details/${detectedBookingId}` : null) ||
-                    (urlSlug ? `/venues/${urlSlug}/review` : null);
+                    (urlSlug ? `/venues/${urlSlug}/review` : null) ||
+                    organizerLink;
   const displayMessage = notification.message.replace(urlRegex, '').trim();
 
   const isReview = finalLink?.includes('/review') || notification.message.toLowerCase().includes('review');

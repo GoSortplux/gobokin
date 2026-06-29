@@ -102,7 +102,13 @@ const NotificationDropdown = () => {
               const match = notification.message.match(urlRegex);
               const urlSlug = notification.hallSlug || notification.hallId || "";
 
-              const finalLink = notification.link || (match ? match[0] : null) || (urlSlug ? `/venues/${urlSlug}/review` : null);
+              const isOrganizer = user?.activeRole === 'organizer' || user?.role?.includes('organizer');
+              const isTicketNotif = notification.message.toLowerCase().includes('ticket') || notification.message.toLowerCase().includes('sale') || notification.message.toLowerCase().includes('order');
+              const isEventNotif = notification.message.toLowerCase().includes('event');
+
+              const organizerLink = isOrganizer ? (isTicketNotif ? '/organizer/dashboard/orders' : (isEventNotif ? '/organizer/dashboard/events' : null)) : null;
+
+              const finalLink = notification.link || (match ? match[0] : null) || (urlSlug ? `/venues/${urlSlug}/review` : null) || organizerLink;
               const isReview = finalLink?.includes('/review') || notification.message.toLowerCase().includes('review');
 
               return (
