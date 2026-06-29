@@ -1238,14 +1238,14 @@ const HostEventPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white pt-24 pb-20 px-4 md:px-6">
+    <div className="min-h-screen bg-white pt-24 pb-20">
       <LoginRequiredModal
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}
         title="Sign in required"
         message="You need to sign in to finalize your event and go live."
       />
-      <div className="max-w-[1500px] mx-auto">
+      <div className="container mx-auto px-4">
         <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-1">
             <h1 className="text-4xl md:text-5xl font-semibold text-gray-900 tracking-tight">Host an Event</h1>
