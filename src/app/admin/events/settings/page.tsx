@@ -17,6 +17,7 @@ import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { formatCurrency } from "@/utils/currency";
 import { translateError } from "@/utils/errors";
+import { SubscriptionPackage } from "@/types";
 
 const SystemSettings = () => {
   const [activeTab, setActiveTab] = useState<'config' | 'categories' | 'packages'>('config');
@@ -24,26 +25,37 @@ const SystemSettings = () => {
   const [config, setConfig] = useState<any[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [categories, setCategories] = useState<any[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [packages, setPackages] = useState<any[]>([]);
+  const [packages, setPackages] = useState<SubscriptionPackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [newCategory, setNewCategory] = useState("");
 
   // Package Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [packageFilter, setPackageFilter] = useState<'ALL' | 'PUBLIC' | 'PRIVATE'>('ALL');
   const [formData, setFormData] = useState({
     name: "",
     price: 0,
     durationDays: 30,
     type: "SUBSCRIPTION",
+    isPublic: true,
     discountPercentage: 0,
     rules: [{ ruleKey: "MAX_GUESTS", ruleValue: "1000" }]
   });
 
+  const RULE_KEYS = [
+    { key: 'MAX_GUESTS', label: 'Max Guests', type: 'number', description: 'Total registration/check-in limit per event. Use -1 for unlimited.' },
+    { key: 'MAX_STAFF', label: 'Max Staff', type: 'number', description: 'Limit of staff members in pool or per event.' },
+    { key: 'MAX_TICKET_CATEGORIES', label: 'Max Ticket Categories', type: 'number', description: 'Limit of ticket types per event.' },
+    { key: 'MAX_ACTIVE_EVENTS', label: 'Max Active Events', type: 'number', description: 'Limit of upcoming/ongoing events allowed simultaneously.' },
+    { key: 'COMMISSION_RATE', label: 'Commission Rate (%)', type: 'number', description: 'Platform commission percentage (e.g. 5.0).' },
+    { key: 'BROADCAST_ALLOWED', label: 'Broadcast Allowed', type: 'boolean', description: 'Set to "true" to enable manual broadcasting.' },
+    { key: 'RESOURCES_ALLOWED', label: 'Resources Allowed', type: 'boolean', description: 'Set to "true" to enable shared resource uploads.' },
+  ];
+
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab]);
+  }, [activeTab, packageFilter]);
 
   const fetchData = async () => {
     try {
@@ -55,7 +67,11 @@ const SystemSettings = () => {
         const res = await api.get("/events/utils/categories");
         setCategories(res.data.data || []);
       } else if (activeTab === 'packages') {
-        const res = await api.get("/events/admin/packages");
+        let url = "/events/admin/packages";
+        if (packageFilter !== 'ALL') {
+          url += `?isPublic=${packageFilter === 'PUBLIC'}`;
+        }
+        const res = await api.get(url);
         setPackages(res.data.data || []);
       }
     } catch (_error) {
@@ -258,7 +274,20 @@ const SystemSettings = () => {
         </div>
       ) : (
         <div className="space-y-8">
-          <div className="flex justify-end">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-2xl border border-gray-100">
+               {(['ALL', 'PUBLIC', 'PRIVATE'] as const).map((f) => (
+                 <button
+                   key={f}
+                   onClick={() => setPackageFilter(f)}
+                   className={`px-5 py-2 rounded-xl text-xs font-bold transition-all ${
+                     packageFilter === f ? "bg-primary text-white shadow-md shadow-primary/20" : "text-gray-500 hover:bg-gray-100"
+                   }`}
+                 >
+                   {f}
+                 </button>
+               ))}
+            </div>
             <button
               onClick={() => setIsModalOpen(true)}
               className="flex items-center justify-center gap-2 bg-primary text-white font-bold px-6 py-4 rounded-2xl hover:bg-opacity-90 transition-all shadow-xl shadow-primary/20"
@@ -273,9 +302,14 @@ const SystemSettings = () => {
               <div key={pkg.id} className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden flex flex-col hover:shadow-xl transition-all duration-500 group">
                 <div className="p-8 bg-gray-50/50 border-b border-gray-50">
                   <div className="flex items-center justify-between mb-4">
-                    <span className="px-3 py-1 bg-primary/10 text-primary rounded-lg text-[10px] font-black uppercase tracking-widest">
-                      {pkg.type}
-                    </span>
+                    <div className="flex gap-2">
+                      <span className="px-3 py-1 bg-primary/10 text-primary rounded-lg text-[10px] font-black uppercase tracking-widest">
+                        {pkg.type}
+                      </span>
+                      <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${pkg.isPublic ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+                        {pkg.isPublic ? 'Public' : 'Private'}
+                      </span>
+                    </div>
                     <div className="flex gap-2">
                        <button className="p-2 text-gray-400 hover:text-primary transition-all"><Edit2 size={16} /></button>
                        <button className="p-2 text-gray-400 hover:text-rose-600 transition-all"><Trash2 size={16} /></button>
@@ -364,6 +398,22 @@ const SystemSettings = () => {
                      </div>
                    </div>
 
+                   <div className="bg-gray-50 p-6 rounded-[2rem] border border-gray-100 flex items-center justify-between">
+                      <div className="flex flex-col">
+                        <span className="text-xs font-black text-gray-900 uppercase">Public Visibility</span>
+                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">Toggle to make package available to organizers</span>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          className="sr-only peer"
+                          checked={formData.isPublic}
+                          onChange={e => setFormData({ ...formData, isPublic: e.target.checked })}
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                      </label>
+                   </div>
+
                    <div className="space-y-4">
                      <div className="flex items-center justify-between">
                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Package Rules</label>
@@ -375,34 +425,69 @@ const SystemSettings = () => {
                          <Plus size={12} /> Add Rule
                        </button>
                      </div>
-                     <div className="space-y-3">
-                       {formData.rules.map((rule, index) => (
-                         <div key={index} className="flex gap-3 items-center">
-                           <input
-                             type="text"
-                             placeholder="Rule Key (e.g. MAX_GUESTS)"
-                             className="flex-1 px-5 py-3 bg-gray-50 border-none rounded-2xl text-sm font-bold"
-                             value={rule.ruleKey}
-                             onChange={e => updateRule(index, 'ruleKey', e.target.value)}
-                           />
-                           <input
-                             type="text"
-                             placeholder="Value"
-                             className="flex-1 px-5 py-3 bg-gray-50 border-none rounded-2xl text-sm font-bold"
-                             value={rule.ruleValue}
-                             onChange={e => updateRule(index, 'ruleValue', e.target.value)}
-                           />
-                           {formData.rules.length > 1 && (
-                             <button
-                               type="button"
-                               onClick={() => removeRule(index)}
-                               className="p-3 text-gray-400 hover:text-rose-600 transition-all"
-                             >
-                               <Trash2 size={18} />
-                             </button>
-                           )}
-                         </div>
-                       ))}
+                     <div className="space-y-4">
+                       {formData.rules.map((rule, index) => {
+                         const ruleDef = RULE_KEYS.find(rk => rk.key === rule.ruleKey);
+                         return (
+                           <div key={index} className="p-4 bg-gray-50 rounded-3xl border border-gray-100 space-y-3 relative group/rule">
+                             {formData.rules.length > 1 && (
+                               <button
+                                 type="button"
+                                 onClick={() => removeRule(index)}
+                                 className="absolute -top-2 -right-2 w-8 h-8 bg-white text-rose-600 rounded-full shadow-md border border-rose-100 flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all opacity-0 group-hover/rule:opacity-100 z-10"
+                               >
+                                 <Trash2 size={14} />
+                               </button>
+                             )}
+                             <div className="grid grid-cols-2 gap-3">
+                               <div className="space-y-1">
+                                 <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Rule Key</label>
+                                 <select
+                                   className="w-full px-4 py-3 bg-white border-2 border-gray-100 rounded-2xl text-xs font-bold focus:border-primary focus:ring-0 transition-all appearance-none"
+                                   value={rule.ruleKey}
+                                   onChange={e => {
+                                     updateRule(index, 'ruleKey', e.target.value);
+                                     updateRule(index, 'ruleValue', "");
+                                   }}
+                                 >
+                                    <option value="" disabled>Select Key</option>
+                                    {RULE_KEYS.map(rk => (
+                                      <option key={rk.key} value={rk.key}>{rk.label}</option>
+                                    ))}
+                                 </select>
+                               </div>
+                               <div className="space-y-1">
+                                 <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Rule Value</label>
+                                 {ruleDef?.type === 'boolean' ? (
+                                   <select
+                                     className="w-full px-4 py-3 bg-white border-2 border-gray-100 rounded-2xl text-xs font-bold focus:border-primary focus:ring-0 transition-all appearance-none"
+                                     value={rule.ruleValue}
+                                     onChange={e => updateRule(index, 'ruleValue', e.target.value)}
+                                   >
+                                     <option value="" disabled>Select Value</option>
+                                     <option value="true">True</option>
+                                     <option value="false">False</option>
+                                   </select>
+                                 ) : (
+                                   <input
+                                     type={ruleDef?.type === 'number' ? "number" : "text"}
+                                     placeholder="Value"
+                                     className="w-full px-4 py-3 bg-white border-2 border-gray-100 rounded-2xl text-xs font-bold focus:border-primary focus:ring-0 transition-all"
+                                     value={rule.ruleValue}
+                                     onChange={e => updateRule(index, 'ruleValue', e.target.value)}
+                                   />
+                                 )}
+                               </div>
+                             </div>
+                             {ruleDef && (
+                               <p className="text-[10px] text-gray-400 font-medium italic px-1 leading-tight flex items-start gap-1">
+                                 <Info size={10} className="mt-0.5" />
+                                 {ruleDef.description}
+                               </p>
+                             )}
+                           </div>
+                         );
+                       })}
                      </div>
                    </div>
 
