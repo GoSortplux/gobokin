@@ -154,8 +154,9 @@ const SystemSettings = () => {
   };
 
   const updateRule = (index: number, key: 'ruleKey' | 'ruleValue', value: string) => {
-    const newRules = [...formData.rules];
-    newRules[index][key] = value;
+    const newRules = formData.rules.map((rule, i) =>
+      i === index ? { ...rule, [key]: value } : rule
+    );
     setFormData({ ...formData, rules: newRules });
   };
 
@@ -344,15 +345,16 @@ const SystemSettings = () => {
           </div>
 
           {isModalOpen && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
-              <div className="bg-white w-full max-w-2xl my-8 rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-                <div className="p-8 border-b border-gray-100 flex items-center justify-between">
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+              <div className="bg-white w-full max-w-2xl flex flex-col max-h-[90vh] rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+                <div className="p-8 border-b border-gray-100 flex items-center justify-between shrink-0">
                   <h3 className="text-2xl font-black text-gray-900 tracking-tight">New Package</h3>
                   <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-all">
                     <X size={24} className="text-gray-400" />
                   </button>
                 </div>
-                <form onSubmit={handlePackageSubmit} className="p-8 space-y-6">
+                <div className="flex-1 overflow-y-auto no-scrollbar">
+                  <form onSubmit={handlePackageSubmit} className="p-8 space-y-6">
                    <div className="grid grid-cols-2 gap-6">
                      <div className="space-y-2">
                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Package Name</label>
@@ -494,7 +496,8 @@ const SystemSettings = () => {
                    <button className="w-full bg-primary text-white font-black py-5 rounded-2xl hover:bg-opacity-90 transition-all shadow-xl shadow-primary/20 uppercase tracking-widest text-sm">
                      Create Subscription Package
                    </button>
-                </form>
+                  </form>
+                </div>
               </div>
             </div>
           )}

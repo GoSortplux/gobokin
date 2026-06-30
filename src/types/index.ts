@@ -362,6 +362,7 @@ export interface SubscriptionPackage {
   discountPercentage: number;
   durationDays: number;
   type: string;
+  isPublic: boolean;
   rules: PackageRule[];
 }
 
