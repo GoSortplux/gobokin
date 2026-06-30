@@ -580,7 +580,7 @@ const EventDetailClient = () => {
 
             {/* Content Tabs */}
             <div className="space-y-8">
-               <div className="flex items-center gap-2 p-1.5 bg-gray-50 rounded-xl border border-gray-100 w-fit">
+               <div className="flex items-center gap-2 p-1 bg-gray-50 rounded-2xl border border-gray-100 w-full overflow-x-auto no-scrollbar sm:w-fit">
                   {(() => {
                     const tabs = ["overview"];
                     if (event.speakers && event.speakers.length > 0) {
@@ -591,8 +591,8 @@ const EventDetailClient = () => {
                       <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
-                        className={`px-8 py-3 rounded-lg text-xs font-semibold uppercase tracking-widest transition-all duration-300 ${
-                          activeTab === tab ? "bg-white text-primary shadow-sm" : "text-gray-500 hover:text-gray-900 hover:bg-gray-100/50"
+                        className={`flex-1 sm:flex-none px-5 sm:px-8 py-3.5 sm:py-3 rounded-xl sm:rounded-lg text-[10px] sm:text-xs font-black sm:font-semibold uppercase tracking-widest transition-all duration-300 whitespace-nowrap ${
+                          activeTab === tab ? "bg-white text-primary shadow-sm" : "text-gray-400 hover:text-gray-900 hover:bg-gray-100/50"
                         }`}
                       >
                         {tab}
@@ -660,7 +660,7 @@ const EventDetailClient = () => {
                                <p className="text-base font-semibold text-gray-900">{event.location || "Virtual Experience"}</p>
                                <p className="text-xs font-medium text-gray-400 uppercase tracking-widest">Global Access Available</p>
                             </div>
-                            <button className="px-6 py-3 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-900 hover:bg-gray-100 transition-all flex items-center gap-2">
+                            <button className="w-full md:w-auto px-6 py-4 md:py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-900 hover:bg-gray-100 transition-all flex items-center justify-center gap-2">
                                Get Directions
                                <ArrowRight size={16} />
                             </button>
@@ -919,33 +919,33 @@ const EventDetailClient = () => {
             <div className="sticky top-32 space-y-6">
 
                {/* Primary CTA Box */}
-               <div className="bg-white rounded-2xl border border-gray-100 shadow-lg p-8 lg:p-10 space-y-8 overflow-hidden relative">
+               <div className="bg-white rounded-[2rem] border border-gray-100 shadow-xl p-6 sm:p-8 lg:p-10 space-y-6 sm:space-y-8 overflow-hidden relative">
                   {/* Decorative Luma circle */}
                   <div className="absolute -top-16 -right-16 w-48 h-48 bg-primary/5 rounded-full blur-3xl"></div>
 
                   <div className="relative z-10">
-                     <h3 className="text-2xl font-semibold text-gray-900 mb-1 tracking-tighter">Secure Spot</h3>
-                     <p className="text-gray-400 font-semibold text-[10px] uppercase tracking-widest">Experience it live</p>
+                     <h3 className="text-xl sm:text-2xl font-black text-gray-900 mb-1 tracking-tighter uppercase italic">Secure <span className="text-primary not-italic">Spot</span></h3>
+                     <p className="text-gray-400 font-bold text-[10px] uppercase tracking-[0.2em]">Experience it live</p>
                   </div>
 
-                  <div className="space-y-6 relative z-10">
+                  <div className="space-y-5 sm:space-y-6 relative z-10">
                      <div className="space-y-3">
-                        <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest ml-1">Current Selection</label>
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Current Selection</label>
                         <div
-                          className="bg-gray-50 rounded-2xl p-5 border border-gray-100 flex items-center justify-between cursor-pointer hover:bg-gray-100 transition-all hover:border-primary/20 group shadow-sm"
+                          className="bg-gray-50 rounded-2xl p-4 sm:p-5 border border-gray-100 flex items-center justify-between cursor-pointer hover:bg-gray-100 transition-all hover:border-primary/20 group shadow-sm"
                           onClick={() => setActiveTab("tickets")}
                         >
-                           <div className="flex items-center gap-3">
-                              <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-primary shadow-sm border border-gray-50 group-hover:scale-110 transition-transform">
+                           <div className="flex items-center gap-3 min-w-0">
+                              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-xl flex items-center justify-center text-primary shadow-sm border border-gray-100 group-hover:scale-110 transition-transform shrink-0">
                                  <Ticket size={20} />
                               </div>
-                              <div className="text-left">
-                                 <p className="text-base font-semibold text-gray-900 leading-tight">{selectedTicket?.name || "Choose a ticket"}</p>
-                                 <p className="text-[9px] font-semibold text-primary uppercase tracking-widest mt-1">{selectedTicket?.type || "Pending Selection"}</p>
+                              <div className="text-left min-w-0">
+                                 <p className="text-sm sm:text-base font-bold text-gray-900 leading-tight truncate">{selectedTicket?.name || "Choose a ticket"}</p>
+                                 <p className="text-[9px] font-black text-primary uppercase tracking-widest mt-1">{selectedTicket?.type || "Pending Selection"}</p>
                               </div>
                            </div>
                            <div
-                              className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white hover:shadow-sm transition-all group/btn"
+                              className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white hover:shadow-sm transition-all group/btn shrink-0"
                               onClick={(e) => {
                                  e.stopPropagation();
                                  handleNextTicket();
@@ -958,17 +958,17 @@ const EventDetailClient = () => {
 
                      <div className="space-y-3">
                         <div className="flex items-center justify-between ml-1">
-                          <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Quantity</label>
+                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Quantity</label>
                           {selectedTicket && selectedTicket.maxPerOrder > 0 && (
-                            <span className="text-[10px] font-semibold text-primary uppercase tracking-widest">Max {selectedTicket.maxPerOrder}</span>
+                            <span className="text-[10px] font-black text-primary uppercase tracking-widest">Max {selectedTicket.maxPerOrder}</span>
                           )}
                         </div>
-                        <div className="flex items-center gap-3 bg-gray-50 p-2 rounded-2xl border border-gray-100 shadow-sm">
+                        <div className="flex items-center gap-3 bg-gray-50 p-1.5 sm:p-2 rounded-2xl border border-gray-100 shadow-sm">
                            <button
                              onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                             className="w-12 h-12 bg-white rounded-xl text-xl font-semibold text-gray-900 hover:text-primary shadow-sm hover:shadow-md transition-all active:scale-95 flex items-center justify-center"
+                             className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-xl text-xl font-bold text-gray-900 hover:text-primary shadow-sm hover:shadow-md transition-all active:scale-95 flex items-center justify-center"
                            >-</button>
-                           <div className="flex-1 text-center text-xl font-semibold text-gray-900">{quantity}</div>
+                           <div className="flex-1 text-center text-lg sm:text-xl font-black text-gray-900">{quantity}</div>
                            <button
                              onClick={() => {
                                const maxLimit = Math.min(
@@ -983,28 +983,28 @@ const EventDetailClient = () => {
                                selectedTicket?.availableQuantity || 1,
                                selectedTicket?.maxPerOrder && selectedTicket.maxPerOrder > 0 ? selectedTicket.maxPerOrder : Infinity
                              )}
-                             className="w-12 h-12 bg-white rounded-xl text-xl font-semibold text-gray-900 hover:text-primary shadow-sm hover:shadow-md transition-all active:scale-95 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed"
+                             className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-xl text-xl font-bold text-gray-900 hover:text-primary shadow-sm hover:shadow-md transition-all active:scale-95 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed"
                            >+</button>
                         </div>
                      </div>
                   </div>
 
-                  <div className="bg-gray-50 rounded-2xl p-6 space-y-4 relative z-10 border border-gray-100/50">
-                     <div className="flex items-center justify-between text-xs font-semibold text-gray-500 uppercase tracking-widest">
-                        <span>{selectedTicket?.name || 'Selection'}</span>
-                        <span className="text-gray-900">₦{((selectedTicket?.price || 0) * quantity).toLocaleString()}</span>
+                  <div className="bg-gray-50 rounded-2xl p-5 sm:p-6 space-y-3 sm:space-y-4 relative z-10 border border-gray-100/50">
+                     <div className="flex items-center justify-between text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-widest">
+                        <span className="truncate max-w-[150px]">{selectedTicket?.name || 'Selection'}</span>
+                        <span className="text-gray-900 font-black">₦{((selectedTicket?.price || 0) * quantity).toLocaleString()}</span>
                      </div>
-                     <div className="flex items-center justify-between text-xs font-semibold text-gray-500 uppercase tracking-widest">
-                        <span>Fee</span>
-                        <span className="text-emerald-600 font-semibold uppercase">Free</span>
+                     <div className="flex items-center justify-between text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-widest">
+                        <span>Service Fee</span>
+                        <span className="text-emerald-600 font-black uppercase">Free</span>
                      </div>
-                     <div className="pt-5 border-t border-gray-200 flex items-center justify-between">
-                        <span className="text-lg font-semibold text-gray-900 tracking-tighter">TOTAL</span>
-                        <span className="text-3xl font-semibold text-primary tracking-tighter">₦{((selectedTicket?.price || 0) * quantity).toLocaleString()}</span>
+                     <div className="pt-4 sm:pt-5 border-t border-gray-200 flex items-center justify-between">
+                        <span className="text-base sm:text-lg font-black text-gray-900 tracking-tighter uppercase italic">Total</span>
+                        <span className="text-2xl sm:text-3xl font-black text-primary tracking-tighter">₦{((selectedTicket?.price || 0) * quantity).toLocaleString()}</span>
                      </div>
                   </div>
 
-                  <div className="space-y-3 relative z-10">
+                  <div className="space-y-4 relative z-10">
                      {(() => {
                         const isTicketSoldOut = (event.isSoldOut || event.availabilityStatus === 'SOLD_OUT') || (selectedTicket && (selectedTicket.isSoldOut || (selectedTicket.remainingTickets !== undefined && selectedTicket.remainingTickets <= 0)));
                         const ticketStatus = getTicketSalesStatus(selectedTicket);
@@ -1021,7 +1021,7 @@ const EventDetailClient = () => {
                                 }
                               }}
                               disabled={isJoiningWaitlist || !selectedTicket}
-                              className="w-full font-semibold py-5 rounded-2xl transition-all flex items-center justify-center gap-3 text-lg group bg-rose-600 text-white shadow-xl shadow-rose-600/20 hover:brightness-110"
+                              className="w-full font-black py-4 sm:py-5 rounded-2xl transition-all flex items-center justify-center gap-3 text-base sm:text-lg group bg-rose-600 text-white shadow-xl shadow-rose-600/20 hover:brightness-110 uppercase tracking-widest"
                             >
                               {isJoiningWaitlist ? 'Joining...' : waitlistStatus ? `You're #${waitlistStatus.position} on the waitlist` : 'Join Waitlist'}
                               <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform" />
@@ -1033,7 +1033,7 @@ const EventDetailClient = () => {
                           <button
                              onClick={handleRegister}
                              disabled={!selectedTicket || isTicketSoldOut || isNotOnSale}
-                             className={`w-full font-semibold py-5 rounded-2xl transition-all flex items-center justify-center gap-3 text-lg group ${
+                             className={`w-full font-black py-4 sm:py-5 rounded-2xl transition-all flex items-center justify-center gap-3 text-base sm:text-lg group uppercase tracking-widest ${
                                 (isTicketSoldOut || isNotOnSale)
                                 ? 'bg-rose-600 text-white shadow-xl shadow-rose-600/20'
                                 : 'bg-primary text-white hover:brightness-110 shadow-xl shadow-primary/20 disabled:opacity-50 disabled:grayscale'
@@ -1042,7 +1042,7 @@ const EventDetailClient = () => {
                              {isTicketSoldOut
                                 ? 'SOLD OUT'
                                 : ticketStatus === 'UPCOMING'
-                                  ? 'Ticket sale has not started'
+                                  ? 'Sales Starting Soon'
                                   : ticketStatus === 'ENDED'
                                     ? 'Sales Ended'
                                     : 'Claim your Ticket'}
@@ -1051,11 +1051,11 @@ const EventDetailClient = () => {
                         );
                      })()}
 
-                     <div className="flex items-center gap-2 justify-center pt-2">
+                     <div className="flex items-center gap-3 pt-2">
                         {isRegistered && (
                           <button
                             onClick={() => handleAddToCalendar('google')}
-                            className="flex-1 py-3 bg-white border-2 border-gray-100 rounded-xl text-[10px] font-semibold text-gray-600 uppercase tracking-widest hover:border-primary/20 hover:text-primary transition-all flex items-center justify-center gap-2 group"
+                            className="flex-[2] py-4 bg-white border-2 border-gray-100 rounded-2xl text-[10px] font-black text-gray-600 uppercase tracking-widest hover:border-primary/20 hover:text-primary transition-all flex items-center justify-center gap-2 group"
                           >
                              <CalendarPlus size={14} className="group-hover:scale-110 transition-transform" />
                              Save Date
@@ -1064,20 +1064,20 @@ const EventDetailClient = () => {
                         <button
                           onClick={handleToggleBookmark}
                           disabled={isBookmarking}
-                          className={`p-3 bg-white border-2 rounded-xl transition-all ${
+                          className={`flex-1 py-4 bg-white border-2 rounded-2xl transition-all flex items-center justify-center ${
                             event.isBookmarked
                               ? 'text-red-500 border-red-100 bg-red-50'
                               : 'text-gray-400 border-gray-100 hover:text-red-500 hover:border-red-100'
                           } disabled:opacity-50`}
                           title={event.isBookmarked ? "Remove Bookmark" : "Bookmark Event"}
                         >
-                           <Heart size={18} className={event.isBookmarked ? "fill-current" : ""} />
+                           <Heart size={20} className={event.isBookmarked ? "fill-current" : ""} />
                         </button>
                         <button
                           onClick={handleShare}
-                          className="p-3 bg-white border-2 border-gray-100 rounded-xl text-gray-400 hover:text-primary hover:border-blue-100 transition-all"
+                          className="flex-1 py-4 bg-white border-2 border-gray-100 rounded-2xl text-gray-400 hover:text-primary hover:border-blue-100 transition-all flex items-center justify-center"
                         >
-                           <Share2 size={18} />
+                           <Share2 size={20} />
                         </button>
                      </div>
                   </div>
@@ -1125,7 +1125,7 @@ const EventDetailClient = () => {
                      <h4 className="font-semibold text-gray-900 tracking-tight truncate">{event.organizer?.userProfile?.fullName || "Verified Organizer"}</h4>
                      <button
                        onClick={() => setShowOrganizerModal(true)}
-                       className="text-[10px] font-semibold text-primary uppercase tracking-[0.15em] mt-1 hover:underline"
+                       className="text-[10px] font-black text-primary uppercase tracking-[0.15em] mt-1 hover:underline"
                      >
                        View Profile
                      </button>
