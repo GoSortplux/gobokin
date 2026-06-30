@@ -88,9 +88,13 @@ interface LivePreviewProps {
     type: string;
     isSpecial?: boolean;
   }[];
+  registration: {
+    isGroupingEnabled: boolean;
+    fields: RegistrationField[];
+  };
 }
 
-const LivePreview = ({ basicInfo, mediaInfo, speakers, sessions, tickets, agendaEnabled }: LivePreviewProps) => {
+const LivePreview = ({ basicInfo, mediaInfo, speakers, sessions, tickets, agendaEnabled, registration }: LivePreviewProps) => {
   const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
@@ -99,7 +103,7 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, sessions, tickets, agenda
     }
   }, [agendaEnabled, activeTab]);
 
-  const tabs = ["overview", ...(agendaEnabled ? ["schedule"] : []), "speakers", "tickets"];
+  const tabs = ["overview", ...(agendaEnabled ? ["schedule"] : []), "speakers", "tickets", "registration"];
 
   return (
     <div className="sticky top-8 bg-white rounded-[2.5rem] border border-gray-100 shadow-2xl shadow-gray-200/50 overflow-hidden h-[calc(100vh-4rem)] overflow-y-auto no-scrollbar transition-all duration-500 hover:shadow-gray-300/50">
@@ -348,6 +352,79 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, sessions, tickets, agenda
                         ))}
                      </div>
                    )}
+                </div>
+              )}
+
+              {activeTab === "registration" && (
+                <div className="space-y-8 animate-in fade-in duration-500">
+                  <div className="flex items-center gap-3">
+                    <div className="w-1.5 h-6 bg-primary rounded-full"></div>
+                    <h4 className="text-xs font-black text-gray-900 uppercase tracking-widest">Form Preview</h4>
+                  </div>
+
+                  <div className="space-y-6">
+                    {registration.isGroupingEnabled && (
+                      <div className="p-6 rounded-[2rem] bg-primary/5 border border-primary/10 space-y-5 relative overflow-hidden group">
+                        <div className="flex items-center gap-3 relative z-10">
+                          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-primary shadow-sm border border-primary/10">
+                            <Users size={18} />
+                          </div>
+                          <div>
+                            <h4 className="text-[11px] font-black text-gray-900 uppercase tracking-widest leading-none">Group Details</h4>
+                            <p className="text-[8px] font-bold text-primary/60 uppercase tracking-tighter mt-1">Shared Information</p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-4 relative z-10">
+                          {registration.fields.filter(f => !f.isPerAttendee).map((field, i) => (
+                            <div key={i} className="space-y-2">
+                              <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                                {field.label} {field.required && <span className="text-secondary">*</span>}
+                              </label>
+                              <div className="w-full h-11 bg-white border border-gray-100 rounded-xl px-4 flex items-center">
+                                <span className="text-[10px] text-gray-300 font-bold uppercase tracking-widest">
+                                  {field.type === 'select' ? 'Select Option...' : field.type === 'number' ? '0' : 'Enter detail...'}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                          {registration.fields.filter(f => !f.isPerAttendee).length === 0 && (
+                            <p className="text-[9px] text-gray-400 italic">No shared fields configured</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className={`p-6 rounded-[2rem] bg-secondary/5 border border-secondary/10 space-y-5 relative overflow-hidden`}>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-secondary shadow-sm border border-secondary/10">
+                          <User size={18} />
+                        </div>
+                        <div>
+                          <h4 className="text-[11px] font-black text-gray-900 uppercase tracking-widest leading-none">Attendee Details</h4>
+                          <p className="text-[8px] font-bold text-secondary/60 uppercase tracking-tighter mt-1">Individual Information</p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        {(registration.isGroupingEnabled
+                          ? registration.fields.filter(f => f.isPerAttendee)
+                          : registration.fields
+                        ).map((field, i) => (
+                          <div key={i} className="space-y-2">
+                            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                              {field.label} {field.required && <span className="text-secondary">*</span>}
+                            </label>
+                            <div className="w-full h-11 bg-white border border-gray-100 rounded-xl px-4 flex items-center">
+                              <span className="text-[10px] text-gray-300 font-bold uppercase tracking-widest">
+                                {field.type === 'select' ? 'Select Option...' : field.type === 'number' ? '0' : 'Enter detail...'}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
            </div>
@@ -3383,6 +3460,7 @@ const CreateEvent = () => {
               sessions={sessions}
               tickets={tickets}
               agendaEnabled={basicInfo.agendaEnabled}
+              registration={registration}
             />
           </div>
         )}
@@ -3408,6 +3486,7 @@ const CreateEvent = () => {
               sessions={sessions}
               tickets={tickets}
               agendaEnabled={basicInfo.agendaEnabled}
+              registration={registration}
             />
           </div>
         </div>
