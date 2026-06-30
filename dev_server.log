@@ -1,0 +1,27 @@
+
+> gobokin-app@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.5.9
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.2:3000
+
+ ✓ Starting...
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+ ✓ Ready in 2s
+ ○ Compiling / ...
+ ✓ Compiled / in 21s (3781 modules)
+ GET / 200 in 22695ms
+ ○ Compiling /auth/login ...
+ ✓ Compiled /auth/login in 5.2s (3783 modules)
+ GET /auth/login 200 in 5821ms
+ GET /admin/events/settings 200 in 5902ms
+ GET /auth/login 200 in 58ms
+ GET / 200 in 380ms
+ GET /admin/events/settings 200 in 168ms
+ GET /auth/login 200 in 85ms
+ GET /auth/login 200 in 65ms
