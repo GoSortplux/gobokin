@@ -5,6 +5,7 @@ import {
   ArrowLeft,
   ArrowRight,
   User,
+  Users,
   Mail,
   Phone,
   Info,
@@ -430,22 +431,21 @@ const RegistrationForm = () => {
           <div className="p-8 lg:p-12">
             <form onSubmit={handleSubmit} className="space-y-12">
               <div className="space-y-8">
-                 {attendees.map((attendee, index) => (
-                    <div key={index} className="p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100 space-y-6 animate-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: `${index * 100}ms` }}>
+                 {/* Group Details Section */}
+                 {event.isGroupingEnabled && (event.registrationFields || []).some(f => !f.isPerAttendee) && (
+                    <div className="p-8 bg-primary/5 rounded-[2.5rem] border border-primary/10 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
                        <div className="flex items-center gap-3 mb-2">
                           <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-primary font-black">
-                            {index + 1}
+                            <Users size={20} />
                           </div>
-                          <h4 className="font-black text-gray-900">Attendee #{index + 1} Details</h4>
+                          <h4 className="font-black text-gray-900">Group Details</h4>
                        </div>
 
                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          {(event.registrationFields || []).map((field) => {
-                            if (!field.isPerAttendee && index !== 0) return null;
-
+                          {(event.registrationFields || []).filter(f => !f.isPerAttendee).map((field) => {
                             // Determine if we should show a text input instead of a select for location fields
                             const countryField = (event.registrationFields || []).find(f => f.source === 'COUNTRIES');
-                            const countryValue = countryField ? (countryField.isPerAttendee ? attendees[index][countryField.name] : sharedData[countryField.name]) : null;
+                            const countryValue = countryField ? sharedData[countryField.name] : null;
                             const isNotNigeria = countryValue && !isNigeria(countryValue, countries);
 
                             let displayLabel = field.label;
@@ -472,15 +472,15 @@ const RegistrationForm = () => {
                                         placeholder={`Enter ${displayLabel}`}
                                         required={field.required}
                                         className={`w-full p-4 bg-white border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 transition-all ${['full-name', 'fullName', 'email', 'phone'].includes(field.name) ? 'pl-12' : ''}`}
-                                        value={field.isPerAttendee ? attendees[index][field.name] || "" : sharedData[field.name] || ""}
-                                        onChange={(e) => field.isPerAttendee ? handleAttendeeChange(index, field, e.target.value) : handleSharedChange(field, e.target.value)}
+                                        value={sharedData[field.name] || ""}
+                                        onChange={(e) => handleSharedChange(field, e.target.value)}
                                       />
                                     ) : (field.type === 'select' || !!field.source) ? (
                                       <select
                                         required={field.required}
                                         className="w-full p-4 bg-white border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 transition-all"
-                                        value={field.isPerAttendee ? attendees[index][field.name] || "" : sharedData[field.name] || ""}
-                                        onChange={(e) => field.isPerAttendee ? handleAttendeeChange(index, field, e.target.value) : handleSharedChange(field, e.target.value)}
+                                        value={sharedData[field.name] || ""}
+                                        onChange={(e) => handleSharedChange(field, e.target.value)}
                                       >
                                          <option value="">Please select...</option>
                                          {field.source === 'COUNTRIES' ? (
@@ -489,14 +489,14 @@ const RegistrationForm = () => {
                                             ))
                                          ) : field.source === 'STATES' ? (
                                            (() => {
-                                             const parentValue = field.isPerAttendee ? attendees[index][field.dependsOn!] : sharedData[field.dependsOn!];
+                                             const parentValue = sharedData[field.dependsOn!];
                                              return states[parentValue]?.map((s) => (
                                                <option key={s._id} value={s._id}>{s.name}</option>
                                              ));
                                            })()
                                          ) : field.source === 'LGAS' ? (
                                            (() => {
-                                              const parentValue = field.isPerAttendee ? attendees[index][field.dependsOn!] : sharedData[field.dependsOn!];
+                                              const parentValue = sharedData[field.dependsOn!];
                                               return lgas[parentValue]?.map((l) => (
                                                 <option key={l._id} value={l._id}>{l.name}</option>
                                               ));
@@ -509,8 +509,8 @@ const RegistrationForm = () => {
                                       <div className="flex items-center gap-3 p-4 bg-white border border-gray-100 rounded-2xl">
                                          <input
                                           type="checkbox"
-                                          checked={field.isPerAttendee ? attendees[index][field.name] || false : sharedData[field.name] || false}
-                                          onChange={(e) => field.isPerAttendee ? handleAttendeeChange(index, field, e.target.checked) : handleSharedChange(field, e.target.checked)}
+                                          checked={sharedData[field.name] || false}
+                                          onChange={(e) => handleSharedChange(field, e.target.checked)}
                                           className="w-5 h-5 rounded border-gray-300 text-primary"
                                          />
                                          <span className="text-sm font-medium text-gray-700">{field.label}</span>
@@ -522,7 +522,126 @@ const RegistrationForm = () => {
                           })}
                        </div>
                     </div>
-                 ))}
+                 )}
+
+                 {/* Attendee Details Section */}
+                 {attendees.map((attendee, index) => {
+                    const hasGroupFields = (event.registrationFields || []).some(f => !f.isPerAttendee);
+                    const hasAttendeeFields = (event.registrationFields || []).some(f => f.isPerAttendee);
+
+                    // If grouping is enabled, we show attendee card if there are per-attendee fields
+                    // If grouping is disabled, we show attendee card if there are ANY fields (since shared fields show for attendee 0)
+                    const showAttendeeCard = event.isGroupingEnabled ? hasAttendeeFields : (hasAttendeeFields || (index === 0 && hasGroupFields));
+
+                    if (!showAttendeeCard) return null;
+
+                    return (
+                       <div
+                          key={index}
+                          className={`p-8 ${event.isGroupingEnabled ? 'bg-secondary/5 border-secondary/10' : 'bg-gray-50 border-gray-100'} rounded-[2.5rem] border space-y-6 animate-in slide-in-from-bottom-4 duration-500`}
+                          style={{ animationDelay: `${(index + (event.isGroupingEnabled ? 1 : 0)) * 100}ms` }}
+                       >
+                          <div className="flex items-center gap-3 mb-2">
+                             <div className={`w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center ${event.isGroupingEnabled ? 'text-secondary' : 'text-primary'} font-black relative`}>
+                               {index + 1}
+                               {event.isGroupingEnabled && (
+                                 <div className="absolute -top-1 -right-1 w-4 h-4 bg-secondary text-white rounded-full flex items-center justify-center">
+                                   <User size={10} strokeWidth={3} />
+                                 </div>
+                               )}
+                             </div>
+                             <h4 className="font-black text-gray-900">Attendee #{index + 1} Details</h4>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                             {(event.registrationFields || []).map((field) => {
+                               // When grouping is enabled, non-per-attendee fields are in the Group Details card
+                               if (event.isGroupingEnabled && !field.isPerAttendee) return null;
+
+                               // When grouping is NOT enabled, non-per-attendee fields only show for the first attendee
+                               if (!event.isGroupingEnabled && !field.isPerAttendee && index !== 0) return null;
+
+                               // Determine if we should show a text input instead of a select for location fields
+                               const countryField = (event.registrationFields || []).find(f => f.source === 'COUNTRIES');
+                               const countryValue = countryField ? (countryField.isPerAttendee ? attendees[index][countryField.name] : sharedData[countryField.name]) : null;
+                               const isNotNigeria = countryValue && !isNigeria(countryValue, countries);
+
+                               let displayLabel = field.label;
+                               if (isNotNigeria) {
+                                 if (field.source === 'STATES') displayLabel = 'Province/State';
+                                 else if (field.source === 'LGAS') displayLabel = 'City';
+                               }
+
+                               return (
+                                 <div key={field.name} className="space-y-2">
+                                   <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">
+                                     {displayLabel} {field.required && <span className="text-red-500">*</span>}
+                                   </label>
+                                   <div className="relative">
+                                      {(field.name === 'full-name' || field.name === 'fullName') && <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />}
+                                      {field.name === 'email' && <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />}
+                                      {field.name === 'phone' && <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />}
+
+                                      {((field.type === 'text' || field.type === 'number') && !field.source) ||
+                                       ((field.source === 'STATES' || field.source === 'LGAS') && isNotNigeria) ? (
+                                         <input
+                                           type={field.type === 'number' ? 'number' : 'text'}
+                                           name={field.name}
+                                           placeholder={`Enter ${displayLabel}`}
+                                           required={field.required}
+                                           className={`w-full p-4 bg-white border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 transition-all ${['full-name', 'fullName', 'email', 'phone'].includes(field.name) ? 'pl-12' : ''}`}
+                                           value={field.isPerAttendee ? attendees[index][field.name] || "" : sharedData[field.name] || ""}
+                                           onChange={(e) => field.isPerAttendee ? handleAttendeeChange(index, field, e.target.value) : handleSharedChange(field, e.target.value)}
+                                         />
+                                       ) : (field.type === 'select' || !!field.source) ? (
+                                         <select
+                                           required={field.required}
+                                           className="w-full p-4 bg-white border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 transition-all"
+                                           value={field.isPerAttendee ? attendees[index][field.name] || "" : sharedData[field.name] || ""}
+                                           onChange={(e) => field.isPerAttendee ? handleAttendeeChange(index, field, e.target.value) : handleSharedChange(field, e.target.value)}
+                                         >
+                                            <option value="">Please select...</option>
+                                            {field.source === 'COUNTRIES' ? (
+                                               countries.map((c) => (
+                                                 <option key={c._id} value={c._id}>{c.name}</option>
+                                               ))
+                                            ) : field.source === 'STATES' ? (
+                                              (() => {
+                                                const parentValue = field.isPerAttendee ? attendees[index][field.dependsOn!] : sharedData[field.dependsOn!];
+                                                return states[parentValue]?.map((s) => (
+                                                  <option key={s._id} value={s._id}>{s.name}</option>
+                                                ));
+                                              })()
+                                            ) : field.source === 'LGAS' ? (
+                                              (() => {
+                                                 const parentValue = field.isPerAttendee ? attendees[index][field.dependsOn!] : sharedData[field.dependsOn!];
+                                                 return lgas[parentValue]?.map((l) => (
+                                                   <option key={l._id} value={l._id}>{l.name}</option>
+                                                 ));
+                                              })()
+                                            ) : (
+                                              field.options?.map(opt => <option key={opt} value={opt}>{opt}</option>)
+                                            )}
+                                         </select>
+                                       ) : (
+                                         <div className="flex items-center gap-3 p-4 bg-white border border-gray-100 rounded-2xl">
+                                            <input
+                                             type="checkbox"
+                                             checked={field.isPerAttendee ? attendees[index][field.name] || false : sharedData[field.name] || false}
+                                             onChange={(e) => field.isPerAttendee ? handleAttendeeChange(index, field, e.target.checked) : handleSharedChange(field, e.target.checked)}
+                                             className="w-5 h-5 rounded border-gray-300 text-primary"
+                                            />
+                                            <span className="text-sm font-medium text-gray-700">{field.label}</span>
+                                         </div>
+                                       )}
+                                   </div>
+                                 </div>
+                               );
+                             })}
+                          </div>
+                       </div>
+                    );
+                 })}
               </div>
 
               {/* Discount Code Section */}
