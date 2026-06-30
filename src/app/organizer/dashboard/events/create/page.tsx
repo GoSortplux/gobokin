@@ -1682,38 +1682,6 @@ const CreateEvent = () => {
                                    />
                                 </div>
                              </div>
-                             <div className={`pt-4 ${showPreview ? "2xl:col-span-2" : "md:col-span-2"}`}>
-                                <div className="flex items-center justify-between p-6 bg-gray-50 rounded-[2rem] border border-gray-100 hover:bg-white hover:shadow-xl transition-all duration-500 group/agenda">
-                                   <div className="flex items-center gap-5">
-                                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 ${basicInfo.agendaEnabled ? 'bg-secondary text-white shadow-lg shadow-secondary/20' : 'bg-white text-gray-300 border border-gray-100'}`}>
-                                         <Calendar size={20} />
-                                      </div>
-                                      <div>
-                                         <h4 className="text-[11px] font-black text-gray-900 uppercase tracking-widest">Enable Event Agenda</h4>
-                                         <p className="text-[9px] text-gray-400 font-bold uppercase tracking-tighter mt-0.5">Sessions, Schedule & Speakers</p>
-                                      </div>
-                                   </div>
-                                   <button
-                                      type="button"
-                                      onClick={() => {
-                                         const newVal = !basicInfo.agendaEnabled;
-                                         setBasicInfo(prev => ({ ...prev, agendaEnabled: newVal }));
-                                         handleBlur();
-                                      }}
-                                      className={`w-14 h-8 rounded-full transition-all relative ${basicInfo.agendaEnabled ? 'bg-secondary' : 'bg-gray-200'}`}
-                                   >
-                                      <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all shadow-sm ${basicInfo.agendaEnabled ? 'left-7' : 'left-1'}`} />
-                                   </button>
-                                </div>
-                                {basicInfo.agendaEnabled && (
-                                    <div className="mt-4 p-5 bg-secondary/5 border border-secondary/10 rounded-2xl flex items-start gap-3 animate-in slide-in-from-top-2 duration-300">
-                                        <Info size={14} className="text-secondary shrink-0 mt-0.5" />
-                                        <p className="text-[10px] font-bold text-secondary/80 leading-relaxed uppercase">
-                                            Agenda enabled: You&apos;ll be required to add at least one session in Step 3.
-                                        </p>
-                                    </div>
-                                )}
-                             </div>
                           </div>
                        </div>
 
@@ -1799,88 +1767,6 @@ const CreateEvent = () => {
                  )}
 
                  {subStep === 2 && (
-                    <div className="space-y-16 animate-in fade-in duration-500">
-                       {/* Section 6: Speakers */}
-                       <div className="space-y-10 group/section">
-                          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-gray-100 pb-10">
-                             <div className="flex items-center gap-5">
-                                <div className="w-14 h-14 rounded-2xl bg-gray-50 text-primary flex items-center justify-center shadow-sm border border-gray-100">
-                                   <Users size={24} />
-                                </div>
-                                <div>
-                                   <h3 className="text-2xl font-black text-gray-900 tracking-tight">Speakers & Guests</h3>
-                                   <p className="text-sm text-gray-400 font-medium">Highlight the key people at your event.</p>
-                                </div>
-                             </div>
-                             <button
-                               onClick={addSpeaker}
-                               className="flex items-center gap-3 bg-gray-900 text-white font-black px-8 py-5 rounded-3xl hover:bg-black transition-all shadow-2xl shadow-gray-900/20 text-[10px] uppercase tracking-[0.2em]"
-                             >
-                               <Plus size={18} />
-                               Add Speaker
-                             </button>
-                          </div>
-
-                          <div className={`grid gap-8 ${showPreview ? "grid-cols-1 2xl:grid-cols-2" : "grid-cols-1 md:grid-cols-2"}`}>
-                             {speakers.map((speaker, idx) => (
-                                <div key={idx} className="p-8 bg-gray-50 rounded-[3rem] space-y-6 relative group/speaker transition-all duration-500 hover:bg-white hover:shadow-xl">
-                                   <button
-                                      onClick={() => removeSpeaker(idx)}
-                                      className="absolute top-6 right-6 w-10 h-10 bg-white text-gray-300 hover:text-secondary rounded-xl flex items-center justify-center shadow-sm transition-all"
-                                   >
-                                      <Trash2 size={16} />
-                                   </button>
-
-                                   <div className={`flex items-center gap-6 ${showPreview ? "flex-col 2xl:flex-row" : "flex-col sm:flex-row"}`}>
-                                      <div className="relative w-24 h-24 rounded-[2rem] overflow-hidden bg-white shadow-lg border border-gray-100 group/img shrink-0">
-                                         {speaker.imageUrl ? (
-                                            <Image src={speaker.imageUrl} alt="Speaker" fill unoptimized={true} className="object-cover" />
-                                         ) : (
-                                            <div className="w-full h-full flex items-center justify-center text-gray-200">
-                                               <Users size={32} />
-                                            </div>
-                                         )}
-                                         <label className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center cursor-pointer z-10">
-                                            <Upload size={20} className="text-white" />
-                                            <input type="file" className="hidden" onBlur={handleBlur} onChange={(e) => handleSpeakerImageUpload(idx, e)} />
-                                         </label>
-                                         <div className="absolute bottom-2 right-2 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center shadow-lg border-2 border-white z-20 pointer-events-none">
-                                            <Upload size={14} strokeWidth={3} />
-                                         </div>
-                                      </div>
-                                      <div className="flex-1 w-full space-y-4">
-                                         <input
-                                            type="text"
-                                            placeholder="Full Name"
-                                            className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all shadow-sm"
-                                            value={speaker.name}
-                                            onBlur={handleBlur} onChange={(e) => updateSpeaker(idx, 'name', e.target.value)}
-                                         />
-                                         <input
-                                            type="text"
-                                            placeholder="Title (e.g., CEO, Speaker)"
-                                            className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all shadow-sm"
-                                            value={speaker.title}
-                                            onBlur={handleBlur} onChange={(e) => updateSpeaker(idx, 'title', e.target.value)}
-                                         />
-                                      </div>
-                                   </div>
-                                   <textarea
-                                      placeholder="Short bio about the speaker..."
-                                      rows={3}
-                                      className="w-full p-6 bg-white border border-gray-200 rounded-[1.5rem] text-sm font-bold outline-none focus:border-primary transition-all"
-                                      value={speaker.bio}
-                                      onBlur={handleBlur} onChange={(e) => updateSpeaker(idx, 'bio', e.target.value)}
-                                   />
-                                </div>
-                             ))}
-                          </div>
-                       </div>
-
-                    </div>
-                 )}
-
-                 {subStep === 3 && (
                     <div className="space-y-16 animate-in fade-in duration-500">
                        {/* Section 8: Event Configuration */}
                        <div className="space-y-10 group/section">
@@ -2016,6 +1902,38 @@ const CreateEvent = () => {
                                    </div>
                                 </div>
                              )}
+                             <div className={`pt-4 ${showPreview ? "2xl:col-span-3" : "md:col-span-2 lg:col-span-3"}`}>
+                                <div className="flex items-center justify-between p-6 bg-gray-50 rounded-[2rem] border border-gray-100 hover:bg-white hover:shadow-xl transition-all duration-500 group/agenda">
+                                   <div className="flex items-center gap-5">
+                                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 ${basicInfo.agendaEnabled ? 'bg-secondary text-white shadow-lg shadow-secondary/20' : 'bg-white text-gray-300 border border-gray-100'}`}>
+                                         <Calendar size={20} />
+                                      </div>
+                                      <div>
+                                         <h4 className="text-[11px] font-black text-gray-900 uppercase tracking-widest">Enable Event Agenda</h4>
+                                         <p className="text-[9px] text-gray-400 font-bold uppercase tracking-tighter mt-0.5">Sessions, Schedule & Speakers</p>
+                                      </div>
+                                   </div>
+                                   <button
+                                      type="button"
+                                      onClick={() => {
+                                         const newVal = !basicInfo.agendaEnabled;
+                                         setBasicInfo(prev => ({ ...prev, agendaEnabled: newVal }));
+                                         handleBlur();
+                                      }}
+                                      className={`w-14 h-8 rounded-full transition-all relative ${basicInfo.agendaEnabled ? 'bg-secondary' : 'bg-gray-200'}`}
+                                   >
+                                      <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all shadow-sm ${basicInfo.agendaEnabled ? 'left-7' : 'left-1'}`} />
+                                   </button>
+                                </div>
+                                {basicInfo.agendaEnabled && (
+                                    <div className="mt-4 p-5 bg-secondary/5 border border-secondary/10 rounded-2xl flex items-start gap-3 animate-in slide-in-from-top-2 duration-300">
+                                        <Info size={14} className="text-secondary shrink-0 mt-0.5" />
+                                        <p className="text-[10px] font-bold text-secondary/80 leading-relaxed uppercase">
+                                            Agenda enabled: You&apos;ll be required to add at least one session in Step 3.
+                                        </p>
+                                    </div>
+                                )}
+                             </div>
                           </div>
                        </div>
 
@@ -2635,6 +2553,87 @@ const CreateEvent = () => {
                                   })}
                                 </Reorder.Group>
                              )}
+                          </div>
+                       </div>
+                    </div>
+                 )}
+
+                 {subStep === 3 && (
+                    <div className="space-y-16 animate-in fade-in duration-500">
+                       {/* Section 6: Speakers */}
+                       <div className="space-y-10 group/section">
+                          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-gray-100 pb-10">
+                             <div className="flex items-center gap-5">
+                                <div className="w-14 h-14 rounded-2xl bg-gray-50 text-primary flex items-center justify-center shadow-sm border border-gray-100">
+                                   <Users size={24} />
+                                </div>
+                                <div>
+                                   <h3 className="text-2xl font-black text-gray-900 tracking-tight">Speakers & Guests</h3>
+                                   <p className="text-sm text-gray-400 font-medium">Highlight the key people at your event.</p>
+                                </div>
+                             </div>
+                             <button
+                               onClick={addSpeaker}
+                               className="flex items-center gap-3 bg-gray-900 text-white font-black px-8 py-5 rounded-3xl hover:bg-black transition-all shadow-2xl shadow-gray-900/20 text-[10px] uppercase tracking-[0.2em]"
+                             >
+                               <Plus size={18} />
+                               Add Speaker
+                             </button>
+                          </div>
+
+                          <div className={`grid gap-8 ${showPreview ? "grid-cols-1 2xl:grid-cols-2" : "grid-cols-1 md:grid-cols-2"}`}>
+                             {speakers.map((speaker, idx) => (
+                                <div key={idx} className="p-8 bg-gray-50 rounded-[3rem] space-y-6 relative group/speaker transition-all duration-500 hover:bg-white hover:shadow-xl">
+                                   <button
+                                      onClick={() => removeSpeaker(idx)}
+                                      className="absolute top-6 right-6 w-10 h-10 bg-white text-gray-300 hover:text-secondary rounded-xl flex items-center justify-center shadow-sm transition-all"
+                                   >
+                                      <Trash2 size={16} />
+                                   </button>
+
+                                   <div className={`flex items-center gap-6 ${showPreview ? "flex-col 2xl:flex-row" : "flex-col sm:flex-row"}`}>
+                                      <div className="relative w-24 h-24 rounded-[2rem] overflow-hidden bg-white shadow-lg border border-gray-100 group/img shrink-0">
+                                         {speaker.imageUrl ? (
+                                            <Image src={speaker.imageUrl} alt="Speaker" fill unoptimized={true} className="object-cover" />
+                                         ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-gray-200">
+                                               <Users size={32} />
+                                            </div>
+                                         )}
+                                         <label className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center cursor-pointer z-10">
+                                            <Upload size={20} className="text-white" />
+                                            <input type="file" className="hidden" onBlur={handleBlur} onChange={(e) => handleSpeakerImageUpload(idx, e)} />
+                                         </label>
+                                         <div className="absolute bottom-2 right-2 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center shadow-lg border-2 border-white z-20 pointer-events-none">
+                                            <Upload size={14} strokeWidth={3} />
+                                         </div>
+                                      </div>
+                                      <div className="flex-1 w-full space-y-4">
+                                         <input
+                                            type="text"
+                                            placeholder="Full Name"
+                                            className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all shadow-sm"
+                                            value={speaker.name}
+                                            onBlur={handleBlur} onChange={(e) => updateSpeaker(idx, 'name', e.target.value)}
+                                         />
+                                         <input
+                                            type="text"
+                                            placeholder="Title (e.g., CEO, Speaker)"
+                                            className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all shadow-sm"
+                                            value={speaker.title}
+                                            onBlur={handleBlur} onChange={(e) => updateSpeaker(idx, 'title', e.target.value)}
+                                         />
+                                      </div>
+                                   </div>
+                                   <textarea
+                                      placeholder="Short bio about the speaker..."
+                                      rows={3}
+                                      className="w-full p-6 bg-white border border-gray-200 rounded-[1.5rem] text-sm font-bold outline-none focus:border-primary transition-all"
+                                      value={speaker.bio}
+                                      onBlur={handleBlur} onChange={(e) => updateSpeaker(idx, 'bio', e.target.value)}
+                                   />
+                                </div>
+                             ))}
                           </div>
                        </div>
                     </div>
