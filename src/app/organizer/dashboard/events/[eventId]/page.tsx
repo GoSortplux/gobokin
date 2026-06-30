@@ -541,15 +541,15 @@ const EventDetails = () => {
         }}
       />
       {/* Top Navigation */}
-      <div className="flex items-center justify-between px-2">
-        <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-500 hover:text-primary transition-colors font-bold group">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 px-2">
+        <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-500 hover:text-primary transition-colors font-bold group w-fit">
           <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
           Back to My Events
         </button>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto no-scrollbar pb-1 sm:pb-0 w-full sm:w-auto">
           <button
             onClick={handleShare}
-            className="p-2.5 text-gray-400 hover:text-primary hover:bg-blue-50 rounded-xl transition-all"
+            className="p-2.5 sm:p-3 text-gray-400 hover:text-primary hover:bg-blue-50 rounded-xl transition-all border border-gray-100 sm:border-none shrink-0"
           >
             <Share2 size={20} />
           </button>
@@ -560,7 +560,7 @@ const EventDetails = () => {
                 <button
                   onClick={handlePublish}
                   disabled={isActionLoading}
-                  className="flex items-center gap-2 bg-emerald-50 text-emerald-600 font-bold px-5 py-2.5 rounded-xl hover:bg-emerald-600 hover:text-white transition-all border border-emerald-100"
+                  className="flex items-center gap-2 bg-emerald-50 text-emerald-600 font-bold px-4 sm:px-5 py-2.5 rounded-xl hover:bg-emerald-600 hover:text-white transition-all border border-emerald-100 whitespace-nowrap shrink-0"
                 >
                   <CheckCircle2 size={18} />
                   Publish
@@ -569,18 +569,18 @@ const EventDetails = () => {
                 <button
                   onClick={handleUnpublish}
                   disabled={isActionLoading}
-                  className="flex items-center gap-2 bg-amber-50 text-amber-600 font-bold px-5 py-2.5 rounded-xl hover:bg-amber-600 hover:text-white transition-all border border-amber-100"
+                  className="flex items-center gap-2 bg-amber-50 text-amber-600 font-bold px-4 sm:px-5 py-2.5 rounded-xl hover:bg-amber-600 hover:text-white transition-all border border-amber-100 whitespace-nowrap shrink-0"
                 >
                   <EyeOff size={18} />
                   Unpublish
                 </button>
               )}
 
-              <button onClick={handleBroadcast} className="flex items-center gap-2 bg-blue-50 text-primary font-bold px-5 py-2.5 rounded-xl hover:bg-blue-100 transition-all border border-blue-100">
+              <button onClick={handleBroadcast} className="flex items-center gap-2 bg-blue-50 text-primary font-bold px-4 sm:px-5 py-2.5 rounded-xl hover:bg-blue-100 transition-all border border-blue-100 whitespace-nowrap shrink-0">
                 <Radio size={18} />
                 Broadcast
               </button>
-              <Link href={`/organizer/dashboard/events/${eventId}/edit`} className="flex items-center gap-2 bg-primary text-white font-bold px-5 py-2.5 rounded-xl hover:bg-opacity-90 transition-all shadow-lg shadow-primary/20">
+              <Link href={`/organizer/dashboard/events/${eventId}/edit`} className="flex items-center gap-2 bg-primary text-white font-bold px-4 sm:px-5 py-2.5 rounded-xl hover:bg-opacity-90 transition-all shadow-lg shadow-primary/20 whitespace-nowrap shrink-0">
                 <Settings size={18} />
                 Edit Event
               </Link>
@@ -655,12 +655,12 @@ const EventDetails = () => {
 
       {/* Tabs & Detailed Content */}
       <div className="space-y-6">
-         <div className="flex items-center gap-2 bg-white p-1.5 rounded-2xl shadow-sm border border-gray-100 w-fit overflow-x-auto no-scrollbar">
+         <div className="flex items-center gap-2 bg-white p-1.5 rounded-2xl shadow-sm border border-gray-100 w-full overflow-x-auto no-scrollbar sm:w-fit">
             {["overview", "schedule", "tickets", "resources", "attendees", "waitlist", "staff"].filter(t => !isStaff || (t !== "staff" && t !== "waitlist")).map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-6 py-2.5 rounded-xl text-sm font-bold capitalize transition-all duration-300 whitespace-nowrap ${
+                className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-[13px] sm:text-sm font-bold capitalize transition-all duration-300 whitespace-nowrap ${
                   activeTab === tab ? "bg-primary text-white shadow-md shadow-primary/20" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
                 }`}
               >
