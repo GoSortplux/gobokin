@@ -574,6 +574,7 @@ const EditEventContent = () => {
     }
   }, [searchParams]);
   const [loading, setLoading] = useState(true);
+  const [isConfigExpanded, setIsConfigExpanded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
@@ -910,44 +911,31 @@ const EditEventContent = () => {
     const isPerAttendee = registration.isGroupingEnabled ? true : false;
 
     if (fieldType === 'location') {
-      setRegistration(prev => ({
-        ...prev,
-        fields: [
-          ...prev.fields,
-          {
-            id: Math.random().toString(),
-            name: "country",
-            label: "Country",
-            type: "select",
-            source: "COUNTRIES",
-            required: true,
-            isPerAttendee,
-            options: []
-          },
-          {
-            id: Math.random().toString(),
-            name: "state",
-            label: "State",
-            type: "select",
-            source: "STATES",
-            dependsOn: "country",
-            required: true,
-            isPerAttendee,
-            options: []
-          },
-          {
-            id: Math.random().toString(),
-            name: "lga",
-            label: "LGA",
-            type: "select",
-            source: "LGAS",
-            dependsOn: "state",
-            required: true,
-            isPerAttendee,
-            options: []
+      setRegistration(prev => {
+        const newFields = [...prev.fields];
+        const sources = ["COUNTRIES", "STATES", "LGAS"];
+        const labels = ["Country", "State", "LGA"];
+        const names = ["country", "state", "lga"];
+        const depends = [null, "country", "state"];
+
+        sources.forEach((source, i) => {
+          if (!newFields.find(f => f.source === source)) {
+            newFields.push({
+              id: Math.random().toString(),
+              name: names[i],
+              label: labels[i],
+              type: "select",
+              source: source as any,
+              dependsOn: depends[i] as any,
+              required: true,
+              isPerAttendee,
+              options: []
+            });
           }
-        ]
-      }));
+        });
+
+        return { ...prev, fields: newFields };
+      });
     } else if (fieldType === 'address') {
       setRegistration({
         ...registration,
@@ -1684,14 +1672,23 @@ const EditEventContent = () => {
                  {subStep === 2 && (
                     <div className="space-y-16 animate-in fade-in duration-500">
                        <div className="space-y-10 group/section">
-                          <div className="flex items-center gap-5 border-b border-gray-100 pb-10">
-                             <div className="w-14 h-14 rounded-2xl bg-gray-50 text-primary flex items-center justify-center shadow-sm border border-gray-100">
-                                <ShieldCheck size={24} />
+                          <div
+                            onClick={() => setIsConfigExpanded(!isConfigExpanded)}
+                            className="flex items-center justify-between border-b border-gray-100 pb-10 cursor-pointer group/header"
+                          >
+                             <div className="flex items-center gap-5">
+                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all shadow-sm border border-gray-100 ${isConfigExpanded ? 'bg-primary text-white scale-110 rotate-3' : 'bg-gray-50 text-primary group-hover/header:bg-gray-100'}`}>
+                                   <ShieldCheck size={24} />
+                                </div>
+                                <h3 className="text-2xl font-black text-gray-900 tracking-tight">Event Configuration</h3>
                              </div>
-                             <h3 className="text-2xl font-black text-gray-900 tracking-tight">Event Configuration</h3>
+                             <div className={`w-12 h-12 rounded-full border border-gray-100 flex items-center justify-center transition-all duration-500 ${isConfigExpanded ? 'rotate-180 bg-primary/5 text-primary border-primary/10' : 'bg-gray-50 text-gray-400'}`}>
+                                <ChevronDown size={24} strokeWidth={3} />
+                             </div>
                           </div>
 
-                          <div className={`grid grid-cols-1 md:grid-cols-2 gap-8 ${showPreview ? "2xl:grid-cols-3" : "lg:grid-cols-3"}`}>
+                          {isConfigExpanded && (
+                          <div className={`grid grid-cols-1 md:grid-cols-2 gap-8 animate-in slide-in-from-top-4 duration-500 ${showPreview ? "2xl:grid-cols-3" : "lg:grid-cols-3"}`}>
                              <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Public Visibility</label>
                                 <div className="flex items-center justify-between">
@@ -1831,6 +1828,7 @@ const EditEventContent = () => {
                                 )}
                              </div>
                           </div>
+                          )}
                        </div>
 
                        {/* Section 9: Registration Fields */}
