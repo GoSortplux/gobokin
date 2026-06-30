@@ -157,22 +157,24 @@ const BookingsView = () => {
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8 gap-6 bg-white p-2 rounded-2xl shadow-sm border border-gray-100">
-        <div className="flex p-1 bg-gray-50 rounded-xl w-full lg:w-auto overflow-x-auto no-scrollbar">
-          {["upcoming", "past", "pending", "reservations"].map((tab) => (
-            <button
-              key={tab}
-              className={`flex-1 lg:flex-none px-6 py-2.5 text-sm font-bold capitalize transition-all duration-200 rounded-lg flex items-center justify-center gap-2 ${
-                activeTab === tab
-                  ? "bg-white text-primary shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab === "reservations" && <Clock size={14} />}
-              {tab === "pending" ? "Pending Payment" : tab}
-            </button>
-          ))}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8 gap-6 bg-white p-1.5 sm:p-2 rounded-2xl shadow-sm border border-gray-100">
+        <div className="flex p-1 bg-gray-50 rounded-xl w-full lg:w-auto overflow-x-auto no-scrollbar -mx-1 px-1 sm:mx-0 sm:px-0">
+          <div className="flex min-w-max lg:min-w-0 w-full gap-1">
+            {["upcoming", "past", "pending", "reservations"].map((tab) => (
+              <button
+                key={tab}
+                className={`flex-1 lg:flex-none px-4 sm:px-6 py-2.5 text-[13px] sm:text-sm font-bold capitalize transition-all duration-200 rounded-lg flex items-center justify-center gap-2 whitespace-nowrap ${
+                  activeTab === tab
+                    ? "bg-white text-primary shadow-sm"
+                    : "text-gray-400 hover:text-gray-700"
+                }`}
+                onClick={() => setActiveTab(tab)}
+              >
+                {tab === "reservations" && <Clock size={14} />}
+                {tab === "pending" ? "Pending" : tab}
+              </button>
+            ))}
+          </div>
         </div>
         <div className={`flex items-center w-full lg:max-w-md relative ${activeTab === 'reservations' ? 'opacity-50 pointer-events-none' : ''}`}>
           <input

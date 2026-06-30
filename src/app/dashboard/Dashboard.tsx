@@ -24,9 +24,9 @@ const DashboardContent = () => {
   };
   return (
     <div className="min-h-screen bg-gray-100">
-      <div className="container mx-auto px-4 py-12">
-        <nav className="mt-16 lg:mt-20 mb-8 overflow-x-auto no-scrollbar">
-          <div className="inline-flex p-1.5 bg-white rounded-2xl shadow-sm border border-gray-100">
+      <div className="container mx-auto px-4 py-8 lg:py-12">
+        <nav className="mt-16 lg:mt-20 mb-8 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
+          <div className="flex sm:inline-flex p-1.5 bg-white rounded-2xl shadow-sm border border-gray-100 min-w-max">
             {[
               { id: "bookings", label: "Venue Bookings", icon: Building2, color: "bg-primary", shadow: "shadow-primary/20" },
               { id: "events", label: "My Events", icon: Ticket, color: "bg-emerald-600", shadow: "shadow-emerald-600/20", tourId: "customer-nav-events" },
@@ -35,7 +35,7 @@ const DashboardContent = () => {
               <button
                 key={tab.id}
                 id={tab.tourId}
-                className={`cursor-pointer py-2.5 px-6 rounded-xl text-sm font-bold transition-all duration-200 whitespace-nowrap flex items-center gap-2 ${
+                className={`flex-1 sm:flex-none cursor-pointer py-2.5 px-5 sm:px-6 rounded-xl text-[13px] sm:text-sm font-bold transition-all duration-200 whitespace-nowrap flex items-center justify-center gap-2 ${
                   activeTab === tab.id
                     ? `${tab.color} text-white shadow-md ${tab.shadow}`
                     : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
