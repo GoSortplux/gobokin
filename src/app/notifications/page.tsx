@@ -49,15 +49,29 @@ const NotificationsPage = () => {
   };
 
   return (
-    <div className="container mx-auto py-10 pt-32 px-4 sm:px-6 lg:px-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Notifications</h1>
+    <div className="max-w-4xl mx-auto py-10 pt-24 px-4 sm:px-6">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10 border-b border-gray-100 pb-8">
+        <div>
+          <h1 className="text-2xl font-black text-gray-900 tracking-tight">Notifications</h1>
+          <p className="text-sm text-gray-500 font-medium mt-1">Manage your updates and activities</p>
+        </div>
+        <div className="flex items-center gap-4 text-xs font-bold text-gray-400">
+          <span className="flex items-center gap-1.5">
+             <div className="w-2 h-2 bg-primary rounded-full"></div>
+             {notifications.filter(n => !n.read).length} Unread
+          </span>
+          <div className="w-1 h-1 bg-gray-200 rounded-full"></div>
+          <span>{notifications.length} Total</span>
+        </div>
       </div>
 
       {loading ? (
-        <p className="text-center text-gray-500">Loading...</p>
+        <div className="py-20 flex flex-col items-center justify-center space-y-4">
+           <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Fetching your updates</p>
+        </div>
       ) : notifications.length > 0 ? (
-        <div className="grid gap-4 md:gap-6">
+        <div className="space-y-1">
           {notifications.map((notification) => (
             <NotificationCard
               key={notification._id}
@@ -68,7 +82,9 @@ const NotificationsPage = () => {
           ))}
         </div>
       ) : (
-        <EmptyState message="You're all caught up!" />
+        <div className="py-20 text-center">
+           <EmptyState message="You're all caught up!" />
+        </div>
       )}
     </div>
   );

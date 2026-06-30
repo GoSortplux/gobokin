@@ -36,76 +36,64 @@ const NotificationCard = ({ notification, onMarkAsRead, onMarkAsUnread }: Notifi
                     organizerLink;
   const displayMessage = notification.message.replace(urlRegex, '').trim();
 
-  const isReview = finalLink?.includes('/review') || notification.message.toLowerCase().includes('review');
-
   return (
     <div
-      className={`flex items-start p-5 sm:p-7 rounded-2xl border transition-all duration-300 ${
-        notification.read ? "bg-gray-50/50 border-gray-100" : "bg-white border-primary/10 shadow-sm"
+      className={`group flex flex-col sm:flex-row sm:items-center justify-between p-5 rounded-2xl transition-all duration-200 border border-transparent hover:border-gray-100 ${
+        notification.read ? "bg-white opacity-60" : "bg-white hover:bg-gray-50/50 shadow-sm"
       }`}
     >
-      <div className="flex-shrink-0 mt-1">
-        {!notification.read ? (
-          <div className="w-3 h-3 bg-primary rounded-full shadow-[0_0_10px_rgba(41,95,167,0.5)]" />
-        ) : (
-          <div className="w-3 h-3 bg-gray-200 rounded-full" />
-        )}
-      </div>
-      <div className="ml-5 flex-grow">
-        <p className={`text-md leading-relaxed ${notification.read ? "text-gray-500" : "text-gray-900 font-bold"}`}>
-          {displayMessage}
-        </p>
-        <p className="text-sm text-gray-400 mt-2 font-medium">
-          {new Date(notification.createdAt).toLocaleString(undefined, {
-            dateStyle: 'long',
-            timeStyle: 'short'
-          })}
-        </p>
-
-        {finalLink && (
-          <div className="mt-5">
-            <Link
-              href={notification.read ? "#" : finalLink}
-              onClick={(e) => {
-                if (notification.read) {
-                  e.preventDefault();
-                  return;
-                }
-                onMarkAsRead(notification._id);
-              }}
-              className={`inline-flex items-center px-5 py-2.5 rounded-xl text-sm font-bold shadow-md transition-all duration-200 active:scale-95 ${
-                notification.read
-                  ? "bg-gray-100 text-gray-400 cursor-not-allowed shadow-none"
-                  : isReview
-                    ? "bg-[#B68945] text-white hover:shadow-[#B68945]/30 hover:-translate-y-0.5"
-                    : "bg-primary text-white hover:shadow-primary/30 hover:-translate-y-0.5"
-              }`}
-            >
-              {isReview ? "Write a Review" : "View Details"}
-              <ExternalLink className="ml-2 w-4 h-4" />
-            </Link>
-          </div>
-        )}
-
-        <div className="mt-4 flex items-center gap-4">
+      <div className="flex items-start gap-4 flex-1 overflow-hidden">
+        <div className="flex-shrink-0 mt-1.5">
           {!notification.read ? (
-            <button
-              onClick={() => onMarkAsRead(notification._id)}
-              className="text-sm font-bold text-primary hover:text-primary-dark transition-colors flex items-center gap-1.5"
-            >
-              <Check size={16} />
-              Mark as read
-            </button>
+            <div className="w-2 h-2 bg-primary rounded-full shadow-[0_0_8px_rgba(41,95,167,0.5)]" />
           ) : (
-            <button
-              onClick={() => onMarkAsUnread(notification._id)}
-              className="text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors flex items-center gap-1.5"
-            >
-              <Circle size={14} className="text-gray-300" />
-              Mark as unread
-            </button>
+            <div className="w-2 h-2 bg-gray-200 rounded-full" />
           )}
         </div>
+        <div className="flex-1 min-w-0">
+          <p className={`text-sm leading-snug truncate sm:whitespace-normal ${notification.read ? "text-gray-500 font-medium" : "text-gray-900 font-bold"}`}>
+            {displayMessage}
+          </p>
+          <div className="mt-1 flex items-center gap-2">
+            <p className="text-[11px] text-gray-400 font-bold uppercase tracking-wider">
+              {new Date(notification.createdAt).toLocaleDateString(undefined, {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+            </p>
+            {finalLink && !notification.read && (
+               <Link
+                href={finalLink}
+                onClick={() => onMarkAsRead(notification._id)}
+                className="text-[11px] font-black text-primary hover:underline flex items-center gap-1 uppercase"
+               >
+                 View <ExternalLink size={10} />
+               </Link>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 sm:mt-0 sm:ml-6 flex items-center gap-3 shrink-0">
+        {!notification.read ? (
+          <button
+            onClick={() => onMarkAsRead(notification._id)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/5 transition-all"
+          >
+            <Check size={14} />
+            Mark as read
+          </button>
+        ) : (
+          <button
+            onClick={() => onMarkAsUnread(notification._id)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-600 transition-all"
+          >
+            <Circle size={12} className="text-gray-300" />
+            Mark unread
+          </button>
+        )}
       </div>
     </div>
   );
