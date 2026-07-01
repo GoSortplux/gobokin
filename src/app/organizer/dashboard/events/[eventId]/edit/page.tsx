@@ -18,7 +18,6 @@ import {
   Image as ImageIcon,
   ShieldCheck,
   Clock,
-  ChevronUp,
   GripVertical,
   Layout,
   Tag,
@@ -451,8 +450,8 @@ const RegistrationFieldItem = ({
   idx: number;
   isLocationField: boolean;
   showPreview: boolean;
-  registration: any;
-  updateField: (index: number, field: string, value: any) => void;
+  registration: { fields: RegistrationField[], isGroupingEnabled?: boolean };
+  updateField: (index: number, field: string, value: string | boolean | string[] | undefined) => void;
   removeField: (index: number) => void;
   addFieldOption: (fieldIdx: number) => void;
   updateFieldOption: (fieldIdx: number, optionIdx: number, value: string) => void;
@@ -564,8 +563,8 @@ const RegistrationFieldItem = ({
                   >
                     <option value="">Independent</option>
                     {registration.fields
-                      .filter((f: any, i: number) => i !== idx && (f.type === 'select' || f.type === 'text'))
-                      .map((f: any, i: number) => (
+                      .filter((f: RegistrationField, i: number) => i !== idx && (f.type === 'select' || f.type === 'text'))
+                      .map((f: RegistrationField, i: number) => (
                         <option key={i} value={f.name || f.label.toLowerCase().replace(/\s+/g, '-')}>
                           {f.label || `Field ${i + 1}`}
                         </option>
@@ -1002,8 +1001,8 @@ const EditEventContent = () => {
               name: names[i],
               label: labels[i],
               type: "select",
-              source: source as any,
-              dependsOn: depends[i] as any,
+              source: source as "COUNTRIES" | "STATES" | "LGAS",
+              dependsOn: depends[i] as string,
               required: true,
               isPerAttendee,
               options: []

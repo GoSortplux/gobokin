@@ -699,7 +699,6 @@ const CreateEvent = () => {
           }
       }
 
-      console.log("Save to backend successful");
     } catch (error) {
       console.error("Autosave to backend failed", error);
     } finally {
@@ -1139,8 +1138,8 @@ const CreateEvent = () => {
               name: names[i],
               label: labels[i],
               type: "select",
-              source: source as any,
-              dependsOn: depends[i] as any,
+              source: source as "COUNTRIES" | "STATES" | "LGAS",
+              dependsOn: depends[i] as string,
               required: true,
               isPerAttendee,
               options: []

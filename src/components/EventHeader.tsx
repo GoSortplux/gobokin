@@ -293,16 +293,14 @@ const EventHeaderContent = () => {
                         <p className="text-sm font-semibold text-gray-900 truncate">{user.fullName}</p>
                         <p className="text-xs text-gray-500 truncate">{user.email}</p>
                       </div>
-                      <button
-                        onClick={() => {
-                          setDropdownOpen(false);
-                          router.push(dashboardUrl);
-                        }}
-                        className="flex items-center gap-3 w-full px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 text-left"
+                      <Link
+                        href={dashboardUrl}
+                        className="flex items-center gap-3 w-full px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                        onClick={() => setDropdownOpen(false)}
                       >
                         <LayoutDashboard size={18} className="text-gray-400" />
                         Dashboard
-                      </button>
+                      </Link>
 
                       {user.role && user.role.length > 1 && (
                         <div className="relative">
