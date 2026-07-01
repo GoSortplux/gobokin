@@ -14,16 +14,26 @@ import {
   ChevronDown,
   LogOut,
   LayoutDashboard,
-  Calendar
+  Calendar,
+  Users
 } from "lucide-react";
 import useOnClickOutside from "@/hooks/useOnClickOutside";
 import useScroll from "@/hooks/useScroll";
 import NotificationIcon from "./notifications/NotificationIcon";
 import NotificationDropdown from "./notifications/NotificationDropdown";
+import AccountSwitchModal from "./shared/AccountSwitchModal";
 import { getDashboardPath } from "@/utils/redirects";
+import api from "@/services/api";
+import Swal from "@/utils/sweetalert";
+
+const formatRole = (role: string) => {
+  if (role === 'user') return 'Customer';
+  if (role === 'hall-owner') return 'Venue Owner';
+  return role.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+};
 
 const EventHeaderContent = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, updateToken } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -32,6 +42,8 @@ const EventHeaderContent = () => {
   const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
   const [locationTerm, setLocationTerm] = useState(searchParams.get("location") || "");
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [isSwitchingAccount, setIsSwitchingAccount] = useState(false);
+  const [roleSwitchOpen, setRoleSwitchOpen] = useState(false);
   const [notificationDropdownOpen, setNotificationDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
@@ -42,7 +54,10 @@ const EventHeaderContent = () => {
   const locationDropdownRef = useRef<HTMLDivElement>(null);
   const mobileLocationDropdownRef = useRef<HTMLDivElement>(null);
 
-  useOnClickOutside(dropdownRef, () => setDropdownOpen(false));
+  useOnClickOutside(dropdownRef, () => {
+    setDropdownOpen(false);
+    setRoleSwitchOpen(false);
+  });
   useOnClickOutside(notificationDropdownRef, () => setNotificationDropdownOpen(false));
   useOnClickOutside(locationDropdownRef, () => setShowLocationDropdown(false));
   useOnClickOutside(mobileLocationDropdownRef, () => setShowMobileLocationDropdown(false));
@@ -90,6 +105,29 @@ const EventHeaderContent = () => {
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [pathname]);
+
+  const handleRoleSwitch = async (role: string) => {
+    setIsSwitchingAccount(true);
+    setDropdownOpen(false);
+
+    try {
+      const response = await api.post('/auth/switch-role', { role }, { timeout: 15000 });
+      const { accessToken } = response.data.data;
+
+      updateToken(accessToken);
+
+      // Redirect based on the new role
+      const redirectPath = getDashboardPath(role);
+      router.push(redirectPath);
+    } catch (error: unknown) {
+      Swal.toast.fire({
+        icon: 'error',
+        title: error instanceof Error ? error.message : 'An error occurred. Please try again.',
+      });
+    } finally {
+      setIsSwitchingAccount(false);
+    }
+  };
 
   const handleSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -255,14 +293,51 @@ const EventHeaderContent = () => {
                         <p className="text-sm font-semibold text-gray-900 truncate">{user.fullName}</p>
                         <p className="text-xs text-gray-500 truncate">{user.email}</p>
                       </div>
-                      <Link
-                        href={dashboardUrl}
-                        className="flex items-center gap-3 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-                        onClick={() => setDropdownOpen(false)}
+                      <button
+                        onClick={() => {
+                          setDropdownOpen(false);
+                          router.push(dashboardUrl);
+                        }}
+                        className="flex items-center gap-3 w-full px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 text-left"
                       >
                         <LayoutDashboard size={18} className="text-gray-400" />
                         Dashboard
-                      </Link>
+                      </button>
+
+                      {user.role && user.role.length > 1 && (
+                        <div className="relative">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setRoleSwitchOpen(!roleSwitchOpen);
+                            }}
+                            className="flex items-center justify-between w-full px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                          >
+                            <span className="flex items-center">
+                              <Users size={18} className="mr-3 text-gray-400" />
+                              Switch Account
+                            </span>
+                            <ChevronDown size={14} className={`transform transition-transform ${roleSwitchOpen ? 'rotate-180 md:-rotate-90' : ''} text-gray-400`} />
+                          </button>
+                          {roleSwitchOpen && (
+                            <div className="md:absolute md:right-full md:top-0 md:w-48 md:mr-1 md:bg-white md:rounded-xl md:shadow-lg md:border md:border-gray-100 relative w-full bg-gray-50 rounded-lg mt-1 overflow-hidden animate-in fade-in slide-in-from-top-1 md:slide-in-from-right-1 z-70">
+                              <div className="py-1">
+                                {user.role.map((role) => (
+                                  <button
+                                    key={role}
+                                    onClick={() => handleRoleSwitch(role)}
+                                    className={`block w-full px-4 py-2.5 text-xs text-left transition-all font-semibold ${
+                                      user.activeRole === role ? 'bg-primary/10 text-primary font-bold' : 'text-gray-600 hover:bg-gray-100'
+                                    }`}
+                                  >
+                                    {formatRole(role)}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                       <button
                         onClick={logout}
                         className="flex items-center gap-3 w-full px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50"
@@ -388,10 +463,36 @@ const EventHeaderContent = () => {
                     Explore Events
                  </Link>
                  {user && (
-                    <Link href={dashboardUrl} className="flex items-center gap-3 p-4 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
-                       <LayoutDashboard size={20} className="text-primary" />
-                       Go to Dashboard
-                    </Link>
+                    <>
+                      <Link href={dashboardUrl} className="flex items-center gap-3 p-4 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+                         <LayoutDashboard size={20} className="text-primary" />
+                         Go to Dashboard
+                      </Link>
+
+                      {user.role && user.role.length > 1 && (
+                        <div className="pt-4 border-t border-gray-50">
+                           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-4 mb-3">Switch Account</p>
+                           <div className="grid grid-cols-1 gap-2 px-1">
+                              {user.role.map((role) => (
+                                <button
+                                  key={role}
+                                  onClick={() => handleRoleSwitch(role)}
+                                  className={`flex items-center justify-between p-4 rounded-xl transition-all ${
+                                    user.activeRole === role
+                                      ? 'bg-primary/5 text-primary'
+                                      : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                                  }`}
+                                >
+                                  <span className="font-semibold text-sm">{formatRole(role)}</span>
+                                  {user.activeRole === role && (
+                                    <div className="w-2 h-2 rounded-full bg-primary shadow-sm shadow-primary/20" />
+                                  )}
+                                </button>
+                              ))}
+                           </div>
+                        </div>
+                      )}
+                    </>
                  )}
               </nav>
 
@@ -416,6 +517,8 @@ const EventHeaderContent = () => {
           </>
         )}
       </AnimatePresence>
+
+      <AccountSwitchModal isOpen={isSwitchingAccount} />
     </header>
   );
 };
