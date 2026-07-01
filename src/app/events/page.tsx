@@ -39,12 +39,6 @@ import useOnClickOutside from "@/hooks/useOnClickOutside";
 import useIntersectionObserver from "@/hooks/useIntersectionObserver";
 import Swal from "@/utils/sweetalert";
 import LoginRequiredModal from "@/components/auth/LoginRequiredModal";
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
-import NextArrow from "@/components/NextArrow";
-import PrevArrow from "@/components/PrevArrow";
-
 interface DiscoveryData {
   featured: Event[];
   upcoming: Event[];
@@ -402,7 +396,7 @@ const EventDiscoveryContent = () => {
           return next;
         });
 
-        // Update discoveryData.bookmarks to immediately show/hide in slider
+        // Update discoveryData.bookmarks to immediately show/hide
         setDiscoveryData(prev => {
           if (newStatus) {
             // Add if not present
@@ -880,39 +874,8 @@ const EventDiscoveryContent = () => {
                      </div>
                   </div>
 
-                  <div className="relative group px-2">
-                    <Slider
-                      dots={false}
-                      infinite={discoveryData.bookmarks.length > 3}
-                      speed={500}
-                      slidesToShow={3}
-                      slidesToScroll={1}
-                      arrows={true}
-                      nextArrow={<div className="absolute -top-16 right-0"><NextArrow /></div>}
-                      prevArrow={<div className="absolute -top-16 right-12"><PrevArrow /></div>}
-                      responsive={[
-                        {
-                          breakpoint: 1280,
-                          settings: {
-                            slidesToShow: 2,
-                            infinite: discoveryData.bookmarks.length > 2,
-                          }
-                        },
-                        {
-                          breakpoint: 768,
-                          settings: {
-                            slidesToShow: 1,
-                            infinite: discoveryData.bookmarks.length > 1,
-                          }
-                        }
-                      ]}
-                    >
-                      {discoveryData.bookmarks.map((event, idx) => (
-                        <div key={event.id} className="px-3 pb-8">
-                          {renderEventCard(event, 'standard', 'bookmarks', idx + 1)}
-                        </div>
-                      ))}
-                    </Slider>
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                    {discoveryData.bookmarks.map((event, idx) => renderEventCard(event, 'standard', 'bookmarks', idx + 1))}
                   </div>
                 </div>
               )}
