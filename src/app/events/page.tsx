@@ -76,6 +76,7 @@ const EventDiscoveryContent = () => {
     bookmarks: [],
     byCategory: {}
   });
+  const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
   const [heroBannerImage, setHeroBannerImage] = useState<string | null>(null);
@@ -126,9 +127,12 @@ const EventDiscoveryContent = () => {
         try {
           const bookmarkRes = await api.get("/events/my-bookmarks");
           bookmarks = bookmarkRes.data.data || [];
+          setBookmarkedIds(new Set(bookmarks.map(e => e.id)));
         } catch (err) {
           console.error("Failed to fetch bookmarks:", err);
         }
+      } else {
+        setBookmarkedIds(new Set());
       }
 
       if (data) {
@@ -303,7 +307,7 @@ const EventDiscoveryContent = () => {
   }) => {
     const [showCalendarOptions, setShowCalendarOptions] = useState(false);
     const [isBookmarking, setIsBookmarking] = useState(false);
-    const [isBookmarked, setIsBookmarked] = useState(event.isBookmarked || false);
+    const isBookmarked = bookmarkedIds.has(event.id);
     const calendarRef = React.useRef<HTMLDivElement>(null);
     const cardRef = React.useRef<HTMLDivElement>(null);
     const impressionTracked = React.useRef(false);
@@ -390,16 +394,33 @@ const EventDiscoveryContent = () => {
         const data = response.data.data || response.data;
         const newStatus = data.bookmarked !== undefined ? data.bookmarked : data.isBookmarked;
 
-        setIsBookmarked(newStatus);
+        // Update centralized IDs
+        setBookmarkedIds(prev => {
+          const next = new Set(prev);
+          if (newStatus) next.add(event.id);
+          else next.delete(event.id);
+          return next;
+        });
+
+        // Update discoveryData.bookmarks to immediately show/hide in slider
+        setDiscoveryData(prev => {
+          if (newStatus) {
+            // Add if not present
+            if (!prev.bookmarks.find(e => e.id === event.id)) {
+              return { ...prev, bookmarks: [event, ...prev.bookmarks] };
+            }
+          } else {
+            // Remove
+            return { ...prev, bookmarks: prev.bookmarks.filter(e => e.id !== event.id) };
+          }
+          return prev;
+        });
 
         Swal.toast.fire({
           icon: 'success',
           title: newStatus ? 'Event bookmarked' : 'Bookmark removed',
           timer: 2000
         });
-
-        // Optionally refresh bookmarks list if it's the bookmarks section
-        // For simplicity, we just update the local state of the card
       } catch (error) {
         console.error("Failed to toggle bookmark:", error);
       } finally {
@@ -846,6 +867,56 @@ const EventDiscoveryContent = () => {
             </div>
           ) : (
             <div className="space-y-24">
+              {/* Bookmarks Section - Now at the top */}
+              {discoveryData?.bookmarks?.length > 0 && (
+                <div id="discovery-bookmarks" className="animate-in fade-in slide-in-from-bottom-8 duration-700">
+                  <div className="flex items-center justify-between mb-8 border-b border-gray-100 pb-5 relative">
+                     <div>
+                        <h2 className="text-2xl font-semibold text-gray-900 tracking-tighter flex items-center gap-3">
+                          <Heart className="text-red-500 fill-red-500" size={24} />
+                          My Bookmarks
+                        </h2>
+                        <p className="text-gray-400 font-semibold mt-1 uppercase tracking-widest text-[10px]">Events you have saved for later</p>
+                     </div>
+                  </div>
+
+                  <div className="relative group px-2">
+                    <Slider
+                      dots={false}
+                      infinite={discoveryData.bookmarks.length > 3}
+                      speed={500}
+                      slidesToShow={3}
+                      slidesToScroll={1}
+                      arrows={true}
+                      nextArrow={<div className="absolute -top-16 right-0"><NextArrow /></div>}
+                      prevArrow={<div className="absolute -top-16 right-12"><PrevArrow /></div>}
+                      responsive={[
+                        {
+                          breakpoint: 1280,
+                          settings: {
+                            slidesToShow: 2,
+                            infinite: discoveryData.bookmarks.length > 2,
+                          }
+                        },
+                        {
+                          breakpoint: 768,
+                          settings: {
+                            slidesToShow: 1,
+                            infinite: discoveryData.bookmarks.length > 1,
+                          }
+                        }
+                      ]}
+                    >
+                      {discoveryData.bookmarks.map((event, idx) => (
+                        <div key={event.id} className="px-3 pb-8">
+                          {renderEventCard(event, 'standard', 'bookmarks', idx + 1)}
+                        </div>
+                      ))}
+                    </Slider>
+                  </div>
+                </div>
+              )}
+
               {/* Featured Section */}
               {discoveryData?.featured?.length > 0 && (
                 <div id="discovery-featured">
@@ -922,55 +993,6 @@ const EventDiscoveryContent = () => {
                  </div>
               ))}
 
-              {/* Bookmarks Section - At the bottom with Slider */}
-              {discoveryData?.bookmarks?.length > 0 && (
-                <div id="discovery-bookmarks" className="animate-in fade-in slide-in-from-bottom-8 duration-700 mt-20">
-                  <div className="flex items-center justify-between mb-8 border-b border-gray-100 pb-5 relative">
-                     <div>
-                        <h2 className="text-2xl font-semibold text-gray-900 tracking-tighter flex items-center gap-3">
-                          <Heart className="text-red-500 fill-red-500" size={24} />
-                          My Bookmarks
-                        </h2>
-                        <p className="text-gray-400 font-semibold mt-1 uppercase tracking-widest text-[10px]">Events you have saved for later</p>
-                     </div>
-                  </div>
-
-                  <div className="relative group px-2">
-                    <Slider
-                      dots={false}
-                      infinite={discoveryData.bookmarks.length > 3}
-                      speed={500}
-                      slidesToShow={3}
-                      slidesToScroll={1}
-                      arrows={true}
-                      nextArrow={<div className="absolute -top-16 right-0"><NextArrow /></div>}
-                      prevArrow={<div className="absolute -top-16 right-12"><PrevArrow /></div>}
-                      responsive={[
-                        {
-                          breakpoint: 1280,
-                          settings: {
-                            slidesToShow: 2,
-                            infinite: discoveryData.bookmarks.length > 2,
-                          }
-                        },
-                        {
-                          breakpoint: 768,
-                          settings: {
-                            slidesToShow: 1,
-                            infinite: discoveryData.bookmarks.length > 1,
-                          }
-                        }
-                      ]}
-                    >
-                      {discoveryData.bookmarks.map((event, idx) => (
-                        <div key={event.id} className="px-3 pb-8">
-                          {renderEventCard(event, 'standard', 'bookmarks', idx + 1)}
-                        </div>
-                      ))}
-                    </Slider>
-                  </div>
-                </div>
-              )}
             </div>
           )}
         </main>
