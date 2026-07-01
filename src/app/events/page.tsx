@@ -87,6 +87,7 @@ const EventDiscoveryContent = () => {
   const [eventType, setEventType] = useState<string>("All");
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [showBookmarksDrawer, setShowBookmarksDrawer] = useState(false);
 
   // Geolocation
   useEffect(() => {
@@ -579,9 +580,116 @@ const EventDiscoveryContent = () => {
     );
   };
 
+  const BookmarksDrawer = () => (
+    <AnimatePresence>
+      {showBookmarksDrawer && (
+        <div className="fixed inset-0 z-[110]">
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowBookmarksDrawer(false)}
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+          />
+
+          {/* Drawer */}
+          <motion.div
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="absolute inset-y-0 right-0 w-full max-w-md bg-gray-50 shadow-2xl flex flex-col border-l border-white/20"
+          >
+            {/* Header */}
+            <div className="p-6 bg-white border-b border-gray-100 flex items-center justify-between sticky top-0 z-10">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
+                   <Heart className="text-red-500 fill-red-500" size={20} />
+                   My Bookmarks
+                </h3>
+                <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mt-0.5">
+                   {discoveryData.bookmarks.length} Saved Events
+                </p>
+              </div>
+              <button
+                onClick={() => setShowBookmarksDrawer(false)}
+                className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-all"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-6">
+              {discoveryData.bookmarks.length > 0 ? (
+                <div className="space-y-6">
+                   {discoveryData.bookmarks.map((event, idx) => (
+                      <div key={event.id} className="animate-in fade-in slide-in-from-right-4 duration-500" style={{ animationDelay: `${idx * 50}ms` }}>
+                        {renderEventCard(event, 'standard', 'bookmarks-drawer', idx + 1)}
+                      </div>
+                   ))}
+                </div>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-center px-6">
+                   <div className="w-20 h-20 bg-white rounded-[2rem] flex items-center justify-center shadow-inner text-gray-200 mb-6">
+                      <Heart size={40} />
+                   </div>
+                   <h4 className="text-lg font-bold text-gray-900 mb-2">No bookmarks yet</h4>
+                   <p className="text-sm text-gray-500 font-medium leading-relaxed">
+                     Start exploring events and save the ones you love to find them here later.
+                   </p>
+                   <button
+                     onClick={() => setShowBookmarksDrawer(false)}
+                     className="mt-8 px-6 py-3 bg-primary text-white text-xs font-bold uppercase tracking-widest rounded-xl shadow-lg shadow-primary/20 hover:scale-105 transition-all"
+                   >
+                     Explore Events
+                   </button>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="p-6 bg-white border-t border-gray-100 flex items-center justify-center">
+               <button
+                 onClick={() => setShowBookmarksDrawer(false)}
+                 className="text-gray-400 text-[10px] font-bold uppercase tracking-widest hover:text-gray-600 transition-colors"
+               >
+                 Close Bookmarks
+               </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+
   const FilterSidebar = () => (
     <aside className="hidden lg:block w-72 space-y-6 flex-shrink-0">
       <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6 sticky top-32">
+        {/* Bookmarks Toggle */}
+        <button
+          onClick={() => {
+            if (!user) setShowLoginModal(true);
+            else setShowBookmarksDrawer(true);
+          }}
+          className="w-full flex items-center justify-between px-5 py-4 rounded-xl bg-red-50 border border-red-100 text-red-600 hover:bg-red-100 transition-all group"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+               <Heart size={16} className="fill-red-500 text-red-500" />
+            </div>
+            <span className="text-sm font-bold uppercase tracking-tight">My Bookmarks</span>
+          </div>
+          {discoveryData.bookmarks.length > 0 && (
+            <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">
+              {discoveryData.bookmarks.length}
+            </span>
+          )}
+        </button>
+
+        <div className="h-px bg-gray-50 mx-2"></div>
+
         <div className="flex items-center justify-between">
            <h4 className="font-semibold text-gray-900 uppercase tracking-tighter text-base flex items-center gap-2">
              <Filter size={18} className="text-primary" />
@@ -674,6 +782,8 @@ const EventDiscoveryContent = () => {
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}
       />
+
+      <BookmarksDrawer />
 
       {/* Hero Section - Immersive & Minimal */}
       <section className="container mx-auto px-4 mb-12">
@@ -861,25 +971,6 @@ const EventDiscoveryContent = () => {
             </div>
           ) : (
             <div className="space-y-24">
-              {/* Bookmarks Section - Now at the top */}
-              {discoveryData?.bookmarks?.length > 0 && (
-                <div id="discovery-bookmarks" className="animate-in fade-in slide-in-from-bottom-8 duration-700">
-                  <div className="flex items-center justify-between mb-8 border-b border-gray-100 pb-5 relative">
-                     <div>
-                        <h2 className="text-2xl font-semibold text-gray-900 tracking-tighter flex items-center gap-3">
-                          <Heart className="text-red-500 fill-red-500" size={24} />
-                          My Bookmarks
-                        </h2>
-                        <p className="text-gray-400 font-semibold mt-1 uppercase tracking-widest text-[10px]">Events you have saved for later</p>
-                     </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                    {discoveryData.bookmarks.map((event, idx) => renderEventCard(event, 'standard', 'bookmarks', idx + 1))}
-                  </div>
-                </div>
-              )}
-
               {/* Featured Section */}
               {discoveryData?.featured?.length > 0 && (
                 <div id="discovery-featured">
