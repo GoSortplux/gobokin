@@ -134,7 +134,7 @@ const EventHeaderContent = () => {
             <input
               type="text"
               placeholder="Search events..."
-              className="bg-transparent border-none focus:ring-0 text-xs font-semibold text-gray-700 w-full placeholder:text-gray-400"
+              className="bg-transparent border-none focus:ring-0 text-xs font-semibold text-gray-700 w-full placeholder:text-gray-400 outline-none"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />

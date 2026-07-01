@@ -1062,6 +1062,31 @@ const EventDiscoveryContent = () => {
                  <button onClick={() => setShowMobileFilters(false)} className="p-2 bg-gray-100 rounded-full"><X size={20} /></button>
               </div>
               <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                 {/* Mobile Bookmarks Toggle */}
+                 <div className="space-y-3">
+                    <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">My Account</label>
+                    <button
+                      onClick={() => {
+                        setShowMobileFilters(false);
+                        if (!user) setShowLoginModal(true);
+                        else setShowBookmarksDrawer(true);
+                      }}
+                      className="w-full flex items-center justify-between px-5 py-4 rounded-xl bg-red-50 border border-red-100 text-red-600 active:bg-red-100 transition-all group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
+                           <Heart size={16} className="fill-red-500 text-red-500" />
+                        </div>
+                        <span className="text-sm font-bold uppercase tracking-tight">My Bookmarks</span>
+                      </div>
+                      {discoveryData.bookmarks.length > 0 && (
+                        <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">
+                          {discoveryData.bookmarks.length}
+                        </span>
+                      )}
+                    </button>
+                 </div>
+
                  <div className="space-y-3">
                     <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Category</label>
                     <div className="grid grid-cols-1 gap-1.5">
