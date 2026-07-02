@@ -10,7 +10,8 @@ import {
   Hash,
   Info,
   Edit2,
-  X
+  X,
+  ChevronDown
 } from "lucide-react";
 import api from "@/services/api";
 import CustomLoader from "@/components/CustomLoader";
@@ -142,22 +143,26 @@ const SystemSettings = () => {
   };
 
   const addRule = () => {
-    setFormData({
-      ...formData,
-      rules: [...formData.rules, { ruleKey: "", ruleValue: "" }]
-    });
+    setFormData(prev => ({
+      ...prev,
+      rules: [...prev.rules, { ruleKey: "", ruleValue: "" }]
+    }));
   };
 
   const removeRule = (index: number) => {
-    const newRules = formData.rules.filter((_, i) => i !== index);
-    setFormData({ ...formData, rules: newRules });
+    setFormData(prev => ({
+      ...prev,
+      rules: prev.rules.filter((_, i) => i !== index)
+    }));
   };
 
   const updateRule = (index: number, key: 'ruleKey' | 'ruleValue', value: string) => {
-    const newRules = formData.rules.map((rule, i) =>
-      i === index ? { ...rule, [key]: value } : rule
-    );
-    setFormData({ ...formData, rules: newRules });
+    setFormData(prev => ({
+      ...prev,
+      rules: prev.rules.map((rule, i) =>
+        i === index ? { ...rule, [key]: value } : rule
+      )
+    }));
   };
 
   return (
@@ -444,32 +449,38 @@ const SystemSettings = () => {
                              <div className="grid grid-cols-2 gap-3">
                                <div className="space-y-1">
                                  <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Rule Key</label>
-                                 <select
-                                   className="w-full px-4 py-3 bg-white border-2 border-gray-100 rounded-2xl text-xs font-bold focus:border-primary focus:ring-0 transition-all appearance-none"
-                                   value={rule.ruleKey}
-                                   onChange={e => {
-                                     updateRule(index, 'ruleKey', e.target.value);
-                                     updateRule(index, 'ruleValue', "");
-                                   }}
-                                 >
-                                    <option value="" disabled>Select Key</option>
-                                    {RULE_KEYS.map(rk => (
-                                      <option key={rk.key} value={rk.key}>{rk.label}</option>
-                                    ))}
-                                 </select>
+                                 <div className="relative">
+                                   <select
+                                     className="w-full px-4 py-3 bg-white border-2 border-gray-100 rounded-2xl text-xs font-bold focus:border-primary focus:ring-0 transition-all appearance-none"
+                                     value={rule.ruleKey}
+                                     onChange={e => {
+                                       updateRule(index, 'ruleKey', e.target.value);
+                                       updateRule(index, 'ruleValue', "");
+                                     }}
+                                   >
+                                      <option value="" disabled>Select Key</option>
+                                      {RULE_KEYS.map(rk => (
+                                        <option key={rk.key} value={rk.key}>{rk.label}</option>
+                                      ))}
+                                   </select>
+                                   <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                 </div>
                                </div>
                                <div className="space-y-1">
                                  <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Rule Value</label>
                                  {ruleDef?.type === 'boolean' ? (
-                                   <select
-                                     className="w-full px-4 py-3 bg-white border-2 border-gray-100 rounded-2xl text-xs font-bold focus:border-primary focus:ring-0 transition-all appearance-none"
-                                     value={rule.ruleValue}
-                                     onChange={e => updateRule(index, 'ruleValue', e.target.value)}
-                                   >
-                                     <option value="" disabled>Select Value</option>
-                                     <option value="true">True</option>
-                                     <option value="false">False</option>
-                                   </select>
+                                   <div className="relative">
+                                     <select
+                                       className="w-full px-4 py-3 bg-white border-2 border-gray-100 rounded-2xl text-xs font-bold focus:border-primary focus:ring-0 transition-all appearance-none"
+                                       value={rule.ruleValue}
+                                       onChange={e => updateRule(index, 'ruleValue', e.target.value)}
+                                     >
+                                       <option value="" disabled>Select Value</option>
+                                       <option value="true">True</option>
+                                       <option value="false">False</option>
+                                     </select>
+                                     <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                   </div>
                                  ) : (
                                    <input
                                      type={ruleDef?.type === 'number' ? "number" : "text"}
