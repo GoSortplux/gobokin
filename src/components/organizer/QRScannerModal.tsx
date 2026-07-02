@@ -60,18 +60,18 @@ const QRScannerModal: React.FC<QRScannerModalProps> = ({ isOpen, onClose, onScan
       <div
         role="dialog"
         aria-modal="true"
-        className="bg-white w-full max-w-lg rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col max-h-[85vh]"
+        className="bg-white w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-2xl sm:rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="bg-primary p-5 sm:p-7 text-white relative shrink-0">
+        <div className="bg-primary p-4 sm:p-6 text-white relative shrink-0">
           <button
             onClick={onClose}
-            className="absolute top-4 sm:top-5 right-4 sm:right-6 p-2 hover:bg-white/10 rounded-xl transition-colors"
+            className="absolute top-3 sm:top-5 right-3 sm:right-6 p-2 hover:bg-white/10 rounded-xl transition-colors"
           >
             <X className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
-          <div className="flex items-center gap-3 sm:gap-4 mb-1 sm:mb-2">
+          <div className="flex items-center gap-3 sm:gap-4">
             <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-xl sm:rounded-2xl flex items-center justify-center backdrop-blur-md">
               <CameraOff className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
@@ -84,30 +84,63 @@ const QRScannerModal: React.FC<QRScannerModalProps> = ({ isOpen, onClose, onScan
           </div>
         </div>
 
-        <div className="p-5 sm:p-7 overflow-y-auto no-scrollbar flex-1">
-          <div id="qr-reader" className="overflow-hidden rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 min-h-[300px] flex items-center justify-center">
+        <div className="p-4 sm:p-6 overflow-y-auto no-scrollbar flex-1 flex flex-col">
+          <style jsx global>{`
+            #qr-reader {
+              border: none !important;
+            }
+            #qr-reader__scan_region {
+              display: flex;
+              justify-content: center;
+              align-items: center;
+            }
+            #qr-reader__scan_region video {
+              width: 100% !important;
+              height: 100% !important;
+              object-fit: cover !important;
+              border-radius: 1rem;
+            }
+            #qr-reader__dashboard {
+              padding: 1rem !important;
+            }
+            #qr-reader__dashboard_section_csr button {
+              padding: 8px 16px !important;
+              background-color: #000 !important;
+              color: white !important;
+              border-radius: 12px !important;
+              border: none !important;
+              font-weight: bold !important;
+              text-transform: uppercase !important;
+              font-size: 12px !important;
+              letter-spacing: 0.05em !important;
+            }
+          `}</style>
+          <div
+            id="qr-reader"
+            className="flex-1 overflow-hidden rounded-2xl bg-gray-50 min-h-[400px] sm:min-h-[500px] flex items-center justify-center relative"
+          >
             <div className="flex flex-col items-center gap-3 text-gray-400">
               <CameraOff size={48} />
               <p className="font-bold">Initializing Camera...</p>
             </div>
           </div>
 
-          <div className="mt-8 p-4 bg-primary/5 rounded-2xl border border-primary/10">
+          <div className="mt-6 p-4 bg-primary/5 rounded-2xl border border-primary/10 shrink-0">
             <p className="text-xs text-primary font-black text-center uppercase tracking-[0.2em]">Scanning Tips</p>
-            <p className="text-xs text-gray-600 text-center mt-2 leading-relaxed">
+            <p className="text-xs text-gray-600 text-center mt-1.5 leading-relaxed">
               Ensure adequate lighting and hold your device steady. The scanner will automatically detect the ticket code.
             </p>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="p-5 sm:p-7 bg-gray-50/80 backdrop-blur-md border-t border-gray-100 shrink-0">
+        {/* Footer - Only show on desktop or larger screens to save space on mobile */}
+        <div className="hidden sm:block p-5 sm:p-6 bg-gray-50/80 backdrop-blur-md border-t border-gray-100 shrink-0">
           <div className="flex justify-end gap-3 sm:gap-4">
             <button
               onClick={onClose}
               className="px-4 sm:px-6 py-2.5 sm:py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors"
             >
-              Cancel
+              Close Scanner
             </button>
           </div>
         </div>
