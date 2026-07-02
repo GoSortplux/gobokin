@@ -50,6 +50,7 @@ const OrganizerSettings = () => {
   const [selectedDiscount, setSelectedDiscount] = useState<GlobalDiscount | null>(null);
 
   const [selectedEventId, setSelectedEventId] = useState<string>("");
+  const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
   const [purchasingId, setPurchasingId] = useState<string | null>(null);
 
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -84,7 +85,11 @@ const OrganizerSettings = () => {
     try {
       setPackagesLoading(true);
       const response = await api.get("/events/admin/packages");
-      setPackages(response.data.data || []);
+      const packagesData = response.data.data || [];
+      setPackages(packagesData);
+      if (packagesData.length > 0) {
+        setSelectedPackageId(packagesData[0].id);
+      }
     } catch (error) {
       console.error("Failed to fetch packages:", error);
     } finally {
@@ -243,6 +248,15 @@ const OrganizerSettings = () => {
       [section]: !prev[section]
     }));
   };
+
+  const renderRuleValue = (value: string) => {
+    if (value === "true") return { label: "Included", icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50" };
+    if (value === "false") return { label: "Locked", icon: Shield, color: "text-gray-400", bg: "bg-gray-50" };
+    if (value === "-1") return { label: "Unlimited", icon: Zap, color: "text-primary", bg: "bg-primary/5" };
+    return { label: value, icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50" };
+  };
+
+  const selectedPackage = packages.find(p => p.id === selectedPackageId);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const tabs: { id: TabType; label: string; icon: any }[] = [
@@ -604,75 +618,112 @@ const OrganizerSettings = () => {
 
                         {/* Available Packages */}
                         <div>
-                            <div className="flex items-center justify-between mb-6">
-                                <h3 className="text-2xl font-black text-gray-900 tracking-tight">Available Packages</h3>
-                                <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-widest bg-gray-100 px-4 py-2 rounded-full">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+                                <h3 className="text-2xl font-black text-gray-900 tracking-tight italic uppercase">Select <span className="text-primary not-italic">Subscription</span></h3>
+                                <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest bg-white border border-gray-100 shadow-sm px-4 py-2.5 rounded-2xl">
                                     <Zap size={14} className="text-amber-500" />
-                                    Powered by Monnify
+                                    Secure Payment via Monnify
                                 </div>
                             </div>
 
                             {packagesLoading ? (
                                 <div className="flex justify-center py-20"><CustomLoader /></div>
                             ) : packages.length > 0 ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {packages.map((pkg) => (
-                                        <div key={pkg.id} className="bg-white rounded-[2.5rem] border border-gray-100 shadow-xl overflow-hidden flex flex-col group hover:border-primary/20 transition-all">
-                                            <div className="p-8">
-                                                <div className="flex justify-between items-start mb-6">
+                                <div className="space-y-8">
+                                    <div className="flex p-1.5 bg-gray-100 rounded-[1.5rem] w-full overflow-x-auto no-scrollbar gap-1">
+                                        {packages.map((pkg) => (
+                                            <button
+                                                key={pkg.id}
+                                                onClick={() => setSelectedPackageId(pkg.id)}
+                                                className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-2xl text-[10px] font-black transition-all whitespace-nowrap uppercase tracking-widest ${
+                                                    selectedPackageId === pkg.id
+                                                    ? 'bg-white text-primary shadow-md shadow-primary/5'
+                                                    : 'text-gray-500 hover:text-gray-900'
+                                                }`}
+                                            >
+                                                {pkg.name}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    {selectedPackage && (
+                                        <div className="bg-white rounded-[3rem] border border-gray-100 shadow-2xl overflow-hidden flex flex-col group hover:border-primary/20 transition-all max-w-2xl mx-auto animate-in fade-in zoom-in-95 duration-500">
+                                            <div className="p-10 lg:p-14">
+                                                <div className="flex justify-between items-start mb-8">
                                                     <div>
-                                                        <h4 className="text-2xl font-black text-gray-900 tracking-tighter uppercase italic">{pkg.name}</h4>
-                                                        <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">{pkg.durationDays} Days Duration</p>
+                                                        <div className="flex items-center gap-3 mb-2">
+                                                            <h4 className="text-3xl font-black text-gray-900 tracking-tighter uppercase italic">{selectedPackage.name}</h4>
+                                                            {selectedPackage.discountPercentage > 0 && (
+                                                                <div className="bg-rose-50 text-rose-600 text-[10px] font-black px-3 py-1.5 rounded-full border border-rose-100 uppercase tracking-widest">
+                                                                    {selectedPackage.discountPercentage}% OFF
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-xs text-gray-400 font-bold uppercase tracking-[0.2em]">{selectedPackage.durationDays} Days Duration</p>
                                                     </div>
-                                                    {pkg.discountPercentage > 0 && (
-                                                        <div className="bg-rose-50 text-rose-600 text-[10px] font-black px-3 py-1.5 rounded-full border border-rose-100 uppercase tracking-widest">
-                                                            {pkg.discountPercentage}% OFF
-                                                        </div>
-                                                    )}
+                                                    <div className="w-16 h-16 bg-primary/5 text-primary rounded-[1.5rem] flex items-center justify-center">
+                                                        <Zap size={32} />
+                                                    </div>
                                                 </div>
 
-                                                <div className="mb-8">
-                                                    <p className="text-4xl font-black text-primary tracking-tighter italic">
-                                                        ₦{pkg.price.toLocaleString()}
+                                                <div className="mb-12 p-8 bg-gray-50 rounded-[2rem] border border-gray-100 relative overflow-hidden group/price">
+                                                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 transition-all group-hover/price:scale-150"></div>
+                                                    <p className="text-5xl font-black text-primary tracking-tighter italic relative">
+                                                        ₦{selectedPackage.price.toLocaleString()}
                                                     </p>
-                                                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.2em] mt-1">One-time payment</p>
+                                                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.3em] mt-2 relative">One-time payment</p>
                                                 </div>
 
-                                                <div className="space-y-4 mb-8">
-                                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Included Rules & Features</p>
-                                                    {pkg.rules.map((rule: PackageRule, idx: number) => (
-                                                        <div key={idx} className="flex items-center gap-3 text-sm font-bold text-gray-700">
-                                                            <div className="w-6 h-6 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center shrink-0">
-                                                                <CheckCircle2 size={14} />
-                                                            </div>
-                                                            <div className="flex justify-between w-full">
-                                                                <span className="text-gray-500 uppercase text-[10px] tracking-tight">{rule.ruleKey.replace(/_/g, ' ')}</span>
-                                                                <span className="text-gray-900 italic font-black">{rule.ruleValue}</span>
-                                                            </div>
-                                                        </div>
-                                                    ))}
+                                                <div className="space-y-4 mb-12">
+                                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 ml-1">Included Rules & Features</p>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        {selectedPackage.rules.map((rule: PackageRule, idx: number) => {
+                                                            const info = renderRuleValue(rule.ruleValue);
+                                                            const Icon = info.icon;
+                                                            return (
+                                                                <div key={idx} className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50 border border-gray-50 hover:bg-white hover:border-gray-100 hover:shadow-sm transition-all group/rule">
+                                                                    <div className={`w-10 h-10 ${info.bg} ${info.color} rounded-xl flex items-center justify-center shrink-0 shadow-sm group-hover/rule:scale-110 transition-transform`}>
+                                                                        <Icon size={18} />
+                                                                    </div>
+                                                                    <div className="flex flex-col min-w-0">
+                                                                        <span className="text-gray-400 uppercase text-[9px] font-black tracking-widest mb-0.5 truncate">{rule.ruleKey.replace(/_/g, ' ')}</span>
+                                                                        <span className={`text-xs font-black italic uppercase ${info.color === 'text-gray-400' ? 'text-gray-400' : 'text-gray-900'}`}>
+                                                                            {info.label}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
                                                 </div>
 
                                                 <button
-                                                    onClick={() => handlePurchase(pkg.id)}
-                                                    disabled={purchasingId === pkg.id || !selectedEventId}
-                                                    className="w-full bg-gray-900 text-white font-black py-4 rounded-2xl hover:bg-primary transition-all shadow-lg flex items-center justify-center gap-2 group disabled:opacity-50"
+                                                    onClick={() => handlePurchase(selectedPackage.id)}
+                                                    disabled={purchasingId === selectedPackage.id || !selectedEventId}
+                                                    className="w-full bg-gray-900 text-white font-black py-5 rounded-[2rem] hover:bg-primary transition-all shadow-xl shadow-gray-900/10 flex items-center justify-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest text-sm"
                                                 >
-                                                    {purchasingId === pkg.id ? 'Processing...' : 'Subscribe Now'}
-                                                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                                    {purchasingId === selectedPackage.id ? 'Processing Payment...' : 'Unlock this Package'}
+                                                    <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
                                                 </button>
                                                 {!selectedEventId && (
-                                                    <p className="text-[9px] text-rose-500 font-bold uppercase text-center mt-3 tracking-widest animate-pulse">
-                                                        Select an event above to purchase
-                                                    </p>
+                                                    <div className="flex items-center justify-center gap-2 mt-4 animate-pulse">
+                                                        <Info size={14} className="text-rose-500" />
+                                                        <p className="text-[10px] text-rose-500 font-black uppercase tracking-widest">
+                                                            Select a target event above to proceed
+                                                        </p>
+                                                    </div>
                                                 )}
                                             </div>
-                                            <div className="bg-gray-50 p-4 border-t border-gray-50 flex items-center gap-2">
-                                                <Info size={14} className="text-gray-400" />
-                                                <p className="text-[10px] text-gray-400 font-medium">Auto-activated upon successful payment.</p>
+                                            <div className="bg-gray-50/50 p-6 border-t border-gray-50 flex items-center justify-center gap-3">
+                                                <div className="flex -space-x-2">
+                                                    {[1,2,3].map(i => (
+                                                        <div key={i} className="w-6 h-6 rounded-full border-2 border-white bg-gray-200" />
+                                                    ))}
+                                                </div>
+                                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Joined by 500+ Organizers</p>
                                             </div>
                                         </div>
-                                    ))}
+                                    )}
                                 </div>
                             ) : (
                                 <div className="text-center py-20 space-y-4 bg-gray-50 rounded-[3rem] border border-dashed border-gray-200">
