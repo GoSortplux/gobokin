@@ -427,7 +427,8 @@ const SystemSettings = () => {
                        <button
                          type="button"
                          onClick={addRule}
-                         className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-1 hover:underline"
+                         disabled={formData.rules.length >= RULE_KEYS.length}
+                         className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-1 hover:underline disabled:text-gray-300 disabled:no-underline disabled:cursor-not-allowed"
                        >
                          <Plus size={12} /> Add Rule
                        </button>
@@ -459,9 +460,14 @@ const SystemSettings = () => {
                                      }}
                                    >
                                       <option value="" disabled>Select Key</option>
-                                      {RULE_KEYS.map(rk => (
-                                        <option key={rk.key} value={rk.key}>{rk.label}</option>
-                                      ))}
+                                    {RULE_KEYS.map(rk => {
+                                      const isSelectedElsewhere = formData.rules.some((r, i) => i !== index && r.ruleKey === rk.key);
+                                      return (
+                                        <option key={rk.key} value={rk.key} disabled={isSelectedElsewhere}>
+                                          {rk.label} {isSelectedElsewhere ? "(Already added)" : ""}
+                                        </option>
+                                      );
+                                    })}
                                    </select>
                                    <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                                  </div>
