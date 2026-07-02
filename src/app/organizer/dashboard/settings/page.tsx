@@ -654,7 +654,7 @@ const OrganizerSettings = () => {
                                                         <div className="flex flex-col min-w-0">
                                                             <span className="text-gray-400 uppercase text-[8px] font-black tracking-widest truncate">{rule.ruleKey.replace(/_/g, ' ')}</span>
                                                             <span className={`text-[10px] font-black italic uppercase ${info.color === 'text-gray-400' ? 'text-gray-400' : 'text-gray-900'}`}>
-                                                                {info.label}
+                                                                {rule.ruleKey === 'COMMISSION_RATE' ? `%${info.label}` : info.label}
                                                             </span>
                                                         </div>
                                                     </div>
