@@ -576,37 +576,19 @@ const OrganizerSettings = () => {
                                 </div>
                             </div>
 
-                            {/* Minimal Event Selection & Package Toggle */}
-                            <div className="flex flex-col lg:flex-row items-stretch gap-3">
-                                <div className="relative flex-1">
-                                    <select
-                                        className="w-full p-4 bg-white border border-gray-100 rounded-2xl text-xs font-bold focus:ring-4 focus:ring-primary/5 transition-all appearance-none shadow-sm h-full"
-                                        value={selectedEventId}
-                                        onChange={(e) => setSelectedEventId(e.target.value)}
-                                    >
-                                        <option value="" disabled>Target Event...</option>
-                                        {rawEvents.map(event => (
-                                            <option key={event.id} value={event.id}>{event.title}</option>
-                                        ))}
-                                    </select>
-                                    <ChevronDown size={16} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                                </div>
-
-                                <div className="flex p-1 bg-gray-100 rounded-2xl overflow-x-auto no-scrollbar gap-1 flex-[1.5]">
-                                    {packages.map((pkg) => (
-                                        <button
-                                            key={pkg.id}
-                                            onClick={() => setSelectedPackageId(pkg.id)}
-                                            className={`flex-1 min-w-[100px] px-4 py-3 rounded-xl text-[10px] font-black transition-all whitespace-nowrap uppercase tracking-widest ${
-                                                selectedPackageId === pkg.id
-                                                ? 'bg-white text-primary shadow-sm'
-                                                : 'text-gray-500 hover:text-gray-900'
-                                            }`}
-                                        >
-                                            {pkg.name}
-                                        </button>
+                            {/* Minimal Event Selection */}
+                            <div className="relative max-w-sm">
+                                <select
+                                    className="w-full p-4 bg-white border border-gray-100 rounded-2xl text-xs font-bold focus:ring-4 focus:ring-primary/5 transition-all appearance-none shadow-sm"
+                                    value={selectedEventId}
+                                    onChange={(e) => setSelectedEventId(e.target.value)}
+                                >
+                                    <option value="" disabled>Target Event...</option>
+                                    {rawEvents.map(event => (
+                                        <option key={event.id} value={event.id}>{event.title}</option>
                                     ))}
-                                </div>
+                                </select>
+                                <ChevronDown size={16} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                             </div>
                         </div>
 
@@ -616,6 +598,25 @@ const OrganizerSettings = () => {
                                 <div className="flex justify-center py-12"><CustomLoader /></div>
                             ) : selectedPackage ? (
                                 <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-xl overflow-hidden max-w-xl mx-auto animate-in fade-in zoom-in-95 duration-500">
+                                    {/* Inline Package Toggle */}
+                                    <div className="px-6 pt-6">
+                                        <div className="flex p-1 bg-gray-50 rounded-2xl overflow-x-auto no-scrollbar gap-1">
+                                            {packages.map((pkg) => (
+                                                <button
+                                                    key={pkg.id}
+                                                    onClick={() => setSelectedPackageId(pkg.id)}
+                                                    className={`flex-1 min-w-[100px] px-4 py-2.5 rounded-xl text-[9px] font-black transition-all whitespace-nowrap uppercase tracking-widest ${
+                                                        selectedPackageId === pkg.id
+                                                        ? 'bg-white text-primary shadow-sm border border-gray-100'
+                                                        : 'text-gray-400 hover:text-gray-600'
+                                                    }`}
+                                                >
+                                                    {pkg.name}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
                                     <div className="p-8 lg:p-10">
                                         <div className="flex justify-between items-start mb-6">
                                             <div>
