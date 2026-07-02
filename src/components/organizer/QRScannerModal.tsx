@@ -21,7 +21,7 @@ const QRScannerModal: React.FC<QRScannerModalProps> = ({ isOpen, onClose, onScan
             "qr-reader",
             {
               fps: 10,
-              qrbox: { width: 250, height: 250 },
+              qrbox: { width: 350, height: 350 },
               rememberLastUsedCamera: true,
               supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
             },
@@ -88,11 +88,16 @@ const QRScannerModal: React.FC<QRScannerModalProps> = ({ isOpen, onClose, onScan
           <style jsx global>{`
             #qr-reader {
               border: none !important;
+              display: flex !important;
+              flex-direction: column !important;
             }
             #qr-reader__scan_region {
-              display: flex;
-              justify-content: center;
-              align-items: center;
+              order: 2 !important;
+              flex: 1 !important;
+              display: flex !important;
+              justify-content: center !important;
+              align-items: center !important;
+              min-height: 0 !important;
             }
             #qr-reader__scan_region video {
               width: 100% !important;
@@ -101,10 +106,14 @@ const QRScannerModal: React.FC<QRScannerModalProps> = ({ isOpen, onClose, onScan
               border-radius: 1rem;
             }
             #qr-reader__dashboard {
+              order: 1 !important;
               padding: 1rem !important;
+              width: 100% !important;
+              background: white !important;
+              z-index: 10 !important;
             }
             #qr-reader__dashboard_section_csr button {
-              padding: 8px 16px !important;
+              padding: 10px 20px !important;
               background-color: #000 !important;
               color: white !important;
               border-radius: 12px !important;
@@ -113,6 +122,11 @@ const QRScannerModal: React.FC<QRScannerModalProps> = ({ isOpen, onClose, onScan
               text-transform: uppercase !important;
               font-size: 12px !important;
               letter-spacing: 0.05em !important;
+              transition: all 0.2s !important;
+            }
+            #qr-reader__dashboard_section_csr button:hover {
+              opacity: 0.8 !important;
+              transform: translateY(-1px) !important;
             }
           `}</style>
           <div
