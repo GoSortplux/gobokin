@@ -33,6 +33,7 @@ import {
 import Image from "next/image";
 import api from "@/services/api";
 import { Event } from "@/types";
+import CustomLoader from "@/components/CustomLoader";
 import { eventTracking } from "@/services/eventTracking";
 import { motion, AnimatePresence } from "framer-motion";
 import useOnClickOutside from "@/hooks/useOnClickOutside";
@@ -873,8 +874,8 @@ const EventDiscoveryContent = () => {
           {searching ? (
             <div className="py-20 flex flex-col items-center justify-center space-y-6">
                <div className="relative">
-                  <div className="w-12 h-12 border-4 border-primary/10 border-t-primary rounded-full animate-spin"></div>
-                  <Search className="absolute inset-0 m-auto text-primary" size={20} />
+                  <CustomLoader size={48} className="text-primary" />
+                  <Search className="absolute inset-0 m-auto text-primary" size={16} />
                </div>
                <p className="text-gray-500 font-semibold uppercase tracking-widest text-xs animate-pulse">Scanning the horizon for events...</p>
             </div>
@@ -931,7 +932,7 @@ const EventDiscoveryContent = () => {
                         disabled={loadingMore}
                         className="px-10 py-4 bg-white border-2 border-primary text-primary font-semibold rounded-xl hover:bg-primary hover:text-white transition-all shadow-lg shadow-primary/5 disabled:opacity-50 flex items-center gap-3 mx-auto text-base group"
                       >
-                        {loadingMore ? <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div> : <PlusCircle size={20} className="group-hover:rotate-90 transition-transform" />}
+                        {loadingMore ? <CustomLoader size={20} /> : <PlusCircle size={20} className="group-hover:rotate-90 transition-transform" />}
                         {loadingMore ? 'Fetching more...' : 'Discover more events'}
                       </button>
                     </div>
@@ -1127,7 +1128,7 @@ const EventDiscoveryContent = () => {
 const EventDiscovery = () => (
   <Suspense fallback={
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      <CustomLoader size={64} />
     </div>
   }>
     <EventDiscoveryContent />

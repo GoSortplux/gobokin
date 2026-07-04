@@ -305,6 +305,18 @@ input[type="reset"]:disabled {
   box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1) !important;
 }
 
+/* Custom Loader for SweetAlert */
+.swal2-loader {
+  border: none !important;
+  width: 50px !important;
+  height: 50px !important;
+  background-image: url('/loader-icon.png') !important;
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  animation: spin 1s linear infinite !important;
+}
+
 /* Icon Customizations */
 .swal2-icon {
   transform: scale(0.8);

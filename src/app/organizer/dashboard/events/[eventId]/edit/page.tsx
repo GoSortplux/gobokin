@@ -2722,8 +2722,17 @@ const EditEventContent = () => {
                     disabled={saving}
                     className="flex items-center gap-2.5 bg-white text-gray-900 border border-gray-200 font-black px-5 md:px-8 py-3.5 md:py-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm hover:border-secondary hover:text-secondary transition-all uppercase tracking-[0.1em] md:tracking-[0.15em] text-[9px] md:text-[10px] disabled:opacity-50"
                 >
-                    {saving ? "Saving..." : "Save Changes"}
-                    <CheckCircle2 size={16} className="text-emerald-500" />
+                    {saving ? (
+                        <>
+                            <CustomLoader className="w-4 h-4" />
+                            Saving...
+                        </>
+                    ) : (
+                        <>
+                            Save Changes
+                            <CheckCircle2 size={16} className="text-emerald-500" />
+                        </>
+                    )}
                 </button>
 
                 {currentStep === 1 && (
@@ -2757,8 +2766,17 @@ const EditEventContent = () => {
                 )}
                 {currentStep === 3 && (
                     <button onClick={() => saveAllChanges(true)} disabled={saving} className="flex items-center gap-2 md:gap-3 bg-secondary text-white font-black px-6 md:px-10 py-3.5 md:py-5 rounded-[1.5rem] md:rounded-[2rem] shadow-3xl shadow-secondary/30 uppercase tracking-[0.15em] md:tracking-[0.2em] text-[9px] md:text-[10px] disabled:opacity-50">
-                        {saving ? "Finalizing..." : "Finalize & Update"}
-                        <ShieldCheck size={18} />
+                        {saving ? (
+                            <>
+                                <CustomLoader className="w-4 h-4" />
+                                Finalizing...
+                            </>
+                        ) : (
+                            <>
+                                Finalize & Update
+                                <ShieldCheck size={18} />
+                            </>
+                        )}
                     </button>
                 )}
              </div>

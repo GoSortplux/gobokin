@@ -47,6 +47,7 @@ import { triggerSuccessConfetti } from "@/utils/confetti";
 import { translateError } from "@/utils/errors";
 import {  EventType, RegistrationMode, RegistrationField, Speaker, TicketType, Ticket as ITicket } from "@/types";
 import { useAuth } from "@/context/AuthContext";
+import CustomLoader from "@/components/CustomLoader";
 
 const steps = [
   { id: 1, title: "Event Details", icon: Info },
@@ -3421,8 +3422,17 @@ const CreateEvent = () => {
                       disabled={loading}
                       className={`flex items-center gap-3 md:gap-4 bg-primary text-white font-black px-8 md:px-10 lg:px-12 py-4 md:py-5 rounded-[1.5rem] md:rounded-[2.5rem] hover:bg-opacity-90 transition-all shadow-3xl shadow-primary/30 uppercase tracking-[0.2em] md:tracking-[0.3em] text-[10px] md:text-[11px] group active:scale-95 ${showPreview ? "2xl:px-14 2xl:py-6" : "xl:px-14 xl:py-6"}`}
                     >
-                      {loading ? "Saving..." : subStep < 4 ? "Next" : subStep === 4 ? "Create Event & Media" : "Continue to Tickets"}
-                      <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform duration-500" />
+                      {loading ? (
+                        <>
+                          <CustomLoader className="w-4 h-4" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          {subStep < 4 ? "Next" : subStep === 4 ? "Create Event & Media" : "Continue to Tickets"}
+                          <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform duration-500" />
+                        </>
+                      )}
                     </button>
                  )}
                  {currentStep === 2 && (
@@ -3431,8 +3441,17 @@ const CreateEvent = () => {
                       disabled={loading}
                       className={`flex items-center gap-3 md:gap-4 ${!basicInfo.agendaEnabled ? 'bg-secondary' : 'bg-primary'} text-white font-black px-8 md:px-10 lg:px-12 py-4 md:py-5 rounded-[1.5rem] md:rounded-[2.5rem] hover:bg-opacity-90 transition-all ${!basicInfo.agendaEnabled ? 'shadow-secondary/30' : 'shadow-primary/30'} shadow-3xl uppercase tracking-[0.2em] md:tracking-[0.3em] text-[10px] md:text-[11px] group active:scale-95 ${showPreview ? "2xl:px-14 2xl:py-6" : "xl:px-14 xl:py-6"}`}
                     >
-                      {loading ? "Saving..." : !basicInfo.agendaEnabled ? "Complete Setup" : "Save Tickets"}
-                      {!basicInfo.agendaEnabled ? <ShieldCheck size={18} className="group-hover:rotate-12 transition-transform" /> : <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform duration-500" />}
+                      {loading ? (
+                        <>
+                          <CustomLoader className="w-4 h-4" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          {!basicInfo.agendaEnabled ? "Complete Setup" : "Save Tickets"}
+                          {!basicInfo.agendaEnabled ? <ShieldCheck size={18} className="group-hover:rotate-12 transition-transform" /> : <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform duration-500" />}
+                        </>
+                      )}
                     </button>
                  )}
                  {currentStep === 3 && (
@@ -3441,8 +3460,17 @@ const CreateEvent = () => {
                       disabled={loading}
                       className={`flex items-center gap-3 md:gap-4 bg-secondary text-white font-black px-8 md:px-10 lg:px-12 py-4 md:py-5 rounded-[1.5rem] md:rounded-[2.5rem] hover:bg-opacity-90 transition-all shadow-3xl shadow-secondary/30 uppercase tracking-[0.2em] md:tracking-[0.3em] text-[10px] md:text-[11px] disabled:opacity-50 active:scale-95 group ${showPreview ? "2xl:px-14 2xl:py-6" : "xl:px-14 xl:py-6"}`}
                     >
-                      {loading ? "Finalizing..." : "Complete Setup"}
-                      <ShieldCheck size={18} className="group-hover:rotate-12 transition-transform" />
+                      {loading ? (
+                        <>
+                          <CustomLoader className="w-4 h-4" />
+                          Finalizing...
+                        </>
+                      ) : (
+                        <>
+                          Complete Setup
+                          <ShieldCheck size={18} className="group-hover:rotate-12 transition-transform" />
+                        </>
+                      )}
                     </button>
                  )}
              </div>

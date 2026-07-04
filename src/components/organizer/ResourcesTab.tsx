@@ -10,7 +10,6 @@ import {
   ExternalLink,
   Info,
   X,
-  Loader2,
   FileIcon,
   VideoIcon,
   ImageIcon,
@@ -19,6 +18,7 @@ import {
 import api from '@/services/api';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
+import CustomLoader from '@/components/CustomLoader';
 import Swal from 'sweetalert2';
 
 interface Resource {
@@ -266,7 +266,7 @@ export const ResourcesTab: React.FC<ResourcesTabProps> = ({ eventId, ticketTypes
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-gray-200">
-          <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
+          <CustomLoader size={40} className="mb-4" />
           <p className="text-gray-500">Loading resources...</p>
         </div>
       ) : resources.length === 0 ? (
@@ -483,7 +483,7 @@ export const ResourcesTab: React.FC<ResourcesTabProps> = ({ eventId, ticketTypes
                     />
                     {isUploading ? (
                       <div className="flex flex-col items-center gap-4">
-                        <Loader2 className="w-10 h-10 text-primary animate-spin" />
+                        <CustomLoader size={40} />
                         <div className="w-full max-w-xs bg-gray-100 rounded-full h-2 overflow-hidden">
                           <div
                             className="bg-primary h-full transition-all duration-300"
@@ -538,7 +538,7 @@ export const ResourcesTab: React.FC<ResourcesTabProps> = ({ eventId, ticketTypes
                 >
                   {isUploading ? (
                     <>
-                      <Loader2 size={16} className="animate-spin" />
+                      <CustomLoader size={16} />
                       Processing...
                     </>
                   ) : 'Create Resource Material'}

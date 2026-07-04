@@ -9,7 +9,6 @@ import {
   Ticket,
   FileText,
   Trash2,
-  Loader2,
   AlertCircle,
   Mail,
   Smartphone,
@@ -19,6 +18,7 @@ import {
 import api from "@/services/api";
 import axios from "axios";
 import { Ticket as ITicket } from "@/types";
+import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 
@@ -257,7 +257,7 @@ const BroadcastModal = ({ isOpen, onClose, eventId, tickets }: BroadcastModalPro
 
             {isUploading && (
               <div className="flex items-center gap-3 p-4 bg-blue-50 text-primary rounded-2xl border border-blue-100 animate-pulse">
-                <Loader2 size={18} className="animate-spin" />
+                <CustomLoader size={18} />
                 <span className="text-xs font-bold uppercase tracking-widest">Uploading file...</span>
               </div>
             )}
@@ -326,7 +326,7 @@ const BroadcastModal = ({ isOpen, onClose, eventId, tickets }: BroadcastModalPro
               >
                 {isSending ? (
                   <>
-                    <Loader2 size={16} className="animate-spin" />
+                    <CustomLoader size={16} />
                     Sending...
                   </>
                 ) : (

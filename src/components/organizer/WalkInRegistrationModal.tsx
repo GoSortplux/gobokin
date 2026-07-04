@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { X, User, Mail, Phone, Ticket, CreditCard, CheckCircle2 } from "lucide-react";
 import api from "@/services/api";
+import CustomLoader from "@/components/CustomLoader";
 import { Ticket as TicketType } from "@/types";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
@@ -229,8 +230,17 @@ const WalkInRegistrationModal = ({ isOpen, onClose, eventId, tickets, onSuccess 
               disabled={loading}
               className="px-6 sm:px-10 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl bg-emerald-600 text-white font-black text-[10px] uppercase tracking-[0.1em] sm:tracking-[0.2em] shadow-xl shadow-emerald-900/20 hover:shadow-emerald-900/30 hover:-translate-y-0.5 transition-all disabled:opacity-50 flex items-center justify-center gap-2 group"
             >
-              {loading ? 'Processing...' : 'Complete Registration'}
-              {!loading && <CheckCircle2 size={16} className="group-hover:rotate-12 transition-transform" />}
+              {loading ? (
+                <>
+                  <CustomLoader className="w-3 h-3" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  Complete Registration
+                  <CheckCircle2 size={16} className="group-hover:rotate-12 transition-transform" />
+                </>
+              )}
             </button>
           </div>
         </div>

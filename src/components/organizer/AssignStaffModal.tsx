@@ -150,9 +150,14 @@ const AssignStaffModal: React.FC<AssignStaffModalProps> = ({
                         <button
                           onClick={() => handleAssign(member.id)}
                           disabled={assigningId === member.id}
-                          className="px-4 py-2 bg-primary text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-primary/10 hover:opacity-90 transition-all disabled:opacity-50"
+                          className="px-4 py-2 bg-primary text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-primary/10 hover:opacity-90 transition-all disabled:opacity-50 flex items-center gap-2"
                         >
-                          {assigningId === member.id ? 'Assigning...' : 'Assign'}
+                          {assigningId === member.id ? (
+                            <>
+                              <CustomLoader className="w-3 h-3" />
+                              Assigning...
+                            </>
+                          ) : 'Assign'}
                         </button>
                       )}
                     </div>

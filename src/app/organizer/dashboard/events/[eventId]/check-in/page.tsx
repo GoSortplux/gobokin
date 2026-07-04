@@ -212,7 +212,7 @@ const CheckInInterface = () => {
                     disabled={searching}
                     className="absolute right-3 top-3 bottom-3 bg-primary text-white font-black px-10 rounded-[1.8rem] hover:bg-opacity-90 transition-all shadow-xl shadow-primary/20 flex items-center gap-3 disabled:opacity-50 group"
                   >
-                    {searching ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <Search size={22} className="group-hover:scale-110 transition-transform" />}
+                    {searching ? <CustomLoader size={20} /> : <Search size={22} className="group-hover:scale-110 transition-transform" />}
                     <span className="hidden sm:inline">Lookup</span>
                   </button>
                 </div>
