@@ -1,5 +1,6 @@
 import VenueDetailClient from '@/components/VenueDetailClient';
 import { Metadata } from 'next';
+import { API_BASE_URL } from '@/services/api';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,7 +10,7 @@ interface Props {
 
 async function getVenue(slug: string) {
   try {
-    const res = await fetch(`https://api.gobokin.com/api/v1/halls/${slug}`, {
+    const res = await fetch(`${API_BASE_URL}/halls/${slug}`, {
       cache: 'no-store'
     });
 

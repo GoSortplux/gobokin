@@ -2,6 +2,7 @@ import React, { Suspense } from "react";
 import EventDetailClient from "./EventDetailClient";
 import CustomLoader from "@/components/CustomLoader";
 import { Metadata } from "next";
+import { API_BASE_URL } from "@/services/api";
 
 export const dynamic = 'force-dynamic';
 
@@ -11,7 +12,7 @@ interface Props {
 
 async function getEvent(organizerSlug: string, eventSlug: string) {
   try {
-    const res = await fetch(`https://api.gobokin.com/api/v1/events/e/${organizerSlug}/${eventSlug}`, {
+    const res = await fetch(`${API_BASE_URL}/events/e/${organizerSlug}/${eventSlug}`, {
       cache: 'no-store'
     });
 

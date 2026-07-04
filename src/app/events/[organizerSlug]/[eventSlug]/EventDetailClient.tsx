@@ -661,14 +661,39 @@ const EventDetailClient = () => {
                          </h3>
                          <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-6">
                             <div className="space-y-1">
-                               <p className="text-base font-semibold text-gray-900">{isLocationHidden ? "Available for registered guests" : (event.location || "Virtual Experience")}</p>
+                               <p className="text-base font-semibold text-gray-900">
+                                 {isLocationHidden
+                                   ? "Available for registered guests"
+                                   : (event.location || (event.virtualLink ? "Virtual Event" : "Virtual Experience"))
+                                 }
+                               </p>
                                <p className="text-xs font-medium text-gray-400 uppercase tracking-widest">Global Access Available</p>
                             </div>
                             {!isLocationHidden && (
-                              <button className="w-full md:w-auto px-6 py-4 md:py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-900 hover:bg-gray-100 transition-all flex items-center justify-center gap-2">
-                                Get Directions
-                                <ArrowRight size={16} />
-                              </button>
+                              <div className="flex flex-wrap gap-3">
+                                {event.location && (
+                                  <a
+                                    href={event.mapLink || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-full md:w-auto px-6 py-4 md:py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-900 hover:bg-gray-100 transition-all flex items-center justify-center gap-2"
+                                  >
+                                    Get Directions
+                                    <ArrowRight size={16} />
+                                  </a>
+                                )}
+                                {event.virtualLink && (
+                                  <a
+                                    href={event.virtualLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-full md:w-auto px-6 py-4 md:py-3 bg-primary text-white rounded-xl text-sm font-bold hover:brightness-110 transition-all flex items-center justify-center gap-2"
+                                  >
+                                    Join Meeting
+                                    <Globe size={16} />
+                                  </a>
+                                )}
+                              </div>
                             )}
                          </div>
                       </div>
