@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { X, User, Mail, Phone, Ticket, CreditCard, CheckCircle2 } from "lucide-react";
+import { X, User, Mail, Phone, Ticket, CreditCard, CheckCircle2, ShieldCheck } from "lucide-react";
 import api from "@/services/api";
 import CustomLoader from "@/components/CustomLoader";
 import { Ticket as TicketType } from "@/types";
@@ -25,6 +25,7 @@ const WalkInRegistrationModal = ({ isOpen, onClose, eventId, tickets, onSuccess 
       phone: "",
     },
     paymentMethod: "CASH",
+    autoCheckIn: true,
   });
 
   if (!isOpen) return null;
@@ -44,14 +45,17 @@ const WalkInRegistrationModal = ({ isOpen, onClose, eventId, tickets, onSuccess 
         ticketId: formData.ticketId,
         attendeeData: formData.attendeeData,
         paymentMethod: formData.paymentMethod,
-        guestCategoryId: formData.ticketId // Assuming guestCategoryId is same as ticketId for walk-ins
+        guestCategoryId: formData.ticketId, // Assuming guestCategoryId is same as ticketId for walk-ins
+        autoCheckIn: formData.autoCheckIn
       };
 
       await api.post(`/events/${eventId}/walk-in`, payload);
 
       await Swal.fire({
         title: "Registration Successful!",
-        text: "The guest has been registered and can now be checked in.",
+        text: formData.autoCheckIn
+          ? "The guest has been registered and checked in successfully."
+          : "The guest has been registered and can now be checked in.",
         icon: "success",
         timer: 2000,
         showConfirmButton: false
@@ -63,6 +67,7 @@ const WalkInRegistrationModal = ({ isOpen, onClose, eventId, tickets, onSuccess 
         ticketId: "",
         attendeeData: { fullName: "", email: "", phone: "" },
         paymentMethod: "CASH",
+        autoCheckIn: true,
       });
     } catch (error) {
       console.error("Walk-in registration failed:", error);
@@ -188,6 +193,26 @@ const WalkInRegistrationModal = ({ isOpen, onClose, eventId, tickets, onSuccess 
                 />
               </div>
             </div>
+          </div>
+
+          {/* Auto Check-in Toggle */}
+          <div className="flex items-center justify-between p-5 bg-gray-50 rounded-2xl border border-gray-100 hover:bg-white hover:shadow-md transition-all duration-300 group/checkin">
+            <div className="flex items-center gap-4">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${formData.autoCheckIn ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-white text-gray-300 border border-gray-100'}`}>
+                <ShieldCheck size={20} />
+              </div>
+              <div>
+                <h4 className="text-[11px] font-black text-gray-900 uppercase tracking-widest">Check-in guest immediately</h4>
+                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-tighter mt-0.5">Automated Arrival Process</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setFormData(prev => ({ ...prev, autoCheckIn: !prev.autoCheckIn }))}
+              className={`w-14 h-8 rounded-full transition-all relative ${formData.autoCheckIn ? 'bg-primary' : 'bg-gray-300'}`}
+            >
+              <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all shadow-sm ${formData.autoCheckIn ? 'left-7' : 'left-1'}`} />
+            </button>
           </div>
 
           {/* Payment Method */}
