@@ -219,6 +219,10 @@ const EventDetailClient = () => {
   const [isRegistered, setIsRegistered] = useState(false);
   const [showOrganizerModal, setShowOrganizerModal] = useState(false);
 
+  const isLocationHidden = useMemo(() => {
+    return event?.hideLocationDetails && !isRegistered;
+  }, [event?.hideLocationDetails, isRegistered]);
+
   const allMedia = useMemo(() => {
     if (!event) return [];
     const media = [];
@@ -389,7 +393,7 @@ const EventDetailClient = () => {
         const start = fmtDate(event.startDate);
         const end = event.endDate ? fmtDate(event.endDate) : fmtDate(new Date(new Date(event.startDate).getTime() + 2 * 60 * 60 * 1000).toISOString());
 
-        const gLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${start}/${end}&details=${encodeURIComponent(event.description || '')}&location=${encodeURIComponent(event.location || '')}`;
+        const gLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${start}/${end}&details=${encodeURIComponent(event.description || '')}&location=${encodeURIComponent(isLocationHidden ? 'Available for registered guests' : (event.location || ''))}`;
         window.open(gLink, '_blank');
         return;
       }
@@ -657,13 +661,15 @@ const EventDetailClient = () => {
                          </h3>
                          <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-6">
                             <div className="space-y-1">
-                               <p className="text-base font-semibold text-gray-900">{event.location || "Virtual Experience"}</p>
+                               <p className="text-base font-semibold text-gray-900">{isLocationHidden ? "Available for registered guests" : (event.location || "Virtual Experience")}</p>
                                <p className="text-xs font-medium text-gray-400 uppercase tracking-widest">Global Access Available</p>
                             </div>
-                            <button className="w-full md:w-auto px-6 py-4 md:py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-900 hover:bg-gray-100 transition-all flex items-center justify-center gap-2">
-                               Get Directions
-                               <ArrowRight size={16} />
-                            </button>
+                            {!isLocationHidden && (
+                              <button className="w-full md:w-auto px-6 py-4 md:py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-900 hover:bg-gray-100 transition-all flex items-center justify-center gap-2">
+                                Get Directions
+                                <ArrowRight size={16} />
+                              </button>
+                            )}
                          </div>
                       </div>
 

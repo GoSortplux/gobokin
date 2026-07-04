@@ -69,6 +69,7 @@ interface LivePreviewProps {
     capacity: number;
     category: string;
     isPublic: boolean;
+    hideLocationDetails?: boolean;
   };
   mediaInfo: {
     bannerUrl: string;
@@ -180,7 +181,9 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, sessions, tickets, agenda
               </div>
               <div className="min-w-0">
                 <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Location</p>
-                <p className="text-[11px] font-bold text-gray-700 truncate leading-none">{basicInfo.location || basicInfo.virtualLink || "Location pending"}</p>
+                <p className="text-[11px] font-bold text-gray-700 truncate leading-none">
+                  {basicInfo.hideLocationDetails ? "Available for registered guests" : (basicInfo.location || basicInfo.virtualLink || "Location pending")}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-4 bg-gray-50/50 p-4 rounded-2xl border border-gray-100/50 transition-all hover:bg-white hover:shadow-lg hover:shadow-gray-200/20">
@@ -464,6 +467,7 @@ const CreateEvent = () => {
     tags: [] as string[],
     isPublic: true,
     agendaEnabled: false,
+    hideLocationDetails: false,
     status: "UPCOMING",
   });
 
@@ -609,6 +613,7 @@ const CreateEvent = () => {
         category: basicInfo.category,
         tags: basicInfo.tags,
         agendaEnabled: basicInfo.agendaEnabled,
+        hideLocationDetails: basicInfo.hideLocationDetails,
         registrationMode: registration.mode,
         isGroupingEnabled: registration.isGroupingEnabled,
         enforceUniqueGroupNames: registration.enforceUniqueGroupNames,
@@ -1323,6 +1328,7 @@ const CreateEvent = () => {
         category: basicInfo.category,
         tags: basicInfo.tags,
         agendaEnabled: basicInfo.agendaEnabled,
+        hideLocationDetails: basicInfo.hideLocationDetails,
         registrationMode: registration.mode,
         isGroupingEnabled: registration.isGroupingEnabled,
         enforceUniqueGroupNames: registration.enforceUniqueGroupNames,
@@ -1867,6 +1873,24 @@ const CreateEvent = () => {
                                       className={`w-14 h-8 rounded-full transition-all relative ${basicInfo.isPublic ? 'bg-primary' : 'bg-gray-300'}`}
                                    >
                                       <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${basicInfo.isPublic ? 'left-7' : 'left-1'}`} />
+                                   </button>
+                                </div>
+                             </div>
+                             <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                   <MapPin size={12} />
+                                   Hide Location
+                                </label>
+                                <div className="flex items-start justify-between gap-4">
+                                   <div className="space-y-1">
+                                      <span className="text-sm font-bold text-gray-700 block">{basicInfo.hideLocationDetails ? 'Details Hidden' : 'Details Visible'}</span>
+                                      <p className="text-[10px] text-gray-400 font-medium leading-tight">Hide address and links until registration.</p>
+                                   </div>
+                                   <button
+                                      onClick={() => setBasicInfo(prev => ({ ...prev, hideLocationDetails: !prev.hideLocationDetails }))}
+                                      className={`w-14 h-8 rounded-full transition-all relative shrink-0 ${basicInfo.hideLocationDetails ? 'bg-primary' : 'bg-gray-300'}`}
+                                   >
+                                      <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${basicInfo.hideLocationDetails ? 'left-7' : 'left-1'}`} />
                                    </button>
                                 </div>
                              </div>

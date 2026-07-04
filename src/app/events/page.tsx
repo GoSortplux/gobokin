@@ -359,7 +359,7 @@ const EventDiscoveryContent = () => {
           const start = fmtDate(event.startDate);
           const end = event.endDate ? fmtDate(event.endDate) : fmtDate(new Date(new Date(event.startDate).getTime() + 2 * 60 * 60 * 1000).toISOString());
 
-          const gLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${start}/${end}&details=${encodeURIComponent(event.description || '')}&location=${encodeURIComponent(event.location || '')}`;
+          const gLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${start}/${end}&details=${encodeURIComponent(event.description || '')}&location=${encodeURIComponent(event.hideLocationDetails ? 'Available for registered guests' : (event.location || ''))}`;
           window.open(gLink, '_blank');
           return;
         }
@@ -552,7 +552,9 @@ const EventDiscoveryContent = () => {
 
         <div className="flex items-center gap-2 text-sm text-gray-500 font-medium mb-6">
           <MapPin size={16} className="text-primary/60 flex-shrink-0" />
-          <span className="line-clamp-1">{event.location || "Virtual Event"}</span>
+          <span className="line-clamp-1">
+            {event.hideLocationDetails ? "Available for registered guests" : (event.location || "Virtual Event")}
+          </span>
         </div>
 
         <div className="flex items-center justify-between pt-5 border-t border-gray-50">

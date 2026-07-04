@@ -683,6 +683,7 @@ export interface Event {
   refundCutoffDays?: number;
   isDeleted: boolean;
   agendaEnabled?: boolean;
+  hideLocationDetails?: boolean;
   registrationMode: RegistrationMode;
   isGroupingEnabled: boolean;
   enforceUniqueGroupNames: boolean;
