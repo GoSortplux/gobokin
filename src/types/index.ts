@@ -795,6 +795,9 @@ export interface Registration {
   id: string;
   orderId: string;
   isLeader: boolean;
+  isAttendeeTicket: boolean;
+  isPurchasedByMe: boolean;
+  ticketRelationship: 'SELF_PURCHASE' | 'GIFT' | 'GROUP_LEADER' | 'GROUP_MEMBER' | string;
   groupId: string;
   ticketNumber: string;
   attendeeData: {
@@ -807,6 +810,7 @@ export interface Registration {
   paymentStatus: string;
   transactionId?: string;
   qrCodeUrl: string | null;
+  qrIssuedAt?: string;
   checkInStatus: boolean;
   checkedInAt: string | null;
   checkedInBy?: {
@@ -814,6 +818,8 @@ export interface Registration {
     email: string;
     role: string;
   };
+  guestCategory?: string;
+  guestCategoryId?: string;
   event: {
     id: string;
     title: string;

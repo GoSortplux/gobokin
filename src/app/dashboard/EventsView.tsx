@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import api from "@/services/api";
 import CustomLoader from "@/components/CustomLoader";
-import { Ticket, ListOrdered, History } from "lucide-react";
+import { Ticket, ListOrdered, History, User, Users } from "lucide-react";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 import { Registration } from "@/types";
@@ -16,6 +16,7 @@ const EventsView = () => {
   const [loading, setLoading] = useState(true);
   const [selectedRegistration, setSelectedRegistration] = useState<Registration | null>(null);
   const [activeSubTab, setActiveSubTab] = useState("tickets");
+  const [ticketFilter, setTicketFilter] = useState<"personal" | "guest">("personal");
 
   useEffect(() => {
     const fetchRegistrations = async () => {
@@ -24,7 +25,10 @@ const EventsView = () => {
         const response = await api.get("/events/my-registrations");
         // API might return data directly or nested
         const data = response.data.data || response.data;
-        setRegistrations(Array.isArray(data) ? data : []);
+        const sortedData = Array.isArray(data)
+          ? [...data].sort((a, b) => new Date(a.event.startDate).getTime() - new Date(b.event.startDate).getTime())
+          : [];
+        setRegistrations(sortedData);
       } catch (error) {
         console.error("Failed to fetch registrations:", error);
         Swal.fire("Error", translateError(error), "error");
@@ -34,6 +38,19 @@ const EventsView = () => {
     };
     fetchRegistrations();
   }, []);
+
+  const personalTickets = registrations.filter(reg => reg.isAttendeeTicket === true);
+  const guestTickets = registrations.filter(reg => reg.isPurchasedByMe === true && reg.isAttendeeTicket === false);
+
+  useEffect(() => {
+    if (personalTickets.length === 0 && guestTickets.length > 0) {
+      setTicketFilter("guest");
+    } else {
+      setTicketFilter("personal");
+    }
+  }, [registrations.length]);
+
+  const filteredRegistrations = ticketFilter === "personal" ? personalTickets : guestTickets;
 
   return (
     <div className="space-y-8">
@@ -90,15 +107,48 @@ const EventsView = () => {
               </div>
             ) : (
               <>
-                <div className="flex items-center justify-between mb-8">
-                  <h2 className="text-2xl font-black text-gray-900 tracking-tight">My Event Tickets</h2>
-                  <span className="px-4 py-2 bg-emerald-50 text-emerald-600 text-xs font-black rounded-full uppercase tracking-widest border border-emerald-100">
-                    {registrations.length} Total
-                  </span>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
+                  <div className="space-y-1">
+                    <h2 className="text-2xl font-black text-gray-900 tracking-tight">My Event Tickets</h2>
+                    <p className="text-sm text-gray-500 font-medium">Manage your event registrations and guest tickets</p>
+                  </div>
+
+                  {personalTickets.length > 0 && guestTickets.length > 0 && (
+                    <div className="flex items-center p-1 bg-gray-100 rounded-xl w-fit">
+                      <button
+                        onClick={() => setTicketFilter("personal")}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
+                          ticketFilter === "personal"
+                            ? "bg-white text-primary shadow-sm"
+                            : "text-gray-400 hover:text-gray-600"
+                        }`}
+                      >
+                        <User size={14} />
+                        Personal ({personalTickets.length})
+                      </button>
+                      <button
+                        onClick={() => setTicketFilter("guest")}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
+                          ticketFilter === "guest"
+                            ? "bg-white text-primary shadow-sm"
+                            : "text-gray-400 hover:text-gray-600"
+                        }`}
+                      >
+                        <Users size={14} />
+                        Guest Tickets ({guestTickets.length})
+                      </button>
+                    </div>
+                  )}
+
+                  {(personalTickets.length === 0 || guestTickets.length === 0) && registrations.length > 0 && (
+                    <span className="px-4 py-2 bg-emerald-50 text-emerald-600 text-xs font-black rounded-full uppercase tracking-widest border border-emerald-100">
+                      {registrations.length} Total
+                    </span>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {registrations.map((reg) => (
+                  {filteredRegistrations.map((reg) => (
                     <EventTicketCard
                       key={reg.id}
                       registration={reg}
