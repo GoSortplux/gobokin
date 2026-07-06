@@ -900,3 +900,12 @@ export interface CheckoutBreakdown {
   alreadyPaid?: boolean;
   pricingBreakdown: PricingBreakdown;
 }
+
+export interface OrganizerRule {
+  key: string;
+  title: string;
+  value: string | boolean;
+  description: string;
+  isRestricted: boolean;
+  uxContext: string;
+}

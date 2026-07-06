@@ -45,8 +45,9 @@ import axios from "axios";
 import Swal from "@/utils/sweetalert";
 import { triggerSuccessConfetti } from "@/utils/confetti";
 import { translateError } from "@/utils/errors";
-import {  EventType, RegistrationMode, RegistrationField, Speaker, TicketType, Ticket as ITicket } from "@/types";
+import {  EventType, RegistrationMode, RegistrationField, Speaker, TicketType, Ticket as ITicket, OrganizerRule } from "@/types";
 import { useAuth } from "@/context/AuthContext";
+import { useOrganizerRules } from "@/hooks/useOrganizerRules";
 import CustomLoader from "@/components/CustomLoader";
 
 const steps = [
@@ -441,6 +442,7 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, sessions, tickets, agenda
 const CreateEvent = () => {
   const router = useRouter();
   const { updateToken } = useAuth();
+  const { isRestricted, getRule } = useOrganizerRules();
   const [currentStep, setCurrentStep] = useState(1);
   const [subStep, setSubStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -926,6 +928,29 @@ const CreateEvent = () => {
     const { name, value } = e.target;
     if (name === "capacity") {
       const newCapacity = parseInt(value) || 0;
+
+      // Check MAX_GUESTS rule
+      const maxGuestsRule = getRule('MAX_GUESTS');
+      if (maxGuestsRule && maxGuestsRule.isRestricted) {
+        const limit = parseInt(maxGuestsRule.value as string) || 0;
+        if (newCapacity > limit) {
+          Swal.fire({
+            title: maxGuestsRule.title || 'Capacity Restricted',
+            text: maxGuestsRule.uxContext || `Your current plan only allows events with up to ${limit} guests.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Upgrade Now',
+            cancelButtonText: 'Adjust Capacity',
+            confirmButtonColor: '#295FA7',
+          }).then((result) => {
+            if (result.isConfirmed) {
+              router.push('/organizer/dashboard/settings?tab=subscriptions');
+            }
+          });
+          return;
+        }
+      }
+
       setBasicInfo(prev => ({ ...prev, capacity: newCapacity }));
 
       // Adjust tickets if sum exceeds new capacity
@@ -1046,6 +1071,28 @@ const CreateEvent = () => {
   };
 
   const addTicket = () => {
+    // Check MAX_TICKET_CATEGORIES rule
+    const maxTicketsRule = getRule('MAX_TICKET_CATEGORIES');
+    if (maxTicketsRule && maxTicketsRule.isRestricted) {
+      const limit = parseInt(maxTicketsRule.value as string) || 0;
+      if (tickets.length >= limit) {
+        Swal.fire({
+          title: maxTicketsRule.title || 'Ticket Limit Reached',
+          text: maxTicketsRule.uxContext || `You have reached the maximum number of ticket categories (${limit}) allowed on your current plan.`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Upgrade Now',
+          cancelButtonText: 'Later',
+          confirmButtonColor: '#295FA7',
+        }).then((result) => {
+          if (result.isConfirmed) {
+            router.push('/organizer/dashboard/settings?tab=subscriptions');
+          }
+        });
+        return;
+      }
+    }
+
     const currentTotal = tickets.reduce((sum, t) => sum + (t.totalQuantity || 0), 0);
     const remaining = Math.max(0, basicInfo.capacity - currentTotal);
 
@@ -1308,6 +1355,25 @@ const CreateEvent = () => {
         saveToBackend();
         setSubStep(5);
         return;
+    }
+
+    // Check MAX_ACTIVE_EVENTS rule
+    if (isRestricted('MAX_ACTIVE_EVENTS')) {
+      const rule = getRule('MAX_ACTIVE_EVENTS');
+      Swal.fire({
+        title: rule?.title || 'Event Limit Reached',
+        text: rule?.uxContext || 'You have reached the maximum number of active events allowed on your current plan.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Upgrade Now',
+        cancelButtonText: 'Later',
+        confirmButtonColor: '#295FA7',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          router.push('/organizer/dashboard/settings?tab=subscriptions');
+        }
+      });
+      return;
     }
 
     setLoading(true);

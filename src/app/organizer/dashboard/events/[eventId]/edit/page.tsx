@@ -40,7 +40,8 @@ import api from "@/services/api";
 import axios from "axios";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
-import { EventType, RegistrationMode, RegistrationField, Speaker, TicketType } from "@/types";
+import { EventType, RegistrationMode, RegistrationField, Speaker, TicketType, OrganizerRule } from "@/types";
+import { useOrganizerRules } from "@/hooks/useOrganizerRules";
 import CustomLoader from "@/components/CustomLoader";
 
 const steps = [
@@ -637,6 +638,7 @@ const RegistrationFieldItem = ({
 
 const EditEventContent = () => {
   const router = useRouter();
+  const { isRestricted, getRule } = useOrganizerRules();
   const { eventId } = useParams();
   const searchParams = useSearchParams();
   const [currentStep, setCurrentStep] = useState(1);
@@ -913,6 +915,29 @@ const EditEventContent = () => {
     const { name, value } = e.target;
     if (name === "capacity") {
       const newCapacity = parseInt(value) || 0;
+
+      // Check MAX_GUESTS rule
+      const maxGuestsRule = getRule('MAX_GUESTS');
+      if (maxGuestsRule && maxGuestsRule.isRestricted) {
+        const limit = parseInt(maxGuestsRule.value as string) || 0;
+        if (newCapacity > limit) {
+          Swal.fire({
+            title: maxGuestsRule.title || 'Capacity Restricted',
+            text: maxGuestsRule.uxContext || `Your current plan only allows events with up to ${limit} guests.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Upgrade Now',
+            cancelButtonText: 'Adjust Capacity',
+            confirmButtonColor: '#295FA7',
+          }).then((result) => {
+            if (result.isConfirmed) {
+              router.push('/organizer/dashboard/settings?tab=subscriptions');
+            }
+          });
+          return;
+        }
+      }
+
       setBasicInfo(prev => ({ ...prev, capacity: newCapacity }));
 
       // Adjust tickets if sum exceeds new capacity
@@ -1570,6 +1595,30 @@ const EditEventContent = () => {
   };
 
   if (loading) return <div className="h-screen flex items-center justify-center"><CustomLoader /></div>;
+
+  const checkMaxTicketsRule = () => {
+    const maxTicketsRule = getRule('MAX_TICKET_CATEGORIES');
+    if (maxTicketsRule && maxTicketsRule.isRestricted) {
+      const limit = parseInt(maxTicketsRule.value as string) || 0;
+      if (tickets.length >= limit) {
+        Swal.fire({
+          title: maxTicketsRule.title || 'Ticket Limit Reached',
+          text: maxTicketsRule.uxContext || `You have reached the maximum number of ticket categories (${limit}) allowed on your current plan.`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Upgrade Now',
+          cancelButtonText: 'Later',
+          confirmButtonColor: '#295FA7',
+        }).then((result) => {
+          if (result.isConfirmed) {
+            router.push('/organizer/dashboard/settings?tab=subscriptions');
+          }
+        });
+        return true;
+      }
+    }
+    return false;
+  };
 
   return (
     <div className="max-w-[1600px] mx-auto py-6 lg:py-10 px-4">
@@ -2245,6 +2294,8 @@ const EditEventContent = () => {
                  <div className="flex items-center justify-between px-4">
                     <h3 className="text-3xl font-black text-gray-900 tracking-tight">Tickets</h3>
                     <button onClick={() => {
+                      if (checkMaxTicketsRule()) return;
+
                       const currentTotal = tickets.reduce((sum, t) => sum + (t.totalQuantity || 0), 0);
                       const remaining = Math.max(0, basicInfo.capacity - currentTotal);
                       setTickets([...tickets, {

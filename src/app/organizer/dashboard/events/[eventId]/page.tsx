@@ -41,6 +41,7 @@ import {
 import Image from "next/image";
 import api from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
+import { useOrganizerRules } from "@/hooks/useOrganizerRules";
 import { Event, Analytics, StaffMember, WaitlistEntry } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
@@ -54,6 +55,7 @@ import { ResourcesTab } from "@/components/organizer/ResourcesTab";
 
 const EventDetails = () => {
   const { user } = useAuth();
+  const { isRestricted, getRule } = useOrganizerRules();
   const { eventId } = useParams();
   const router = useRouter();
   const [event, setEvent] = useState<Event | null>(null);
@@ -429,6 +431,23 @@ const EventDetails = () => {
   };
 
   const handleBroadcast = () => {
+    if (isRestricted('BROADCAST_ALLOWED')) {
+      const rule = getRule('BROADCAST_ALLOWED');
+      Swal.fire({
+        title: rule?.title || 'Feature Restricted',
+        text: rule?.uxContext || 'Manual broadcasting is not available on your current plan.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Upgrade Now',
+        cancelButtonText: 'Later',
+        confirmButtonColor: '#295FA7',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          router.push('/organizer/dashboard/settings?tab=subscriptions');
+        }
+      });
+      return;
+    }
     setIsBroadcastModalOpen(true);
   };
 
@@ -524,6 +543,27 @@ const EventDetails = () => {
 
   if (loading) return <div className="h-full flex items-center justify-center"><CustomLoader /></div>;
   if (!event) return <div className="p-20 text-center"><AlertCircle className="mx-auto mb-4 text-red-500" size={48} /><h3 className="text-xl font-bold">Event not found</h3></div>;
+
+  const handleRestrictedAction = (key: string, defaultTitle: string, defaultText: string) => {
+    if (isRestricted(key)) {
+      const rule = getRule(key);
+      Swal.fire({
+        title: rule?.title || defaultTitle,
+        text: rule?.uxContext || defaultText,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Upgrade Now',
+        cancelButtonText: 'Later',
+        confirmButtonColor: '#295FA7',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          router.push('/organizer/dashboard/settings?tab=subscriptions');
+        }
+      });
+      return true;
+    }
+    return false;
+  };
 
   return (
     <div className="space-y-8 pb-12">
@@ -671,10 +711,28 @@ const EventDetails = () => {
 
          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 min-h-[400px]">
             {activeTab === "resources" && (
-              <ResourcesTab
-                eventId={eventId as string}
-                ticketTypes={event.tickets?.map(t => ({ id: t.id!, name: t.name })) || []}
-              />
+              isRestricted('RESOURCES_ALLOWED') ? (
+                <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-gray-200">
+                  <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mb-4 text-amber-500">
+                    <Radio size={32} />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900">{getRule('RESOURCES_ALLOWED')?.title || 'Feature Restricted'}</h3>
+                  <p className="text-gray-500 max-w-sm text-center mt-2">
+                    {getRule('RESOURCES_ALLOWED')?.uxContext || 'Resource sharing is not available on your current plan.'}
+                  </p>
+                  <button
+                    onClick={() => router.push('/organizer/dashboard/settings?tab=subscriptions')}
+                    className="mt-6 flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all font-medium"
+                  >
+                    Upgrade Now
+                  </button>
+                </div>
+              ) : (
+                <ResourcesTab
+                  eventId={eventId as string}
+                  ticketTypes={event.tickets?.map(t => ({ id: t.id!, name: t.name })) || []}
+                />
+              )
             )}
 
             {activeTab === "overview" && (
@@ -1394,7 +1452,14 @@ const EventDetails = () => {
                     </div>
 
                     <div className="flex items-center gap-3">
-                       <button className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-700 font-bold text-xs rounded-xl border border-gray-100 hover:bg-gray-100 transition-all">
+                       <button
+                         onClick={() => {
+                           if (!handleRestrictedAction('BULK_IMPORT_ALLOWED', 'Feature Restricted', 'Bulk export is not available on your current plan.')) {
+                             // Original export logic would go here
+                           }
+                         }}
+                         className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-700 font-bold text-xs rounded-xl border border-gray-100 hover:bg-gray-100 transition-all"
+                       >
                           <Download size={14} />
                           Export Waitlist
                        </button>
@@ -1499,12 +1564,23 @@ const EventDetails = () => {
                     </div>
 
                     <div className="flex items-center gap-3">
-                       <button className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-700 font-bold text-xs rounded-xl border border-gray-100 hover:bg-gray-100 transition-all">
+                       <button
+                         onClick={() => {
+                           if (!handleRestrictedAction('BULK_IMPORT_ALLOWED', 'Feature Restricted', 'Bulk export is not available on your current plan.')) {
+                             // Original export logic
+                           }
+                         }}
+                         className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-700 font-bold text-xs rounded-xl border border-gray-100 hover:bg-gray-100 transition-all"
+                       >
                           <Download size={14} />
                           Export List
                        </button>
                        <button
-                         onClick={() => setIsWalkInModalOpen(true)}
+                         onClick={() => {
+                           if (!handleRestrictedAction('WAL_IN_REGISTRATION_ALLOWED', 'Feature Restricted', 'Walk-in registration is not available on your current plan.')) {
+                             setIsWalkInModalOpen(true);
+                           }
+                         }}
                          className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-900/20 hover:bg-emerald-700 transition-all"
                        >
                           <UserPlus size={14} />

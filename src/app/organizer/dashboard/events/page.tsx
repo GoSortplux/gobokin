@@ -26,11 +26,15 @@ import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 import { useAuth } from "@/context/AuthContext";
+import { useOrganizerRules } from "@/hooks/useOrganizerRules";
+import { useRouter } from "next/navigation";
 import WalkInRegistrationModal from "@/components/organizer/WalkInRegistrationModal";
 import useOnClickOutside from "@/hooks/useOnClickOutside";
 
 const MyEvents = () => {
+  const router = useRouter();
   const { user } = useAuth();
+  const { isRestricted, getRule } = useOrganizerRules();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -123,6 +127,24 @@ const MyEvents = () => {
   };
 
   const handleWalkIn = async (event: Event) => {
+    if (isRestricted('WALK_IN_REGISTRATION_ALLOWED')) {
+      const rule = getRule('WALK_IN_REGISTRATION_ALLOWED');
+      Swal.fire({
+        title: rule?.title || 'Feature Restricted',
+        text: rule?.uxContext || 'Walk-in registration is not available on your current plan.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Upgrade Now',
+        cancelButtonText: 'Later',
+        confirmButtonColor: '#295FA7',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          router.push('/organizer/dashboard/settings?tab=subscriptions');
+        }
+      });
+      return;
+    }
+
     if (!event.tickets || event.tickets.length === 0) {
       try {
         Swal.showLoading();

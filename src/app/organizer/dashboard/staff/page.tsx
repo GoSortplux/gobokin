@@ -15,10 +15,12 @@ import { StaffMember } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
+import { useOrganizerRules } from "@/hooks/useOrganizerRules";
 import OrganizerStaffModal from "@/components/organizer/OrganizerStaffModal";
 import useOnClickOutside from "@/hooks/useOnClickOutside";
 
 const StaffPool = () => {
+  const { isRestricted, getRule } = useOrganizerRules();
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -119,6 +121,30 @@ const StaffPool = () => {
 
   if (loading) return <div className="h-full flex items-center justify-center"><CustomLoader /></div>;
 
+  const checkMaxStaffRule = () => {
+    const maxStaffRule = getRule('MAX_STAFF');
+    if (maxStaffRule && maxStaffRule.isRestricted) {
+      const limit = parseInt(maxStaffRule.value as string) || 0;
+      if (staff.length >= limit) {
+        Swal.fire({
+          title: maxStaffRule.title || 'Staff Limit Reached',
+          text: maxStaffRule.uxContext || `You have reached the maximum number of staff members (${limit}) allowed on your current plan.`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Upgrade Now',
+          cancelButtonText: 'Later',
+          confirmButtonColor: '#295FA7',
+        }).then((result) => {
+          if (result.isConfirmed) {
+            window.location.href = '/organizer/dashboard/settings?tab=subscriptions';
+          }
+        });
+        return true;
+      }
+    }
+    return false;
+  };
+
   return (
     <div className="space-y-8 pb-12 px-2 lg:px-4">
       <div className="flex flex-col md:flex-row md:items-start lg:items-center justify-between gap-6">
@@ -127,7 +153,10 @@ const StaffPool = () => {
           <p className="text-gray-500 font-medium mt-1">Manage your global pool of event staff and managers.</p>
         </div>
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            if (checkMaxStaffRule()) return;
+            setIsModalOpen(true);
+          }}
           className="flex items-center justify-center gap-2 bg-primary text-white font-bold px-6 py-4 rounded-2xl hover:bg-opacity-90 transition-all shadow-xl shadow-primary/20 w-full md:w-auto"
         >
           <UserPlus size={20} />
@@ -239,7 +268,10 @@ const StaffPool = () => {
                Build your team to help manage attendees and ensure smooth event operations.
              </p>
              <button
-                onClick={() => setIsModalOpen(true)}
+                onClick={() => {
+                  if (checkMaxStaffRule()) return;
+                  setIsModalOpen(true);
+                }}
                 className="bg-primary text-white font-bold px-8 py-4 rounded-2xl hover:bg-opacity-90 transition-all shadow-xl shadow-primary/20 flex items-center gap-2 mx-auto"
               >
                 <UserPlus size={20} />

@@ -21,11 +21,13 @@ import QRScannerModal from "@/components/organizer/QRScannerModal";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 import { useAuth } from "@/context/AuthContext";
+import { useOrganizerRules } from "@/hooks/useOrganizerRules";
 
 const CheckInInterface = () => {
   const { eventId } = useParams();
   const router = useRouter();
   const { user } = useAuth();
+  const { isRestricted, getRule } = useOrganizerRules();
   const isStaff = user?.role?.includes('organizer-staff');
   const [event, setEvent] = useState<Event | null>(null);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
@@ -78,6 +80,24 @@ const CheckInInterface = () => {
   const handleLookup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchTerm.trim()) return;
+
+    if (isRestricted('OFFLINE_CHECKIN_ALLOWED')) {
+      const rule = getRule('OFFLINE_CHECKIN_ALLOWED');
+      Swal.fire({
+        title: rule?.title || 'Feature Restricted',
+        text: rule?.uxContext || 'Offline check-in is not available on your current plan.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Upgrade Now',
+        cancelButtonText: 'Later',
+        confirmButtonColor: '#295FA7',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          router.push('/organizer/dashboard/settings?tab=subscriptions');
+        }
+      });
+      return;
+    }
 
     setSearching(true);
     setSearchResult(null);
@@ -221,7 +241,26 @@ const CheckInInterface = () => {
              <div className="mt-10 pt-10 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-center gap-6 relative z-10">
                 <button
                   type="button"
-                  onClick={() => setIsScannerOpen(true)}
+                  onClick={() => {
+                    if (isRestricted('OFFLINE_CHECKIN_ALLOWED')) {
+                      const rule = getRule('OFFLINE_CHECKIN_ALLOWED');
+                      Swal.fire({
+                        title: rule?.title || 'Feature Restricted',
+                        text: rule?.uxContext || 'Offline check-in is not available on your current plan.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Upgrade Now',
+                        cancelButtonText: 'Later',
+                        confirmButtonColor: '#295FA7',
+                      }).then((result) => {
+                        if (result.isConfirmed) {
+                          router.push('/organizer/dashboard/settings?tab=subscriptions');
+                        }
+                      });
+                      return;
+                    }
+                    setIsScannerOpen(true);
+                  }}
                   className="flex items-center gap-4 px-8 py-4 bg-gray-900 text-white rounded-[1.5rem] hover:scale-105 transition-all shadow-xl shadow-gray-900/10 group"
                 >
                    <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center group-hover:bg-primary transition-colors">
