@@ -1454,7 +1454,7 @@ const EventDetails = () => {
                     <div className="flex items-center gap-3">
                        <button
                          onClick={() => {
-                           if (!handleRestrictedAction('BULK_IMPORT_ALLOWED', 'Feature Restricted', 'Bulk export is not available on your current plan.')) {
+                           if (!handleRestrictedAction('BULK_IMPORT_ALLOWED', 'Feature Restricted', 'Bulk import and export is not available on your current plan.')) {
                              // Original export logic would go here
                            }
                          }}
@@ -1566,7 +1566,7 @@ const EventDetails = () => {
                     <div className="flex items-center gap-3">
                        <button
                          onClick={() => {
-                           if (!handleRestrictedAction('BULK_IMPORT_ALLOWED', 'Feature Restricted', 'Bulk export is not available on your current plan.')) {
+                           if (!handleRestrictedAction('BULK_IMPORT_ALLOWED', 'Feature Restricted', 'Bulk import and export is not available on your current plan.')) {
                              // Original export logic
                            }
                          }}
@@ -1577,7 +1577,7 @@ const EventDetails = () => {
                        </button>
                        <button
                          onClick={() => {
-                           if (!handleRestrictedAction('WAL_IN_REGISTRATION_ALLOWED', 'Feature Restricted', 'Walk-in registration is not available on your current plan.')) {
+                           if (!handleRestrictedAction('WALK_IN_REGISTRATION_ALLOWED', 'Feature Restricted', 'Walk-in registration is not available on your current plan.')) {
                              setIsWalkInModalOpen(true);
                            }
                          }}

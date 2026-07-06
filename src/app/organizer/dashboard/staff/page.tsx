@@ -16,11 +16,13 @@ import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 import { useOrganizerRules } from "@/hooks/useOrganizerRules";
+import { useRouter } from "next/navigation";
 import OrganizerStaffModal from "@/components/organizer/OrganizerStaffModal";
 import useOnClickOutside from "@/hooks/useOnClickOutside";
 
 const StaffPool = () => {
-  const { isRestricted, getRule } = useOrganizerRules();
+  const router = useRouter();
+  const { getRule } = useOrganizerRules();
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);

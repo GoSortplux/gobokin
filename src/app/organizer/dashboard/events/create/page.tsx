@@ -45,7 +45,7 @@ import axios from "axios";
 import Swal from "@/utils/sweetalert";
 import { triggerSuccessConfetti } from "@/utils/confetti";
 import { translateError } from "@/utils/errors";
-import {  EventType, RegistrationMode, RegistrationField, Speaker, TicketType, Ticket as ITicket, OrganizerRule } from "@/types";
+import {  EventType, RegistrationMode, RegistrationField, Speaker, TicketType, Ticket as ITicket } from "@/types";
 import { useAuth } from "@/context/AuthContext";
 import { useOrganizerRules } from "@/hooks/useOrganizerRules";
 import CustomLoader from "@/components/CustomLoader";

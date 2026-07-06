@@ -40,7 +40,7 @@ import api from "@/services/api";
 import axios from "axios";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
-import { EventType, RegistrationMode, RegistrationField, Speaker, TicketType, OrganizerRule } from "@/types";
+import { EventType, RegistrationMode, RegistrationField, Speaker, TicketType } from "@/types";
 import { useOrganizerRules } from "@/hooks/useOrganizerRules";
 import CustomLoader from "@/components/CustomLoader";
 
@@ -638,7 +638,7 @@ const RegistrationFieldItem = ({
 
 const EditEventContent = () => {
   const router = useRouter();
-  const { isRestricted, getRule } = useOrganizerRules();
+  const { getRule } = useOrganizerRules();
   const { eventId } = useParams();
   const searchParams = useSearchParams();
   const [currentStep, setCurrentStep] = useState(1);
