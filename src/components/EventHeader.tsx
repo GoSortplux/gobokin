@@ -143,231 +143,233 @@ const EventHeaderContent = () => {
   const dashboardUrl = getDashboardPath(user?.activeRole || 'user');
 
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ${
-        scrolled ? "bg-white shadow-sm h-16" : "bg-white/80 backdrop-blur-md h-20"
-      } border-b border-gray-100`}
-    >
-      <div className="container mx-auto px-4 h-full flex items-center justify-between gap-4">
-        {/* Logo */}
-        <div className="flex-shrink-0 flex items-center gap-3">
-          <Link href="/events" className="flex items-center gap-2 group">
-            <Image
-              src="/gobokin-event.png"
-              alt="Gobokin"
-              width={160}
-              height={50}
-              className="h-10 md:h-12 w-auto object-contain"
-            />
-          </Link>
-        </div>
-
-        {/* Search Bar - Desktop */}
-        <form
-          onSubmit={handleSearch}
-          className="hidden md:flex flex-1 max-w-lg bg-gray-50 border border-gray-200 rounded-xl p-1 items-center transition-all duration-300 hover:bg-white hover:shadow-md focus-within:bg-white focus-within:shadow-md focus-within:border-primary/30"
-        >
-          <div className="flex-[1.2] flex items-center px-3 gap-2 border-r border-gray-200">
-            <Search size={16} className="text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search events..."
-              className="bg-transparent border-none focus:ring-0 text-xs font-semibold text-gray-700 w-full placeholder:text-gray-400 outline-none"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+    <>
+      <header
+        className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ${
+          scrolled ? "bg-white shadow-sm h-16" : "bg-white/80 backdrop-blur-md h-20"
+        } border-b border-gray-100`}
+      >
+        <div className="container mx-auto px-4 h-full flex items-center justify-between gap-4">
+          {/* Logo */}
+          <div className="flex-shrink-0 flex items-center gap-3">
+            <Link href="/events" className="flex items-center gap-2 group">
+              <Image
+                src="/gobokin-event.png"
+                alt="Gobokin"
+                width={160}
+                height={50}
+                className="h-10 md:h-12 w-auto object-contain"
+              />
+            </Link>
           </div>
-          <div className="flex-1 relative" ref={locationDropdownRef}>
-            <div
-              className="flex items-center px-3 gap-2 cursor-pointer"
-              onClick={() => setShowLocationDropdown(true)}
-            >
-              <MapPin size={16} className="text-gray-400" />
+
+          {/* Search Bar - Desktop */}
+          <form
+            onSubmit={handleSearch}
+            className="hidden md:flex flex-1 max-w-lg bg-gray-50 border border-gray-200 rounded-xl p-1 items-center transition-all duration-300 hover:bg-white hover:shadow-md focus-within:bg-white focus-within:shadow-md focus-within:border-primary/30"
+          >
+            <div className="flex-[1.2] flex items-center px-3 gap-2 border-r border-gray-200">
+              <Search size={16} className="text-gray-400" />
               <input
                 type="text"
-                placeholder="Location"
-                className="bg-transparent border-none focus:ring-0 text-xs font-semibold text-gray-700 w-full placeholder:text-gray-400 cursor-pointer outline-none"
-                value={locationTerm}
-                onChange={(e) => setLocationTerm(e.target.value)}
-                onFocus={(e) => {
-                  e.stopPropagation();
-                  setShowLocationDropdown(true);
-                }}
+                placeholder="Search events..."
+                className="bg-transparent border-none focus:ring-0 text-xs font-semibold text-gray-700 w-full placeholder:text-gray-400 outline-none"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
+            <div className="flex-1 relative" ref={locationDropdownRef}>
+              <div
+                className="flex items-center px-3 gap-2 cursor-pointer"
+                onClick={() => setShowLocationDropdown(true)}
+              >
+                <MapPin size={16} className="text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Location"
+                  className="bg-transparent border-none focus:ring-0 text-xs font-semibold text-gray-700 w-full placeholder:text-gray-400 cursor-pointer outline-none"
+                  value={locationTerm}
+                  onChange={(e) => setLocationTerm(e.target.value)}
+                  onFocus={(e) => {
+                    e.stopPropagation();
+                    setShowLocationDropdown(true);
+                  }}
+                />
+              </div>
 
-            <AnimatePresence>
-              {showLocationDropdown && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50 overflow-hidden min-w-[200px]"
-                >
-                  <button
-                    type="button"
-                    onClick={handleUseCurrentLocation}
-                    className="flex items-center gap-3 w-full px-4 py-2.5 text-xs font-semibold text-primary hover:bg-primary/5 transition-colors border-b border-gray-50"
+              <AnimatePresence>
+                {showLocationDropdown && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50 overflow-hidden min-w-[200px]"
                   >
-                    <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
-                      <MapPin size={14} />
-                    </div>
-                    Use Current Location
-                  </button>
-                  <div className="px-4 py-2">
-                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Popular Cities</p>
-                  </div>
-                  <div className="max-h-48 overflow-y-auto">
-                    {popularLocations.map((loc) => (
-                      <button
-                        key={loc}
-                        type="button"
-                        onClick={() => {
-                          setLocationTerm(loc);
-                          setShowLocationDropdown(false);
-                        }}
-                        className="flex items-center gap-3 w-full px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
-                      >
-                        {loc}
-                      </button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-          <button
-            type="submit"
-            className="bg-primary text-white p-2 rounded-lg hover:bg-blue-700 transition-all hover:scale-105 active:scale-95 shadow-sm"
-          >
-            <Search size={16} />
-          </button>
-        </form>
-
-        {/* Right Section */}
-        <div className="flex items-center gap-2 sm:gap-4">
-          <Link
-            href="/events"
-            className={`hidden lg:flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
-              pathname === "/events" ? "text-primary bg-primary/5" : "text-gray-600 hover:bg-gray-50"
-            }`}
-          >
-            <Calendar size={18} />
-            Explore
-          </Link>
-
-          {user ? (
-            <div className="flex items-center gap-2 sm:gap-4">
-              <div className="relative" ref={notificationDropdownRef}>
-                <button
-                  onClick={() => setNotificationDropdownOpen(!notificationDropdownOpen)}
-                  className="p-2 text-gray-500 hover:bg-gray-100 rounded-xl transition-colors"
-                >
-                  <NotificationIcon />
-                </button>
-                <AnimatePresence>
-                  {notificationDropdownOpen && <NotificationDropdown />}
-                </AnimatePresence>
-              </div>
-
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center gap-2 p-1 rounded-xl hover:bg-gray-50 transition-colors"
-                >
-                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200 overflow-hidden">
-                    <UserIcon size={20} className="text-gray-600" />
-                  </div>
-                  <ChevronDown size={14} className={`text-gray-400 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
-                </button>
-
-                <AnimatePresence>
-                  {dropdownOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 10 }}
-                      className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-[60]"
+                    <button
+                      type="button"
+                      onClick={handleUseCurrentLocation}
+                      className="flex items-center gap-3 w-full px-4 py-2.5 text-xs font-semibold text-primary hover:bg-primary/5 transition-colors border-b border-gray-50"
                     >
-                      <div className="px-4 py-3 border-b border-gray-50 mb-2">
-                        <p className="text-sm font-semibold text-gray-900 truncate">{user.fullName}</p>
-                        <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
+                        <MapPin size={14} />
                       </div>
-                      <Link
-                        href={dashboardUrl}
-                        className="flex items-center gap-3 w-full px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-                        onClick={() => setDropdownOpen(false)}
-                      >
-                        <LayoutDashboard size={18} className="text-gray-400" />
-                        Dashboard
-                      </Link>
-
-                      {user.role && user.role.length > 1 && (
-                        <div className="relative">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setRoleSwitchOpen(!roleSwitchOpen);
-                            }}
-                            className="flex items-center justify-between w-full px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-                          >
-                            <span className="flex items-center">
-                              <Users size={18} className="mr-3 text-gray-400" />
-                              Switch Account
-                            </span>
-                            <ChevronDown size={14} className={`transform transition-transform ${roleSwitchOpen ? 'rotate-180 md:-rotate-90' : ''} text-gray-400`} />
-                          </button>
-                          {roleSwitchOpen && (
-                            <div className="md:absolute md:right-full md:top-0 md:w-48 md:mr-1 md:bg-white md:rounded-xl md:shadow-lg md:border md:border-gray-100 relative w-full bg-gray-50 rounded-lg mt-1 overflow-hidden animate-in fade-in slide-in-from-top-1 md:slide-in-from-right-1 z-70">
-                              <div className="py-1">
-                                {user.role.map((role) => (
-                                  <button
-                                    key={role}
-                                    onClick={() => handleRoleSwitch(role)}
-                                    className={`block w-full px-4 py-2.5 text-xs text-left transition-all font-semibold ${
-                                      user.activeRole === role ? 'bg-primary/10 text-primary font-bold' : 'text-gray-600 hover:bg-gray-100'
-                                    }`}
-                                  >
-                                    {formatRole(role)}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      <button
-                        onClick={logout}
-                        className="flex items-center gap-3 w-full px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50"
-                      >
-                        <LogOut size={18} />
-                        Logout
-                      </button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                      Use Current Location
+                    </button>
+                    <div className="px-4 py-2">
+                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Popular Cities</p>
+                    </div>
+                    <div className="max-h-48 overflow-y-auto">
+                      {popularLocations.map((loc) => (
+                        <button
+                          key={loc}
+                          type="button"
+                          onClick={() => {
+                            setLocationTerm(loc);
+                            setShowLocationDropdown(false);
+                          }}
+                          className="flex items-center gap-3 w-full px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                        >
+                          {loc}
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-          ) : (
-            <Link
-              href="/auth/login"
-              className="bg-primary text-white px-6 py-2.5 rounded-lg text-sm font-semibold shadow-md shadow-primary/10 hover:scale-105 transition-all"
+            <button
+              type="submit"
+              className="bg-primary text-white p-2 rounded-lg hover:bg-blue-700 transition-all hover:scale-105 active:scale-95 shadow-sm"
             >
-              Login
+              <Search size={16} />
+            </button>
+          </form>
+
+          {/* Right Section */}
+          <div className="flex items-center gap-2 sm:gap-4">
+            <Link
+              href="/events"
+              className={`hidden lg:flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                pathname === "/events" ? "text-primary bg-primary/5" : "text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              <Calendar size={18} />
+              Explore
             </Link>
-          )}
 
-          {/* Mobile Menu Toggle */}
-          <button
-            onClick={() => setMobileMenuOpen(true)}
-            className="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-xl"
-          >
-            <Menu size={24} />
-          </button>
+            {user ? (
+              <div className="flex items-center gap-2 sm:gap-4">
+                <div className="relative" ref={notificationDropdownRef}>
+                  <button
+                    onClick={() => setNotificationDropdownOpen(!notificationDropdownOpen)}
+                    className="p-2 text-gray-500 hover:bg-gray-100 rounded-xl transition-colors"
+                  >
+                    <NotificationIcon />
+                  </button>
+                  <AnimatePresence>
+                    {notificationDropdownOpen && <NotificationDropdown />}
+                  </AnimatePresence>
+                </div>
+
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                    className="flex items-center gap-2 p-1 rounded-xl hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200 overflow-hidden">
+                      <UserIcon size={20} className="text-gray-600" />
+                    </div>
+                    <ChevronDown size={14} className={`text-gray-400 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  <AnimatePresence>
+                    {dropdownOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-[60]"
+                      >
+                        <div className="px-4 py-3 border-b border-gray-50 mb-2">
+                          <p className="text-sm font-semibold text-gray-900 truncate">{user.fullName}</p>
+                          <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                        </div>
+                        <Link
+                          href={dashboardUrl}
+                          className="flex items-center gap-3 w-full px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                          onClick={() => setDropdownOpen(false)}
+                        >
+                          <LayoutDashboard size={18} className="text-gray-400" />
+                          Dashboard
+                        </Link>
+
+                        {user.role && user.role.length > 1 && (
+                          <div className="relative">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setRoleSwitchOpen(!roleSwitchOpen);
+                              }}
+                              className="flex items-center justify-between w-full px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                            >
+                              <span className="flex items-center">
+                                <Users size={18} className="mr-3 text-gray-400" />
+                                Switch Account
+                              </span>
+                              <ChevronDown size={14} className={`transform transition-transform ${roleSwitchOpen ? 'rotate-180 md:-rotate-90' : ''} text-gray-400`} />
+                            </button>
+                            {roleSwitchOpen && (
+                              <div className="md:absolute md:right-full md:top-0 md:w-48 md:mr-1 md:bg-white md:rounded-xl md:shadow-lg md:border md:border-gray-100 relative w-full bg-gray-50 rounded-lg mt-1 overflow-hidden animate-in fade-in slide-in-from-top-1 md:slide-in-from-right-1 z-70">
+                                <div className="py-1">
+                                  {user.role.map((role) => (
+                                    <button
+                                      key={role}
+                                      onClick={() => handleRoleSwitch(role)}
+                                      className={`block w-full px-4 py-2.5 text-xs text-left transition-all font-semibold ${
+                                        user.activeRole === role ? 'bg-primary/10 text-primary font-bold' : 'text-gray-600 hover:bg-gray-100'
+                                      }`}
+                                    >
+                                      {formatRole(role)}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        <button
+                          onClick={logout}
+                          className="flex items-center gap-3 w-full px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50"
+                        >
+                          <LogOut size={18} />
+                          Logout
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+            ) : (
+              <Link
+                href="/auth/login"
+                className="bg-primary text-white px-6 py-2.5 rounded-lg text-sm font-semibold shadow-md shadow-primary/10 hover:scale-105 transition-all"
+              >
+                Login
+              </Link>
+            )}
+
+            {/* Mobile Menu Toggle */}
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-xl"
+            >
+              <Menu size={24} />
+            </button>
+          </div>
         </div>
-      </div>
+      </header>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile Menu Overlay - Rendered outside header to avoid parent transparency */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <>
@@ -517,7 +519,7 @@ const EventHeaderContent = () => {
       </AnimatePresence>
 
       <AccountSwitchModal isOpen={isSwitchingAccount} />
-    </header>
+    </>
   );
 };
 
