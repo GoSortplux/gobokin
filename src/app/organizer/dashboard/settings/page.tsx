@@ -462,75 +462,6 @@ const OrganizerSettings = () => {
                             </AnimatePresence>
                         </div>
 
-                        {/* Operational Rules Section */}
-                        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-                            <div
-                                onClick={() => toggleSection('rules')}
-                                className="p-8 lg:p-10 border-b border-gray-50 flex items-center justify-between bg-amber-50/10 cursor-pointer hover:bg-amber-50/30 transition-colors"
-                            >
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center">
-                                        <Zap size={24} />
-                                    </div>
-                                    <div>
-                                        <div className="flex items-center gap-2">
-                                            <h3 className="text-xl font-black text-gray-900">Operational Rules</h3>
-                                            <ChevronDown
-                                                size={20}
-                                                className={`text-gray-400 transition-transform duration-300 ${expandedSections.rules ? 'rotate-180' : ''}`}
-                                            />
-                                        </div>
-                                        <p className="text-xs text-gray-400 font-bold uppercase tracking-widest leading-none mt-1">Platform Limits & Permissions</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <AnimatePresence>
-                                {expandedSections.rules && (
-                                <motion.div
-                                    initial={{ height: 0, opacity: 0 }}
-                                    animate={{ height: "auto", opacity: 1 }}
-                                    exit={{ height: 0, opacity: 0 }}
-                                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                                    className="overflow-hidden"
-                                >
-                                    <div className="p-8 lg:p-10">
-                                        {rulesLoading ? (
-                                            <div className="flex justify-center py-10"><CustomLoader /></div>
-                                        ) : rules.length > 0 ? (
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                {rules.map((rule: OrganizerRule) => (
-                                                    <div key={rule.key} className="p-5 bg-gray-50 rounded-2xl border border-gray-100 group transition-all hover:bg-white hover:shadow-md">
-                                                        <div className="flex items-start justify-between mb-2">
-                                                            <div className="space-y-1">
-                                                                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">{rule.title}</h4>
-                                                                <p className="text-xs text-gray-500 font-medium leading-relaxed">{rule.description}</p>
-                                                            </div>
-                                                            {rule.isRestricted && (
-                                                                <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-[8px] font-black uppercase tracking-tighter rounded border border-amber-200">Restricted</span>
-                                                            )}
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className={`text-lg font-black ${rule.isRestricted ? 'text-amber-600' : 'text-primary'}`}>
-                                                                {typeof rule.value === 'boolean' ? (rule.value ? 'YES' : 'NO') : rule.value}
-                                                            </span>
-                                                            {rule.key.includes('MAX') && (
-                                                                <span className="text-[8px] text-gray-400 font-black uppercase tracking-widest">/ limit</span>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <div className="text-center py-10 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                                                <Info size={24} className="text-gray-300 mx-auto mb-2" />
-                                                <p className="text-xs text-gray-400 font-medium">No operational rules available for your current status.</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </div>
 
                         <form onSubmit={handleUpdate} className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
                             <div
@@ -638,6 +569,76 @@ const OrganizerSettings = () => {
                         exit={{ opacity: 0, y: -10 }}
                         className="space-y-6"
                     >
+                        {/* Free Plan Account Section */}
+                        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+                            <div
+                                onClick={() => toggleSection('rules')}
+                                className="p-8 lg:p-10 border-b border-gray-50 flex items-center justify-between bg-amber-50/10 cursor-pointer hover:bg-amber-50/30 transition-colors"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center">
+                                        <Zap size={24} />
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <h3 className="text-xl font-black text-gray-900">Free Plan Account</h3>
+                                            <ChevronDown
+                                                size={20}
+                                                className={`text-gray-400 transition-transform duration-300 ${expandedSections.rules ? 'rotate-180' : ''}`}
+                                            />
+                                        </div>
+                                        <p className="text-xs text-gray-400 font-bold uppercase tracking-widest leading-none mt-1">Platform Limits & Permissions</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <AnimatePresence>
+                                {expandedSections.rules && (
+                                <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: "auto", opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                                    className="overflow-hidden"
+                                >
+                                    <div className="p-8 lg:p-10">
+                                        {rulesLoading ? (
+                                            <div className="flex justify-center py-10"><CustomLoader /></div>
+                                        ) : rules.length > 0 ? (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {rules.map((rule: OrganizerRule) => (
+                                                    <div key={rule.key} className="p-5 bg-gray-50 rounded-2xl border border-gray-100 group transition-all hover:bg-white hover:shadow-md">
+                                                        <div className="flex items-start justify-between mb-3">
+                                                            <div className="space-y-1 flex-1 pr-4">
+                                                                <h4 className="text-sm font-black text-gray-900 uppercase tracking-tight leading-tight">{rule.title}</h4>
+                                                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed">{rule.description}</p>
+                                                            </div>
+                                                            {rule.isRestricted && (
+                                                                <span className="px-2 py-0.5 bg-rose-50 text-rose-600 text-[8px] font-black uppercase tracking-tighter rounded border border-rose-100">Restricted</span>
+                                                            )}
+                                                        </div>
+                                                        <div className="flex items-baseline gap-2">
+                                                            <span className={`text-3xl font-black italic tracking-tighter ${rule.isRestricted ? 'text-amber-600' : 'text-primary'}`}>
+                                                                {typeof rule.value === 'boolean' ? (rule.value ? 'YES' : 'NO') : rule.value}
+                                                            </span>
+                                                            {rule.key.includes('MAX') && (
+                                                                <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest">/ limit</span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="text-center py-10 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                                                <Info size={24} className="text-gray-300 mx-auto mb-2" />
+                                                <p className="text-xs text-gray-400 font-medium">No operational rules available for your current status.</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+
                         {/* 1. Header & Selection Section */}
                         <div className="space-y-4">
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

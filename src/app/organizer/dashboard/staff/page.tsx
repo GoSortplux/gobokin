@@ -136,7 +136,7 @@ const StaffPool = () => {
           confirmButtonColor: '#295FA7',
         }).then((result) => {
           if (result.isConfirmed) {
-            window.location.href = '/organizer/dashboard/settings?tab=subscriptions';
+            router.push('/organizer/dashboard/settings?tab=subscriptions');
           }
         });
         return true;
