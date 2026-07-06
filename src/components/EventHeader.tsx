@@ -144,7 +144,7 @@ const EventHeaderContent = () => {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ${
         scrolled ? "bg-white shadow-sm h-16" : "bg-white/80 backdrop-blur-md h-20"
       } border-b border-gray-100`}
     >
@@ -376,13 +376,13 @@ const EventHeaderContent = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setMobileMenuOpen(false)}
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100]"
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[110]"
             />
             <motion.div
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
-              className="fixed right-0 top-0 bottom-0 w-[85%] bg-white z-[101] p-6 flex flex-col gap-8 shadow-2xl"
+              className="fixed right-0 top-0 bottom-0 w-[85%] bg-white z-[120] p-6 flex flex-col gap-8 shadow-2xl"
             >
               <div className="flex items-center justify-between">
                 <Link href="/events" onClick={() => setMobileMenuOpen(false)}>
