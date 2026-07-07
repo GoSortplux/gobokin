@@ -126,8 +126,8 @@ const StaffPool = () => {
   const checkMaxStaffRule = () => {
     const maxStaffRule = getRule('MAX_STAFF');
     if (maxStaffRule && maxStaffRule.isRestricted) {
-      const limit = parseInt(maxStaffRule.value as string) || 0;
-      if (staff.length >= limit) {
+      const limit = parseInt(maxStaffRule.value as string);
+      if (limit !== -1 && staff.length >= limit) {
         Swal.fire({
           title: maxStaffRule.title || 'Staff Limit Reached',
           text: maxStaffRule.uxContext || `You have reached the maximum number of staff members (${limit}) allowed on your current plan.`,

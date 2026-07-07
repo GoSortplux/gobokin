@@ -453,6 +453,7 @@ const CreateEvent = () => {
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
   const [organizerSlug, setOrganizerSlug] = useState<string>("");
+  const [activeEventsCount, setActiveEventsCount] = useState<number>(0);
 
   // Form State
   const [basicInfo, setBasicInfo] = useState({
@@ -490,9 +491,10 @@ const CreateEvent = () => {
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        const [categoriesRes, profileRes] = await Promise.all([
+        const [categoriesRes, profileRes, eventsRes] = await Promise.all([
           api.get("/events/utils/categories"),
-          api.get("/events/my-organizer-profile")
+          api.get("/events/my-organizer-profile"),
+          api.get("/events/my-events")
         ]);
 
         const categoriesData = categoriesRes.data.data || [];
@@ -502,6 +504,18 @@ const CreateEvent = () => {
         if (profileRes.data?.data?.slug) {
           setOrganizerSlug(profileRes.data.data.slug);
         }
+
+        // Count active events
+        const events = eventsRes.data.data || [];
+        const activeCount = events.filter((event: Event) => {
+          if (!event.isPublished) return true; // Draft
+          if (event.status === "CANCELLED") return false;
+
+          const now = new Date();
+          const end = new Date(event.endDate);
+          return now <= end; // UPCOMING or ONGOING
+        }).length;
+        setActiveEventsCount(activeCount);
       } catch (_error) {
         console.error("Failed to fetch initial data:", _error);
       }
@@ -932,8 +946,8 @@ const CreateEvent = () => {
       // Check MAX_GUESTS rule
       const maxGuestsRule = getRule('MAX_GUESTS');
       if (maxGuestsRule && maxGuestsRule.isRestricted) {
-        const limit = parseInt(maxGuestsRule.value as string) || 0;
-        if (newCapacity > limit) {
+        const limit = parseInt(maxGuestsRule.value as string);
+        if (limit !== -1 && newCapacity > limit) {
           Swal.fire({
             title: maxGuestsRule.title || 'Capacity Restricted',
             text: maxGuestsRule.uxContext || `Your current plan only allows events with up to ${limit} guests.`,
@@ -1074,8 +1088,8 @@ const CreateEvent = () => {
     // Check MAX_TICKET_CATEGORIES rule
     const maxTicketsRule = getRule('MAX_TICKET_CATEGORIES');
     if (maxTicketsRule && maxTicketsRule.isRestricted) {
-      const limit = parseInt(maxTicketsRule.value as string) || 0;
-      if (tickets.length >= limit) {
+      const limit = parseInt(maxTicketsRule.value as string);
+      if (limit !== -1 && tickets.length >= limit) {
         Swal.fire({
           title: maxTicketsRule.title || 'Ticket Limit Reached',
           text: maxTicketsRule.uxContext || `You have reached the maximum number of ticket categories (${limit}) allowed on your current plan.`,
@@ -1358,22 +1372,25 @@ const CreateEvent = () => {
     }
 
     // Check MAX_ACTIVE_EVENTS rule
-    if (isRestricted('MAX_ACTIVE_EVENTS')) {
-      const rule = getRule('MAX_ACTIVE_EVENTS');
-      Swal.fire({
-        title: rule?.title || 'Event Limit Reached',
-        text: rule?.uxContext || 'You have reached the maximum number of active events allowed on your current plan.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Upgrade Now',
-        cancelButtonText: 'Later',
-        confirmButtonColor: '#295FA7',
-      }).then((result) => {
-        if (result.isConfirmed) {
-          router.push('/organizer/dashboard/settings?tab=subscriptions');
-        }
-      });
-      return;
+    const maxEventsRule = getRule('MAX_ACTIVE_EVENTS');
+    if (maxEventsRule && maxEventsRule.isRestricted) {
+      const limit = parseInt(maxEventsRule.value as string);
+      if (limit !== -1 && activeEventsCount >= limit) {
+        Swal.fire({
+          title: maxEventsRule.title || 'Event Limit Reached',
+          text: maxEventsRule.uxContext || `You have reached the maximum number of active events (${limit}) allowed on your current plan.`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Upgrade Now',
+          cancelButtonText: 'Later',
+          confirmButtonColor: '#295FA7',
+        }).then((result) => {
+          if (result.isConfirmed) {
+            router.push('/organizer/dashboard/settings?tab=subscriptions');
+          }
+        });
+        return;
+      }
     }
 
     setLoading(true);

@@ -34,7 +34,7 @@ import useOnClickOutside from "@/hooks/useOnClickOutside";
 const MyEvents = () => {
   const router = useRouter();
   const { user } = useAuth();
-  const { isRestricted, getRule } = useOrganizerRules();
+  const { getRule } = useOrganizerRules();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -127,11 +127,11 @@ const MyEvents = () => {
   };
 
   const handleWalkIn = async (event: Event) => {
-    if (isRestricted('WALK_IN_REGISTRATION_ALLOWED')) {
-      const rule = getRule('WALK_IN_REGISTRATION_ALLOWED');
+    const walkInRule = getRule('WALK_IN_REGISTRATION_ALLOWED');
+    if (walkInRule && walkInRule.isRestricted) {
       Swal.fire({
-        title: rule?.title || 'Feature Restricted',
-        text: rule?.uxContext || 'Walk-in registration is not available on your current plan.',
+        title: walkInRule.title || 'Feature Restricted',
+        text: walkInRule.uxContext || 'Walk-in registration is not available on your current plan.',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Upgrade Now',
@@ -240,6 +240,43 @@ const MyEvents = () => {
     );
   };
 
+  const handleCreateEvent = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const maxEventsRule = getRule('MAX_ACTIVE_EVENTS');
+
+    if (maxEventsRule && maxEventsRule.isRestricted) {
+      const activeCount = events.filter((event: Event) => {
+        if (!event.isPublished) return true; // Draft
+        if (event.status === "CANCELLED") return false;
+
+        const now = new Date();
+        const end = new Date(event.endDate);
+        return now <= end; // UPCOMING or ONGOING
+      }).length;
+
+      const limit = parseInt(maxEventsRule.value as string) || 0;
+
+      if (activeCount >= limit) {
+        Swal.fire({
+          title: maxEventsRule.title || 'Event Limit Reached',
+          text: maxEventsRule.uxContext || `You have reached the maximum number of active events (${limit}) allowed on your current plan.`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Upgrade Now',
+          cancelButtonText: 'Later',
+          confirmButtonColor: '#295FA7',
+        }).then((result) => {
+          if (result.isConfirmed) {
+            router.push('/organizer/dashboard/settings?tab=subscriptions');
+          }
+        });
+        return;
+      }
+    }
+
+    router.push("/organizer/dashboard/events/create");
+  };
+
   if (loading) return <div className="h-full flex items-center justify-center"><CustomLoader /></div>;
 
   return (
@@ -251,13 +288,13 @@ const MyEvents = () => {
           <p className="text-gray-500 font-medium mt-1">{isStaff ? "View and manage check-ins for your assigned events." : "Manage and monitor all your events in one place."}</p>
         </div>
         {!isStaff && (
-          <Link
-            href="/organizer/dashboard/events/create"
+          <button
+            onClick={handleCreateEvent}
             className="flex items-center justify-center gap-2 bg-primary text-white font-bold px-6 py-4 rounded-2xl hover:bg-opacity-90 transition-all shadow-xl shadow-primary/20 w-full md:w-auto"
           >
             <PlusCircle size={20} />
             Create New Event
-          </Link>
+          </button>
         )}
       </div>
 
@@ -650,13 +687,13 @@ const MyEvents = () => {
                </button>
              )}
              {!isStaff && (
-               <Link
-                href="/organizer/dashboard/events/create"
+               <button
+                onClick={handleCreateEvent}
                 className="bg-primary text-white font-bold px-8 py-4 rounded-2xl hover:bg-opacity-90 transition-all shadow-xl shadow-primary/20 flex items-center gap-2"
               >
                 <PlusCircle size={20} />
                 Create New Event
-              </Link>
+              </button>
              )}
           </div>
         </div>

@@ -919,8 +919,8 @@ const EditEventContent = () => {
       // Check MAX_GUESTS rule
       const maxGuestsRule = getRule('MAX_GUESTS');
       if (maxGuestsRule && maxGuestsRule.isRestricted) {
-        const limit = parseInt(maxGuestsRule.value as string) || 0;
-        if (newCapacity > limit) {
+        const limit = parseInt(maxGuestsRule.value as string);
+        if (limit !== -1 && newCapacity > limit) {
           Swal.fire({
             title: maxGuestsRule.title || 'Capacity Restricted',
             text: maxGuestsRule.uxContext || `Your current plan only allows events with up to ${limit} guests.`,
@@ -1599,8 +1599,8 @@ const EditEventContent = () => {
   const checkMaxTicketsRule = () => {
     const maxTicketsRule = getRule('MAX_TICKET_CATEGORIES');
     if (maxTicketsRule && maxTicketsRule.isRestricted) {
-      const limit = parseInt(maxTicketsRule.value as string) || 0;
-      if (tickets.length >= limit) {
+      const limit = parseInt(maxTicketsRule.value as string);
+      if (limit !== -1 && tickets.length >= limit) {
         Swal.fire({
           title: maxTicketsRule.title || 'Ticket Limit Reached',
           text: maxTicketsRule.uxContext || `You have reached the maximum number of ticket categories (${limit}) allowed on your current plan.`,
