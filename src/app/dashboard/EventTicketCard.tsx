@@ -157,10 +157,18 @@ const EventTicketCard: React.FC<EventTicketCardProps> = ({ registration, onViewD
 
         {/* Status Badge */}
         <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
-          <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
-            isPaid ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-amber-500 text-white shadow-lg shadow-amber-500/20'
-          }`}>
-            {registration.paymentStatus}
+          <div className="flex flex-col items-end gap-1.5">
+            <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+              isPaid ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-amber-500 text-white shadow-lg shadow-amber-500/20'
+            }`}>
+              {registration.paymentStatus}
+            </div>
+
+            {!registration.isAttendeeTicket && registration.isPurchasedByMe && (
+              <div className="px-3 py-1 rounded-full bg-secondary text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-secondary/20 border border-white/20">
+                Guest Ticket
+              </div>
+            )}
           </div>
 
           {!isPaid && !isFree && (
