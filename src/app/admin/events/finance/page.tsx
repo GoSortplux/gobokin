@@ -457,7 +457,9 @@ const FinancePage = () => {
                     <tr key={acc.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-8 py-6">
                          <p className="font-bold text-gray-900">ID: {acc.organizerId.slice(0,8)}</p>
-                         <p className="text-[10px] text-gray-400 font-medium">{new Date(acc.createdAt).toLocaleDateString()}</p>
+                         <p className="text-[10px] text-gray-400 font-medium">
+                            {acc.createdAt ? new Date(acc.createdAt).toLocaleDateString() : "N/A"}
+                         </p>
                       </td>
                       <td className="px-8 py-6">
                         <p className="text-sm font-bold text-gray-700">{acc.bankName}</p>

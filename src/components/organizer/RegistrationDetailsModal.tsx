@@ -4,14 +4,12 @@ import {
   X,
   User,
   Mail,
-  Ticket,
   Calendar,
   Clock,
   CheckCircle2,
   XCircle,
   AlertCircle,
-  ShieldCheck,
-  MapPin
+  ShieldCheck
 } from "lucide-react";
 import api from "@/services/api";
 import CustomLoader from "@/components/CustomLoader";
@@ -45,7 +43,7 @@ interface RegistrationDetailsModalProps {
   onClose: () => void;
   eventId: string;
   ticketNumber: string;
-  attendeeName: string;
+  attendeeName?: string;
   onCheckInSuccess?: () => void;
 }
 
@@ -54,7 +52,7 @@ const RegistrationDetailsModal = ({
   onClose,
   eventId,
   ticketNumber,
-  attendeeName,
+  attendeeName: _attendeeName,
   onCheckInSuccess
 }: RegistrationDetailsModalProps) => {
   const [loading, setLoading] = useState(true);

@@ -26,6 +26,7 @@ const OrdersView = () => {
   const [loading, setLoading] = useState(true);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [selectedRegistration, setSelectedRegistration] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -438,7 +439,6 @@ const OrdersView = () => {
             }}
             eventId={selectedRegistration.eventId || selectedRegistration.event?.id || selectedEventId}
             ticketNumber={selectedRegistration.ticketNumber}
-            attendeeName={selectedRegistration.attendeeName}
             onCheckInSuccess={fetchOrders}
           />
       )}

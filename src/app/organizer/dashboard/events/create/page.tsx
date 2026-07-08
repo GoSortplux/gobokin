@@ -45,7 +45,7 @@ import axios from "axios";
 import Swal from "@/utils/sweetalert";
 import { triggerSuccessConfetti } from "@/utils/confetti";
 import { translateError } from "@/utils/errors";
-import {  EventType, RegistrationMode, RegistrationField, Speaker, TicketType, Ticket as ITicket } from "@/types";
+import { Event as IEvent, EventType, RegistrationMode, RegistrationField, Speaker, TicketType, Ticket as ITicket } from "@/types";
 import { useAuth } from "@/context/AuthContext";
 import { useOrganizerRules } from "@/hooks/useOrganizerRules";
 import CustomLoader from "@/components/CustomLoader";
@@ -507,7 +507,7 @@ const CreateEvent = () => {
 
         // Count active events
         const events = eventsRes.data.data || [];
-        const activeCount = events.filter((event: Event) => {
+        const activeCount = events.filter((event: IEvent) => {
           if (!event.isPublished) return true; // Draft
           if (event.status === "CANCELLED") return false;
 
