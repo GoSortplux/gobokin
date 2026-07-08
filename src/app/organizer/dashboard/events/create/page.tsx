@@ -24,9 +24,7 @@ import {
   Clock,
   ChevronDown,
   Type,
-  GripVertical,
   Layout,
-  Tag,
   FileText,
   Eye,
   EyeOff,
@@ -41,6 +39,7 @@ import {
   Settings
 } from "lucide-react";
 import api from "@/services/api";
+import { RegistrationFieldItem } from "@/components/organizer/RegistrationFieldItem";
 import axios from "axios";
 import Swal from "@/utils/sweetalert";
 import { triggerSuccessConfetti } from "@/utils/confetti";
@@ -442,7 +441,7 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, sessions, tickets, agenda
 const CreateEvent = () => {
   const router = useRouter();
   const { updateToken } = useAuth();
-  const { isRestricted, getRule } = useOrganizerRules();
+  const { getRule } = useOrganizerRules();
   const [currentStep, setCurrentStep] = useState(1);
   const [subStep, setSubStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -2173,52 +2172,6 @@ const CreateEvent = () => {
                                               Organization
                                             </button>
                                           )}
-                                          {!registration.fields.some(f => f.label.toLowerCase() === 'team category') && (
-                                            <button
-                                              onClick={() => {
-                                                setRegistration({
-                                                  ...registration,
-                                                  fields: [...registration.fields, {
-                                                    name: "team-category",
-                                                    label: "Team Category",
-                                                    type: "text",
-                                                    required: false,
-                                                    isPerAttendee: false,
-                                                    options: []
-                                                  }]
-                                                });
-                                                setShowAddFieldDropdown(false);
-                                                setTimeout(handleBlur, 0);
-                                              }}
-                                              className="w-full px-6 py-2.5 text-left text-[10px] font-black uppercase tracking-widest text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors flex items-center gap-3"
-                                            >
-                                              <Tag size={14} />
-                                              Team Category
-                                            </button>
-                                          )}
-                                          {!registration.fields.some(f => f.label.toLowerCase() === 'coach name') && (
-                                            <button
-                                              onClick={() => {
-                                                setRegistration({
-                                                  ...registration,
-                                                  fields: [...registration.fields, {
-                                                    name: "coach-name",
-                                                    label: "Coach Name",
-                                                    type: "text",
-                                                    required: false,
-                                                    isPerAttendee: false,
-                                                    options: []
-                                                  }]
-                                                });
-                                                setShowAddFieldDropdown(false);
-                                                setTimeout(handleBlur, 0);
-                                              }}
-                                              className="w-full px-6 py-2.5 text-left text-[10px] font-black uppercase tracking-widest text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors flex items-center gap-3"
-                                            >
-                                              <User size={14} />
-                                              Coach Name
-                                            </button>
-                                          )}
                                         </div>
                                       )}
                                       <div className="border-t border-gray-50 my-1 py-1">
@@ -2246,188 +2199,23 @@ const CreateEvent = () => {
                                      <h4 className="text-sm font-black text-gray-900 uppercase tracking-widest">Group Information</h4>
                                    </div>
                                    <Reorder.Group axis="y" values={groupFields} onReorder={setGroupFields} className="grid grid-cols-1 gap-6">
-                                     {groupFields.map((field) => {
-                                       const idx = registration.fields.indexOf(field);
-                                       const isLocationField = field.source === 'COUNTRIES' || field.source === 'STATES' || field.source === 'LGAS';
-                                       const isGroupNameField = field.source === 'GROUP_NAME';
-                                       return (
-                                         <Reorder.Item key={field.id || field.name || field.label} value={field}>
-                                           <div className={`p-6 bg-gray-50 rounded-[2.5rem] group relative border-2 border-gray-300 hover:border-primary transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50 flex flex-col ${showPreview ? "gap-4 xl:gap-6" : "gap-6 lg:flex-row lg:items-center lg:gap-8"}`}>
-                                           <div className="flex absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-12 bg-white rounded-lg border border-gray-100 shadow-sm items-center justify-center cursor-grab active:cursor-grabbing text-gray-300 hover:text-primary transition-colors z-10">
-                                               <GripVertical size={20} />
-                                             </div>
-                                   {/* First Section: Label and Type */}
-                                   <div className={`flex items-center gap-4 ${showPreview ? "w-full flex-col xl:flex-row xl:gap-6" : "flex-1 flex-col lg:flex-row lg:gap-8"}`}>
-                                      <div className={`space-y-2 ${showPreview ? "w-full xl:flex-[1.5] min-w-0" : "w-full flex-[2]"}`}>
-                                         <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Field Label</label>
-                                         <input
-                                            type="text"
-                                            placeholder="e.g., Organization"
-                                            disabled={isLocationField || isGroupNameField}
-                                            className={`w-full p-3.5 bg-white border border-gray-200 rounded-xl text-[11px] font-bold focus:border-primary transition-all outline-none ${isLocationField || isGroupNameField ? 'opacity-60 cursor-not-allowed' : ''}`}
-                                            value={field.label}
-                                            onBlur={handleBlur} onChange={(e) => updateField(idx, "label", e.target.value)}
-                                         />
-                                      </div>
-                                      <div className={`space-y-2 ${showPreview ? "w-full xl:flex-1 min-w-0" : "w-full flex-1"}`}>
-                                         <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Input Type</label>
-                                         <div className="relative">
-                                            <select
-                                               disabled={isLocationField || isGroupNameField}
-                                               className={`w-full p-3.5 bg-white border border-gray-200 rounded-xl text-[11px] font-bold appearance-none outline-none focus:border-primary transition-all ${isLocationField || isGroupNameField ? 'opacity-60 cursor-not-allowed' : ''}`}
-                                               value={field.type}
-                                               onBlur={handleBlur} onChange={(e) => updateField(idx, "type", e.target.value)}
-                                            >
-                                               <option value="text">Text</option>
-                                               <option value="number">Number</option>
-                                               <option value="select">Dropdown</option>
-                                               <option value="checkbox">Checkbox</option>
-                                            </select>
-                                            <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                                         </div>
-                                      </div>
-                                   </div>
-
-                                   {/* Toggles and Non-Preview actions */}
-                                   <div className={`flex items-center gap-6 ${showPreview ? "justify-start pl-1 w-full xl:w-auto" : "flex-1 justify-around px-6 h-16 bg-white/50 rounded-xl border border-gray-100"}`}>
-                                      <label className="flex items-center gap-3 cursor-pointer group/toggle">
-                                         <input
-                                            type="checkbox"
-                                            checked={field.required}
-                                            onBlur={handleBlur} onChange={(e) => updateField(idx, "required", e.target.checked)}
-                                            className="w-6 h-6 rounded-lg border-gray-200 text-primary cursor-pointer shadow-sm transition-all"
-                                         />
-                                         <span className="text-[10px] font-black text-gray-400 group-hover/toggle:text-gray-900 uppercase tracking-widest transition-colors">Required</span>
-                                      </label>
-                                   </div>
-
-                                   {!isGroupNameField && (
-                                      <button
-                                         onClick={() => removeField(idx)}
-                                         className="absolute top-4 right-4 w-10 h-10 bg-white/80 text-gray-300 hover:text-secondary rounded-xl flex items-center justify-center shadow-sm border border-gray-100 transition-all opacity-0 group-hover:opacity-100 z-10"
-                                      >
-                                         <Trash2 size={16} />
-                                      </button>
-                                   )}
-                                </div>
-                                {(field.type === 'select' || field.type === 'checkbox') && (
-                                    <div className="bg-gray-50/50 rounded-[2rem] p-6 border border-gray-100 mt-2 ml-4 mr-4 space-y-5">
-                                        {!isLocationField && (
-                                        <div className={`grid gap-5 ${showPreview ? "grid-cols-1 2xl:grid-cols-2" : "grid-cols-1 md:grid-cols-2"}`}>
-                                            <div className="space-y-2">
-                                                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Choice Source</label>
-                                                <div className="relative">
-                                                    <select
-                                                        className="w-full p-3.5 bg-white border border-gray-200 rounded-xl text-xs font-bold appearance-none outline-none focus:border-primary transition-all"
-                                                        value={field.source === "LGAS" ? (field.label === "City" ? "CITY" : "LGAS") : (field.source || "")}
-                                                        onBlur={handleBlur}
-                                                        onChange={(e) => {
-                                                            const newSource = e.target.value || undefined;
-                                                            updateField(idx, "source", newSource);
-                                                            if (newSource) {
-                                                                updateField(idx, "options", []);
-                                                            }
-                                                        }}
-                                                    >
-                                                        <option value="">Manual Entry</option>
-                                                        <option value="COUNTRIES">Countries</option>
-                                                        <option value="STATES">States</option>
-                                                        <option value="LGAS">LGAs</option>
-                                                        <option value="CITY">City</option>
-                                                    </select>
-                                                    <ChevronDown size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                                                </div>
-                                            </div>
-
-                                            {field.source && (
-                                                <div className="space-y-2">
-                                                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Link to Field</label>
-                                                    <div className="relative">
-                                                        <select
-                                                            className="w-full p-3.5 bg-white border border-gray-200 rounded-xl text-xs font-bold appearance-none outline-none focus:border-primary transition-all"
-                                                            value={field.dependsOn || ""}
-                                                            onBlur={handleBlur}
-                                                            onChange={(e) => updateField(idx, "dependsOn", e.target.value || undefined)}
-                                                        >
-                                                            <option value="">Independent</option>
-                                                            {registration.fields
-                                                                .filter((f, i) => i !== idx && (f.type === 'select' || f.type === 'text'))
-                                                                .map((f, i) => (
-                                                                    <option key={i} value={f.name || f.label.toLowerCase().replace(/\s+/g, '-')}>
-                                                                        {f.label || `Field ${i + 1}`}
-                                                                    </option>
-                                                                ))
-                                                            }
-                                                        </select>
-                                                        <ChevronDown size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                        )}
-
-                                        <div className="space-y-3">
-                                            <div className="flex items-center justify-between px-1">
-                                                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
-                                                    {field.source ? "Auto-Managed" : "Your Options"}
-                                                </p>
-                                                {!field.source && !isLocationField && (
-                                                    <button
-                                                        onClick={() => {
-                                                            addFieldOption(idx);
-                                                            handleBlur();
-                                                        }}
-                                                        className="text-[9px] font-black text-primary uppercase tracking-widest hover:underline flex items-center gap-1"
-                                                    >
-                                                        <Plus size={10} strokeWidth={3} /> Add
-                                                    </button>
-                                                )}
-                                            </div>
-                                            <div className="flex flex-wrap gap-2.5">
-                                                {field.source ? (
-                                                    <div className="flex items-center gap-2.5 p-3.5 bg-primary/5 rounded-xl border border-primary/10 w-full">
-                                                        <Info size={14} className="text-primary shrink-0" />
-                                                        <p className="text-[9px] font-semibold text-primary/80 leading-relaxed uppercase tracking-wider">
-                                                            Pops from {field.source}.
-                                                            {field.dependsOn && <span> Linked to {field.dependsOn}.</span>}
-                                                        </p>
-                                                    </div>
-                                                ) : (
-                                                    <>
-                                                        {(field.options || []).map((opt, oIdx) => (
-                                                            <div key={oIdx} className="flex items-center gap-1.5 bg-white p-1.5 pl-3 rounded-lg border border-gray-100 shadow-sm group/opt transition-all hover:border-primary/20">
-                                                                <input
-                                                                    type="text"
-                                                                    value={opt}
-                                                                    onBlur={handleBlur}
-                                                                    onChange={(e) => updateFieldOption(idx, oIdx, e.target.value)}
-                                                                    placeholder="Option"
-                                                                    className="bg-transparent border-none outline-none text-[10px] font-bold text-gray-600 w-20"
-                                                                />
-                                                                <button
-                                                                    onClick={() => {
-                                                                        removeFieldOption(idx, oIdx);
-                                                                        handleBlur();
-                                                                    }}
-                                                                    className="w-5 h-5 rounded flex items-center justify-center text-gray-300 hover:text-secondary transition-all"
-                                                                >
-                                                                    <X size={12} strokeWidth={3} />
-                                                                </button>
-                                                            </div>
-                                                        ))}
-                                                        {(field.options || []).length === 0 && (
-                                                            <p className="text-[9px] text-gray-400 italic px-1">Add options for your guests to select.</p>
-                                                        )}
-                                                    </>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                                       </Reorder.Item>
-                                     );
-                                   })}
-                                 </Reorder.Group>
+                                     {groupFields.map((field) => (
+                                       <RegistrationFieldItem
+                                         key={field.id || field.name || field.label}
+                                         field={field}
+                                         idx={registration.fields.indexOf(field)}
+                                         isLocationField={field.source === 'COUNTRIES' || field.source === 'STATES' || field.source === 'LGAS'}
+                                         showPreview={showPreview}
+                                         registration={registration}
+                                         updateField={updateField}
+                                         removeField={removeField}
+                                         addFieldOption={addFieldOption}
+                                         updateFieldOption={updateFieldOption}
+                                         removeFieldOption={removeFieldOption}
+                                         onBlur={handleBlur}
+                                       />
+                                     ))}
+                                   </Reorder.Group>
                                </div>
 
                                {/* Attendee Information Section */}
@@ -2437,302 +2225,43 @@ const CreateEvent = () => {
                                    <h4 className="text-sm font-black text-gray-900 uppercase tracking-widest">Attendee Information</h4>
                                  </div>
                                  <Reorder.Group axis="y" values={attendeeFields} onReorder={setAttendeeFields} className="grid grid-cols-1 gap-6">
-                                   {attendeeFields.map((field) => {
-                                     const idx = registration.fields.indexOf(field);
-                                     const isLocationField = field.source === 'COUNTRIES' || field.source === 'STATES' || field.source === 'LGAS';
-                                     return (
-                                       <Reorder.Item key={field.id || field.name || field.label} value={field}>
-                                         <div className={`p-6 bg-gray-50 rounded-[2.5rem] group relative border-2 border-gray-300 hover:border-primary transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50 flex flex-col ${showPreview ? "gap-4 xl:gap-6" : "gap-6 lg:flex-row lg:items-center lg:gap-8"}`}>
-                                           <div className="flex absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-12 bg-white rounded-lg border border-gray-100 shadow-sm items-center justify-center cursor-grab active:cursor-grabbing text-gray-300 hover:text-primary transition-colors z-10">
-                                             <GripVertical size={20} />
-                                           </div>
-                                           <div className={`flex items-center gap-4 ${showPreview ? "w-full flex-col xl:flex-row xl:gap-6" : "flex-1 flex-col lg:flex-row lg:gap-8"}`}>
-                                              <div className={`space-y-2 ${showPreview ? "w-full xl:flex-[1.5] min-w-0" : "w-full flex-[2]"}`}>
-                                                 <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Field Label</label>
-                                                 <input
-                                                    type="text"
-                                                    placeholder="e.g., Full Name"
-                                                    disabled={isLocationField}
-                                                    className={`w-full p-3.5 bg-white border border-gray-200 rounded-xl text-[11px] font-bold focus:border-primary transition-all outline-none ${isLocationField ? 'opacity-60 cursor-not-allowed' : ''}`}
-                                                    value={field.label}
-                                                    onBlur={handleBlur} onChange={(e) => updateField(idx, "label", e.target.value)}
-                                                 />
-                                              </div>
-                                              <div className={`space-y-2 ${showPreview ? "w-full xl:flex-1 min-w-0" : "w-full flex-1"}`}>
-                                                 <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Input Type</label>
-                                                 <div className="relative">
-                                                    <select
-                                                       disabled={isLocationField}
-                                                       className={`w-full p-3.5 bg-white border border-gray-200 rounded-xl text-[11px] font-bold appearance-none outline-none focus:border-primary transition-all ${isLocationField ? 'opacity-60 cursor-not-allowed' : ''}`}
-                                                       value={field.type}
-                                                       onBlur={handleBlur} onChange={(e) => updateField(idx, "type", e.target.value)}
-                                                    >
-                                                       <option value="text">Text</option>
-                                                       <option value="number">Number</option>
-                                                       <option value="select">Dropdown</option>
-                                                       <option value="checkbox">Checkbox</option>
-                                                    </select>
-                                                    <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                                                 </div>
-                                              </div>
-                                           </div>
-
-                                           <div className={`flex items-center gap-6 ${showPreview ? "justify-start pl-1 w-full xl:w-auto" : "flex-1 justify-around px-6 h-16 bg-white/50 rounded-xl border border-gray-100"}`}>
-                                              <label className="flex items-center gap-3 cursor-pointer group/toggle">
-                                                 <input
-                                                    type="checkbox"
-                                                    checked={field.required}
-                                                    onBlur={handleBlur} onChange={(e) => updateField(idx, "required", e.target.checked)}
-                                                    className="w-6 h-6 rounded-lg border-gray-200 text-primary cursor-pointer shadow-sm transition-all"
-                                                 />
-                                                 <span className="text-[10px] font-black text-gray-400 group-hover/toggle:text-gray-900 uppercase tracking-widest transition-colors">Required</span>
-                                              </label>
-                                           </div>
-
-                                           <button
-                                              onClick={() => removeField(idx)}
-                                              className="absolute top-4 right-4 w-10 h-10 bg-white/80 text-gray-300 hover:text-secondary rounded-xl flex items-center justify-center shadow-sm border border-gray-100 transition-all opacity-0 group-hover:opacity-100 z-10"
-                                           >
-                                              <Trash2 size={16} />
-                                           </button>
-                                         </div>
-                                         {(field.type === 'select' || field.type === 'checkbox') && (
-                                             <div className="bg-gray-50/50 rounded-[2rem] p-6 border border-gray-100 mt-2 ml-4 mr-4 space-y-5">
-                                                 {!isLocationField && (
-                                                 <div className={`grid gap-5 ${showPreview ? "grid-cols-1 2xl:grid-cols-2" : "grid-cols-1 md:grid-cols-2"}`}>
-                                                     <div className="space-y-2">
-                                                         <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Choice Source</label>
-                                                         <div className="relative">
-                                                             <select
-                                                                 className="w-full p-3.5 bg-white border border-gray-200 rounded-xl text-xs font-bold appearance-none outline-none focus:border-primary transition-all"
-                                                                 value={field.source === "LGAS" ? (field.label === "City" ? "CITY" : "LGAS") : (field.source || "")}
-                                                                 onBlur={handleBlur}
-                                                                 onChange={(e) => {
-                                                                     const newSource = e.target.value || undefined;
-                                                                     updateField(idx, "source", newSource);
-                                                                     if (newSource) {
-                                                                         updateField(idx, "options", []);
-                                                                     }
-                                                                 }}
-                                                             >
-                                                                 <option value="">Manual Entry</option>
-                                                                 <option value="COUNTRIES">Countries</option>
-                                                                 <option value="STATES">States</option>
-                                                                 <option value="LGAS">LGAs</option>
-                                                                 <option value="CITY">City</option>
-                                                             </select>
-                                                             <ChevronDown size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                                                         </div>
-                                                     </div>
-                                                 </div>
-                                                 )}
-                                                 <div className="space-y-3">
-                                                     <div className="flex items-center justify-between px-1">
-                                                         <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
-                                                             {field.source ? "Auto-Managed" : "Your Options"}
-                                                         </p>
-                                                         {!field.source && !isLocationField && (
-                                                             <button
-                                                                 onClick={() => {
-                                                                     addFieldOption(idx);
-                                                                     handleBlur();
-                                                                 }}
-                                                                 className="text-[9px] font-black text-primary uppercase tracking-widest hover:underline flex items-center gap-1"
-                                                             >
-                                                                 <Plus size={10} strokeWidth={3} /> Add
-                                                             </button>
-                                                         )}
-                                                     </div>
-                                                     <div className="flex flex-wrap gap-2.5">
-                                                         {field.source ? (
-                                                             <div className="flex items-center gap-2.5 p-3.5 bg-primary/5 rounded-xl border border-primary/10 w-full">
-                                                                 <Info size={14} className="text-primary shrink-0" />
-                                                                 <p className="text-[9px] font-semibold text-primary/80 leading-relaxed uppercase tracking-wider">
-                                                                     Pops from {field.source}.
-                                                                 </p>
-                                                             </div>
-                                                         ) : (
-                                                             <>
-                                                                 {(field.options || []).map((opt, oIdx) => (
-                                                                     <div key={oIdx} className="flex items-center gap-1.5 bg-white p-1.5 pl-3 rounded-lg border border-gray-100 shadow-sm group/opt transition-all hover:border-primary/20">
-                                                                         <input
-                                                                             type="text"
-                                                                             value={opt}
-                                                                             onBlur={handleBlur}
-                                                                             onChange={(e) => updateFieldOption(idx, oIdx, e.target.value)}
-                                                                             placeholder="Option"
-                                                                             className="bg-transparent border-none outline-none text-[10px] font-bold text-gray-600 w-20"
-                                                                         />
-                                                                         <button
-                                                                             onClick={() => {
-                                                                                 removeFieldOption(idx, oIdx);
-                                                                                 handleBlur();
-                                                                             }}
-                                                                             className="w-5 h-5 rounded flex items-center justify-center text-gray-300 hover:text-secondary transition-all"
-                                                                         >
-                                                                             <X size={12} strokeWidth={3} />
-                                                                         </button>
-                                                                     </div>
-                                                                 ))}
-                                                             </>
-                                                         )}
-                                                     </div>
-                                                 </div>
-                                             </div>
-                                         )}
-                                       </Reorder.Item>
-                                     );
-                                   })}
+                                   {attendeeFields.map((field) => (
+                                     <RegistrationFieldItem
+                                       key={field.id || field.name || field.label}
+                                       field={field}
+                                       idx={registration.fields.indexOf(field)}
+                                       isLocationField={field.source === 'COUNTRIES' || field.source === 'STATES' || field.source === 'LGAS'}
+                                       showPreview={showPreview}
+                                       registration={registration}
+                                       updateField={updateField}
+                                       removeField={removeField}
+                                       addFieldOption={addFieldOption}
+                                       updateFieldOption={updateFieldOption}
+                                       removeFieldOption={removeFieldOption}
+                                       onBlur={handleBlur}
+                                     />
+                                   ))}
                                  </Reorder.Group>
                                </div>
                                </>
                              ) : (
                                 <Reorder.Group axis="y" values={registration.fields} onReorder={(newFields) => setRegistration(prev => ({ ...prev, fields: newFields }))} className="grid grid-cols-1 gap-6">
-                                  {registration.fields.map((field, idx) => {
-                                    const isLocationField = field.source === 'COUNTRIES' || field.source === 'STATES' || field.source === 'LGAS';
-                                    return (
-                                      <Reorder.Item key={field.id || field.name || field.label} value={field}>
-                                        <div className={`p-6 bg-gray-50 rounded-[2.5rem] group relative border-2 border-gray-300 hover:border-primary transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50 flex flex-col ${showPreview ? "gap-4 xl:gap-6" : "gap-6 lg:flex-row lg:items-center lg:gap-8"}`}>
-                                          <div className="flex absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-12 bg-white rounded-lg border border-gray-100 shadow-sm items-center justify-center cursor-grab active:cursor-grabbing text-gray-300 hover:text-primary transition-colors z-10">
-                                            <GripVertical size={20} />
-                                          </div>
-                                          <div className={`flex items-center gap-4 ${showPreview ? "w-full flex-col xl:flex-row xl:gap-6" : "flex-1 flex-col lg:flex-row lg:gap-8"}`}>
-                                             <div className={`space-y-2 ${showPreview ? "w-full xl:flex-[1.5] min-w-0" : "w-full flex-[2]"}`}>
-                                                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Field Label</label>
-                                                <input
-                                                   type="text"
-                                                   placeholder="e.g., Job Title"
-                                                   disabled={isLocationField}
-                                                   className={`w-full p-3.5 bg-white border border-gray-200 rounded-xl text-[11px] font-bold focus:border-primary transition-all outline-none ${isLocationField ? 'opacity-60 cursor-not-allowed' : ''}`}
-                                                   value={field.label}
-                                                   onBlur={handleBlur} onChange={(e) => updateField(idx, "label", e.target.value)}
-                                                />
-                                             </div>
-                                             <div className={`space-y-2 ${showPreview ? "w-full xl:flex-1 min-w-0" : "w-full flex-1"}`}>
-                                                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Input Type</label>
-                                                <div className="relative">
-                                                   <select
-                                                      disabled={isLocationField}
-                                                      className={`w-full p-3.5 bg-white border border-gray-200 rounded-xl text-[11px] font-bold appearance-none outline-none focus:border-primary transition-all ${isLocationField ? 'opacity-60 cursor-not-allowed' : ''}`}
-                                                      value={field.type}
-                                                      onBlur={handleBlur} onChange={(e) => updateField(idx, "type", e.target.value)}
-                                                   >
-                                                      <option value="text">Text</option>
-                                                      <option value="number">Number</option>
-                                                      <option value="select">Dropdown</option>
-                                                      <option value="checkbox">Checkbox</option>
-                                                   </select>
-                                                   <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                                                </div>
-                                             </div>
-                                          </div>
-
-                                          <div className={`flex items-center gap-6 ${showPreview ? "justify-start pl-1 w-full xl:w-auto" : "flex-1 justify-around px-6 h-16 bg-white/50 rounded-xl border border-gray-100"}`}>
-                                             <label className="flex items-center gap-3 cursor-pointer group/toggle">
-                                                <input
-                                                   type="checkbox"
-                                                   checked={field.required}
-                                                   onBlur={handleBlur} onChange={(e) => updateField(idx, "required", e.target.checked)}
-                                                   className="w-6 h-6 rounded-lg border-gray-200 text-primary cursor-pointer shadow-sm transition-all"
-                                                />
-                                                <span className="text-[10px] font-black text-gray-400 group-hover/toggle:text-gray-900 uppercase tracking-widest transition-colors">Required</span>
-                                             </label>
-                                          </div>
-
-                                          <button
-                                             onClick={() => removeField(idx)}
-                                             className="absolute top-4 right-4 w-10 h-10 bg-white/80 text-gray-300 hover:text-secondary rounded-xl flex items-center justify-center shadow-sm border border-gray-100 transition-all opacity-0 group-hover:opacity-100 z-10"
-                                          >
-                                             <Trash2 size={16} />
-                                          </button>
-                                        </div>
-                                        {(field.type === 'select' || field.type === 'checkbox') && (
-                                            <div className="bg-gray-50/50 rounded-[2rem] p-6 border border-gray-100 mt-2 ml-4 mr-4 space-y-5">
-                                                {!isLocationField && (
-                                                <div className={`grid gap-5 ${showPreview ? "grid-cols-1 2xl:grid-cols-2" : "grid-cols-1 md:grid-cols-2"}`}>
-                                                    <div className="space-y-2">
-                                                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Choice Source</label>
-                                                        <div className="relative">
-                                                            <select
-                                                                className="w-full p-3.5 bg-white border border-gray-200 rounded-xl text-xs font-bold appearance-none outline-none focus:border-primary transition-all"
-                                                                value={field.source === "LGAS" ? (field.label === "City" ? "CITY" : "LGAS") : (field.source || "")}
-                                                                onBlur={handleBlur}
-                                                                onChange={(e) => {
-                                                                    const newSource = e.target.value || undefined;
-                                                                    updateField(idx, "source", newSource);
-                                                                    if (newSource) {
-                                                                        updateField(idx, "options", []);
-                                                                    }
-                                                                }}
-                                                            >
-                                                                <option value="">Manual Entry</option>
-                                                                <option value="COUNTRIES">Countries</option>
-                                                                <option value="STATES">States</option>
-                                                                <option value="LGAS">LGAs</option>
-                                                                <option value="CITY">City</option>
-                                                            </select>
-                                                            <ChevronDown size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                )}
-                                                <div className="space-y-3">
-                                                    <div className="flex items-center justify-between px-1">
-                                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
-                                                            {field.source ? "Auto-Managed" : "Your Options"}
-                                                        </p>
-                                                        {!field.source && !isLocationField && (
-                                                            <button
-                                                                onClick={() => {
-                                                                    addFieldOption(idx);
-                                                                    handleBlur();
-                                                                }}
-                                                                className="text-[9px] font-black text-primary uppercase tracking-widest hover:underline flex items-center gap-1"
-                                                            >
-                                                                <Plus size={10} strokeWidth={3} /> Add
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                    <div className="flex flex-wrap gap-2.5">
-                                                        {field.source ? (
-                                                            <div className="flex items-center gap-2.5 p-3.5 bg-primary/5 rounded-xl border border-primary/10 w-full">
-                                                                <Info size={14} className="text-primary shrink-0" />
-                                                                <p className="text-[9px] font-semibold text-primary/80 leading-relaxed uppercase tracking-wider">
-                                                                    Pops from {field.source}.
-                                                                </p>
-                                                            </div>
-                                                        ) : (
-                                                            <>
-                                                                {(field.options || []).map((opt, oIdx) => (
-                                                                    <div key={oIdx} className="flex items-center gap-1.5 bg-white p-1.5 pl-3 rounded-lg border border-gray-100 shadow-sm group/opt transition-all hover:border-primary/20">
-                                                                        <input
-                                                                            type="text"
-                                                                            value={opt}
-                                                                            onBlur={handleBlur}
-                                                                            onChange={(e) => updateFieldOption(idx, oIdx, e.target.value)}
-                                                                            placeholder="Option"
-                                                                            className="bg-transparent border-none outline-none text-[10px] font-bold text-gray-600 w-20"
-                                                                        />
-                                                                        <button
-                                                                            onClick={() => {
-                                                                                removeFieldOption(idx, oIdx);
-                                                                                handleBlur();
-                                                                            }}
-                                                                            className="w-5 h-5 rounded flex items-center justify-center text-gray-300 hover:text-secondary transition-all"
-                                                                        >
-                                                                            <X size={12} strokeWidth={3} />
-                                                                        </button>
-                                                                    </div>
-                                                                ))}
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-                                      </Reorder.Item>
-                                    );
-                                  })}
+                                  {registration.fields.map((field) => (
+                                    <RegistrationFieldItem
+                                      key={field.id || field.name || field.label}
+                                      field={field}
+                                      idx={registration.fields.indexOf(field)}
+                                      isLocationField={field.source === 'COUNTRIES' || field.source === 'STATES' || field.source === 'LGAS'}
+                                      showPreview={showPreview}
+                                      registration={registration}
+                                      updateField={updateField}
+                                      removeField={removeField}
+                                      addFieldOption={addFieldOption}
+                                      updateFieldOption={updateFieldOption}
+                                      removeFieldOption={removeFieldOption}
+                                      onBlur={handleBlur}
+                                    />
+                                  ))}
                                 </Reorder.Group>
                              )}
                           </div>
