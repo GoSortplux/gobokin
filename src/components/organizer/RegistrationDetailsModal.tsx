@@ -226,7 +226,7 @@ const RegistrationDetailsModal = ({
                               <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${
                                  dayData.attended ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-200 text-gray-500'
                               }`}>
-                                 Day {dayData.day + 1}
+                                 Day {dayData.day}
                               </span>
                               {dayData.attended ? (
                                 <CheckCircle2 size={16} className="text-emerald-500" />
