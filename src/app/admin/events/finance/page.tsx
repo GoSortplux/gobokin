@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   XCircle,
   Search,
+  ShieldCheck,
 } from "lucide-react";
 import api from "@/services/api";
 import CustomLoader from "@/components/CustomLoader";
@@ -46,18 +47,22 @@ interface AdminWithdrawalRequest {
 }
 
 const FinancePage = () => {
-  const [activeTab, setActiveTab] = useState<'summary' | 'withdrawals'>('summary');
+  const [activeTab, setActiveTab] = useState<'summary' | 'withdrawals' | 'verifications'>('summary');
   const [summary, setSummary] = useState<AdminFinanceSummary | null>(null);
   const [requests, setRequests] = useState<AdminWithdrawalRequest[]>([]);
+  const [bankAccounts, setBankAccounts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [withdrawFilter, setWithdrawFilter] = useState("PENDING");
+  const [verificationFilter, setVerificationFilter] = useState("PENDING");
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     if (activeTab === 'summary') {
       fetchSummary();
-    } else {
+    } else if (activeTab === 'withdrawals') {
       fetchRequests();
+    } else if (activeTab === 'verifications') {
+      fetchBankAccounts();
     }
   }, [activeTab]);
 
@@ -86,6 +91,19 @@ const FinancePage = () => {
     }
   };
 
+  const fetchBankAccounts = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get("/events/admin/bank-accounts");
+      setBankAccounts(response.data.data || []);
+    } catch (_error) {
+      console.error("Failed to fetch bank accounts:", _error);
+      setBankAccounts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleStatusUpdate = async (id: string, status: "APPROVED" | "REJECTED") => {
     const { isConfirmed, value: notes } = await Swal.fire({
       title: `${status === 'APPROVED' ? 'Approve' : 'Reject'} Withdrawal?`,
@@ -107,6 +125,31 @@ const FinancePage = () => {
         fetchRequests();
       } catch (_error) {
         Swal.fire("Error", "Failed to update status", "error");
+      }
+    }
+  };
+
+  const handleVerification = async (id: string, status: "APPROVED" | "REJECTED") => {
+    const { isConfirmed, value: notes } = await Swal.fire({
+      title: `${status === 'APPROVED' ? 'Approve' : 'Reject'} Bank Account?`,
+      input: 'textarea',
+      inputPlaceholder: 'Add admin notes...',
+      showCancelButton: true,
+      confirmButtonText: 'Submit',
+      confirmButtonColor: status === 'APPROVED' ? '#10b981' : '#ef4444',
+    });
+
+    if (isConfirmed) {
+      try {
+        Swal.showLoading();
+        const endpoint = status === 'APPROVED' ? 'approve' : 'reject';
+        await api.post(`/events/admin/bank-accounts/${id}/${endpoint}`, {
+          adminNotes: notes
+        });
+        Swal.fire("Success!", `Bank account ${status.toLowerCase()}.`, "success");
+        fetchBankAccounts();
+      } catch (_error) {
+        Swal.fire("Error", "Failed to process verification", "error");
       }
     }
   };
@@ -183,6 +226,15 @@ const FinancePage = () => {
         >
           Withdraw Summary
           {activeTab === 'withdrawals' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-full" />}
+        </button>
+        <button
+          onClick={() => setActiveTab('verifications')}
+          className={`px-6 py-4 text-sm font-bold transition-all relative ${
+            activeTab === 'verifications' ? "text-primary" : "text-gray-400 hover:text-gray-600"
+          }`}
+        >
+          Bank Verifications
+          {activeTab === 'verifications' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-full" />}
         </button>
       </div>
 
@@ -261,7 +313,7 @@ const FinancePage = () => {
             </div>
           </div>
         </>
-      ) : (
+      ) : activeTab === 'withdrawals' ? (
         <>
           <div className="bg-white p-3 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-2 overflow-x-auto no-scrollbar">
              {["ALL", "PENDING", "APPROVED", "REJECTED"].map(filter => (
@@ -352,6 +404,104 @@ const FinancePage = () => {
                           <CreditCard size={40} />
                         </div>
                         <p className="text-gray-500 font-bold">No withdrawal requests found.</p>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="bg-white p-3 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-2 overflow-x-auto no-scrollbar">
+             {["ALL", "PENDING", "APPROVED", "REJECTED"].map(filter => (
+               <button
+                 key={filter}
+                 onClick={() => setVerificationFilter(filter)}
+                 className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                   verificationFilter === filter ? "bg-primary text-white shadow-md shadow-primary/20" : "text-gray-500 hover:bg-gray-50"
+                 }`}
+               >
+                 {filter}
+               </button>
+             ))}
+          </div>
+
+          <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-gray-50 border-b border-gray-100">
+                  <tr>
+                    <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Organizer</th>
+                    <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Bank Details</th>
+                    <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Account Name</th>
+                    <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
+                    <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {loading ? (
+                    <tr>
+                      <td colSpan={5} className="px-8 py-20 text-center"><CustomLoader /></td>
+                    </tr>
+                  ) : bankAccounts.length > 0 ? bankAccounts.filter(acc => {
+                    const matchesFilter = verificationFilter === "ALL" || acc.status === verificationFilter;
+                    const matchesSearch =
+                      acc.accountName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      acc.verifiedAccountName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      acc.bankName?.toLowerCase().includes(searchTerm.toLowerCase());
+                    return matchesFilter && matchesSearch;
+                  }).map((acc) => (
+                    <tr key={acc.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-8 py-6">
+                         <p className="font-bold text-gray-900">ID: {acc.organizerId.slice(0,8)}</p>
+                         <p className="text-[10px] text-gray-400 font-medium">{new Date(acc.createdAt).toLocaleDateString()}</p>
+                      </td>
+                      <td className="px-8 py-6">
+                        <p className="text-sm font-bold text-gray-700">{acc.bankName}</p>
+                        <p className="text-xs text-gray-500 font-medium">{acc.accountNumber}</p>
+                      </td>
+                      <td className="px-8 py-6">
+                        <p className="text-sm font-bold text-gray-900">{acc.accountName}</p>
+                        <p className="text-xs text-emerald-600 font-medium italic">Verified: {acc.verifiedAccountName}</p>
+                      </td>
+                      <td className="px-8 py-6">
+                        <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${
+                          acc.status === 'PENDING' ? 'bg-amber-100 text-amber-700' :
+                          acc.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+                        }`}>
+                          {acc.status}
+                        </span>
+                      </td>
+                      <td className="px-8 py-6 text-right">
+                        {acc.status === 'PENDING' && (
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => handleVerification(acc.id, "REJECTED")}
+                              className="p-2 text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+                              title="Reject"
+                            >
+                              <XCircle size={20} />
+                            </button>
+                            <button
+                              onClick={() => handleVerification(acc.id, "APPROVED")}
+                              className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
+                              title="Approve"
+                            >
+                              <CheckCircle2 size={20} />
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  )) : (
+                    <tr>
+                      <td colSpan={5} className="px-8 py-20 text-center">
+                        <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
+                          <ShieldCheck size={40} />
+                        </div>
+                        <p className="text-gray-500 font-bold">No pending bank verifications found.</p>
                       </td>
                     </tr>
                   )}
