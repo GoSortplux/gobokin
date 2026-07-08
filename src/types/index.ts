@@ -726,6 +726,7 @@ export interface FinanceSummary {
 
 export interface OrganizerBankAccount {
   id: string;
+  organizerId: string;
   bankCode: string;
   bankName: string;
   accountNumber: string;

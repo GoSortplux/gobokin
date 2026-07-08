@@ -17,6 +17,7 @@ import api from "@/services/api";
 import CustomLoader from "@/components/CustomLoader";
 import { formatCurrency } from "@/utils/currency";
 import Swal from "@/utils/sweetalert";
+import { OrganizerBankAccount } from "@/types";
 
 interface AdminFinanceSummary {
   totalGrossVolume: number;
@@ -50,7 +51,7 @@ const FinancePage = () => {
   const [activeTab, setActiveTab] = useState<'summary' | 'withdrawals' | 'verifications'>('summary');
   const [summary, setSummary] = useState<AdminFinanceSummary | null>(null);
   const [requests, setRequests] = useState<AdminWithdrawalRequest[]>([]);
-  const [bankAccounts, setBankAccounts] = useState<any[]>([]);
+  const [bankAccounts, setBankAccounts] = useState<OrganizerBankAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [withdrawFilter, setWithdrawFilter] = useState("PENDING");
   const [verificationFilter, setVerificationFilter] = useState("PENDING");
