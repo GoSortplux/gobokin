@@ -18,12 +18,15 @@ import {
   Filter,
   Ticket,
   RotateCcw,
-  Clock
+  Clock,
+  ExternalLink
 } from "lucide-react";
 import api from "@/services/api";
-import { FinanceSummary, RefundRequest, Transaction } from "@/types";
+import { FinanceSummary, RefundRequest, Transaction, OrganizerBankAccount } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 import ProcessRefundModal from "@/components/ProcessRefundModal";
+import ManageBankModal from "@/components/organizer/ManageBankModal";
+import withAuth from "@/components/auth/withAuth";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 
@@ -31,9 +34,11 @@ const FinanceDashboardContent = () => {
   const searchParams = useSearchParams();
   const [summary, setSummary] = useState<FinanceSummary | null>(null);
   const [refundRequests, setRefundRequests] = useState<RefundRequest[]>([]);
+  const [bankAccount, setBankAccount] = useState<OrganizerBankAccount | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeView, setActiveView] = useState<'transactions' | 'refunds'>('transactions');
   const [selectedRequest, setSelectedRequest] = useState<RefundRequest | null>(null);
+  const [isBankModalOpen, setIsBankModalOpen] = useState(false);
 
   useEffect(() => {
     const view = searchParams.get("view");
@@ -45,7 +50,17 @@ const FinanceDashboardContent = () => {
   useEffect(() => {
     fetchFinanceData();
     fetchRefundRequests();
+    fetchBankAccount();
   }, []);
+
+  const fetchBankAccount = async () => {
+    try {
+      const response = await api.get("/events/my-organizer-profile/bank-account");
+      setBankAccount(response.data.data);
+    } catch (error) {
+      console.error("Failed to fetch bank account:", error);
+    }
+  };
 
   const fetchRefundRequests = async () => {
     try {
@@ -391,21 +406,41 @@ const FinanceDashboardContent = () => {
                <h3 className="text-xl font-black text-gray-900 tracking-tight">Payout Settings</h3>
                <div className="p-6 bg-gray-50 rounded-3xl space-y-6 relative overflow-hidden">
                   <div className="relative z-10">
-                    <div className="flex items-center gap-3 mb-4">
-                       <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-primary">
-                          <CreditCard size={20} />
-                       </div>
-                       <div>
-                          <p className="text-xs font-black text-gray-400 uppercase tracking-widest leading-none">Primary Payout Bank</p>
-                          <p className="text-sm font-bold text-gray-900 mt-1">GTBank PLC</p>
-                       </div>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-primary">
+                            <CreditCard size={20} />
+                        </div>
+                        <div>
+                            <p className="text-xs font-black text-gray-400 uppercase tracking-widest leading-none">Primary Payout Bank</p>
+                            <p className="text-sm font-bold text-gray-900 mt-1">{bankAccount?.bankName || "No Bank Added"}</p>
+                        </div>
+                      </div>
+                      {bankAccount?.status === 'PENDING' && (
+                        <span className="px-2 py-0.5 bg-amber-100 text-amber-600 text-[9px] font-black uppercase rounded-full border border-amber-200">
+                          Pending Approval
+                        </span>
+                      )}
+                      {bankAccount?.status === 'APPROVED' && (
+                        <span className="px-2 py-0.5 bg-emerald-100 text-emerald-600 text-[9px] font-black uppercase rounded-full border border-emerald-200">
+                          Verified
+                        </span>
+                      )}
                     </div>
                     <div className="space-y-1">
                        <p className="text-xs text-gray-400 font-medium">Account Number</p>
-                       <p className="text-lg font-black text-gray-900">0123****89</p>
+                       <p className="text-lg font-black text-gray-900">
+                        {bankAccount?.accountNumber
+                          ? `${bankAccount.accountNumber.slice(0, 4)}****${bankAccount.accountNumber.slice(-2)}`
+                          : "XXXX****XX"}
+                       </p>
                     </div>
-                    <button className="mt-6 w-full py-3 bg-white text-primary font-bold rounded-2xl shadow-sm hover:shadow-md transition-all border border-blue-100 text-sm">
-                       Manage Bank Accounts
+                    <button
+                      onClick={() => setIsBankModalOpen(true)}
+                      className="mt-6 w-full py-3 bg-white text-primary font-bold rounded-2xl shadow-sm hover:shadow-md transition-all border border-blue-100 text-sm flex items-center justify-center gap-2"
+                    >
+                       <ExternalLink size={14} />
+                       {bankAccount ? "Manage Bank Account" : "Add Bank Account"}
                     </button>
                   </div>
                   {/* Subtle background icon */}
@@ -455,6 +490,13 @@ const FinanceDashboardContent = () => {
           }}
         />
       )}
+
+      <ManageBankModal
+        isOpen={isBankModalOpen}
+        onClose={() => setIsBankModalOpen(false)}
+        onSuccess={fetchBankAccount}
+        initialData={bankAccount}
+      />
     </div>
   );
 };
@@ -465,4 +507,4 @@ const FinanceDashboard = () => (
   </Suspense>
 );
 
-export default FinanceDashboard;
+export default withAuth(FinanceDashboard, ["organizer", "organizer-staff"]);

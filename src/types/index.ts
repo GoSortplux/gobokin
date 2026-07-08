@@ -724,6 +724,20 @@ export interface FinanceSummary {
   recentTransactions: Transaction[];
 }
 
+export interface OrganizerBankAccount {
+  id: string;
+  bankCode: string;
+  bankName: string;
+  accountNumber: string;
+  accountName: string;
+  verifiedAccountName?: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  subAccountCode?: string;
+  adminNotes?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface EventSummary {
   totalEvents: number;
   publishedEvents: number;
