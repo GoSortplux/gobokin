@@ -14,6 +14,7 @@ import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 import withAuth from "@/components/auth/withAuth";
+import RegistrationDetailsModal from "@/components/organizer/RegistrationDetailsModal";
 
 const OrdersView = () => {
   const { user } = useAuth();
@@ -25,6 +26,8 @@ const OrdersView = () => {
   const [loading, setLoading] = useState(true);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedRegistration, setSelectedRegistration] = useState<any | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const isStaff = user?.role?.includes('organizer-staff');
 
@@ -309,7 +312,13 @@ const OrdersView = () => {
                                         Check-in
                                     </button>
                                 )}
-                                <button className="p-2 text-gray-400 hover:text-primary transition-all">
+                                <button
+                                    onClick={() => {
+                                        setSelectedRegistration(order);
+                                        setIsModalOpen(true);
+                                    }}
+                                    className="p-2 text-gray-400 hover:text-primary transition-all"
+                                >
                                     <Eye size={18} />
                                 </button>
                            </div>
@@ -396,7 +405,13 @@ const OrdersView = () => {
                                     Check-in Attendee
                                 </button>
                             )}
-                            <button className="w-12 h-12 flex items-center justify-center bg-gray-50 text-gray-400 rounded-xl hover:text-primary transition-all shrink-0">
+                            <button
+                                onClick={() => {
+                                    setSelectedRegistration(order);
+                                    setIsModalOpen(true);
+                                }}
+                                className="w-12 h-12 flex items-center justify-center bg-gray-50 text-gray-400 rounded-xl hover:text-primary transition-all shrink-0"
+                            >
                                 <Eye size={20} />
                             </button>
                         </div>
@@ -413,6 +428,20 @@ const OrdersView = () => {
             )}
          </div>
       </div>
+
+      {selectedRegistration && (
+          <RegistrationDetailsModal
+            isOpen={isModalOpen}
+            onClose={() => {
+                setIsModalOpen(false);
+                setSelectedRegistration(null);
+            }}
+            eventId={selectedRegistration.eventId || selectedRegistration.event?.id || selectedEventId}
+            ticketNumber={selectedRegistration.ticketNumber}
+            attendeeName={selectedRegistration.attendeeName}
+            onCheckInSuccess={fetchOrders}
+          />
+      )}
     </div>
   );
 };
