@@ -5,12 +5,15 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff } from 'lucide-react';
 import api from '@/services/api';
+import { useAuth } from '@/context/AuthContext';
 import AuthLayout from '@/components/auth/AuthLayout';
 import PolicyModal from '@/components/PolicyModal';
 import CustomLoader from '@/components/CustomLoader';
 import Swal from '@/utils/sweetalert';
+import { User } from '@/types';
 
 const RegisterPage = () => {
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -48,10 +51,12 @@ const RegisterPage = () => {
     }
 
     try {
-      await api.post('/auth/register', {
+      const response = await api.post('/auth/register', {
         ...formData,
         hasAcceptedLatestPolicies: true
       });
+
+      const { accessToken, user } = response.data.data || response.data;
 
       await Swal.fire({
         icon: 'success',
@@ -60,7 +65,11 @@ const RegisterPage = () => {
         confirmButtonColor: '#295FA7',
       });
 
-      router.push(`/auth/verify-email?email=${encodeURIComponent(formData.email)}`);
+      if (accessToken && user) {
+        login(accessToken, user as User, `/auth/verify-email?email=${encodeURIComponent(formData.email)}`);
+      } else {
+        router.push(`/auth/verify-email?email=${encodeURIComponent(formData.email)}`);
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred during registration.');
     } finally {

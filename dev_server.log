@@ -32,3 +32,99 @@
  GET /auth/verify-email?email=test-user@gobokin.com 200 in 158ms
  GET /auth/verify-email?email=test-user@gobokin.com 200 in 128ms
  GET /auth/verify-email?email=test-user@gobokin.com 200 in 169ms
+ ✓ Compiled in 9.1s (2113 modules)
+ ○ Compiling /auth/verify-email ...
+ ✓ Compiled /auth/verify-email in 563ms (1181 modules)
+ ⨯ Error: Cannot find module './8188.js'
+Require stack:
+- /app/.next/server/webpack-runtime.js
+- /app/.next/server/app/auth/verify-email/page.js
+- /app/node_modules/next/dist/server/require.js
+- /app/node_modules/next/dist/server/load-components.js
+- /app/node_modules/next/dist/build/utils.js
+- /app/node_modules/next/dist/build/swc/options.js
+- /app/node_modules/next/dist/build/swc/index.js
+- /app/node_modules/next/dist/build/analysis/parse-module.js
+- /app/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /app/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /app/node_modules/next/dist/server/lib/router-server.js
+- /app/node_modules/next/dist/server/lib/start-server.js
+    at <unknown> (.next/server/app/auth/verify-email/page.js:2:8701)
+    at Object.<anonymous> (.next/server/app/auth/verify-email/page.js:2:8753) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/auth/verify-email'
+}
+ ⨯ Error: Cannot find module './5611.js'
+Require stack:
+- /app/.next/server/webpack-runtime.js
+- /app/.next/server/app/auth/verify-email/page.js
+- /app/node_modules/next/dist/server/require.js
+- /app/node_modules/next/dist/server/load-components.js
+- /app/node_modules/next/dist/build/utils.js
+- /app/node_modules/next/dist/build/swc/options.js
+- /app/node_modules/next/dist/build/swc/index.js
+- /app/node_modules/next/dist/build/analysis/parse-module.js
+- /app/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /app/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /app/node_modules/next/dist/server/lib/router-server.js
+- /app/node_modules/next/dist/server/lib/start-server.js
+    at <unknown> (.next/server/pages/_document.js:1:327)
+    at Object.<anonymous> (.next/server/pages/_document.js:1:374) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ GET /auth/verify-email?email=test-user@gobokin.com 500 in 4991ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 725ms (2103 modules)
+ GET /auth/verify-email?email=test-user@gobokin.com 404 in 1623ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/app/.next/server/app/auth/verify-email/page.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/app/.next/server/app/auth/verify-email/page.js',
+  page: '/auth/verify-email'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/app/.next/server/pages/_document.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/app/.next/server/pages/_document.js'
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+[Error: ENOENT: no such file or directory, open '/app/.next/server/app/auth/verify-email/page.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/app/.next/server/app/auth/verify-email/page.js',
+  page: '/auth/verify-email'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/app/.next/server/pages/_document.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/app/.next/server/pages/_document.js'
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ GET /auth/verify-email?email=test-user@gobokin.com 500 in 281ms
+ GET /auth/verify-email?email=test-user%40gobokin.com 500 in 63ms
+ GET /auth/verify-email?email=test-user@gobokin.com 404 in 49ms
+ GET /auth/verify-email?email=test-user@gobokin.com 404 in 47ms
+ GET /auth/verify-email?email=test-user@gobokin.com 404 in 40ms
+ GET /auth/verify-email?email=test-user@gobokin.com 404 in 40ms
+ GET /auth/verify-email?email=test-user@gobokin.com 404 in 38ms
+ GET /auth/verify-email?email=test-user@gobokin.com 404 in 50ms
+ GET /auth/verify-email?email=test-user@gobokin.com 404 in 43ms
+ GET /auth/verify-email?email=test-user@gobokin.com 404 in 49ms
+ GET /auth/verify-email?email=test-user@gobokin.com 404 in 38ms
+ GET /auth/verify-email?email=test-user@gobokin.com 404 in 43ms
+ GET /auth/verify-email?email=test-user@gobokin.com 404 in 39ms
+ GET /auth/verify-email?email=test-user@gobokin.com 404 in 35ms
+ GET /auth/verify-email?email=test-user@gobokin.com 404 in 45ms
+ GET /auth/verify-email?email=test-user@gobokin.com 404 in 35ms
+ GET /auth/verify-email?email=test-user@gobokin.com 404 in 40ms
+ GET /auth/verify-email?email=test-user@gobokin.com 404 in 34ms
+[?25h
