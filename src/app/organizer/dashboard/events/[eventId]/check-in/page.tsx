@@ -374,7 +374,7 @@ const CheckInInterface = () => {
                        <div>
                           <p className="text-amber-900 font-black text-lg">Attendee Already Checked-in</p>
                           <p className="text-sm text-amber-700 font-medium mt-1 leading-relaxed">
-                             This ticket was validated on {searchResult.checkedInAt ? new Date(searchResult.checkedInAt).toLocaleString(undefined, { dateStyle: 'full', timeStyle: 'short' }) : "an unknown time"}.
+                             This ticket was validated on {searchResult.checkedInAt || searchResult.checkInTime ? new Date(searchResult.checkedInAt || searchResult.checkInTime).toLocaleString(undefined, { dateStyle: 'full', timeStyle: 'short' }) : "an unknown time"}.
                           </p>
                        </div>
                     </div>
