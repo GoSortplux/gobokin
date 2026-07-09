@@ -23,6 +23,17 @@ import { translateError } from "@/utils/errors";
 import { useAuth } from "@/context/AuthContext";
 import { useOrganizerRules } from "@/hooks/useOrganizerRules";
 
+interface LiveCheckInStats {
+  checkedInGuests?: number;
+  totalRegistrations?: number;
+  attendanceRate?: number;
+  summary?: {
+    checkedInGuests?: number;
+    totalRegistrations?: number;
+    attendanceRate?: number;
+  };
+}
+
 const CheckInInterface = () => {
   const { eventId } = useParams();
   const router = useRouter();
@@ -31,6 +42,7 @@ const CheckInInterface = () => {
   const isStaff = user?.role?.includes('organizer-staff');
   const [event, setEvent] = useState<Event | null>(null);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
+  const [liveStats, setLiveStats] = useState<LiveCheckInStats | null>(null);
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -47,13 +59,14 @@ const CheckInInterface = () => {
       if (showLoading) setLoading(true);
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const promises: [Promise<any>, Promise<any> | null, Promise<any> | null] = [
+      const promises: [Promise<any>, Promise<any> | null, Promise<any> | null, Promise<any> | null] = [
         api.get(`/events/${eventId}`),
         !isStaff ? api.get(`/events/${eventId}/analytics`) : null,
-        !isStaff ? api.get(`/events/${eventId}/staff`) : null
+        !isStaff ? api.get(`/events/${eventId}/staff`) : null,
+        api.get(`/events/${eventId}/live-stats`)
       ];
 
-      const [eventRes, analyticsRes, staffRes] = await Promise.all(promises);
+      const [eventRes, analyticsRes, staffRes, liveStatsRes] = await Promise.all(promises);
 
       setEvent(eventRes.data.data);
       if (analyticsRes) {
@@ -63,6 +76,9 @@ const CheckInInterface = () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const staffMembers = (staffRes.data.data || []).map((item: any) => item.staff).filter(Boolean);
         setStaff(staffMembers);
+      }
+      if (liveStatsRes) {
+        setLiveStats(liveStatsRes.data.data);
       }
     } catch (error) {
       console.error("Failed to fetch check-in data:", error);
@@ -414,48 +430,44 @@ const CheckInInterface = () => {
              </div>
 
              <div className="space-y-10 relative z-10">
-                {!isStaff && (
-                  <div>
-                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.3em] mb-3">Check-in Flow</p>
-                    <div className="flex items-baseline gap-3">
-                        <span className="text-6xl font-black tracking-tighter">
-                          {analytics?.summary?.checkedInGuests || 0}
-                        </span>
-                        <span className="text-gray-500 font-black text-xl italic tracking-tight">
-                          / {analytics?.summary?.totalRegistrations || 0} Total
-                        </span>
+                <div>
+                  <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.3em] mb-3">Check-in Flow</p>
+                  <div className="flex items-baseline gap-3">
+                      <span className="text-6xl font-black tracking-tighter">
+                        {liveStats?.checkedInGuests ?? liveStats?.summary?.checkedInGuests ?? analytics?.summary?.checkedInGuests ?? 0}
+                      </span>
+                      <span className="text-gray-500 font-black text-xl italic tracking-tight">
+                        / {liveStats?.totalRegistrations ?? liveStats?.summary?.totalRegistrations ?? analytics?.summary?.totalRegistrations ?? 0} Total
+                      </span>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-end justify-between">
+                    <div>
+                        <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.3em] mb-1">Check-in Rate</p>
+                        <p className="text-5xl font-black text-emerald-400 tracking-tighter">
+                          {liveStats?.attendanceRate ?? liveStats?.summary?.attendanceRate ?? analytics?.summary?.attendanceRate ?? 0}%
+                        </p>
+                    </div>
+                    <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center text-emerald-400 border border-white/5">
+                        <Users size={32} />
                     </div>
                   </div>
-                )}
 
-                {!isStaff && (
-                  <div className="space-y-4">
-                    <div className="flex items-end justify-between">
-                      <div>
-                          <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.3em] mb-1">Check-in Rate</p>
-                          <p className="text-5xl font-black text-emerald-400 tracking-tighter">
-                            {analytics?.summary?.attendanceRate || 0}%
-                          </p>
-                      </div>
-                      <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center text-emerald-400 border border-white/5">
-                          <Users size={32} />
-                      </div>
+                  <div className="pt-2">
+                    <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden shadow-inner">
+                      <div
+                        className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full transition-all duration-1000"
+                        style={{ width: `${liveStats?.attendanceRate ?? liveStats?.summary?.attendanceRate ?? analytics?.summary?.attendanceRate ?? 0}%` }}
+                      ></div>
                     </div>
-
-                    <div className="pt-2">
-                      <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden shadow-inner">
-                        <div
-                          className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full transition-all duration-1000"
-                          style={{ width: `${analytics?.summary?.attendanceRate || 0}%` }}
-                        ></div>
-                      </div>
-                      <div className="flex justify-between mt-3">
-                        <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Entry Progress</p>
-                        <p className="text-[10px] text-emerald-500 font-black uppercase tracking-widest">Target: 100%</p>
-                      </div>
+                    <div className="flex justify-between mt-3">
+                      <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Entry Progress</p>
+                      <p className="text-[10px] text-emerald-500 font-black uppercase tracking-widest">Target: 100%</p>
                     </div>
                   </div>
-                )}
+                </div>
              </div>
 
              <div className="mt-12 p-6 bg-white/5 rounded-[2rem] border border-white/5 relative z-10">
