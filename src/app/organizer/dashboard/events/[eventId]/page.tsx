@@ -36,7 +36,8 @@ import {
   Trash2,
   MousePointer2,
   Percent,
-  Search
+  Search,
+  XCircle
 } from "lucide-react";
 import Image from "next/image";
 import api from "@/services/api";
@@ -52,6 +53,29 @@ import WalkInRegistrationModal from "@/components/organizer/WalkInRegistrationMo
 import SuspendModal from "@/components/organizer/SuspendModal";
 import BroadcastModal from "@/components/organizer/BroadcastModal";
 import { ResourcesTab } from "@/components/organizer/ResourcesTab";
+import RegistrationDetailsModal from "@/components/organizer/RegistrationDetailsModal";
+
+interface TrackerDailyAttendance {
+  day: number;
+  attended: boolean;
+  checkInTime?: string;
+  checkedInBy?: {
+    fullName: string;
+    email: string;
+    role: string;
+  };
+}
+
+interface TrackerRegistrationDetail {
+  id: string;
+  ticketNumber: string;
+  attendeeName: string;
+  attendeeEmail: string;
+  ticketName: string;
+  guestCategory: string;
+  overallCheckInStatus: boolean;
+  dailyAttendance: TrackerDailyAttendance[];
+}
 
 const EventDetails = () => {
   const { user } = useAuth();
@@ -71,6 +95,23 @@ const EventDetails = () => {
   const [attendeeSearchTerm, setAttendeeSearchTerm] = useState("");
   const [waitlistSearchTerm, setWaitlistSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
+  const [attendeeSubTab, setAttendeeSubTab] = useState<"list" | "attendance">("list");
+
+  // Attendance Tracker States
+  const [trackerRegistrations, setTrackerRegistrations] = useState<TrackerRegistrationDetail[]>([]);
+  const [trackerLoading, setTrackerLoading] = useState(false);
+  const [trackerSearch, setTrackerSearch] = useState("");
+  const [trackerDay, setTrackerDay] = useState<string>("");
+  const [trackerStatus, setTrackerStatus] = useState<string>("");
+  const [trackerPage, setTrackerPage] = useState(1);
+  const [trackerLimit] = useState(10);
+  const [trackerTotal, setTrackerTotal] = useState(0);
+  const [trackerPages, setTrackerPages] = useState(1);
+  const [trackerEventDays, setTrackerEventDays] = useState(0);
+
+  const [selectedTicketNumberForModal, setSelectedTicketNumberForModal] = useState<string | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+
   const [isStaffModalOpen, setIsStaffModalOpen] = useState(false);
   const [isWalkInModalOpen, setIsWalkInModalOpen] = useState(false);
   const [isSuspendModalOpen, setIsSuspendModalOpen] = useState(false);
@@ -233,6 +274,39 @@ const EventDetails = () => {
       fetchAttendees();
     }
   }, [activeTab, eventId]);
+
+  const fetchTrackerRegistrations = useCallback(async () => {
+    if (!eventId || activeTab !== "attendees" || attendeeSubTab !== "attendance") return;
+    try {
+      setTrackerLoading(true);
+      const params: Record<string, string | number> = {
+        page: trackerPage,
+        limit: trackerLimit,
+      };
+      if (trackerSearch.trim()) {
+        params.search = trackerSearch.trim();
+      }
+      if (trackerStatus) {
+        params.attendanceStatus = trackerStatus;
+        if (trackerDay) {
+          params.day = parseInt(trackerDay);
+        }
+      }
+      const response = await api.get(`/events/${eventId}/registrations`, { params });
+      setTrackerRegistrations(response.data.data || []);
+      setTrackerTotal(response.data.pagination?.total || 0);
+      setTrackerPages(response.data.pagination?.pages || 1);
+      setTrackerEventDays(response.data.eventDays || 0);
+    } catch (error) {
+      console.error("Failed to fetch tracker registrations:", error);
+    } finally {
+      setTrackerLoading(false);
+    }
+  }, [eventId, activeTab, attendeeSubTab, trackerPage, trackerLimit, trackerSearch, trackerDay, trackerStatus]);
+
+  useEffect(() => {
+    fetchTrackerRegistrations();
+  }, [fetchTrackerRegistrations]);
 
   const handleAssignStaff = async (staffId: string) => {
     try {
@@ -1546,213 +1620,444 @@ const EventDetails = () => {
 
             {activeTab === "attendees" && (
               <div className="space-y-8 animate-in fade-in duration-500">
-                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="flex-1">
-                       <h3 className="text-lg font-black text-gray-900">Registered Attendees</h3>
-                       <p className="text-xs text-gray-500 font-medium mt-1">Manage and track all guest registrations for this event.</p>
-                    </div>
-
-                    <div className="relative w-full md:w-64">
-                       <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                       <input
-                         type="text"
-                         placeholder="Search attendees..."
-                         className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold focus:ring-4 focus:ring-primary/10 transition-all outline-none"
-                         value={attendeeSearchTerm}
-                         onChange={(e) => setAttendeeSearchTerm(e.target.value)}
-                       />
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                       <button
-                         onClick={() => {
-                           if (!handleRestrictedAction('BULK_IMPORT_ALLOWED', 'Feature Restricted', 'Bulk import and export is not available on your current plan.')) {
-                             // Original export logic
-                           }
-                         }}
-                         className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-700 font-bold text-xs rounded-xl border border-gray-100 hover:bg-gray-100 transition-all"
-                       >
-                          <Download size={14} />
-                          Export List
-                       </button>
-                       <button
-                         onClick={() => {
-                           if (!handleRestrictedAction('WALK_IN_REGISTRATION_ALLOWED', 'Feature Restricted', 'Walk-in registration is not available on your current plan.')) {
-                             setIsWalkInModalOpen(true);
-                           }
-                         }}
-                         className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-900/20 hover:bg-emerald-700 transition-all"
-                       >
-                          <UserPlus size={14} />
-                          Walk-in Registration
-                       </button>
-                       <Link href={`/organizer/dashboard/events/${eventId}/check-in`} className="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-xs rounded-xl shadow-lg shadow-primary/20 hover:opacity-90 transition-all">
-                          <CheckCircle2 size={14} />
-                          QR Check-in
-                       </Link>
-                    </div>
+                 {/* Secondary sub-tabs inside Attendees */}
+                 <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-xl w-fit border border-gray-100">
+                    <button
+                      onClick={() => setAttendeeSubTab("list")}
+                      className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                        attendeeSubTab === "list"
+                          ? "bg-white text-primary shadow-sm"
+                          : "text-gray-500 hover:text-gray-700"
+                      }`}
+                    >
+                      Registered List
+                    </button>
+                    <button
+                      onClick={() => setAttendeeSubTab("attendance")}
+                      className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                        attendeeSubTab === "attendance"
+                          ? "bg-white text-primary shadow-sm"
+                          : "text-gray-500 hover:text-gray-700"
+                      }`}
+                    >
+                      Attendance Tracker
+                    </button>
                  </div>
 
-                 {attendeesLoading ? (
-                   <div className="py-20 flex justify-center"><CustomLoader /></div>
-                 ) : (
-                   <div className="bg-white rounded-3xl border border-gray-50 overflow-hidden shadow-sm">
-                      <div className="overflow-x-auto">
-                         <table className="w-full text-left">
-                            <thead className="bg-gray-50/50 border-b border-gray-50">
-                               <tr>
-                                  <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Attendee</th>
-                                  <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Ticket Details</th>
-                                  <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
-                                  <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Checked In By</th>
-                                  <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Registered At</th>
-                                  <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>
-                               </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-50">
-                               {filteredAttendees.length > 0 ? (
-                                 filteredAttendees.map((attendee, idx) => (
-                                   <tr key={attendee.id || idx} className="hover:bg-gray-50/50 transition-colors group">
-                                      <td className="px-6 py-6">
-                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-primary/5 text-primary flex items-center justify-center font-black text-sm">
-                                               {(attendee.attendeeName || attendee.attendeeData?.['full-name'] || 'G')[0]}
-                                            </div>
-                                            <div>
-                                               <p className="text-sm font-bold text-gray-900">{attendee.attendeeName || attendee.attendeeData?.['full-name'] || "Guest"}</p>
-                                               <p className="text-[10px] text-gray-400 font-medium">{attendee.attendeeEmail || attendee.attendeeData?.['email'] || "No email"}</p>
-                                            </div>
-                                         </div>
-                                      </td>
-                                      <td className="px-6 py-6">
-                                         <p className="text-sm font-bold text-gray-700">{attendee.ticketName || "Standard Entry"}</p>
-                                         <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">ID: {attendee.ticketNumber || attendee.id?.slice(0, 8)}</p>
-                                      </td>
-                                      <td className="px-6 py-6">
-                                         <div className="flex flex-col gap-1.5">
-                                            <span className={`w-fit px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${
-                                               attendee.status === 'PAID' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
-                                            }`}>
-                                               {attendee.status || 'PAID'}
-                                            </span>
-                                            {attendee.checkInStatus && (
-                                              <span className="flex items-center gap-1 text-[9px] font-black text-blue-600 uppercase tracking-widest">
-                                                 <CheckCircle2 size={10} />
-                                                 Checked-in
-                                              </span>
-                                            )}
-                                         </div>
-                                      </td>
-                                      <td className="px-6 py-6">
-                                         {attendee.checkedInBy ? (
-                                           <div className="flex flex-col">
-                                              <p className="text-sm font-bold text-gray-700">{attendee.checkedInBy.fullName}</p>
-                                              <p className="text-[10px] text-gray-400 font-medium">{attendee.checkedInBy.email}</p>
-                                           </div>
-                                         ) : (
-                                           <span className="text-xs text-gray-400 italic">Not checked in</span>
-                                         )}
-                                      </td>
-                                      <td className="px-6 py-6">
-                                         <p className="text-[11px] font-bold text-gray-600">{new Date(attendee.createdAt).toLocaleDateString()}</p>
-                                         <p className="text-[9px] text-gray-400 font-medium">{new Date(attendee.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                                      </td>
-                                      <td className="px-6 py-6 text-right">
-                                         <div className="flex items-center justify-end gap-2">
-                                            {!attendee.checkInStatus && (
-                                              <button
-                                                onClick={async () => {
-                                                  try {
-                                                    const result = await Swal.fire({
-                                                      title: 'Confirm Check-in',
-                                                      text: `Are you sure you want to check in ${attendee.attendeeName}?`,
-                                                      icon: 'question',
-                                                      showCancelButton: true,
-                                                      confirmButtonText: 'Yes, Check-in',
-                                                      confirmButtonColor: '#10b981',
-                                                    });
+                 {attendeeSubTab === "list" ? (
+                    <div className="space-y-8">
+                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                          <div className="flex-1">
+                             <h3 className="text-lg font-black text-gray-900">Registered Attendees</h3>
+                             <p className="text-xs text-gray-500 font-medium mt-1">Manage and track all guest registrations for this event.</p>
+                          </div>
 
-                                                    if (result.isConfirmed) {
-                                                      Swal.showLoading();
-                                                      await api.post("/events/check-in", {
-                                                        ticketNumber: attendee.ticketNumber
-                                                      });
-                                                      await Swal.fire('Success', 'Attendee checked in successfully', 'success');
-                                                      // Refresh data
-                                                      if (!isStaff) {
-                                                        api.get(`/events/${eventId}/analytics`).then(res => setAnalytics(res.data.data));
-                                                      }
-                                                      const response = await api.get(`/events/${eventId}/orders`);
-                                                      const orders = response.data.data || [];
-                                                      let flattenedAttendees = [];
-                                                      if (Array.isArray(orders)) {
-                                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                                        flattenedAttendees = orders.flatMap((order: any) => {
-                                                          const registrations = order.registrations || [];
-                                                          if (registrations.length === 0) {
-                                                            return [{
-                                                              ...order,
-                                                              attendeeName: order.buyerInfo?.fullName || "Guest",
-                                                              attendeeEmail: order.buyerInfo?.email || "N/A",
-                                                              ticketName: order.ticketName || "Standard Entry",
-                                                              ticketNumber: `ORD-${order.id?.slice(0, 8)}`,
-                                                              status: order.status || "PENDING",
-                                                              createdAt: order.createdAt
-                                                            }];
+                          <div className="relative w-full md:w-64">
+                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                             <input
+                               type="text"
+                               placeholder="Search attendees..."
+                               className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+                               value={attendeeSearchTerm}
+                               onChange={(e) => setAttendeeSearchTerm(e.target.value)}
+                             />
+                          </div>
+
+                          <div className="flex items-center gap-3">
+                             <button
+                               onClick={() => {
+                                 if (!handleRestrictedAction('BULK_IMPORT_ALLOWED', 'Feature Restricted', 'Bulk import and export is not available on your current plan.')) {
+                                   // Original export logic
+                                 }
+                               }}
+                               className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-700 font-bold text-xs rounded-xl border border-gray-100 hover:bg-gray-100 transition-all"
+                             >
+                                <Download size={14} />
+                                Export List
+                             </button>
+                             <button
+                               onClick={() => {
+                                 if (!handleRestrictedAction('WALK_IN_REGISTRATION_ALLOWED', 'Feature Restricted', 'Walk-in registration is not available on your current plan.')) {
+                                   setIsWalkInModalOpen(true);
+                                 }
+                               }}
+                               className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-900/20 hover:bg-emerald-700 transition-all"
+                             >
+                                <UserPlus size={14} />
+                                Walk-in Registration
+                             </button>
+                             <Link href={`/organizer/dashboard/events/${eventId}/check-in`} className="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-xs rounded-xl shadow-lg shadow-primary/20 hover:opacity-90 transition-all">
+                                <CheckCircle2 size={14} />
+                                QR Check-in
+                             </Link>
+                          </div>
+                       </div>
+
+                       {attendeesLoading ? (
+                         <div className="py-20 flex justify-center"><CustomLoader /></div>
+                       ) : (
+                         <div className="bg-white rounded-3xl border border-gray-50 overflow-hidden shadow-sm">
+                            <div className="overflow-x-auto">
+                               <table className="w-full text-left">
+                                  <thead className="bg-gray-50/50 border-b border-gray-50">
+                                     <tr>
+                                        <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Attendee</th>
+                                        <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Ticket Details</th>
+                                        <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
+                                        <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Checked In By</th>
+                                        <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Registered At</th>
+                                        <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>
+                                     </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-gray-50">
+                                     {filteredAttendees.length > 0 ? (
+                                       filteredAttendees.map((attendee, idx) => (
+                                         <tr key={attendee.id || idx} className="hover:bg-gray-50/50 transition-colors group">
+                                            <td className="px-6 py-6">
+                                               <div className="flex items-center gap-3">
+                                                  <div className="w-10 h-10 rounded-xl bg-primary/5 text-primary flex items-center justify-center font-black text-sm">
+                                                     {(attendee.attendeeName || attendee.attendeeData?.['full-name'] || 'G')[0]}
+                                                  </div>
+                                                  <div>
+                                                     <p className="text-sm font-bold text-gray-900">{attendee.attendeeName || attendee.attendeeData?.['full-name'] || "Guest"}</p>
+                                                     <p className="text-[10px] text-gray-400 font-medium">{attendee.attendeeEmail || attendee.attendeeData?.['email'] || "No email"}</p>
+                                                  </div>
+                                               </div>
+                                            </td>
+                                            <td className="px-6 py-6">
+                                               <p className="text-sm font-bold text-gray-700">{attendee.ticketName || "Standard Entry"}</p>
+                                               <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">ID: {attendee.ticketNumber || attendee.id?.slice(0, 8)}</p>
+                                            </td>
+                                            <td className="px-6 py-6">
+                                               <div className="flex flex-col gap-1.5">
+                                                  <span className={`w-fit px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${
+                                                     attendee.status === 'PAID' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
+                                                  }`}>
+                                                     {attendee.status || 'PAID'}
+                                                  </span>
+                                                  {attendee.checkInStatus && (
+                                                    <span className="flex items-center gap-1 text-[9px] font-black text-blue-600 uppercase tracking-widest">
+                                                       <CheckCircle2 size={10} />
+                                                       Checked-in
+                                                    </span>
+                                                  )}
+                                               </div>
+                                            </td>
+                                            <td className="px-6 py-6">
+                                               {attendee.checkedInBy ? (
+                                                 <div className="flex flex-col">
+                                                    <p className="text-sm font-bold text-gray-700">{attendee.checkedInBy.fullName}</p>
+                                                    <p className="text-[10px] text-gray-400 font-medium">{attendee.checkedInBy.email}</p>
+                                                 </div>
+                                               ) : (
+                                                 <span className="text-xs text-gray-400 italic">Not checked in</span>
+                                               )}
+                                            </td>
+                                            <td className="px-6 py-6">
+                                               <p className="text-[11px] font-bold text-gray-600">{new Date(attendee.createdAt).toLocaleDateString()}</p>
+                                               <p className="text-[9px] text-gray-400 font-medium">{new Date(attendee.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                            </td>
+                                            <td className="px-6 py-6 text-right">
+                                               <div className="flex items-center justify-end gap-2">
+                                                  {!attendee.checkInStatus && (
+                                                    <button
+                                                      onClick={async () => {
+                                                        try {
+                                                          const result = await Swal.fire({
+                                                            title: 'Confirm Check-in',
+                                                            text: `Are you sure you want to check in ${attendee.attendeeName}?`,
+                                                            icon: 'question',
+                                                            showCancelButton: true,
+                                                            confirmButtonText: 'Yes, Check-in',
+                                                            confirmButtonColor: '#10b981',
+                                                          });
+
+                                                          if (result.isConfirmed) {
+                                                            Swal.showLoading();
+                                                            await api.post("/events/check-in", {
+                                                              ticketNumber: attendee.ticketNumber
+                                                            });
+                                                            await Swal.fire('Success', 'Attendee checked in successfully', 'success');
+                                                            // Refresh data
+                                                            if (!isStaff) {
+                                                              api.get(`/events/${eventId}/analytics`).then(res => setAnalytics(res.data.data));
+                                                            }
+                                                            const response = await api.get(`/events/${eventId}/orders`);
+                                                            const orders = response.data.data || [];
+                                                            let flattenedAttendees = [];
+                                                            if (Array.isArray(orders)) {
+                                                              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                                              flattenedAttendees = orders.flatMap((order: any) => {
+                                                                const registrations = order.registrations || [];
+                                                                if (registrations.length === 0) {
+                                                                  return [{
+                                                                    ...order,
+                                                                    attendeeName: order.buyerInfo?.fullName || "Guest",
+                                                                    attendeeEmail: order.buyerInfo?.email || "N/A",
+                                                                    ticketName: order.ticketName || "Standard Entry",
+                                                                    ticketNumber: `ORD-${order.id?.slice(0, 8)}`,
+                                                                    status: order.status || "PENDING",
+                                                                    createdAt: order.createdAt
+                                                                  }];
+                                                                }
+                                                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                                                return registrations.map((reg: any) => ({
+                                                                  ...reg,
+                                                                  orderId: order.id,
+                                                                  attendeeName: reg.attendeeData?.fullName || reg.attendeeData?.['full-name'] || order.buyerInfo?.fullName || "Guest",
+                                                                  attendeeEmail: reg.attendeeData?.email || order.buyerInfo?.email || "N/A",
+                                                                  ticketName: reg.ticketId?.name || order.ticketName || "Standard Entry",
+                                                                  ticketNumber: reg.ticketNumber || `ORD-${order.id?.slice(0, 8)}`,
+                                                                  status: reg.paymentStatus || order.status || "PAID",
+                                                                  createdAt: reg.createdAt || order.createdAt,
+                                                                  checkedInBy: reg.checkedInBy
+                                                                }));
+                                                              });
+                                                            }
+                                                            setAttendees(flattenedAttendees);
                                                           }
-                                                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                                          return registrations.map((reg: any) => ({
-                                                            ...reg,
-                                                            orderId: order.id,
-                                                            attendeeName: reg.attendeeData?.fullName || reg.attendeeData?.['full-name'] || order.buyerInfo?.fullName || "Guest",
-                                                            attendeeEmail: reg.attendeeData?.email || order.buyerInfo?.email || "N/A",
-                                                            ticketName: reg.ticketId?.name || order.ticketName || "Standard Entry",
-                                                            ticketNumber: reg.ticketNumber || `ORD-${order.id?.slice(0, 8)}`,
-                                                            status: reg.paymentStatus || order.status || "PAID",
-                                                            createdAt: reg.createdAt || order.createdAt,
-                                                            checkedInBy: reg.checkedInBy
-                                                          }));
-                                                        });
-                                                      }
-                                                      setAttendees(flattenedAttendees);
-                                                    }
-                                                  } catch (error) {
-                                                    Swal.fire('Error', translateError(error), 'error');
-                                                  }
-                                                }}
-                                                disabled={attendee.status === 'PENDING' || attendee.status === 'FAILED'}
-                                                title={attendee.status === 'PENDING' || attendee.status === 'FAILED' ? `Cannot check in a ${attendee.status.toLowerCase()} ticket` : ''}
-                                                className={`px-3 py-1.5 font-bold text-[10px] rounded-lg border transition-all ${
-                                                  attendee.status === 'PENDING' || attendee.status === 'FAILED'
-                                                    ? 'bg-gray-50 text-gray-400 border-gray-100 cursor-not-allowed opacity-60'
-                                                    : 'bg-blue-50 text-primary border-blue-100 hover:bg-primary hover:text-white'
-                                                }`}
-                                              >
-                                                Check-in
-                                              </button>
-                                            )}
-                                            <button className="p-2 text-gray-400 hover:text-primary transition-colors">
-                                               <MoreVertical size={16} />
-                                            </button>
-                                         </div>
-                                      </td>
-                                   </tr>
-                                 ))
-                               ) : (
-                                 <tr>
-                                    <td colSpan={5} className="px-6 py-20 text-center">
-                                       <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
-                                          <Users size={32} />
-                                       </div>
-                                       <h4 className="text-lg font-bold text-gray-900">No attendees yet</h4>
-                                       <p className="text-gray-500 text-sm">Once people register for your event, they will appear here.</p>
-                                    </td>
-                                 </tr>
-                               )}
-                            </tbody>
-                         </table>
-                      </div>
-                   </div>
+                                                        } catch (error) {
+                                                          Swal.fire('Error', translateError(error), 'error');
+                                                        }
+                                                      }}
+                                                      disabled={attendee.status === 'PENDING' || attendee.status === 'FAILED'}
+                                                      title={attendee.status === 'PENDING' || attendee.status === 'FAILED' ? `Cannot check in a ${attendee.status.toLowerCase()} ticket` : ''}
+                                                      className={`px-3 py-1.5 font-bold text-[10px] rounded-lg border transition-all ${
+                                                        attendee.status === 'PENDING' || attendee.status === 'FAILED'
+                                                          ? 'bg-gray-50 text-gray-400 border-gray-100 cursor-not-allowed opacity-60'
+                                                          : 'bg-blue-50 text-primary border-blue-100 hover:bg-primary hover:text-white'
+                                                      }`}
+                                                    >
+                                                      Check-in
+                                                    </button>
+                                                  )}
+                                                  <button className="p-2 text-gray-400 hover:text-primary transition-colors">
+                                                     <MoreVertical size={16} />
+                                                  </button>
+                                               </div>
+                                            </td>
+                                         </tr>
+                                       ))
+                                     ) : (
+                                       <tr>
+                                          <td colSpan={5} className="px-6 py-20 text-center">
+                                             <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
+                                                <Users size={32} />
+                                             </div>
+                                             <h4 className="text-lg font-bold text-gray-900">No attendees yet</h4>
+                                             <p className="text-gray-500 text-sm">Once people register for your event, they will appear here.</p>
+                                          </td>
+                                       </tr>
+                                     )}
+                                  </tbody>
+                               </table>
+                            </div>
+                         </div>
+                       )}
+                    </div>
+                 ) : (
+                    // Attendance Tracker UI
+                    <div className="space-y-6">
+                       {/* Filter and controls */}
+                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                          <div className="relative w-full md:w-64">
+                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                             <input
+                               type="text"
+                               placeholder="Search registrations..."
+                               className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+                               value={trackerSearch}
+                               onChange={(e) => {
+                                 setTrackerSearch(e.target.value);
+                                 setTrackerPage(1);
+                               }}
+                             />
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-3">
+                             <select
+                               value={trackerStatus}
+                               onChange={(e) => {
+                                 setTrackerStatus(e.target.value);
+                                 // If clearing status, also clear day
+                                 if (!e.target.value) setTrackerDay("");
+                                 setTrackerPage(1);
+                               }}
+                               className="px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold focus:ring-4 focus:ring-primary/10 transition-all outline-none cursor-pointer"
+                             >
+                               <option value="">Filter Status: All</option>
+                               <option value="attended">Attended</option>
+                               <option value="missed">Missed</option>
+                             </select>
+
+                             <select
+                               value={trackerDay}
+                               disabled={!trackerStatus}
+                               onChange={(e) => {
+                                 setTrackerDay(e.target.value);
+                                 setTrackerPage(1);
+                               }}
+                               className="px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold focus:ring-4 focus:ring-primary/10 transition-all outline-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                             >
+                               <option value="">Filter Day: All</option>
+                               {Array.from({ length: trackerEventDays || 1 }).map((_, i) => (
+                                 <option key={i + 1} value={i + 1}>
+                                   Day {i + 1}
+                                 </option>
+                               ))}
+                             </select>
+
+                             {(trackerSearch || trackerStatus || trackerDay) && (
+                               <button
+                                 onClick={() => {
+                                   setTrackerSearch("");
+                                   setTrackerStatus("");
+                                   setTrackerDay("");
+                                   setTrackerPage(1);
+                                 }}
+                                 className="flex items-center gap-1.5 px-4 py-2.5 bg-rose-50 text-rose-600 font-bold text-xs rounded-xl hover:bg-rose-100 transition-all border border-rose-100"
+                               >
+                                  Clear Filters
+                               </button>
+                             )}
+                          </div>
+                       </div>
+
+                       {trackerLoading ? (
+                         <div className="py-20 flex justify-center"><CustomLoader /></div>
+                       ) : (
+                         <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
+                            <div className="overflow-x-auto animate-in fade-in duration-300">
+                               <table className="w-full text-left">
+                                  <thead className="bg-gray-50 border-b border-gray-100">
+                                     <tr>
+                                        <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Attendee</th>
+                                        <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Ticket Details</th>
+                                        <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Overall Status</th>
+                                        {/* Generate dynamically columns for Days */}
+                                        {Array.from({ length: trackerEventDays || 1 }).map((_, i) => (
+                                           <th key={i} className="px-4 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Day {i + 1}</th>
+                                        ))}
+                                        <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>
+                                     </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-gray-50">
+                                     {trackerRegistrations.length > 0 ? (
+                                       trackerRegistrations.map((reg, idx) => {
+                                          return (
+                                             <tr key={reg.id || idx} className="hover:bg-gray-50/50 transition-colors group">
+                                                <td className="px-6 py-6">
+                                                   <div className="flex items-center gap-3">
+                                                      <div className="w-10 h-10 rounded-xl bg-primary/5 text-primary flex items-center justify-center font-black text-sm">
+                                                         {(reg.attendeeName || 'G')[0]}
+                                                      </div>
+                                                      <div>
+                                                         <p className="text-sm font-bold text-gray-900">{reg.attendeeName}</p>
+                                                         <p className="text-[10px] text-gray-400 font-medium">{reg.attendeeEmail}</p>
+                                                      </div>
+                                                   </div>
+                                                </td>
+                                                <td className="px-6 py-6">
+                                                   <p className="text-sm font-bold text-gray-700">{reg.ticketName}</p>
+                                                   <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">ID: {reg.ticketNumber}</p>
+                                                </td>
+                                                <td className="px-6 py-6">
+                                                   <span className={`w-fit px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${
+                                                      reg.overallCheckInStatus ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
+                                                   }`}>
+                                                      {reg.overallCheckInStatus ? 'Checked In' : 'Not Checked In'}
+                                                   </span>
+                                                </td>
+                                                {/* Generate Day cells */}
+                                                {Array.from({ length: trackerEventDays || 1 }).map((_, i) => {
+                                                   const dayNum = i + 1;
+                                                   const dayData = reg.dailyAttendance?.find((d: TrackerDailyAttendance) => d.day === dayNum);
+                                                   const attended = dayData?.attended;
+
+                                                   return (
+                                                      <td key={i} className="px-4 py-6 text-center">
+                                                         <div className="relative inline-block group/tooltip">
+                                                            {attended ? (
+                                                               <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto border border-emerald-100 cursor-pointer hover:bg-emerald-100 transition-all">
+                                                                  <CheckCircle2 size={16} />
+                                                               </div>
+                                                            ) : (
+                                                               <div className="w-8 h-8 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mx-auto border border-rose-100 cursor-pointer hover:bg-rose-100 transition-all">
+                                                                  <XCircle size={16} />
+                                                               </div>
+                                                            )}
+                                                            {/* Tooltip */}
+                                                            {attended && (
+                                                               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover/tooltip:block bg-gray-900 text-white text-[10px] rounded-xl p-3 w-48 z-[110] shadow-xl pointer-events-none text-left">
+                                                                  <p className="font-bold border-b border-white/10 pb-1 mb-1 text-primary">Day {dayNum} Checked In</p>
+                                                                  {dayData.checkInTime && (
+                                                                     <p className="text-[9px] text-gray-300">Time: {new Date(dayData.checkInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                                                  )}
+                                                                  {dayData.checkedInBy && (
+                                                                     <p className="text-[9px] text-gray-300 mt-0.5">By: {dayData.checkedInBy.fullName}</p>
+                                                                  )}
+                                                               </div>
+                                                            )}
+                                                         </div>
+                                                      </td>
+                                                   );
+                                                })}
+                                                <td className="px-6 py-6 text-right">
+                                                   <button
+                                                     onClick={() => {
+                                                        setSelectedTicketNumberForModal(reg.ticketNumber);
+                                                        setIsDetailsModalOpen(true);
+                                                     }}
+                                                     className="px-3 py-1.5 bg-blue-50 text-primary font-bold text-[10px] rounded-lg border border-blue-100 hover:bg-primary hover:text-white transition-all uppercase tracking-wider"
+                                                   >
+                                                      View Details
+                                                   </button>
+                                                </td>
+                                             </tr>
+                                          );
+                                       })
+                                     ) : (
+                                       <tr>
+                                          <td colSpan={5 + (trackerEventDays || 1)} className="px-6 py-20 text-center">
+                                             <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
+                                                <Users size={32} />
+                                             </div>
+                                             <h4 className="text-lg font-bold text-gray-900">No registrations found</h4>
+                                             <p className="text-gray-500 text-sm">No records match the active search and filter options.</p>
+                                          </td>
+                                       </tr>
+                                     )}
+                                  </tbody>
+                               </table>
+                            </div>
+
+                            {/* Pagination Controls */}
+                            {trackerPages > 1 && (
+                               <div className="p-6 bg-gray-50/50 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+                                  <p className="text-xs text-gray-500 font-bold">
+                                     Showing Page {trackerPage} of {trackerPages} ({trackerTotal} Total Registrations)
+                                  </p>
+                                  <div className="flex items-center gap-2">
+                                     <button
+                                       onClick={() => setTrackerPage(p => Math.max(1, p - 1))}
+                                       disabled={trackerPage === 1}
+                                       className="px-4 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-50 transition-all disabled:opacity-50 disabled:hover:bg-white cursor-pointer"
+                                     >
+                                        Previous
+                                     </button>
+                                     <button
+                                       onClick={() => setTrackerPage(p => Math.min(trackerPages, p + 1))}
+                                       disabled={trackerPage === trackerPages}
+                                       className="px-4 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-50 transition-all disabled:opacity-50 disabled:hover:bg-white cursor-pointer"
+                                     >
+                                        Next
+                                     </button>
+                                  </div>
+                               </div>
+                            )}
+                         </div>
+                       )}
+                    </div>
                  )}
               </div>
             )}
@@ -1830,6 +2135,21 @@ const EventDetails = () => {
               };
               fetchAttendees();
             }
+          }}
+        />
+      )}
+
+      {selectedTicketNumberForModal && (
+        <RegistrationDetailsModal
+          isOpen={isDetailsModalOpen}
+          onClose={() => {
+            setIsDetailsModalOpen(false);
+            setSelectedTicketNumberForModal(null);
+          }}
+          eventId={eventId as string}
+          ticketNumber={selectedTicketNumberForModal}
+          onCheckInSuccess={() => {
+            fetchTrackerRegistrations();
           }}
         />
       )}
