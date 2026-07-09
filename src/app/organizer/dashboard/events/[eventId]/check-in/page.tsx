@@ -23,15 +23,35 @@ import { translateError } from "@/utils/errors";
 import { useAuth } from "@/context/AuthContext";
 import { useOrganizerRules } from "@/hooks/useOrganizerRules";
 
+interface LiveCheckInStaff {
+  id: string;
+  fullName: string;
+  email: string;
+  phone?: string;
+  role?: string;
+  mongoUserId?: string;
+  assignedAt?: string;
+  checkInCountOverall?: number;
+  checkInCountToday?: number;
+}
+
 interface LiveCheckInStats {
-  checkedInGuests?: number;
+  total?: number;
   totalRegistrations?: number;
-  attendanceRate?: number;
-  summary?: {
-    checkedInGuests?: number;
-    totalRegistrations?: number;
-    attendanceRate?: number;
+  currentDay?: number;
+  totalDays?: number;
+  overall?: {
+    checkedIn: number;
+    total: number;
+    rate: number;
   };
+  daily?: {
+    day: number;
+    checkedIn: number;
+    total: number;
+    rate: number;
+  };
+  assignedStaff?: LiveCheckInStaff[];
 }
 
 const CheckInInterface = () => {
@@ -431,13 +451,13 @@ const CheckInInterface = () => {
 
              <div className="space-y-10 relative z-10">
                 <div>
-                  <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.3em] mb-3">Check-in Flow</p>
+                  <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.3em] mb-3">Overall Check-in Flow</p>
                   <div className="flex items-baseline gap-3">
                       <span className="text-6xl font-black tracking-tighter">
-                        {liveStats?.checkedInGuests ?? liveStats?.summary?.checkedInGuests ?? analytics?.summary?.checkedInGuests ?? 0}
+                        {liveStats?.overall?.checkedIn ?? 0}
                       </span>
                       <span className="text-gray-500 font-black text-xl italic tracking-tight">
-                        / {liveStats?.totalRegistrations ?? liveStats?.summary?.totalRegistrations ?? analytics?.summary?.totalRegistrations ?? 0} Total
+                        / {liveStats?.overall?.total ?? liveStats?.totalRegistrations ?? 0} Total
                       </span>
                   </div>
                 </div>
@@ -445,9 +465,9 @@ const CheckInInterface = () => {
                 <div className="space-y-4">
                   <div className="flex items-end justify-between">
                     <div>
-                        <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.3em] mb-1">Check-in Rate</p>
+                        <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.3em] mb-1">Overall Check-in Rate</p>
                         <p className="text-5xl font-black text-emerald-400 tracking-tighter">
-                          {liveStats?.attendanceRate ?? liveStats?.summary?.attendanceRate ?? analytics?.summary?.attendanceRate ?? 0}%
+                          {liveStats?.overall?.rate ?? 0}%
                         </p>
                     </div>
                     <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center text-emerald-400 border border-white/5">
@@ -459,7 +479,7 @@ const CheckInInterface = () => {
                     <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden shadow-inner">
                       <div
                         className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full transition-all duration-1000"
-                        style={{ width: `${liveStats?.attendanceRate ?? liveStats?.summary?.attendanceRate ?? analytics?.summary?.attendanceRate ?? 0}%` }}
+                        style={{ width: `${liveStats?.overall?.rate ?? 0}%` }}
                       ></div>
                     </div>
                     <div className="flex justify-between mt-3">
@@ -468,6 +488,49 @@ const CheckInInterface = () => {
                     </div>
                   </div>
                 </div>
+
+                {liveStats?.daily && liveStats.daily.day > 0 && (
+                  <div className="mt-8 pt-8 border-t border-white/10 space-y-6">
+                     <div className="flex items-center justify-between">
+                        <span className="px-3 py-1 bg-emerald-500/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-emerald-400 border border-emerald-500/10">
+                          Day {liveStats.daily.day} Active
+                        </span>
+                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Today</span>
+                     </div>
+
+                     <div>
+                       <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.3em] mb-3">Today Check-in Flow</p>
+                       <div className="flex items-baseline gap-3">
+                           <span className="text-4xl font-black tracking-tighter">
+                             {liveStats.daily.checkedIn}
+                           </span>
+                           <span className="text-gray-500 font-black text-lg italic tracking-tight">
+                             / {liveStats.daily.total} Today Total
+                           </span>
+                       </div>
+                     </div>
+
+                     <div className="space-y-4">
+                       <div className="flex items-end justify-between">
+                         <div>
+                             <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.3em] mb-1">Today Check-in Rate</p>
+                             <p className="text-3xl font-black text-blue-400 tracking-tighter">
+                               {liveStats.daily.rate}%
+                             </p>
+                         </div>
+                       </div>
+
+                       <div className="pt-2">
+                         <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden shadow-inner">
+                           <div
+                             className="h-full bg-gradient-to-r from-blue-600 to-blue-400 rounded-full transition-all duration-1000"
+                             style={{ width: `${liveStats.daily.rate}%` }}
+                           ></div>
+                         </div>
+                       </div>
+                     </div>
+                  </div>
+                )}
              </div>
 
              <div className="mt-12 p-6 bg-white/5 rounded-[2rem] border border-white/5 relative z-10">
@@ -475,19 +538,42 @@ const CheckInInterface = () => {
                    <div className="w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_12px_rgba(16,185,129,0.5)]"></div>
                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Assigned Check-in Staff</p>
                 </div>
-                <div className="flex -space-x-2">
-                   {staff.length > 0 ? (
-                     staff.map((member) => (
-                       <div key={member.id} className="w-8 h-8 rounded-full bg-primary/20 border-2 border-gray-900 flex items-center justify-center text-[10px] font-bold overflow-hidden" title={member.fullName || member.email}>
-                          {member.fullName?.[0] || member.email[0].toUpperCase()}
+
+                {liveStats?.assignedStaff && liveStats.assignedStaff.length > 0 ? (
+                  <div className="space-y-3 mt-4">
+                    {liveStats.assignedStaff.map((member) => (
+                      <div key={member.id} className="flex items-center justify-between p-3 bg-white/5 rounded-2xl border border-white/5 group hover:bg-white/10 transition-all">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-8 h-8 rounded-full bg-primary/20 border-2 border-gray-900 flex items-center justify-center text-[10px] font-bold overflow-hidden shrink-0">
+                            {member.fullName?.[0] || member.email?.[0]?.toUpperCase() || 'S'}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-gray-200 truncate">{member.fullName}</p>
+                            <p className="text-[10px] text-gray-400 font-medium truncate">{member.role || 'Staff'}</p>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-xs font-black text-emerald-400">{member.checkInCountToday || 0} checked in</p>
+                          <p className="text-[9px] text-gray-500 font-medium">{member.checkInCountOverall || 0} total</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex -space-x-2">
+                     {staff.length > 0 ? (
+                       staff.map((member) => (
+                         <div key={member.id} className="w-8 h-8 rounded-full bg-primary/20 border-2 border-gray-900 flex items-center justify-center text-[10px] font-bold overflow-hidden" title={member.fullName || member.email}>
+                            {member.fullName?.[0] || member.email[0].toUpperCase()}
+                         </div>
+                       ))
+                     ) : (
+                       <div className="w-8 h-8 rounded-full bg-primary/20 border-2 border-gray-900 flex items-center justify-center text-[10px] font-bold overflow-hidden">
+                          {user?.fullName?.[0] || 'U'}
                        </div>
-                     ))
-                   ) : (
-                     <div className="w-8 h-8 rounded-full bg-primary/20 border-2 border-gray-900 flex items-center justify-center text-[10px] font-bold overflow-hidden">
-                        {user?.fullName?.[0] || 'U'}
-                     </div>
-                   )}
-                </div>
+                     )}
+                  </div>
+                )}
              </div>
           </div>
 
