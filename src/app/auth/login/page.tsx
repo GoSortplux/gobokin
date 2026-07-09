@@ -108,7 +108,7 @@ const LoginPage = () => {
 
       // If user is not verified, redirect to verification page
       if (user.isVerified === false || user.isEmailVerified === false) {
-        processLogin(accessToken, user, '/auth/verify-email');
+        processLogin(accessToken, user, `/auth/verify-email?email=${encodeURIComponent(user.email)}`);
         return;
       }
 
@@ -129,9 +129,13 @@ const LoginPage = () => {
         const errorResponse = (err as { response?: { data?: { data?: { accessToken: string; user: Record<string, unknown> } } } }).response;
         const errorData = errorResponse?.data?.data;
         if (errorData?.accessToken && errorData?.user) {
-          processLogin(errorData.accessToken, errorData.user as { role: string[]; [key: string]: unknown }, '/auth/verify-email');
+          processLogin(
+            errorData.accessToken,
+            errorData.user as { role: string[]; [key: string]: unknown },
+            `/auth/verify-email?email=${encodeURIComponent((errorData.user as { email?: string }).email || formData.email)}`
+          );
         } else {
-          router.push('/auth/verify-email');
+          router.push(`/auth/verify-email?email=${encodeURIComponent(formData.email)}`);
         }
         return;
       }

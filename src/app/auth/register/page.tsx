@@ -5,12 +5,10 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff } from 'lucide-react';
 import api from '@/services/api';
-import { useAuth } from '@/context/AuthContext';
 import AuthLayout from '@/components/auth/AuthLayout';
 import PolicyModal from '@/components/PolicyModal';
 import CustomLoader from '@/components/CustomLoader';
 import Swal from '@/utils/sweetalert';
-import { User } from '@/types';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -27,7 +25,6 @@ const RegisterPage = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isPolicyModalOpen, setIsPolicyModalOpen] = useState(false);
   const router = useRouter();
-  const { login } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -51,29 +48,19 @@ const RegisterPage = () => {
     }
 
     try {
-      const response = await api.post('/auth/register', {
+      await api.post('/auth/register', {
         ...formData,
         hasAcceptedLatestPolicies: true
       });
 
-      const { accessToken, user } = response.data.data || response.data;
-
       await Swal.fire({
         icon: 'success',
         title: 'Registration Successful',
-        text: 'Your account has been created. Redirecting to login...',
+        text: 'Your account has been created. Redirecting to verify your email...',
         confirmButtonColor: '#295FA7',
       });
 
-      if (accessToken && user) {
-        // Check for returnUrl in localStorage
-        const returnUrl = localStorage.getItem('returnUrl');
-        if (returnUrl) localStorage.removeItem('returnUrl');
-        const redirectPath = returnUrl || '/auth/verify-email';
-        login(accessToken, user as User, redirectPath);
-      } else {
-        router.push('/auth/login');
-      }
+      router.push(`/auth/verify-email?email=${encodeURIComponent(formData.email)}`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred during registration.');
     } finally {

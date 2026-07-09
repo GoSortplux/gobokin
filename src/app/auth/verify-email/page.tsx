@@ -1,18 +1,21 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import api from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import CustomLoader from '@/components/CustomLoader';
 import Swal from '@/utils/sweetalert';
 
-const VerifyEmailPage = () => {
+const VerifyEmailContent = () => {
   const [verificationCode, setVerificationCode] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
-  const { login, token: jwtToken, user: currentUser } = useAuth();
+  const searchParams = useSearchParams();
+  const emailParam = searchParams.get('email') || '';
+  const { logout, user: currentUser } = useAuth();
+
+  const targetEmail = emailParam || currentUser?.email || '';
 
   const handleVerifySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,29 +29,19 @@ const VerifyEmailPage = () => {
     }
 
     try {
-      const response = await api.post('/auth/verify-email', {
+      await api.post('/auth/verify-email', {
         token: verificationCode,
-        email: currentUser?.email
+        email: targetEmail
       });
-
-      const { accessToken, user } = response.data.data || response.data || {};
 
       await Swal.fire({
         icon: 'success',
         title: 'Email Verified',
-        text: 'Your email has been successfully verified. You are now signed in.',
+        text: 'Your email has been successfully verified. Please log in to continue.',
         confirmButtonColor: '#2563eb',
       });
 
-      if (accessToken && user) {
-        login(accessToken, user);
-      } else if (jwtToken && currentUser) {
-        // If the API doesn't return a new token, use the existing one
-        // and update the user state to reflect verification
-        login(jwtToken, { ...currentUser, isVerified: true, isEmailVerified: true });
-      } else {
-        router.push('/auth/login');
-      }
+      logout();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred during verification.');
       setIsLoading(false);
@@ -61,7 +54,7 @@ const VerifyEmailPage = () => {
     setIsResending(true);
     try {
       await api.post('/auth/resend-verify-email', {
-        email: currentUser?.email
+        email: targetEmail
       });
       Swal.toast.fire({
         icon: 'success',
@@ -87,9 +80,16 @@ const VerifyEmailPage = () => {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white">
         <div className="w-full max-w-md space-y-6">
           <h2 className="text-2xl font-bold text-center text-gray-900">Verify Your Email</h2>
-          <p className="text-center text-gray-600">
-            A verification token has been sent to your email. Please enter it below.
-          </p>
+          {targetEmail ? (
+            <p className="text-center text-gray-600">
+              A verification token has been sent to{' '}
+              <span className="font-semibold text-primary">{targetEmail}</span>. Please enter it below.
+            </p>
+          ) : (
+            <p className="text-center text-gray-600">
+              A verification token has been sent to your email. Please enter it below.
+            </p>
+          )}
           <form className="space-y-6" onSubmit={handleVerifySubmit}>
             <div>
               <label className="block text-sm font-medium text-gray-700">Verification Token</label>
@@ -100,16 +100,16 @@ const VerifyEmailPage = () => {
                 onChange={(e) => setVerificationCode(e.target.value)}
                 placeholder="Enter Verification Token"
                 required
-              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
+                className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary text-gray-600"
               />
             </div>
             {error && <p className="text-sm text-center text-red-600">{error}</p>}
             <button
               type="submit"
-            disabled={isLoading}
-            className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center min-h-[48px]"
+              disabled={isLoading}
+              className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center min-h-[48px]"
             >
-            {isLoading ? <CustomLoader size={24} /> : 'Verify Email'}
+              {isLoading ? <CustomLoader size={24} /> : 'Verify Email'}
             </button>
           </form>
           <div className="text-center">
@@ -118,7 +118,7 @@ const VerifyEmailPage = () => {
               <button
                 type="button"
                 onClick={handleResendToken}
-              className="font-medium text-primary hover:text-primary/90 disabled:opacity-50"
+                className="font-medium text-primary hover:text-primary/90 disabled:opacity-50"
                 disabled={isResending}
               >
                 {isResending ? 'Resending...' : 'Resend Token'}
@@ -128,6 +128,14 @@ const VerifyEmailPage = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+const VerifyEmailPage = () => {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-white"><CustomLoader size={40} /></div>}>
+      <VerifyEmailContent />
+    </Suspense>
   );
 };
 

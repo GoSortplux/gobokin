@@ -1,0 +1,34 @@
+
+> gobokin-app@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.5.9
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.2:3000
+
+ ✓ Starting...
+ ✓ Ready in 1979ms
+ ○ Compiling /auth/register ...
+ ✓ Compiled /auth/register in 11s (1802 modules)
+ GET /auth/register 200 in 12687ms
+ ○ Compiling /auth/verify-email ...
+ ✓ Compiled /auth/verify-email in 2.4s (1778 modules)
+ GET /auth/verify-email?email=john.doe%40example.com 200 in 2718ms
+ GET /auth/verify-email?email=john.doe%40example.com 200 in 104ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 893ms (1763 modules)
+ GET /auth/verify-email?email=test-user@gobokin.com 404 in 1545ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/app/.next/server/app/auth/verify-email/page.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/app/.next/server/app/auth/verify-email/page.js',
+  page: '/auth/verify-email'
+}
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 2.8s (2103 modules)
+ GET /auth/verify-email?email=test-user@gobokin.com 500 in 3591ms
+ GET /auth/verify-email?email=test-user@gobokin.com 200 in 646ms
+ GET /auth/verify-email?email=test-user@gobokin.com 200 in 158ms
+ GET /auth/verify-email?email=test-user@gobokin.com 200 in 128ms
+ GET /auth/verify-email?email=test-user@gobokin.com 200 in 169ms
