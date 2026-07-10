@@ -248,13 +248,13 @@ const EventHeaderContent = () => {
           {/* Right Section */}
           <div className="flex items-center gap-2 sm:gap-4">
             <Link
-              href="/events"
+              href="/"
               className={`hidden lg:flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
-                pathname === "/events" ? "text-primary bg-primary/5" : "text-gray-600 hover:bg-gray-50"
+                pathname === "/" ? "text-primary bg-primary/5" : "text-gray-600 hover:bg-gray-50"
               }`}
             >
               <Calendar size={18} />
-              Explore
+              Book Venue
             </Link>
 
             {user ? (
