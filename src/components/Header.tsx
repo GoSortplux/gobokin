@@ -168,7 +168,7 @@ const Header = () => {
                 href="/events"
                 className="px-4 py-2 text-sm font-medium text-white rounded-xl shadow-sm bg-primary hover:bg-primary/90 transition-all duration-300"
               >
-                Explore Events
+                Browse for event / sell ticket
               </Link>
               {renderBecomeOwnerButton()}
               {message && <p>{message}</p>}
@@ -394,7 +394,7 @@ const Header = () => {
                       >
                         <div className="flex items-center space-x-3">
                           <Calendar className="w-5 h-5 text-gray-500 group-hover:text-primary" />
-                          <span className="font-medium text-gray-700 group-hover:text-primary">Explore Events</span>
+                          <span className="font-medium text-gray-700 group-hover:text-primary">Browse for event / sell ticket</span>
                         </div>
                         <ChevronRight className="w-4 h-4 text-gray-400" />
                       </Link>
@@ -460,7 +460,7 @@ const Header = () => {
                     >
                       <div className="flex items-center space-x-3">
                         <Calendar className="w-5 h-5 text-gray-500 group-hover:text-primary" />
-                        <span className="font-medium text-gray-700 group-hover:text-primary">Explore Events</span>
+                        <span className="font-medium text-gray-700 group-hover:text-primary">Browse for event / sell ticket</span>
                       </div>
                       <ChevronRight className="w-4 h-4 text-gray-400" />
                     </Link>
