@@ -2,8 +2,10 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { DateRange } from 'react-day-picker';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Calendar } from 'lucide-react';
 import Carousel from '@/components/Carousel';
 import FeaturedShowcase from '@/components/FeaturedShowcase';
 import SkeletonCard from '@/components/SkeletonCard';
@@ -173,6 +175,17 @@ const HomePage = () => {
                 </motion.div>
               )}
             </AnimatePresence>
+          </div>
+
+          {/* Mobile-only Browse Events / Sell Ticket CTA */}
+          <div className="mt-6 lg:hidden flex justify-center px-4">
+            <Link
+              href="/events"
+              className="w-full max-w-md bg-primary text-white font-black text-xs uppercase tracking-widest py-4 px-6 rounded-2xl shadow-xl shadow-primary/25 hover:brightness-110 active:scale-95 transition-all text-center flex items-center justify-center gap-2"
+            >
+              <Calendar size={16} />
+              Browse for event / sell ticket
+            </Link>
           </div>
         </div>
 
