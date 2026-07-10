@@ -12,3 +12,10 @@
  ✓ Compiled /verify-modal in 19.2s (2393 modules)
  GET /verify-modal 200 in 20525ms
  ✓ Compiled in 1018ms (757 modules)
+ ✓ Compiled in 6.8s (777 modules)
+ ✓ Compiled in 1200ms (757 modules)
+ ○ Compiling /verify-modal ...
+ ✓ Compiled /verify-modal in 4.2s (2370 modules)
+ GET /verify-modal 200 in 5799ms
+ GET /verify-modal 200 in 234ms
+ ✓ Compiled in 657ms (757 modules)

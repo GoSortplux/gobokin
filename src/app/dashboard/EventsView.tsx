@@ -135,7 +135,7 @@ const EventsView = () => {
                         }`}
                       >
                         <Users size={14} />
-                        Guest Tickets ({guestTickets.length})
+                        Group Tickets ({guestTickets.length})
                       </button>
                     </div>
                   )}
