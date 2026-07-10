@@ -181,7 +181,7 @@ const HomePage = () => {
           <div className="mt-6 lg:hidden flex justify-center px-4">
             <Link
               href="/events"
-              className="w-full max-w-md bg-primary text-white font-black text-xs uppercase tracking-widest py-4 px-6 rounded-2xl shadow-xl shadow-primary/25 hover:brightness-110 active:scale-95 transition-all text-center flex items-center justify-center gap-2"
+              className="w-full max-w-md bg-secondary text-white font-black text-xs uppercase tracking-widest py-4 px-6 rounded-2xl shadow-xl shadow-secondary/25 hover:brightness-110 active:scale-95 transition-all text-center flex items-center justify-center gap-2"
             >
               <Calendar size={16} />
               Browse for event / sell ticket
