@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { X, Calendar, MapPin, Ticket, User, Clock, ExternalLink, RotateCcw, CreditCard, FileText, Download } from "lucide-react";
 import api from "@/services/api";
 import { Event, Registration, PricingBreakdown } from "@/types";
@@ -10,6 +10,8 @@ import { translateError } from "@/utils/errors";
 import RefundRequestModal from "@/components/RefundRequestModal";
 import Image from "next/image";
 import { format } from "date-fns";
+import { toPng } from "html-to-image";
+import { jsPDF } from "jspdf";
 
 interface RegistrationDetailsModalProps {
   registration: Registration;
@@ -34,6 +36,123 @@ const RegistrationDetailsModal: React.FC<RegistrationDetailsModalProps> = ({ reg
   const [showBreakdownModal, setShowBreakdownModal] = useState(false);
   const [pricingBreakdown, setPricingBreakdown] = useState<PricingBreakdown | null>(null);
   const [checkoutUrl, setCheckoutUrl] = useState("");
+
+  const ticketRef = useRef<HTMLDivElement>(null);
+  const [qrBase64, setQrBase64] = useState<string>('');
+
+  useEffect(() => {
+    let active = true;
+    const convertQr = async () => {
+      const qrUrl = registration.qrCodeUrl || `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${registration.ticketNumber}`;
+      try {
+        const response = await fetch(qrUrl);
+        if (!response.ok) throw new Error('QR code fetch failed');
+        const blob = await response.blob();
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+        if (active) setQrBase64(base64);
+      } catch (err) {
+        console.error('Failed to pre-convert ticket QR code to Base64:', err);
+      }
+    };
+
+    if (registration.qrCodeUrl || registration.ticketNumber) {
+      convertQr();
+    }
+
+    return () => {
+      active = false;
+    };
+  }, [registration.qrCodeUrl, registration.ticketNumber]);
+
+  const handleDownloadPDF = async () => {
+    if (ticketRef.current === null) return;
+    try {
+      Swal.showLoading();
+      const dataUrl = await toPng(ticketRef.current, {
+        cacheBust: true,
+        backgroundColor: '#ffffff',
+        filter: (node: HTMLElement) => {
+          if (node.tagName === 'BUTTON') return false;
+          if (node.classList && node.classList.contains('exclude-capture')) {
+            return false;
+          }
+          return true;
+        }
+      });
+      Swal.close();
+
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgProps = pdf.getImageProperties(dataUrl);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const margin = 20;
+      const contentWidth = pdfWidth - (margin * 2);
+      const contentHeight = (imgProps.height * contentWidth) / imgProps.width;
+
+      pdf.addImage(dataUrl, 'PNG', margin, margin, contentWidth, contentHeight);
+      pdf.save(`ticket-${registration.ticketNumber}.pdf`);
+    } catch (err) {
+      console.error('Failed to download ticket PDF', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Download Failed',
+        text: 'Could not generate ticket PDF. Please try again.',
+      });
+    }
+  };
+
+  const handleShareTicket = async () => {
+    if (ticketRef.current === null) return;
+    try {
+      Swal.showLoading();
+      const dataUrl = await toPng(ticketRef.current, {
+        cacheBust: true,
+        backgroundColor: '#ffffff',
+        filter: (node: HTMLElement) => {
+          if (node.tagName === 'BUTTON') return false;
+          if (node.classList && node.classList.contains('exclude-capture')) {
+            return false;
+          }
+          return true;
+        }
+      });
+      Swal.close();
+
+      const blob = await (await fetch(dataUrl)).blob();
+      const file = new File([blob], `ticket-${registration.ticketNumber}.png`, { type: 'image/png' });
+
+      if (navigator.share && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: 'My Event Ticket',
+          text: `I'm attending ${registration.event.title}! Here is my ticket pass.`,
+        });
+      } else {
+        const link = document.createElement('a');
+        link.download = `ticket-${registration.ticketNumber}.png`;
+        link.href = dataUrl;
+        link.click();
+        Swal.fire({
+          icon: 'success',
+          title: 'Ticket Saved',
+          text: 'Sharing is not supported on this browser. Ticket saved as image instead!',
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      }
+    } catch (err) {
+      console.error('Failed to share ticket', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Share Failed',
+        text: 'Could not share ticket. Please try again.',
+      });
+    }
+  };
 
   const handlePayNow = async () => {
     if (!registration.orderId) {
@@ -273,9 +392,11 @@ const RegistrationDetailsModal: React.FC<RegistrationDetailsModalProps> = ({ reg
 
               {/* Right Column: Ticket Card */}
               <div className="lg:col-span-5">
-                <div className="bg-white border-2 border-dashed border-gray-200 rounded-[2.5rem] p-10 flex flex-col items-center text-center space-y-8 sticky top-0">
+                <div ref={ticketRef} className="bg-white border-2 border-dashed border-gray-200 rounded-[2.5rem] p-10 flex flex-col items-center text-center space-y-8 sticky top-0">
                    <div className="w-full aspect-square bg-gray-50 rounded-3xl flex items-center justify-center border border-gray-100 relative group overflow-hidden">
-                      {registration.qrCodeUrl ? (
+                      {qrBase64 ? (
+                         <img src={qrBase64} alt="QR Code" className="w-full h-full p-4 object-contain" />
+                      ) : registration.qrCodeUrl ? (
                          <Image src={registration.qrCodeUrl} alt="QR Code" fill className="p-4" />
                       ) : (
                         <div className="flex flex-col items-center gap-4 text-gray-300">
@@ -291,13 +412,20 @@ const RegistrationDetailsModal: React.FC<RegistrationDetailsModalProps> = ({ reg
                    </div>
 
                    <div className="space-y-2">
+                      <p className="text-xs font-bold uppercase tracking-widest text-primary line-clamp-1">{registration.event.title}</p>
                       <p className="text-2xl font-black text-gray-900 tracking-tighter">Valid Entry Pass</p>
-                      <p className="text-xs text-gray-500 font-bold uppercase tracking-widest leading-relaxed">
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mt-1">
+                        Attendee: {registration.attendeeData?.fullName || (registration.attendeeData as Record<string, unknown>)?.[ "full-name" ] as string || "N/A"}
+                      </p>
+                      <p className="text-sm font-black text-primary font-mono bg-gray-50 px-4 py-1.5 rounded-full border border-gray-100 w-fit mx-auto mt-2">
+                        {registration.ticketNumber}
+                      </p>
+                      <p className="text-xs text-gray-500 font-bold uppercase tracking-widest leading-relaxed mt-2">
                         Please present this ticket at the <br/> venue for check-in.
                       </p>
                    </div>
 
-                   <div className="w-full pt-8 border-t border-gray-100 space-y-3">
+                   <div className="w-full pt-8 border-t border-gray-100 space-y-3 exclude-capture">
                       {!isPaid && !isFree && (
                         <button
                           onClick={handlePayNow}
@@ -312,11 +440,15 @@ const RegistrationDetailsModal: React.FC<RegistrationDetailsModalProps> = ({ reg
                       <div className="flex gap-4">
                         <button
                           disabled={!isPaid && !isFree}
+                          onClick={handleDownloadPDF}
                           className="flex-1 bg-primary text-white font-black py-4 rounded-2xl text-xs uppercase tracking-widest shadow-xl shadow-primary/20 hover:brightness-110 transition-all disabled:opacity-50"
                         >
                           Download PDF
                         </button>
-                        <button className="flex-1 bg-gray-50 text-gray-900 font-black py-4 rounded-2xl text-xs uppercase tracking-widest border border-gray-100 hover:bg-gray-100 transition-all">
+                        <button
+                          onClick={handleShareTicket}
+                          className="flex-1 bg-gray-50 text-gray-900 font-black py-4 rounded-2xl text-xs uppercase tracking-widest border border-gray-100 hover:bg-gray-100 transition-all"
+                        >
                           Share Ticket
                         </button>
                       </div>

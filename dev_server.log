@@ -1,0 +1,14 @@
+
+> gobokin-app@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.5.9
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.2:3000
+
+ ✓ Starting...
+ ✓ Ready in 2.2s
+ ○ Compiling /verify-modal ...
+ ✓ Compiled /verify-modal in 19.2s (2393 modules)
+ GET /verify-modal 200 in 20525ms
+ ✓ Compiled in 1018ms (757 modules)

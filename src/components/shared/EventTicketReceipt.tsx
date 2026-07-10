@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
 import { Registration, Event } from '@/types';
@@ -26,6 +26,60 @@ interface EventTicketReceiptProps {
 
 const EventTicketReceipt: React.FC<EventTicketReceiptProps> = ({ order, isSuccessPage = false }) => {
   const receiptRef = useRef<HTMLDivElement>(null);
+  const [logoBase64, setLogoBase64] = useState<string>('');
+  const [qrBase64Map, setQrBase64Map] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    let active = true;
+
+    const convertLogo = async () => {
+      try {
+        const response = await fetch('/gobokin-event.png');
+        if (!response.ok) throw new Error('Logo fetch failed');
+        const blob = await response.blob();
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+        if (active) setLogoBase64(base64);
+      } catch (err) {
+        console.error('Failed to pre-convert logo to Base64:', err);
+      }
+    };
+
+    const convertQrCodes = async () => {
+      const b64Map: Record<string, string> = {};
+      for (const reg of order.registrations) {
+        const qrUrl = reg.qrCodeUrl || `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${reg.ticketNumber}`;
+        try {
+          const response = await fetch(qrUrl);
+          if (!response.ok) throw new Error('QR fetch failed');
+          const blob = await response.blob();
+          const base64 = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+          b64Map[reg.ticketNumber] = base64;
+        } catch (err) {
+          console.error(`Failed to pre-convert QR for ticket ${reg.ticketNumber}:`, err);
+        }
+      }
+      if (active) setQrBase64Map(b64Map);
+    };
+
+    convertLogo();
+    if (order.registrations && order.registrations.length > 0) {
+      convertQrCodes();
+    }
+
+    return () => {
+      active = false;
+    };
+  }, [order.registrations]);
 
   const formattedDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
@@ -144,8 +198,12 @@ const EventTicketReceipt: React.FC<EventTicketReceiptProps> = ({ order, isSucces
           {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-14 border-b border-gray-100 pb-10">
             <div className="flex flex-col">
-              <div className="relative w-[180px] h-[60px] mb-4">
-                <Image src="/gobokin-event.png" alt="Gobokin Logo" fill className="object-contain object-left" />
+              <div className="relative w-[180px] h-[60px] mb-4 flex items-center">
+                {logoBase64 ? (
+                  <img src={logoBase64} alt="Gobokin Logo" className="w-[180px] h-[60px] object-contain object-left" />
+                ) : (
+                  <Image src="/gobokin-event.png" alt="Gobokin Logo" fill className="object-contain object-left" />
+                )}
               </div>
               <p className="text-gray-400 font-bold uppercase tracking-[0.2em] text-[10px]">Official Digital Ticket</p>
             </div>
@@ -260,14 +318,22 @@ const EventTicketReceipt: React.FC<EventTicketReceiptProps> = ({ order, isSucces
 
                         {/* QR Code Section */}
                         <div className="w-full md:w-[220px] p-8 md:p-10 flex flex-col items-center justify-center bg-gray-50/50">
-                          <div className="relative w-32 h-32 p-3 bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 group-hover:scale-105 transition-transform duration-500">
-                            <Image
-                              src={reg.qrCodeUrl || `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${reg.ticketNumber}`}
-                              alt={`QR Code for ${reg.ticketNumber}`}
-                              fill
-                              className="object-contain p-2"
-                              unoptimized
-                            />
+                          <div className="relative w-32 h-32 p-3 bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 group-hover:scale-105 transition-transform duration-500 flex items-center justify-center">
+                            {qrBase64Map[reg.ticketNumber] ? (
+                              <img
+                                src={qrBase64Map[reg.ticketNumber]}
+                                alt={`QR Code for ${reg.ticketNumber}`}
+                                className="w-full h-full object-contain p-2"
+                              />
+                            ) : (
+                              <Image
+                                src={reg.qrCodeUrl || `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${reg.ticketNumber}`}
+                                alt={`QR Code for ${reg.ticketNumber}`}
+                                fill
+                                className="object-contain p-2"
+                                unoptimized
+                              />
+                            )}
                           </div>
                           <div className="mt-6 flex flex-col items-center gap-1">
                              <div className="flex items-center gap-2">
