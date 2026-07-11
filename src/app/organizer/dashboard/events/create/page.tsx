@@ -581,8 +581,9 @@ const CreateEvent = () => {
     isGroupingEnabled: false,
     enforceUniqueGroupNames: true,
     fields: [
-        { name: "fullName", label: "Full Name", type: "text", required: true, isPerAttendee: true },
+      { name: "fullName", label: "Full Name", type: "text", required: true, isPerAttendee: true },
       { name: "email", label: "Email Address", type: "text", required: true, isPerAttendee: true },
+      { name: "phone", label: "Phone Number", type: "tel", required: true, isPerAttendee: true },
       { name: "country", label: "Country", type: "select", source: "COUNTRIES", required: true, isPerAttendee: true },
       { name: "state", label: "State", type: "select", source: "STATES", dependsOn: "country", required: true, isPerAttendee: true },
       { name: "lga", label: "LGA", type: "select", source: "LGAS", dependsOn: "state", required: true, isPerAttendee: true },
@@ -1958,11 +1959,18 @@ const CreateEvent = () => {
                                    <Globe size={12} />
                                    Public Visibility
                                 </label>
-                                <div className="flex items-center justify-between">
-                                   <span className="text-sm font-bold text-gray-700">{basicInfo.isPublic ? 'Publicly Listed' : 'Hidden from Search'}</span>
+                                <div className="flex items-start justify-between gap-4">
+                                   <div className="space-y-1">
+                                      <span className="text-sm font-bold text-gray-700 block">{basicInfo.isPublic ? 'Publicly Listed' : 'Hidden from Search'}</span>
+                                      <p className="text-[10px] text-gray-400 font-medium leading-tight">
+                                         {basicInfo.isPublic
+                                            ? 'Make this event discoverable on public search results and discovery lists.'
+                                            : 'Only people with the direct link can find and register.'}
+                                      </p>
+                                   </div>
                                    <button
                                       onClick={() => setBasicInfo(prev => ({ ...prev, isPublic: !prev.isPublic }))}
-                                      className={`w-14 h-8 rounded-full transition-all relative ${basicInfo.isPublic ? 'bg-primary' : 'bg-gray-300'}`}
+                                      className={`w-14 h-8 rounded-full transition-all relative shrink-0 ${basicInfo.isPublic ? 'bg-primary' : 'bg-gray-300'}`}
                                    >
                                       <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${basicInfo.isPublic ? 'left-7' : 'left-1'}`} />
                                    </button>

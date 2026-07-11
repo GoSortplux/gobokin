@@ -8,6 +8,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Calendar,
+  Globe,
   MapPin,
   Users,
   User,
@@ -652,6 +653,7 @@ const EditEventContent = () => {
           fields: (event.registrationFields || [
             { name: "fullName", label: "Full Name", type: "text", required: true, isPerAttendee: true },
             { name: "email", label: "Email Address", type: "text", required: true, isPerAttendee: true },
+            { name: "phone", label: "Phone Number", type: "tel", required: true, isPerAttendee: true },
           ]).map((f: RegistrationField) => ({
             ...f,
             id: f.id || f.name || Math.random().toString()
@@ -1633,10 +1635,20 @@ const EditEventContent = () => {
                           {isConfigExpanded && (
                           <div className={`grid grid-cols-1 md:grid-cols-2 gap-8 animate-in slide-in-from-top-4 duration-500 ${showPreview ? "2xl:grid-cols-3" : "lg:grid-cols-3"}`}>
                              <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Public Visibility</label>
-                                <div className="flex items-center justify-between">
-                                   <span className="text-sm font-bold text-gray-700">{basicInfo.isPublic ? 'Visible' : 'Hidden'}</span>
-                                   <button onClick={() => setBasicInfo(prev => ({ ...prev, isPublic: !prev.isPublic }))} className={`w-14 h-8 rounded-full transition-all relative ${basicInfo.isPublic ? 'bg-primary' : 'bg-gray-300'}`}>
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                   <Globe size={12} />
+                                   Public Visibility
+                                </label>
+                                <div className="flex items-start justify-between gap-4">
+                                   <div className="space-y-1">
+                                      <span className="text-sm font-bold text-gray-700 block">{basicInfo.isPublic ? 'Visible' : 'Hidden'}</span>
+                                      <p className="text-[10px] text-gray-400 font-medium leading-tight">
+                                         {basicInfo.isPublic
+                                            ? 'Visible on public search results and event discovery lists.'
+                                            : 'Only people with the direct link can find and register.'}
+                                      </p>
+                                   </div>
+                                   <button onClick={() => setBasicInfo(prev => ({ ...prev, isPublic: !prev.isPublic }))} className={`w-14 h-8 rounded-full transition-all relative shrink-0 ${basicInfo.isPublic ? 'bg-primary' : 'bg-gray-300'}`}>
                                       <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${basicInfo.isPublic ? 'left-7' : 'left-1'}`} />
                                    </button>
                                 </div>

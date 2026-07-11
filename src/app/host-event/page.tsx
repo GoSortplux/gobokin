@@ -393,6 +393,7 @@ const HostEventPage = () => {
       fields: [
         { name: "fullName", label: "Full Name", type: "text", required: true, isPerAttendee: true },
         { name: "email", label: "Email Address", type: "text", required: true, isPerAttendee: true },
+        { name: "phone", label: "Phone Number", type: "tel", required: true, isPerAttendee: true },
         { name: "country", label: "Country", type: "select", source: "COUNTRIES", required: true, isPerAttendee: true },
         { name: "state", label: "State", type: "select", source: "STATES", dependsOn: "country", required: true, isPerAttendee: true },
         { name: "lga", label: "LGA", type: "select", source: "LGAS", dependsOn: "state", required: true, isPerAttendee: true },
@@ -785,49 +786,51 @@ const HostEventPage = () => {
                             </div>
                         )}
                     </div>
-                    <div className="space-y-3">
-                        <div className="flex items-center justify-between px-1">
-                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
-                                {field.source ? "Auto-Managed" : "Your Options"}
-                            </p>
-                            {!field.source && !isLocationField && (
-                                <button onClick={() => addFieldOption(idx)} className="text-[9px] font-black text-primary uppercase tracking-widest hover:underline flex items-center gap-1">
-                                    <Plus size={10} strokeWidth={3} /> Add
-                                </button>
-                            )}
+                    {!isLocationField && (
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between px-1">
+                                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                                    {field.source ? "Auto-Managed" : "Your Options"}
+                                </p>
+                                {!field.source && (
+                                    <button onClick={() => addFieldOption(idx)} className="text-[9px] font-black text-primary uppercase tracking-widest hover:underline flex items-center gap-1">
+                                        <Plus size={10} strokeWidth={3} /> Add
+                                    </button>
+                                )}
+                            </div>
+                            <div className="flex flex-wrap gap-2.5">
+                                {field.source ? (
+                                    <div className="flex items-center gap-2.5 p-3.5 bg-primary/5 rounded-xl border border-primary/10 w-full">
+                                        <Info size={14} className="text-primary shrink-0" />
+                                        <p className="text-[9px] font-semibold text-primary/80 leading-relaxed uppercase tracking-wider">
+                                            Pops from {field.source}.
+                                            {field.dependsOn && <span> Linked to {field.dependsOn}.</span>}
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <>
+                                        {(field.options || []).map((opt, oIdx) => (
+                                            <div key={oIdx} className="flex items-center gap-1.5 bg-white p-1.5 pl-3 rounded-lg border border-gray-100 shadow-sm group/opt transition-all hover:border-primary/20">
+                                                <input
+                                                    type="text"
+                                                    value={opt}
+                                                    onChange={(e) => updateFieldOption(idx, oIdx, e.target.value)}
+                                                    placeholder="Option"
+                                                    className="bg-transparent border-none outline-none text-[10px] font-bold text-gray-600 w-20"
+                                                />
+                                                <button onClick={() => removeFieldOption(idx, oIdx)} className="w-5 h-5 rounded flex items-center justify-center text-gray-300 hover:text-secondary transition-all">
+                                                    <X size={12} strokeWidth={3} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                        {(field.options || []).length === 0 && (
+                                            <p className="text-[9px] text-gray-400 italic px-1">Add options for your guests to select.</p>
+                                        )}
+                                    </>
+                                )}
+                            </div>
                         </div>
-                        <div className="flex flex-wrap gap-2.5">
-                            {field.source ? (
-                                <div className="flex items-center gap-2.5 p-3.5 bg-primary/5 rounded-xl border border-primary/10 w-full">
-                                    <Info size={14} className="text-primary shrink-0" />
-                                    <p className="text-[9px] font-semibold text-primary/80 leading-relaxed uppercase tracking-wider">
-                                        Pops from {field.source}.
-                                        {field.dependsOn && <span> Linked to {field.dependsOn}.</span>}
-                                    </p>
-                                </div>
-                            ) : (
-                                <>
-                                    {(field.options || []).map((opt, oIdx) => (
-                                        <div key={oIdx} className="flex items-center gap-1.5 bg-white p-1.5 pl-3 rounded-lg border border-gray-100 shadow-sm group/opt transition-all hover:border-primary/20">
-                                            <input
-                                                type="text"
-                                                value={opt}
-                                                onChange={(e) => updateFieldOption(idx, oIdx, e.target.value)}
-                                                placeholder="Option"
-                                                className="bg-transparent border-none outline-none text-[10px] font-bold text-gray-600 w-20"
-                                            />
-                                            <button onClick={() => removeFieldOption(idx, oIdx)} className="w-5 h-5 rounded flex items-center justify-center text-gray-300 hover:text-secondary transition-all">
-                                                <X size={12} strokeWidth={3} />
-                                            </button>
-                                        </div>
-                                    ))}
-                                    {(field.options || []).length === 0 && (
-                                        <p className="text-[9px] text-gray-400 italic px-1">Add options for your guests to select.</p>
-                                    )}
-                                </>
-                            )}
-                        </div>
-                    </div>
+                    )}
                 </div>
             )}
         </div>
@@ -1545,11 +1548,15 @@ const HostEventPage = () => {
                       <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between gap-6 hover:bg-gray-50/50 transition-colors">
                         <div className="space-y-1">
                           <h4 className="text-sm font-semibold text-gray-900">Public Listing</h4>
-                          <p className="text-xs text-gray-500">Visible to everyone</p>
+                          <p className="text-xs text-gray-500">
+                            {formData.basicInfo.isPublic
+                              ? 'Show event on the public discovery page and search results.'
+                              : 'Only people with the direct link can find and register.'}
+                          </p>
                         </div>
                         <button
                           onClick={() => handleChange("basicInfo", "isPublic", !formData.basicInfo.isPublic)}
-                          className={`w-12 h-7 rounded-full transition-all relative ${formData.basicInfo.isPublic ? "bg-primary" : "bg-gray-200"}`}
+                          className={`w-12 h-7 rounded-full transition-all relative shrink-0 ${formData.basicInfo.isPublic ? "bg-primary" : "bg-gray-200"}`}
                         >
                           <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all ${formData.basicInfo.isPublic ? "left-6" : "left-1"}`} />
                         </button>

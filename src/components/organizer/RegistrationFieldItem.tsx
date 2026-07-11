@@ -171,56 +171,58 @@ export const RegistrationFieldItem = ({
             </div>
           )}
 
-          <div className="space-y-3">
-            <div className="flex items-center justify-between px-1">
-              <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
-                {field.source ? "Auto-Managed" : "Your Options"}
-              </p>
-              {!field.source && !isLocationField && (
-                <button
-                  onClick={() => addFieldOption(idx)}
-                  className="text-[9px] font-black text-primary uppercase tracking-widest hover:underline flex items-center gap-1"
-                >
-                  <Plus size={10} strokeWidth={3} /> Add
-                </button>
-              )}
+          {!isLocationField && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between px-1">
+                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                  {field.source ? "Auto-Managed" : "Your Options"}
+                </p>
+                {!field.source && (
+                  <button
+                    onClick={() => addFieldOption(idx)}
+                    className="text-[9px] font-black text-primary uppercase tracking-widest hover:underline flex items-center gap-1"
+                  >
+                    <Plus size={10} strokeWidth={3} /> Add
+                  </button>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2.5">
+                {field.source ? (
+                  <div className="flex items-center gap-2.5 p-3.5 bg-primary/5 rounded-xl border border-primary/10 w-full">
+                    <Info size={14} className="text-primary shrink-0" />
+                    <p className="text-[9px] font-semibold text-primary/80 leading-relaxed uppercase tracking-wider">
+                      Pops from {field.source}.
+                      {field.dependsOn && <span> Linked to {field.dependsOn}.</span>}
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    {(field.options || []).map((opt, oIdx) => (
+                      <div key={oIdx} className="flex items-center gap-1.5 bg-white p-1.5 pl-3 rounded-lg border border-gray-100 shadow-sm group/opt transition-all hover:border-primary/20">
+                        <input
+                          type="text"
+                          value={opt}
+                          onBlur={onBlur}
+                          onChange={(e) => updateFieldOption(idx, oIdx, e.target.value)}
+                          placeholder="Option"
+                          className="bg-transparent border-none outline-none text-[10px] font-bold text-gray-600 w-20"
+                        />
+                        <button
+                          onClick={() => removeFieldOption(idx, oIdx)}
+                          className="w-5 h-5 rounded flex items-center justify-center text-gray-300 hover:text-secondary transition-all"
+                        >
+                          <X size={12} strokeWidth={3} />
+                        </button>
+                      </div>
+                    ))}
+                    {(field.options || []).length === 0 && (
+                      <p className="text-[9px] text-gray-400 italic px-1">Add options for your guests to select.</p>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
-            <div className="flex flex-wrap gap-2.5">
-              {field.source ? (
-                <div className="flex items-center gap-2.5 p-3.5 bg-primary/5 rounded-xl border border-primary/10 w-full">
-                  <Info size={14} className="text-primary shrink-0" />
-                  <p className="text-[9px] font-semibold text-primary/80 leading-relaxed uppercase tracking-wider">
-                    Pops from {field.source}.
-                    {field.dependsOn && <span> Linked to {field.dependsOn}.</span>}
-                  </p>
-                </div>
-              ) : (
-                <>
-                  {(field.options || []).map((opt, oIdx) => (
-                    <div key={oIdx} className="flex items-center gap-1.5 bg-white p-1.5 pl-3 rounded-lg border border-gray-100 shadow-sm group/opt transition-all hover:border-primary/20">
-                      <input
-                        type="text"
-                        value={opt}
-                        onBlur={onBlur}
-                        onChange={(e) => updateFieldOption(idx, oIdx, e.target.value)}
-                        placeholder="Option"
-                        className="bg-transparent border-none outline-none text-[10px] font-bold text-gray-600 w-20"
-                      />
-                      <button
-                        onClick={() => removeFieldOption(idx, oIdx)}
-                        className="w-5 h-5 rounded flex items-center justify-center text-gray-300 hover:text-secondary transition-all"
-                      >
-                        <X size={12} strokeWidth={3} />
-                      </button>
-                    </div>
-                  ))}
-                  {(field.options || []).length === 0 && (
-                    <p className="text-[9px] text-gray-400 italic px-1">Add options for your guests to select.</p>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
+          )}
         </div>
       )}
     </Reorder.Item>
