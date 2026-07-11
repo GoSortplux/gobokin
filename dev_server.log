@@ -7,7 +7,8 @@
    - Network:      http://192.168.0.2:3000
 
  ✓ Starting...
- ✓ Ready in 2.5s
- ○ Compiling /events/[organizerSlug]/[eventSlug]/register ...
- ✓ Compiled /events/[organizerSlug]/[eventSlug]/register in 11.9s (1824 modules)
- GET /events/gobokin-tech/tech-conf/register?ticketId=free_ticket&qty=1 200 in 14440ms
+ ✓ Ready in 2s
+ ○ Compiling /verify-date ...
+ ✓ Compiled /verify-date in 9.9s (1796 modules)
+ GET /verify-date 200 in 10959ms
+ ✓ Compiled in 1099ms (757 modules)

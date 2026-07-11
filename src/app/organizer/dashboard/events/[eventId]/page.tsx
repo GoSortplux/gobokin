@@ -725,7 +725,16 @@ const EventDetails = () => {
              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-6 text-gray-500 font-medium">
                <div className="flex items-center gap-2">
                  <Calendar className="text-primary" size={18} />
-                 {new Date(event.startDate).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}
+                 {(() => {
+                   const start = new Date(event.startDate);
+                   const end = new Date(event.endDate);
+                   const isMultiDay = start.toDateString() !== end.toDateString();
+                   const formatOptions: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long', year: 'numeric' };
+                   if (isMultiDay) {
+                     return `${start.toLocaleDateString(undefined, formatOptions)} - ${end.toLocaleDateString(undefined, formatOptions)}`;
+                   }
+                   return start.toLocaleDateString(undefined, formatOptions);
+                 })()}
                </div>
                <div className="flex items-center gap-2">
                  <MapPin className="text-primary" size={18} />
