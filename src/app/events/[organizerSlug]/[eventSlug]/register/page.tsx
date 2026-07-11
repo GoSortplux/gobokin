@@ -650,7 +650,7 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
               </div>
 
               {/* Discount Code Section */}
-              <div className="p-8 bg-white rounded-[2.5rem] border border-gray-100 space-y-6">
+              <div className={`p-8 bg-white rounded-[2.5rem] border border-gray-100 space-y-6 ${(ticket.price === 0) ? 'opacity-50 select-none' : ''}`}>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
                     <Tag size={20} />
@@ -663,12 +663,15 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
                   </label>
                   <input
                     type="text"
-                    placeholder="Enter discount code"
-                    className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 transition-all font-bold tracking-widest uppercase"
+                    placeholder={(ticket.price === 0) ? "Not applicable for free events" : "Enter discount code"}
+                    disabled={ticket.price === 0}
+                    className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 transition-all font-bold tracking-widest uppercase disabled:cursor-not-allowed disabled:bg-gray-100/50"
                     value={discountCode}
                     onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
                   />
-                  <p className="text-[10px] font-bold text-gray-400 ml-1">If you have a referral or promo code, enter it here.</p>
+                  <p className="text-[10px] font-bold text-gray-400 ml-1">
+                    {(ticket.price === 0) ? "Discount codes are disabled for free tickets." : "If you have a referral or promo code, enter it here."}
+                  </p>
                 </div>
               </div>
 

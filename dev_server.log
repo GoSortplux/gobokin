@@ -7,16 +7,7 @@
    - Network:      http://192.168.0.2:3000
 
  ✓ Starting...
- ✓ Ready in 2s
- ○ Compiling /events/[organizerSlug]/[eventSlug] ...
- ✓ Compiled /events/[organizerSlug]/[eventSlug] in 10.4s (1881 modules)
- GET /events/gobokin-tech/tech-conf 200 in 12909ms
- GET /events/gobokin-tech/tech-conf 200 in 205ms
- GET /events/gobokin-tech/tech-conf 200 in 194ms
- GET /events/gobokin-tech/tech-conf 200 in 188ms
- GET /events/gobokin-tech/tech-conf 200 in 211ms
- GET /events/gobokin-tech/tech-conf 200 in 181ms
- ✓ Compiled in 2.5s (1972 modules)
- ✓ Compiled in 804ms (1966 modules)
-Failed to fetch event with slug: tech-conf, status: 404
- GET /events/gobokin-tech/tech-conf 200 in 1459ms
+ ✓ Ready in 2.5s
+ ○ Compiling /events/[organizerSlug]/[eventSlug]/register ...
+ ✓ Compiled /events/[organizerSlug]/[eventSlug]/register in 11.9s (1824 modules)
+ GET /events/gobokin-tech/tech-conf/register?ticketId=free_ticket&qty=1 200 in 14440ms
