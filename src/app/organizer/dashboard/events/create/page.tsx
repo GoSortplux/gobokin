@@ -2297,7 +2297,7 @@ const CreateEvent = () => {
                                    <Users size={24} />
                                 </div>
                                 <div>
-                                   <h3 className="text-2xl font-black text-gray-900 tracking-tight">Speakers & Guests</h3>
+                                   <h3 className="text-2xl font-black text-gray-900 tracking-tight">Speakers & Guests (Optional)</h3>
                                    <p className="text-sm text-gray-400 font-medium">Highlight the key people at your event.</p>
                                 </div>
                              </div>

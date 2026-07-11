@@ -1471,7 +1471,7 @@ const HostEventPage = () => {
                   <div className="space-y-10 animate-in fade-in duration-500">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-gray-50 pb-8">
                       <div>
-                        <h3 className="text-2xl font-semibold text-gray-900 tracking-tight">Speakers & Guests</h3>
+                        <h3 className="text-2xl font-semibold text-gray-900 tracking-tight">Speakers & Guests (Optional)</h3>
                         <p className="text-gray-500 font-medium">Add people who will be speaking or performing.</p>
                       </div>
                       <button

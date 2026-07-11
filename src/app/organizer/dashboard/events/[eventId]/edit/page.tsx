@@ -1959,7 +1959,7 @@ const EditEventContent = () => {
                                 <div className="w-14 h-14 rounded-2xl bg-gray-50 text-primary flex items-center justify-center shadow-sm border border-gray-100">
                                    <Users size={24} />
                                 </div>
-                                <h3 className="text-2xl font-black text-gray-900 tracking-tight">Speakers & Agenda</h3>
+                                <h3 className="text-2xl font-black text-gray-900 tracking-tight">Speakers & Agenda (Optional)</h3>
                              </div>
                              <button onClick={() => setSpeakers([...speakers, { name: "", title: "", bio: "", imageUrl: "" }])} className="flex items-center gap-3 bg-gray-900 text-white font-black px-8 py-5 rounded-3xl text-[10px] uppercase tracking-[0.2em]">
                                <Plus size={18} /> Add Speaker
