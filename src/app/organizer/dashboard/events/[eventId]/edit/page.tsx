@@ -2071,68 +2071,77 @@ const EditEventContent = () => {
             {/* STEP 2: TICKETING */}
             {currentStep === 2 && (
               <div className="space-y-12 animate-in fade-in duration-500">
-                 <div className="flex items-center justify-between px-4">
+                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 px-4">
                     <h3 className="text-3xl font-black text-gray-900 tracking-tight">Tickets</h3>
-                    <button onClick={() => {
-                      if (checkMaxTicketsRule()) return;
+                    <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+                       <button
+                         onClick={() => window.open("/organizer/dashboard/settings?tab=discounts", "_blank")}
+                         className="flex items-center gap-2.5 bg-white text-secondary border-2 border-secondary font-black px-5 sm:px-8 py-3.5 sm:py-5 rounded-2xl sm:rounded-3xl hover:bg-secondary/5 transition-all text-[9px] sm:text-[10px] uppercase tracking-[0.12em] sm:tracking-[0.2em] active:scale-95 shadow-sm"
+                       >
+                         Create Discount Code
+                       </button>
+                       <button onClick={() => {
+                         if (checkMaxTicketsRule()) return;
 
-                      const currentTotal = tickets.reduce((sum, t) => sum + (t.totalQuantity || 0), 0);
-                      const remaining = Math.max(0, basicInfo.capacity - currentTotal);
-                      setTickets([...tickets, {
-                        id: Math.random().toString(),
-                        name: "",
-                        price: 0,
-                        type: "PAID",
-                        totalQuantity: remaining,
-                        groupSize: 1,
-                        description: "",
-                        earlyBirdPrice: 0,
-                        earlyBirdLimit: 0,
-                        earlyBirdExpiry: "",
-                        allocationType: "GENERAL",
-                        maxPerOrder: 10,
-                        salesStart: "",
-                        salesEnd: "",
-                        isOffline: false,
-                        isSpecial: false,
-                        quantityDiscounts: []
-                      }]);
-                    }} className="flex items-center gap-3 bg-secondary text-white font-black px-8 py-5 rounded-3xl text-[10px] uppercase tracking-[0.2em]">
-                      <Plus size={18} /> Add Ticket Type
-                    </button>
+                         const currentTotal = tickets.reduce((sum, t) => sum + (t.totalQuantity || 0), 0);
+                         const remaining = Math.max(0, basicInfo.capacity - currentTotal);
+                         setTickets([...tickets, {
+                           id: Math.random().toString(),
+                           name: "",
+                           price: 0,
+                           type: "PAID",
+                           totalQuantity: remaining,
+                           groupSize: 1,
+                           description: "",
+                           earlyBirdPrice: 0,
+                           earlyBirdLimit: 0,
+                           earlyBirdExpiry: "",
+                           allocationType: "GENERAL",
+                           maxPerOrder: 10,
+                           salesStart: "",
+                           salesEnd: "",
+                           isOffline: false,
+                           isSpecial: false,
+                           quantityDiscounts: []
+                         }]);
+                       }} className="flex items-center gap-3 bg-secondary text-white font-black px-6 sm:px-8 py-4 sm:py-5 rounded-2xl sm:rounded-3xl text-[9px] sm:text-[10px] uppercase tracking-[0.15em] sm:tracking-[0.2em] active:scale-95 group shadow-3xl shadow-secondary/30">
+                         <Plus size={18} className="group-hover:rotate-90 transition-transform duration-500" /> Add Ticket Type
+                       </button>
+                    </div>
                  </div>
                  <div className={`grid gap-8 ${showPreview ? "grid-cols-1 2xl:grid-cols-2" : "grid-cols-1 md:grid-cols-2"}`}>
                     {tickets.map((ticket, _index) => (
-                        <div key={ticket.id} className="p-8 md:p-10 bg-gray-50/50 rounded-[3.5rem] border border-gray-100 space-y-10 relative group/ticket hover:bg-white hover:shadow-4xl hover:shadow-secondary/10 transition-all duration-700">
-                            <div className="flex justify-between items-center">
-                                <div className="flex items-center gap-5">
-                                   <div className="w-14 h-14 rounded-2xl bg-white text-secondary flex items-center justify-center shadow-xl shadow-gray-200/50 border border-gray-100 group-hover/ticket:bg-secondary group-hover/ticket:text-white transition-all duration-500">
-                                      <Ticket size={24} strokeWidth={2} />
+                        <div key={ticket.id} className="p-4 sm:p-8 md:p-10 bg-gray-50/50 rounded-2xl sm:rounded-[3.5rem] border border-gray-100 space-y-8 sm:space-y-10 relative group/ticket hover:bg-white hover:shadow-4xl hover:shadow-secondary/10 transition-all duration-700">
+                            <div className="flex justify-between items-center gap-3">
+                                <div className="flex items-center gap-3 sm:gap-5">
+                                   <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-white text-secondary flex items-center justify-center shadow-xl shadow-gray-200/50 border border-gray-100 group-hover/ticket:bg-secondary group-hover/ticket:text-white transition-all duration-500 shrink-0">
+                                      <Ticket size={18} className="sm:hidden" strokeWidth={2} />
+                                      <Ticket size={24} className="hidden sm:block" strokeWidth={2} />
                                    </div>
                                    <div>
-                                       <h4 className="font-black text-gray-900 uppercase tracking-[0.3em] text-[10px]">Ticket Type #{_index+1}</h4>
-                                       <p className="text-sm font-black text-gray-400 mt-1">{ticket.name || 'Unnamed Ticket Type'}</p>
+                                       <h4 className="font-black text-gray-900 uppercase tracking-[0.15em] sm:tracking-[0.3em] text-[9px] sm:text-[10px]">Ticket Type #{_index+1}</h4>
+                                       <p className="text-xs sm:text-sm font-black text-gray-400 mt-1">{ticket.name || 'Unnamed Ticket Type'}</p>
                                    </div>
                                 </div>
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
                                     {ticket.id.length >= 10 && (
                                         <button
                                             onClick={() => handleUpdateTicket(ticket)}
-                                            className="text-[8px] font-black text-primary bg-primary/5 px-2 py-1 rounded-lg uppercase tracking-widest border border-primary/10 hover:bg-primary hover:text-white transition-all"
+                                            className="text-[8px] font-black text-primary bg-primary/5 px-2 py-1 rounded-lg uppercase tracking-widest border border-primary/10 hover:bg-primary hover:text-white transition-all shrink-0"
                                         >
                                             Update
                                         </button>
                                     )}
                                     <button
                                       onClick={() => deleteTicket(ticket.id)}
-                                      className="w-10 h-10 flex items-center justify-center text-gray-300 hover:text-secondary bg-white rounded-xl shadow-sm hover:shadow-lg transition-all border border-gray-100"
+                                      className="w-10 h-10 flex items-center justify-center text-gray-300 hover:text-secondary bg-white rounded-xl shadow-sm hover:shadow-lg transition-all border border-gray-100 shrink-0"
                                     >
                                        <Trash2 size={16} />
                                     </button>
                                 </div>
                             </div>
 
-                            <div className="space-y-8">
+                            <div className="space-y-6 sm:space-y-8">
                                 <div className="space-y-3">
                                    <div className="flex items-start gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10 mb-2">
                                        <input
@@ -2170,7 +2179,7 @@ const EditEventContent = () => {
                                    <input
                                       type="text"
                                       placeholder="e.g., VIP Early Bird"
-                                      className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none transition-all shadow-sm"
+                                      className="w-full p-4 sm:p-6 bg-white border border-gray-300 rounded-2xl sm:rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none transition-all shadow-sm"
                                       value={ticket.name}
                                       onChange={(e) => updateTicket(ticket.id, "name", e.target.value)}
                                    />
@@ -2184,13 +2193,13 @@ const EditEventContent = () => {
                                    <textarea
                                       rows={2}
                                       placeholder="What's included in this tier? (e.g., Free drinks, Front row seating)"
-                                      className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none transition-all shadow-sm resize-none"
+                                      className="w-full p-4 sm:p-6 bg-white border border-gray-300 rounded-2xl sm:rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none transition-all shadow-sm resize-none"
                                       value={ticket.description || ""}
                                       onChange={(e) => updateTicket(ticket.id, "description", e.target.value)}
                                    />
                                 </div>
 
-                                <div className={`grid gap-8 ${showPreview ? "grid-cols-1 2xl:grid-cols-2" : "grid-cols-1 sm:grid-cols-2"}`}>
+                                <div className={`grid gap-6 sm:grid-cols-2`}>
                                    <div className="space-y-3">
                                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                                           <MousePointer2 size={12} className="text-secondary" />
@@ -2198,7 +2207,7 @@ const EditEventContent = () => {
                                       </label>
                                       <div className="relative">
                                           <select
-                                             className="w-full pl-5 pr-10 py-5 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none appearance-none shadow-sm"
+                                             className="w-full pl-5 pr-10 py-4 sm:py-5 bg-white border border-gray-300 rounded-2xl sm:rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none appearance-none shadow-sm"
                                              value={ticket.type}
                                              onChange={(e) => updateTicket(ticket.id, "type", e.target.value as TicketType)}
                                           >
@@ -2218,7 +2227,7 @@ const EditEventContent = () => {
                                           <input
                                              type="number"
                                              disabled={ticket.type === "FREE"}
-                                             className="w-full pl-10 pr-5 py-5 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 disabled:bg-gray-100 disabled:opacity-50 outline-none shadow-sm"
+                                             className="w-full pl-10 pr-5 py-4 sm:py-5 bg-white border border-gray-300 rounded-2xl sm:rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 disabled:bg-gray-100 disabled:opacity-50 outline-none shadow-sm"
                                              value={ticket.price}
                                              onChange={(e) => updateTicket(ticket.id, "price", parseFloat(e.target.value))}
                                           />
@@ -2232,7 +2241,7 @@ const EditEventContent = () => {
                                       <input
                                          id={`totalQuantity-${ticket.id}`}
                                          type="number"
-                                         className="w-full px-5 py-5 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none shadow-sm"
+                                         className="w-full px-5 py-4 sm:py-5 bg-white border border-gray-300 rounded-2xl sm:rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none shadow-sm"
                                          value={ticket.totalQuantity}
                                          onChange={(e) => updateTicket(ticket.id, "totalQuantity", parseInt(e.target.value))}
                                       />
@@ -2248,23 +2257,23 @@ const EditEventContent = () => {
                                       <input
                                          type="number"
                                       min="1"
-                                         className="w-full px-5 py-5 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none shadow-sm"
+                                         className="w-full px-5 py-4 sm:py-5 bg-white border border-gray-300 rounded-2xl sm:rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none shadow-sm"
                                          value={ticket.groupSize}
                                       onChange={(e) => updateTicket(ticket.id, "groupSize", Math.max(1, parseInt(e.target.value) || 1))}
                                       />
                                    </div>
                                 </div>
 
-                                <div className="pt-10 border-t border-gray-100 space-y-12">
-                                   <h5 className="text-[12px] font-black text-primary uppercase tracking-[0.4em] flex items-center gap-3">
+                                <div className="pt-6 sm:pt-10 border-t border-gray-100 space-y-6 sm:space-y-12">
+                                   <h5 className="text-[12px] font-black text-primary uppercase tracking-[0.2em] sm:tracking-[0.4em] flex items-center gap-3">
                                        <Settings size={16} />
                                        Ticket Configuration
                                    </h5>
 
-                                   <div className="space-y-8 pl-4 border-l-2 border-gray-100">
-                                       <div className="space-y-6">
-                                               <h6 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Ticket Selling Start and End Date</h6>
-                                               <div className={`grid gap-6 ${showPreview ? "grid-cols-1 2xl:grid-cols-3" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"}`}>
+                                   <div className="space-y-6 sm:space-y-8 pl-2 sm:pl-4 border-l-2 border-gray-100">
+                                       <div className="space-y-4 sm:space-y-6">
+                                               <h6 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.15em] sm:tracking-[0.3em]">Ticket Selling Start and End Date</h6>
+                                               <div className={`grid gap-4 sm:grid-cols-2 lg:grid-cols-3`}>
                                                    <div className="space-y-2">
                                                        <label className="text-[9px] font-bold text-gray-400 uppercase">Sales Start Date</label>
                                                        <input
