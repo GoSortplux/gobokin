@@ -218,6 +218,12 @@ const EventDetailClient = () => {
   const [isSpecialTicketsExpanded, setIsSpecialTicketsExpanded] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
   const [showOrganizerModal, setShowOrganizerModal] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(true);
+
+  useEffect(() => {
+    const interacted = localStorage.getItem("has_interacted_ticket_selector") === "true";
+    setHasInteracted(interacted);
+  }, []);
 
   const isLocationHidden = useMemo(() => {
     return event?.hideLocationDetails && !isRegistered;
@@ -278,6 +284,8 @@ const EventDetailClient = () => {
     const nextIndex = (currentIndex + 1) % event.tickets.length;
     setSelectedTicket(event.tickets[nextIndex]);
     setQuantity(1);
+    setHasInteracted(true);
+    localStorage.setItem("has_interacted_ticket_selector", "true");
   };
 
   useEffect(() => {
@@ -462,8 +470,25 @@ const EventDetailClient = () => {
   if (loading) return <div className="min-h-screen pt-32 flex items-center justify-center bg-gray-50"><CustomLoader /></div>;
   if (!event) return <div className="p-20 text-center bg-gray-50"><h3 className="text-xl font-semibold">Event not found</h3></div>;
 
+  const showInteractionAnimation = !hasInteracted && event.tickets && event.tickets.length > 1;
+
   return (
     <div className="min-h-screen bg-white pt-24 pb-24">
+      {showInteractionAnimation && (
+        <style dangerouslySetInnerHTML={{ __html: `
+          @keyframes bounceRight {
+            0%, 100% {
+              transform: translateX(0);
+            }
+            50% {
+              transform: translateX(4px);
+            }
+          }
+          .animate-bounce-right {
+            animation: bounceRight 1.5s infinite;
+          }
+        `}} />
+      )}
       <LoginRequiredModal
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}
@@ -976,13 +1001,24 @@ const EventDetailClient = () => {
                               </div>
                            </div>
                            <div
-                              className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white hover:shadow-sm transition-all group/btn shrink-0"
+                              className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white hover:shadow-sm transition-all group/btn shrink-0 relative"
                               onClick={(e) => {
                                  e.stopPropagation();
                                  handleNextTicket();
                               }}
                            >
-                              <ChevronRight size={18} className="text-gray-400 group-hover/btn:translate-x-0.5 group-hover/btn:text-primary transition-all" />
+                              {showInteractionAnimation && (
+                                 <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-primary"></span>
+                                 </span>
+                              )}
+                              <ChevronRight
+                                 size={18}
+                                 className={`text-gray-400 group-hover/btn:translate-x-0.5 group-hover/btn:text-primary transition-all ${
+                                    showInteractionAnimation ? "animate-bounce-right !text-primary font-bold" : ""
+                                 }`}
+                              />
                            </div>
                         </div>
                      </div>
