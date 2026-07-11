@@ -357,7 +357,7 @@ const MyEvents = () => {
                   <div className="relative">
                     <button
                       onClick={(e) => toggleMenu(e, event.id)}
-                      className={`w-10 h-10 backdrop-blur-md rounded-xl flex items-center justify-center transition-all ${activeMenu === event.id ? 'bg-white text-primary shadow-lg' : 'bg-white/20 text-white hover:bg-white hover:text-primary'}`}
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all shadow-md border border-gray-100/50 ${activeMenu === event.id ? 'bg-white text-primary shadow-lg' : 'bg-white text-gray-700 hover:text-primary hover:bg-gray-50'}`}
                     >
                       <MoreVertical size={20} />
                     </button>
