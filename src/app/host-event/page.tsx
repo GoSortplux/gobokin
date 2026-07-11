@@ -344,6 +344,14 @@ const HostEventPage = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginModalTitle, setLoginModalTitle] = useState("Sign in required");
+  const [loginModalMessage, setLoginModalMessage] = useState("You need to sign in to finalize your event and go live.");
+
+  const showLoginRequired = (title: string, message: string) => {
+    setLoginModalTitle(title);
+    setLoginModalMessage(message);
+    setShowLoginModal(true);
+  };
 
   const [showAddFieldDropdown, setShowAddFieldDropdown] = useState(false);
   const [showRegInfo, setShowRegInfo] = useState(false);
@@ -500,6 +508,14 @@ const HostEventPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, formData.eventId]);
 
+  // Page-level auth guard for host-event steps 5, 6, and 7
+  useEffect(() => {
+    if (!user && currentStep > 4) {
+      setCurrentStep(4);
+      showLoginRequired("Sign in required", "You need to sign in to finalize your event and go live.");
+    }
+  }, [user, currentStep]);
+
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
   }, [formData]);
@@ -529,6 +545,11 @@ const HostEventPage = () => {
   };
 
   const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!user) {
+      showLoginRequired("Sign in required", "You need to sign in to upload images.");
+      e.target.value = "";
+      return;
+    }
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -550,6 +571,11 @@ const HostEventPage = () => {
   };
 
   const handleMediaUrlUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!user) {
+      showLoginRequired("Sign in required", "You need to sign in to upload images.");
+      e.target.value = "";
+      return;
+    }
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
@@ -1176,7 +1202,7 @@ const HostEventPage = () => {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
         localStorage.setItem("gobokin_host_event_resume_step_5", "true");
         localStorage.setItem("returnUrl", "/host-event");
-        setShowLoginModal(true);
+        showLoginRequired("Sign in required", "You need to sign in to finalize your event and go live.");
         return;
     }
 
@@ -1255,8 +1281,8 @@ const HostEventPage = () => {
       <LoginRequiredModal
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}
-        title="Sign in required"
-        message="You need to sign in to finalize your event and go live."
+        title={loginModalTitle}
+        message={loginModalMessage}
       />
       <div className="container mx-auto px-4">
         <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -2202,6 +2228,13 @@ const HostEventPage = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div
+                                onClick={(e) => {
+                                  if (!user) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    showLoginRequired("Sign in required", "You need to sign in to upload images.");
+                                  }
+                                }}
                                 className={`bg-gray-50 rounded-[2rem] p-8 border-2 border-dashed transition-all duration-500 flex flex-col items-center justify-center space-y-6 group/upload shadow-sm h-full relative overflow-hidden min-h-[300px]
                                   ${isUploading ? 'border-primary bg-primary/5' : 'border-gray-200 hover:bg-white hover:border-primary/30 cursor-pointer'}
                                 `}
@@ -2210,6 +2243,13 @@ const HostEventPage = () => {
                                   type="file"
                                   className="absolute inset-0 opacity-0 cursor-pointer z-20"
                                   onChange={handleBannerUpload}
+                                  onClick={(e) => {
+                                    if (!user) {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      showLoginRequired("Sign in required", "You need to sign in to upload images.");
+                                    }
+                                  }}
                                   accept="image/*"
                                   disabled={isUploading}
                                 />
@@ -2283,10 +2323,32 @@ const HostEventPage = () => {
                                                 </button>
                                             </div>
                                         ))}
-                                        <label className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-300 hover:border-primary hover:text-primary cursor-pointer transition-all">
+                                        <label
+                                            onClick={(e) => {
+                                              if (!user) {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                showLoginRequired("Sign in required", "You need to sign in to upload images.");
+                                              }
+                                            }}
+                                            className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-300 hover:border-primary hover:text-primary cursor-pointer transition-all"
+                                        >
                                             <Plus size={20} />
                                             <span className="text-[8px] font-black uppercase tracking-widest mt-1">Add</span>
-                                            <input type="file" multiple className="hidden" onChange={handleMediaUrlUpload} accept="image/*" />
+                                            <input
+                                                type="file"
+                                                multiple
+                                                className="hidden"
+                                                onChange={handleMediaUrlUpload}
+                                                onClick={(e) => {
+                                                  if (!user) {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    showLoginRequired("Sign in required", "You need to sign in to upload images.");
+                                                  }
+                                                }}
+                                                accept="image/*"
+                                            />
                                         </label>
                                     </div>
                                 </div>
