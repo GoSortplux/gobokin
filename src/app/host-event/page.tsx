@@ -339,6 +339,7 @@ const HostEventPage = () => {
   const [categories, setCategories] = useState<string[]>([]);
   const [showPreview, setShowPreview] = useState(true);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [isFinalizing, setIsFinalizing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -352,6 +353,15 @@ const HostEventPage = () => {
 
   useOnClickOutside(addFieldDropdownRef, () => setShowAddFieldDropdown(false));
   useOnClickOutside(regInfoRef, () => setShowRegInfo(false));
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const isPreviewActive = isMobile ? isPreviewModalOpen : showPreview;
 
   const [formData, setFormData] = useState({
     eventId: null as string | null,
@@ -1254,8 +1264,8 @@ const HostEventPage = () => {
           <div className="flex items-center gap-3">
             <button
               onClick={() => {
-                if (window.innerWidth < 1024) {
-                  setIsPreviewModalOpen(true);
+                if (isMobile) {
+                  setIsPreviewModalOpen(!isPreviewModalOpen);
                 } else {
                   setShowPreview(!showPreview);
                 }
@@ -1263,7 +1273,7 @@ const HostEventPage = () => {
               className="flex items-center gap-2 px-5 py-3 rounded-xl border border-gray-200 text-gray-600 font-medium hover:bg-gray-50 transition-all text-sm"
             >
               <Eye size={18} />
-              <span>{showPreview ? "Hide Preview" : "Show Preview"}</span>
+              <span>{isPreviewActive ? "Hide Preview" : "Show Preview"}</span>
             </button>
           </div>
         </div>

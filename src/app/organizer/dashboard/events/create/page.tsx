@@ -450,6 +450,7 @@ const CreateEvent = () => {
   const [eventId, setEventId] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(true);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
   const [organizerSlug, setOrganizerSlug] = useState<string>("");
   const [activeEventsCount, setActiveEventsCount] = useState<number>(0);
@@ -485,6 +486,15 @@ const CreateEvent = () => {
 
   useOnClickOutside(addFieldDropdownRef, () => setShowAddFieldDropdown(false));
   useOnClickOutside(regInfoRef, () => setShowRegInfo(false));
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const isPreviewActive = isMobile ? isPreviewModalOpen : showPreview;
 
   // Fetch Initial Data
   useEffect(() => {
@@ -1589,8 +1599,8 @@ const CreateEvent = () => {
         <div className="flex items-center gap-4">
           <button
             onClick={() => {
-              if (window.innerWidth < 1024) {
-                setIsPreviewModalOpen(true);
+              if (isMobile) {
+                setIsPreviewModalOpen(!isPreviewModalOpen);
               } else {
                 setShowPreview(!showPreview);
               }
@@ -1598,7 +1608,7 @@ const CreateEvent = () => {
             className="flex items-center gap-2.5 bg-white text-gray-500 font-black px-5 md:px-6 py-3.5 md:py-4 rounded-2xl border border-gray-100 shadow-sm hover:bg-gray-50 hover:text-primary transition-all text-[10px] uppercase tracking-[0.2em]"
           >
             <Eye size={16} />
-            <span className="hidden sm:inline">{showPreview ? "Hide Preview" : "Show Preview"}</span>
+            <span className="hidden sm:inline">{isPreviewActive ? "Hide Preview" : "Show Preview"}</span>
             <span className="sm:hidden">Preview</span>
           </button>
 
