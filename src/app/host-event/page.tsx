@@ -340,6 +340,7 @@ const HostEventPage = () => {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).setCurrentStep = setCurrentStep;
     }
   }, []);
@@ -2069,12 +2070,6 @@ const HostEventPage = () => {
                        </div>
                        <div className="flex flex-wrap items-center gap-3 sm:gap-4">
                           <button
-                            onClick={() => window.open("/organizer/dashboard/settings?tab=discounts", "_blank")}
-                            className="flex items-center gap-2 px-4 py-2.5 sm:px-6 sm:py-3 border-2 border-gray-900 text-gray-900 font-semibold rounded-xl hover:bg-gray-50 transition-all text-xs"
-                          >
-                            Create Discount Code
-                          </button>
-                          <button
                             onClick={addTicket}
                             className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white font-semibold rounded-xl hover:bg-black transition-all text-sm shadow-lg shadow-gray-200"
                           >
@@ -2230,6 +2225,15 @@ const HostEventPage = () => {
                                       <button onClick={() => removeQuantityDiscount(ticket.id!, dIdx)} className="text-gray-400 hover:text-rose-500"><Trash2 size={14} /></button>
                                   </div>
                               ))}
+                              <div className="pt-2 flex justify-end">
+                                  <button
+                                      type="button"
+                                      onClick={() => window.open("/organizer/dashboard/settings?tab=discounts", "_blank")}
+                                      className="flex items-center gap-2 bg-white text-primary border border-primary font-bold px-4 py-2 rounded-xl hover:bg-primary/5 transition-all text-[10px] uppercase tracking-wider active:scale-95 shadow-sm"
+                                  >
+                                      Create Discount Code
+                                  </button>
+                              </div>
                           </div>
                         </div>
                       ))}

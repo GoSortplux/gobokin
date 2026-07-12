@@ -2074,12 +2074,6 @@ const EditEventContent = () => {
                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 px-4">
                     <h3 className="text-3xl font-black text-gray-900 tracking-tight">Tickets</h3>
                     <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-                       <button
-                         onClick={() => window.open("/organizer/dashboard/settings?tab=discounts", "_blank")}
-                         className="flex items-center gap-2.5 bg-white text-secondary border-2 border-secondary font-black px-5 sm:px-8 py-3.5 sm:py-5 rounded-2xl sm:rounded-3xl hover:bg-secondary/5 transition-all text-[9px] sm:text-[10px] uppercase tracking-[0.12em] sm:tracking-[0.2em] active:scale-95 shadow-sm"
-                       >
-                         Create Discount Code
-                       </button>
                        <button onClick={() => {
                          if (checkMaxTicketsRule()) return;
 
@@ -2391,6 +2385,15 @@ const EditEventContent = () => {
                                                {(!ticket.quantityDiscounts || ticket.quantityDiscounts.length === 0) && (
                                                    <p className="text-[10px] text-gray-400 italic text-center py-2">No quantity discounts configured</p>
                                                )}
+                                           </div>
+                                           <div className="pt-2 flex justify-end">
+                                               <button
+                                                   type="button"
+                                                   onClick={() => window.open("/organizer/dashboard/settings?tab=discounts", "_blank")}
+                                                   className="flex items-center gap-2 bg-white text-secondary border border-secondary font-black px-4 py-2 rounded-xl hover:bg-secondary/5 transition-all text-[9px] uppercase tracking-wider active:scale-95 shadow-sm"
+                                               >
+                                                   Create Discount Code
+                                               </button>
                                            </div>
                                        </div>
                                    </div>

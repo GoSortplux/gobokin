@@ -447,6 +447,7 @@ const CreateEvent = () => {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).setCurrentStep = setCurrentStep;
     }
   }, []);
@@ -2549,12 +2550,6 @@ const CreateEvent = () => {
                     </div>
                     <div className="flex flex-wrap items-center gap-3 sm:gap-4">
                        <button
-                         onClick={() => window.open("/organizer/dashboard/settings?tab=discounts", "_blank")}
-                         className="flex items-center gap-2.5 bg-white text-secondary border-2 border-secondary font-black px-5 sm:px-8 py-3.5 sm:py-5 rounded-2xl sm:rounded-[2rem] hover:bg-secondary/5 transition-all text-[9px] sm:text-[10px] uppercase tracking-[0.12em] sm:tracking-[0.2em] active:scale-95 shadow-sm"
-                       >
-                         Create Discount Code
-                       </button>
-                       <button
                          onClick={addTicket}
                          className="flex items-center gap-3 bg-secondary text-white font-black px-6 sm:px-8 py-4 sm:py-5 rounded-2xl sm:rounded-[2rem] hover:bg-opacity-90 transition-all shadow-3xl shadow-secondary/30 text-[9px] sm:text-[10px] uppercase tracking-[0.15em] sm:tracking-[0.25em] active:scale-95 group"
                        >
@@ -2839,6 +2834,15 @@ const CreateEvent = () => {
                                             {(!ticket.quantityDiscounts || ticket.quantityDiscounts.length === 0) && (
                                                 <p className="text-[10px] text-gray-400 italic text-center py-2">No quantity discounts configured</p>
                                             )}
+                                        </div>
+                                        <div className="pt-2 flex justify-end">
+                                            <button
+                                                type="button"
+                                                onClick={() => window.open("/organizer/dashboard/settings?tab=discounts", "_blank")}
+                                                className="flex items-center gap-2 bg-white text-secondary border border-secondary font-black px-4 py-2 rounded-xl hover:bg-secondary/5 transition-all text-[9px] uppercase tracking-wider active:scale-95 shadow-sm"
+                                            >
+                                                Create Discount Code
+                                            </button>
                                         </div>
                                     </div>
                                 </div>

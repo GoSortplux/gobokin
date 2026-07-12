@@ -1192,7 +1192,10 @@ const EventDetails = () => {
                           )}
                         </>
                       )}
-                      <button className="flex items-center gap-2 text-primary font-bold text-xs bg-blue-50 px-4 py-2 rounded-xl hover:bg-blue-100 transition-colors border border-blue-100">
+                      <button
+                        onClick={() => router.push(`/organizer/dashboard/events/${eventId}/edit?step=2`)}
+                        className="flex items-center gap-2 text-primary font-bold text-xs bg-blue-50 px-4 py-2 rounded-xl hover:bg-blue-100 transition-colors border border-blue-100"
+                      >
                         <Plus size={14} />
                         Add Ticket Type
                       </button>
