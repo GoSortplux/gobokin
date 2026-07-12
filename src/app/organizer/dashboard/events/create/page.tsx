@@ -2559,7 +2559,7 @@ const CreateEvent = () => {
                     </div>
                  </div>
 
-                 <div className={`grid gap-8 lg:gap-10 ${showPreview ? "grid-cols-1 2xl:grid-cols-2" : "grid-cols-1 md:grid-cols-2"}`}>
+                 <div className="grid grid-cols-1 gap-8 lg:gap-10">
                   {tickets.map((ticket, index) => (
                       <div key={ticket.id} className="p-4 sm:p-8 md:p-10 bg-gray-50/50 rounded-2xl sm:rounded-[3.5rem] border border-gray-100 space-y-8 sm:space-y-10 relative group/ticket hover:bg-white hover:shadow-4xl hover:shadow-secondary/10 transition-all duration-700">
                           <div className="flex items-center justify-between gap-3">
@@ -2642,7 +2642,7 @@ const CreateEvent = () => {
                                 />
                              </div>
 
-                             <div className={`grid gap-6 sm:grid-cols-2`}>
+                             <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                                 <div className="space-y-3">
                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                                        <MousePointer2 size={12} className="text-secondary" />
@@ -2749,7 +2749,7 @@ const CreateEvent = () => {
 
                                     <div className="pt-8 border-t border-gray-50 space-y-6">
                                         <h6 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Early Bird Discount (Optional)</h6>
-                                        <div className={`grid gap-6 ${showPreview ? "grid-cols-1 2xl:grid-cols-3" : "grid-cols-1 sm:grid-cols-3"}`}>
+                                        <div className="grid gap-6 grid-cols-1 sm:grid-cols-3">
                                             <div className="space-y-2">
                                                 <label className="text-[9px] font-bold text-gray-400 uppercase">Early Bird Price</label>
                                                 <div className="relative">
@@ -2798,7 +2798,7 @@ const CreateEvent = () => {
                                         </div>
                                         <div className="space-y-4">
                                             {ticket.quantityDiscounts?.map((discount, dIndex) => (
-                                                <div key={dIndex} className={`grid gap-4 p-4 bg-gray-100/50 rounded-2xl items-end ${showPreview ? "grid-cols-1 2xl:grid-cols-3" : "grid-cols-1 sm:grid-cols-3"}`}>
+                                                <div key={dIndex} className="grid gap-4 p-4 bg-gray-100/50 rounded-2xl items-end grid-cols-1 sm:grid-cols-3">
                                                     <div className="space-y-2">
                                                         <label className="text-[8px] font-bold text-gray-400 uppercase">Min Quantity</label>
                                                         <input
