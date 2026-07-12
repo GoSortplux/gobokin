@@ -1191,7 +1191,7 @@ const EventDetailClient = () => {
                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-0.5">Organized by</p>
                      <h4 className="font-semibold text-gray-900 tracking-tight truncate">{event.organizer?.userProfile?.fullName || "Verified Organizer"}</h4>
                      <button
-                       onClick={() => setShowOrganizerModal(true)}
+                       onClick={() => router.push(`/events/${event.organizer?.slug || organizerSlug}`)}
                        className="text-[10px] font-black text-primary uppercase tracking-[0.15em] mt-1 hover:underline"
                      >
                        View Profile
