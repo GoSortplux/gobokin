@@ -2193,11 +2193,11 @@ const EditEventContent = () => {
                                    />
                                 </div>
 
-                                <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                                <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
                                    <div className="space-y-3">
-                                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
-                                          <MousePointer2 size={12} className="text-secondary" />
-                                          Pricing
+                                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 h-10 flex items-end pb-1 gap-2">
+                                          <MousePointer2 size={12} className="text-secondary shrink-0" />
+                                          <span>Pricing</span>
                                       </label>
                                       <div className="relative">
                                           <select
@@ -2212,9 +2212,9 @@ const EditEventContent = () => {
                                       </div>
                                    </div>
                                    <div className="space-y-3">
-                                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
-                                          <Coins size={12} className="text-secondary" />
-                                          Ticket Price
+                                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 h-10 flex items-end pb-1 gap-2">
+                                          <Coins size={12} className="text-secondary shrink-0" />
+                                          <span>Ticket Price</span>
                                       </label>
                                       <div className="relative">
                                           <span className="absolute left-5 top-1/2 -translate-y-1/2 text-secondary font-black text-xs">₦</span>
@@ -2222,38 +2222,50 @@ const EditEventContent = () => {
                                              type="number"
                                              disabled={ticket.type === "FREE"}
                                              className="w-full pl-10 pr-5 py-4 sm:py-5 bg-white border border-gray-300 rounded-2xl sm:rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 disabled:bg-gray-100 disabled:opacity-50 outline-none shadow-sm"
-                                             value={ticket.price}
-                                             onChange={(e) => updateTicket(ticket.id, "price", parseFloat(e.target.value))}
+                                             value={ticket.price ?? ""}
+                                             onChange={(e) => updateTicket(ticket.id, "price", e.target.value === "" ? "" : parseFloat(e.target.value))}
                                           />
                                       </div>
                                    </div>
                                    <div className="space-y-3">
-                                      <label htmlFor={`totalQuantity-${ticket.id}`} className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
-                                          <Layers size={12} className="text-secondary" />
-                                          Available Quantity
+                                      <label htmlFor={`totalQuantity-${ticket.id}`} className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 h-10 flex items-end pb-1 gap-2">
+                                          <Layers size={12} className="text-secondary shrink-0" />
+                                          <span>Available Quantity</span>
                                       </label>
                                       <input
                                          id={`totalQuantity-${ticket.id}`}
                                          type="number"
                                          className="w-full px-5 py-4 sm:py-5 bg-white border border-gray-300 rounded-2xl sm:rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none shadow-sm"
-                                         value={ticket.totalQuantity}
-                                         onChange={(e) => updateTicket(ticket.id, "totalQuantity", parseInt(e.target.value))}
+                                         value={ticket.totalQuantity ?? ""}
+                                         onChange={(e) => updateTicket(ticket.id, "totalQuantity", e.target.value === "" ? "" : parseInt(e.target.value))}
                                       />
                                    <p className="text-[9px] font-bold text-gray-400 mt-1 ml-1 uppercase">
                                        Max: {Math.max(0, basicInfo.capacity - tickets.filter(t => t.id !== ticket.id).reduce((sum, t) => sum + (t.totalQuantity || 0), 0))}
                                    </p>
                                    </div>
                                    <div className="space-y-3">
-                                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
-                                          <Users size={12} className="text-secondary" />
-                                          Minimum Tickets per Order
+                                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 h-10 flex items-end pb-1 gap-2">
+                                          <Users size={12} className="text-secondary shrink-0" />
+                                          <span>Minimum Tickets per Order</span>
                                       </label>
                                       <input
                                          type="number"
                                       min="1"
                                          className="w-full px-5 py-4 sm:py-5 bg-white border border-gray-300 rounded-2xl sm:rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none shadow-sm"
-                                         value={ticket.groupSize}
-                                      onChange={(e) => updateTicket(ticket.id, "groupSize", Math.max(1, parseInt(e.target.value) || 1))}
+                                         value={ticket.groupSize ?? ""}
+                                      onChange={(e) => updateTicket(ticket.id, "groupSize", e.target.value === "" ? "" : Math.max(1, parseInt(e.target.value) || 1))}
+                                      />
+                                   </div>
+                                   <div className="space-y-3">
+                                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 h-10 flex items-end pb-1 gap-2">
+                                          <Ticket size={12} className="text-secondary shrink-0" />
+                                          <span>Maximum Tickets per Order</span>
+                                      </label>
+                                      <input
+                                         type="number"
+                                         className="w-full px-5 py-4 sm:py-5 bg-white border border-gray-300 rounded-2xl sm:rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none shadow-sm"
+                                         value={ticket.maxPerOrder ?? ""}
+                                         onChange={(e) => updateTicket(ticket.id, "maxPerOrder", e.target.value === "" ? "" : parseInt(e.target.value))}
                                       />
                                    </div>
                                 </div>
@@ -2267,7 +2279,7 @@ const EditEventContent = () => {
                                    <div className="space-y-6 sm:space-y-8 pl-2 sm:pl-4 border-l-2 border-gray-100">
                                        <div className="space-y-4 sm:space-y-6">
                                                <h6 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.15em] sm:tracking-[0.3em]">Ticket Selling Start and End Date</h6>
-                                               <div className={`grid gap-4 sm:grid-cols-2 lg:grid-cols-3`}>
+                                               <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                                                    <div className="space-y-2">
                                                        <label className="text-[9px] font-bold text-gray-400 uppercase">Sales Start Date</label>
                                                        <input
@@ -2286,15 +2298,6 @@ const EditEventContent = () => {
                                                            onChange={(e) => updateTicket(ticket.id, "salesEnd", e.target.value)}
                                                        />
                                                    </div>
-                                                   <div className="space-y-2">
-                                                       <label className="text-[9px] font-bold text-gray-400 uppercase">Maximum Tickets per Order</label>
-                                                       <input
-                                                           type="number"
-                                                           className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
-                                                           value={ticket.maxPerOrder}
-                                                           onChange={(e) => updateTicket(ticket.id, "maxPerOrder", parseInt(e.target.value))}
-                                                       />
-                                                   </div>
                                                </div>
                                            </div>
 
@@ -2309,8 +2312,8 @@ const EditEventContent = () => {
                                                            type="number"
                                                            disabled={ticket.type === "FREE"}
                                                            className="w-full pl-8 pr-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none disabled:bg-gray-100 disabled:opacity-50"
-                                                           value={ticket.earlyBirdPrice}
-                                                           onChange={(e) => updateTicket(ticket.id, "earlyBirdPrice", parseFloat(e.target.value))}
+                                                           value={ticket.earlyBirdPrice ?? ""}
+                                                           onChange={(e) => updateTicket(ticket.id, "earlyBirdPrice", e.target.value === "" ? "" : parseFloat(e.target.value))}
                                                        />
                                                    </div>
                                                </div>
@@ -2320,8 +2323,8 @@ const EditEventContent = () => {
                                                        type="number"
                                                        disabled={ticket.type === "FREE"}
                                                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none disabled:bg-gray-100 disabled:opacity-50"
-                                                       value={ticket.earlyBirdLimit}
-                                                       onChange={(e) => updateTicket(ticket.id, "earlyBirdLimit", parseInt(e.target.value))}
+                                                       value={ticket.earlyBirdLimit ?? ""}
+                                                       onChange={(e) => updateTicket(ticket.id, "earlyBirdLimit", e.target.value === "" ? "" : parseInt(e.target.value))}
                                                    />
                                                </div>
                                                <div className="space-y-2">
@@ -2356,8 +2359,8 @@ const EditEventContent = () => {
                                                                type="number"
                                                                min="2"
                                                                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold outline-none"
-                                                               value={discount.minQuantity}
-                                                               onChange={(e) => updateQuantityDiscount(ticket.id, dIndex, "minQuantity", Math.max(2, parseInt(e.target.value) || 2))}
+                                                               value={discount.minQuantity ?? ""}
+                                                               onChange={(e) => updateQuantityDiscount(ticket.id, dIndex, "minQuantity", e.target.value === "" ? "" : Math.max(2, parseInt(e.target.value) || 2))}
                                                            />
                                                        </div>
                                                        <div className="space-y-2">
@@ -2367,8 +2370,8 @@ const EditEventContent = () => {
                                                                <input
                                                                    type="number"
                                                                    className="w-full pr-8 pl-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold outline-none"
-                                                                   value={discount.discountPercentage}
-                                                                   onChange={(e) => updateQuantityDiscount(ticket.id, dIndex, "discountPercentage", parseFloat(e.target.value))}
+                                                                   value={discount.discountPercentage ?? ""}
+                                                                   onChange={(e) => updateQuantityDiscount(ticket.id, dIndex, "discountPercentage", e.target.value === "" ? "" : parseFloat(e.target.value))}
                                                                />
                                                            </div>
                                                        </div>
