@@ -2160,7 +2160,7 @@ const HostEventPage = () => {
                                    />
                                </div>
                             </div>
-                            <div className="space-y-2">
+                            <div className="space-y-2 md:col-span-2">
                                <label className="text-xs font-semibold text-gray-700 ml-1">Available Quantity</label>
                                <input
                                   type="number"
