@@ -209,7 +209,7 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, sessions, tickets, agenda
                     activeTab === tab ? "bg-white text-primary shadow-sm border border-gray-100" : "text-gray-400 hover:text-gray-600"
                   }`}
                 >
-                  {tab}
+                  {tab === "registration" ? "form preview" : tab}
                 </button>
               ))}
            </div>
