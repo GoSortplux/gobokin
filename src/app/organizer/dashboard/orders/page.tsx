@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import {
   Ticket,
   Search,
-  Download,
   Eye,
   CheckCircle2,
   Clock
@@ -150,35 +149,6 @@ const OrdersView = () => {
     }
   };
 
-  const handleExport = async () => {
-    if (!selectedEventId && isStaff) {
-        Swal.fire("Selection Required", "Please select an event to export attendance.", "warning");
-        return;
-    }
-
-    try {
-        Swal.showLoading();
-        // Assuming the endpoint returns a blob or triggers a download
-        const url = selectedEventId
-            ? `/events/${selectedEventId}/export-attendance`
-            : "/events/orders/export"; // Fallback for global
-
-        const response = await api.get(url, { responseType: 'blob' });
-
-        const downloadUrl = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement('a');
-        link.href = downloadUrl;
-        const filename = `attendance-${selectedEventId || 'global'}-${new Date().toISOString().split('T')[0]}.csv`;
-        link.setAttribute('download', filename);
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-
-        Swal.close();
-    } catch (error) {
-        Swal.fire('Export Failed', translateError(error), 'error');
-    }
-  };
 
   if (loading) return <div className="h-full flex items-center justify-center"><CustomLoader /></div>;
 
@@ -215,14 +185,6 @@ const OrdersView = () => {
                 {events.length === 0 && isStaff && <option value="">No events assigned</option>}
             </select>
         </div>
-
-        <button
-            onClick={handleExport}
-            className="flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-white text-gray-700 font-black text-sm border border-gray-100 hover:bg-gray-50 transition-all shadow-sm whitespace-nowrap w-full lg:w-auto"
-        >
-          <Download size={18} />
-          {isStaff ? 'Export Attendance' : 'Export All'}
-        </button>
       </div>
 
       {/* Orders Table */}
