@@ -690,6 +690,9 @@ export interface Event {
   isWaitlistEnabled?: boolean;
   isBookmarked?: boolean;
   bookmarkedAt?: string;
+  remindersEnabled?: boolean;
+  reminderCustomText?: string;
+  reminderFrequencies?: number[];
   createdAt: string;
   updatedAt: string;
   organizer?: Organizer;

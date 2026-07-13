@@ -8,7 +8,8 @@
 
  ✓ Starting...
  ✓ Ready in 2.1s
- ○ Compiling /events/[organizerSlug] ...
- ✓ Compiled /events/[organizerSlug] in 10.8s (1826 modules)
- GET /events/rightsort-ace 200 in 13112ms
- GET /events/rightsort-ace 200 in 258ms
+ ○ Compiling /verify-modal ...
+ ✓ Compiled /verify-modal in 10.1s (1804 modules)
+ HEAD /verify-modal 200 in 11934ms
+ GET /verify-modal 200 in 206ms
+ ✓ Compiled in 944ms (757 modules)

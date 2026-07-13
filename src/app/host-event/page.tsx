@@ -40,6 +40,7 @@ import { EventType, RegistrationMode, RegistrationField, Speaker, TicketType, Ti
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 import LoginRequiredModal from "@/components/auth/LoginRequiredModal";
+import { EventReminderSection } from "@/components/organizer/EventReminderSection";
 
 const steps = [
   { id: 1, title: "Identity", icon: Type },
@@ -395,6 +396,10 @@ const HostEventPage = () => {
       isPublic: true,
       isFeatured: false,
       description: "",
+      remindersEnabled: false,
+      reminderCustomText: "",
+      reminderFrequencies: [] as number[],
+      useDefaultFrequencies: true,
     },
     mediaInfo: {
       bannerUrl: "",
@@ -1252,7 +1257,10 @@ const HostEventPage = () => {
                 title: s.title,
                 bio: s.bio,
                 imageUrl: s.imageUrl
-            }))
+            })),
+            remindersEnabled: formData.basicInfo.remindersEnabled || false,
+            reminderCustomText: formData.basicInfo.remindersEnabled ? (formData.basicInfo.reminderCustomText || undefined) : undefined,
+            reminderFrequencies: formData.basicInfo.remindersEnabled ? (formData.basicInfo.useDefaultFrequencies ? [] : formData.basicInfo.reminderFrequencies) : undefined,
         };
 
         const response = await api.post("/events", payload);
@@ -1700,6 +1708,25 @@ const HostEventPage = () => {
                             </button>
                         </div>
                       )}
+
+                      <div className="md:col-span-2 mt-4">
+                        <EventReminderSection
+                          remindersEnabled={formData.basicInfo.remindersEnabled}
+                          reminderCustomText={formData.basicInfo.reminderCustomText}
+                          reminderFrequencies={formData.basicInfo.reminderFrequencies}
+                          useDefaultFrequencies={formData.basicInfo.useDefaultFrequencies}
+                          isHostEventPage={true}
+                          onChange={(updates) => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              basicInfo: {
+                                ...prev.basicInfo,
+                                ...updates,
+                              },
+                            }));
+                          }}
+                        />
+                      </div>
                     </div>
 
                     <div className="space-y-10 mt-12">

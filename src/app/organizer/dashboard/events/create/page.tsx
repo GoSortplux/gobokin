@@ -40,6 +40,7 @@ import {
 } from "lucide-react";
 import api from "@/services/api";
 import { RegistrationFieldItem } from "@/components/organizer/RegistrationFieldItem";
+import { EventReminderSection } from "@/components/organizer/EventReminderSection";
 import axios from "axios";
 import Swal from "@/utils/sweetalert";
 import { triggerSuccessConfetti } from "@/utils/confetti";
@@ -479,6 +480,10 @@ const CreateEvent = () => {
     agendaEnabled: false,
     hideLocationDetails: false,
     status: "UPCOMING",
+    remindersEnabled: false,
+    reminderCustomText: "",
+    reminderFrequencies: [] as number[],
+    useDefaultFrequencies: true,
   });
 
   const visibleSteps = useMemo(() =>
@@ -662,6 +667,9 @@ const CreateEvent = () => {
         })),
         bannerUrl: mediaInfo.bannerUrl || undefined,
         mediaUrls: mediaInfo.mediaUrls,
+        remindersEnabled: basicInfo.remindersEnabled || false,
+        reminderCustomText: basicInfo.remindersEnabled ? (basicInfo.reminderCustomText || undefined) : undefined,
+        reminderFrequencies: basicInfo.remindersEnabled ? (basicInfo.useDefaultFrequencies ? [] : basicInfo.reminderFrequencies) : undefined,
       };
 
       if (speakers.length > 0) {
@@ -1443,6 +1451,9 @@ const CreateEvent = () => {
           source: f.source,
           dependsOn: f.dependsOn
         })),
+        remindersEnabled: basicInfo.remindersEnabled || false,
+        reminderCustomText: basicInfo.remindersEnabled ? (basicInfo.reminderCustomText || undefined) : undefined,
+        reminderFrequencies: basicInfo.remindersEnabled ? (basicInfo.useDefaultFrequencies ? [] : basicInfo.reminderFrequencies) : undefined,
       };
 
       if (speakers.length > 0) {
@@ -2139,6 +2150,22 @@ const CreateEvent = () => {
                                         </p>
                                     </div>
                                 )}
+                             </div>
+
+                             <div className={`pt-4 ${showPreview ? "2xl:col-span-3" : "md:col-span-2 lg:col-span-3"}`}>
+                                <EventReminderSection
+                                   remindersEnabled={basicInfo.remindersEnabled}
+                                   reminderCustomText={basicInfo.reminderCustomText}
+                                   reminderFrequencies={basicInfo.reminderFrequencies}
+                                   useDefaultFrequencies={basicInfo.useDefaultFrequencies}
+                                   onChange={(updates) => {
+                                      setBasicInfo(prev => ({
+                                         ...prev,
+                                         ...updates
+                                      }));
+                                      handleBlur();
+                                   }}
+                                />
                              </div>
                           </div>
                           )}

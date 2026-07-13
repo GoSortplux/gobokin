@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 import api from "@/services/api";
 import { RegistrationFieldItem } from "@/components/organizer/RegistrationFieldItem";
+import { EventReminderSection } from "@/components/organizer/EventReminderSection";
 import axios from "axios";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
@@ -487,6 +488,10 @@ const EditEventContent = () => {
     agendaEnabled: false,
     hideLocationDetails: false,
     isWaitlistEnabled: false,
+    remindersEnabled: false,
+    reminderCustomText: "",
+    reminderFrequencies: [] as number[],
+    useDefaultFrequencies: true,
   });
 
   const visibleSteps = useMemo(() =>
@@ -602,6 +607,10 @@ const EditEventContent = () => {
           agendaEnabled: !!event.agendaEnabled,
           hideLocationDetails: !!event.hideLocationDetails,
           isWaitlistEnabled: !!event.isWaitlistEnabled,
+          remindersEnabled: !!event.remindersEnabled,
+          reminderCustomText: event.reminderCustomText || "",
+          reminderFrequencies: Array.isArray(event.reminderFrequencies) ? event.reminderFrequencies : [],
+          useDefaultFrequencies: !Array.isArray(event.reminderFrequencies) || event.reminderFrequencies.length === 0,
         });
 
         setMediaInfo({
@@ -1282,6 +1291,9 @@ const EditEventContent = () => {
         })),
         bannerUrl: finalBannerUrl,
         mediaUrls: finalMediaUrls,
+        remindersEnabled: basicInfo.remindersEnabled || false,
+        reminderCustomText: basicInfo.remindersEnabled ? (basicInfo.reminderCustomText || undefined) : undefined,
+        reminderFrequencies: basicInfo.remindersEnabled ? (basicInfo.useDefaultFrequencies ? [] : basicInfo.reminderFrequencies) : undefined,
       };
 
       // Fix: Remove restricted fields
@@ -1799,6 +1811,21 @@ const EditEventContent = () => {
                                         </p>
                                     </div>
                                 )}
+                             </div>
+
+                             <div className={`pt-4 ${showPreview ? "2xl:col-span-3" : "md:col-span-2 lg:col-span-3"}`}>
+                                <EventReminderSection
+                                   remindersEnabled={basicInfo.remindersEnabled}
+                                   reminderCustomText={basicInfo.reminderCustomText}
+                                   reminderFrequencies={basicInfo.reminderFrequencies}
+                                   useDefaultFrequencies={basicInfo.useDefaultFrequencies}
+                                   onChange={(updates) => {
+                                      setBasicInfo(prev => ({
+                                         ...prev,
+                                         ...updates
+                                      }));
+                                   }}
+                                />
                              </div>
                           </div>
                           )}
