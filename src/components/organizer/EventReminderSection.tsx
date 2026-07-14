@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Bell, Info, Plus, Trash2, HelpCircle } from "lucide-react";
+import { Bell, Info, Plus, Trash2, HelpCircle, Sparkles } from "lucide-react";
 import api from "@/services/api";
 import { translateError } from "@/utils/errors";
 
@@ -14,8 +14,42 @@ interface EventReminderSectionProps {
     reminderFrequencies?: number[];
     useDefaultFrequencies?: boolean;
   }) => void;
-  isHostEventPage?: boolean; // slight styling adaptation if needed
+  isHostEventPage?: boolean;
 }
+
+interface TextTemplate {
+  id: string;
+  name: string;
+  text: string;
+  description: string;
+}
+
+const SUGGESTED_TEMPLATES: TextTemplate[] = [
+  {
+    id: "friendly",
+    name: "Friendly Reminder",
+    description: "A warm and inviting message perfect for social or community events.",
+    text: "Hello {{guest_name}}, this is a friendly reminder that {{event_name}} is coming up on {{event_date}} at {{event_time}}. We are looking forward to seeing you at {{venue}}!",
+  },
+  {
+    id: "formal",
+    name: "Professional & Formal",
+    description: "A structured, polite tone ideal for conferences, seminars, or corporate events.",
+    text: "Dear {{guest_name}}, we are pleased to remind you of your registration for {{event_name}}, scheduled to take place on {{event_date}} at {{event_time}}. The venue is {{venue}}. We look forward to your presence.",
+  },
+  {
+    id: "excited",
+    name: "Casual & Excited",
+    description: "High-energy vibe, great for concerts, festivals, or parties.",
+    text: "Hey {{guest_name}}! The wait is almost over. {{event_name}} is starting on {{event_date}} at {{event_time}}! Get ready for an amazing experience at {{venue}}. See you there!",
+  },
+  {
+    id: "short",
+    name: "Short & Direct",
+    description: "A quick, concise summary of the essential details.",
+    text: "Reminder: {{event_name}} starts on {{event_date}} at {{event_time}} at {{venue}}. We look forward to seeing you, {{guest_name}}!",
+  },
+];
 
 export const EventReminderSection: React.FC<EventReminderSectionProps> = ({
   remindersEnabled,
@@ -34,6 +68,9 @@ export const EventReminderSection: React.FC<EventReminderSectionProps> = ({
   const [customHourInput, setCustomHourInput] = useState("");
   const [inputError, setInputError] = useState("");
   const [showTokenHelp, setShowTokenHelp] = useState(false);
+
+  // Default clean text template if backend template has formatting characters
+  const defaultCleanText = SUGGESTED_TEMPLATES[0].text;
 
   // Fetch defaults once when component mounts or reminders are enabled
   useEffect(() => {
@@ -74,8 +111,8 @@ export const EventReminderSection: React.FC<EventReminderSectionProps> = ({
           const fetchedDefaults = res.data.data;
           setDefaults(fetchedDefaults);
 
-          // Auto-populate custom text and frequencies if they are empty
-          const textToSet = reminderCustomText ? reminderCustomText : fetchedDefaults.defaultTextTemplate;
+          // Use our clean friendly reminder as the pre-populated default text
+          const textToSet = reminderCustomText ? reminderCustomText : defaultCleanText;
           const freqsToSet = reminderFrequencies && reminderFrequencies.length > 0
             ? reminderFrequencies
             : [];
@@ -86,11 +123,17 @@ export const EventReminderSection: React.FC<EventReminderSectionProps> = ({
             reminderFrequencies: freqsToSet,
           });
         } else {
-          onChange({ remindersEnabled: true });
+          onChange({
+            remindersEnabled: true,
+            reminderCustomText: reminderCustomText || defaultCleanText,
+          });
         }
       } catch (err) {
         console.error("Failed to pre-populate reminder defaults on toggle:", err);
-        onChange({ remindersEnabled: true });
+        onChange({
+          remindersEnabled: true,
+          reminderCustomText: reminderCustomText || defaultCleanText,
+        });
       } finally {
         setLoadingDefaults(false);
       }
@@ -149,11 +192,50 @@ export const EventReminderSection: React.FC<EventReminderSectionProps> = ({
       {remindersEnabled && (
         <div className="space-y-6 pt-4 border-t border-gray-100 animate-in fade-in slide-in-from-top-4 duration-300">
 
+          {/* Suggested Templates Selector */}
+          <div className="space-y-3">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+              <Sparkles size={12} className="text-primary" />
+              Suggested Text Templates
+            </label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {SUGGESTED_TEMPLATES.map((template) => {
+                const isSelected = reminderCustomText === template.text;
+                return (
+                  <button
+                    key={template.id}
+                    type="button"
+                    onClick={() => onChange({ reminderCustomText: template.text })}
+                    className={`p-4 text-left border-2 rounded-2xl transition-all flex flex-col justify-between ${
+                      isSelected
+                        ? "bg-primary/5 border-primary ring-2 ring-primary/10 shadow-sm"
+                        : "bg-white border-gray-100 hover:border-gray-200 hover:bg-gray-50"
+                    }`}
+                  >
+                    <div>
+                      <span className={`text-xs font-bold ${isSelected ? "text-primary" : "text-gray-900"}`}>
+                        {template.name}
+                      </span>
+                      <p className="text-[10px] text-gray-400 mt-1 line-clamp-2 leading-relaxed">
+                        {template.description}
+                      </p>
+                    </div>
+                    <div className="mt-2 pt-2 border-t border-gray-50/50 w-full">
+                      <p className="text-[9px] text-gray-500 italic font-medium line-clamp-1">
+                        &ldquo;{template.text}&rdquo;
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Custom message field */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                Custom Reminder Text
+                Reminder Text Editor
               </label>
               <button
                 type="button"
@@ -182,7 +264,7 @@ export const EventReminderSection: React.FC<EventReminderSectionProps> = ({
               value={reminderCustomText}
               onChange={(e) => onChange({ reminderCustomText: e.target.value })}
               rows={4}
-              placeholder={defaults?.defaultTextTemplate || "⏰ Reminder: {{event_name}} is coming up!"}
+              placeholder={defaultCleanText}
               className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-xs font-semibold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none placeholder:text-gray-400 shadow-sm leading-relaxed"
             />
           </div>
