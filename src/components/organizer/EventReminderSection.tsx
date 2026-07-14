@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Bell, Info, Plus, Trash2, HelpCircle, Sparkles } from "lucide-react";
+import { Bell, Info, Plus, Trash2, HelpCircle, Sparkles, ChevronDown } from "lucide-react";
 import api from "@/services/api";
 import { translateError } from "@/utils/errors";
 
@@ -192,43 +192,42 @@ export const EventReminderSection: React.FC<EventReminderSectionProps> = ({
       {remindersEnabled && (
         <div className="space-y-6 pt-4 border-t border-gray-100 animate-in fade-in slide-in-from-top-4 duration-300">
 
-          {/* Suggested Templates Selector */}
+          {/* Suggested Templates Dropdown Selector */}
           <div className="space-y-3">
             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
               <Sparkles size={12} className="text-primary" />
               Suggested Text Templates
             </label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {SUGGESTED_TEMPLATES.map((template) => {
-                const isSelected = reminderCustomText === template.text;
-                return (
-                  <button
-                    key={template.id}
-                    type="button"
-                    onClick={() => onChange({ reminderCustomText: template.text })}
-                    className={`p-4 text-left border-2 rounded-2xl transition-all flex flex-col justify-between ${
-                      isSelected
-                        ? "bg-primary/5 border-primary ring-2 ring-primary/10 shadow-sm"
-                        : "bg-white border-gray-100 hover:border-gray-200 hover:bg-gray-50"
-                    }`}
-                  >
-                    <div>
-                      <span className={`text-xs font-bold ${isSelected ? "text-primary" : "text-gray-900"}`}>
-                        {template.name}
-                      </span>
-                      <p className="text-[10px] text-gray-400 mt-1 line-clamp-2 leading-relaxed">
-                        {template.description}
-                      </p>
-                    </div>
-                    <div className="mt-2 pt-2 border-t border-gray-50/50 w-full">
-                      <p className="text-[9px] text-gray-500 italic font-medium line-clamp-1">
-                        &ldquo;{template.text}&rdquo;
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
+            <div className="relative max-w-md">
+              <select
+                value={SUGGESTED_TEMPLATES.find(t => t.text === reminderCustomText)?.id || "custom"}
+                onChange={(e) => {
+                  const selectedId = e.target.value;
+                  const found = SUGGESTED_TEMPLATES.find((t) => t.id === selectedId);
+                  if (found) {
+                    onChange({ reminderCustomText: found.text });
+                  }
+                }}
+                className="w-full pl-4 pr-10 py-3 bg-white border border-gray-300 rounded-xl text-xs font-semibold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none appearance-none cursor-pointer shadow-sm"
+              >
+                {SUGGESTED_TEMPLATES.map((template) => (
+                  <option key={template.id} value={template.id}>
+                    {template.name} — {template.description}
+                  </option>
+                ))}
+                {!SUGGESTED_TEMPLATES.some(t => t.text === reminderCustomText) && (
+                  <option value="custom">Customized Template (Edited)</option>
+                )}
+              </select>
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                <ChevronDown size={16} />
+              </div>
             </div>
+            {SUGGESTED_TEMPLATES.find(t => t.text === reminderCustomText) && (
+              <p className="text-[10px] text-gray-400 font-medium italic pl-1">
+                Tone style: {SUGGESTED_TEMPLATES.find(t => t.text === reminderCustomText)?.description}
+              </p>
+            )}
           </div>
 
           {/* Custom message field */}
@@ -269,7 +268,7 @@ export const EventReminderSection: React.FC<EventReminderSectionProps> = ({
             />
           </div>
 
-          {/* Frequencies settings */}
+          {/* Timing settings */}
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
@@ -283,7 +282,7 @@ export const EventReminderSection: React.FC<EventReminderSectionProps> = ({
                   onChange={(e) => onChange({ useDefaultFrequencies: e.target.checked })}
                   className="rounded border-gray-300 text-primary focus:ring-primary w-4 h-4"
                 />
-                <span className="text-xs font-bold text-gray-700">Use System Default Frequencies</span>
+                <span className="text-xs font-bold text-gray-700">Use System Default Timings</span>
               </label>
             </div>
 
@@ -302,7 +301,7 @@ export const EventReminderSection: React.FC<EventReminderSectionProps> = ({
                 <div className="p-4 bg-gray-100/50 border border-gray-200 rounded-2xl flex items-start gap-3">
                   <Info size={14} className="text-gray-500 shrink-0 mt-0.5" />
                   <p className="text-[10px] font-medium text-gray-500 leading-relaxed uppercase">
-                    Frequencies are set to defaults. If you want to use customized relative hours, uncheck &quot;Use System Default Frequencies&quot;.
+                    Timings are set to defaults. If you want to use customized relative hours, uncheck &quot;Use System Default Timings&quot;.
                   </p>
                 </div>
               </div>
