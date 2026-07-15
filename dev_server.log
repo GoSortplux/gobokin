@@ -18,3 +18,5 @@
  GET /host-event 200 in 206ms
  GET /host-event 200 in 208ms
  GET /host-event 200 in 185ms
+ ✓ Compiled in 4.8s (807 modules)
+ ✓ Compiled in 2.4s (1819 modules)

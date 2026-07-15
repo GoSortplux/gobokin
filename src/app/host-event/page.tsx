@@ -860,50 +860,52 @@ const HostEventPage = () => {
 
             {(field.type === 'select' || field.type === 'checkbox' || !!field.source) && (
                 <div className="bg-gray-50/50 rounded-[2rem] p-6 border border-gray-100 mt-2 ml-4 mr-4 space-y-5">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        {!isLocationField && (
-                            <div className="space-y-2">
-                                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Choice Source</label>
-                                <div className="relative">
-                                    <select
-                                        className="w-full p-3.5 bg-white border border-gray-200 rounded-xl text-xs font-bold appearance-none outline-none focus:border-primary transition-all shadow-sm"
-                                        value={field.source || ""}
-                                        onChange={(e) => {
-                                            const newSource = e.target.value || undefined;
-                                            updateField(idx, "source", newSource);
-                                            if (newSource) {
-                                                updateField(idx, "options", []);
-                                            }
-                                        }}
-                                    >
-                                        <option value="">Manual Entry</option>
-                                        <option value="COUNTRIES">Countries</option>
-                                        <option value="STATES">States</option>
-                                        <option value="LGAS">LGAs</option>
-                                    </select>
-                                    <ChevronDown size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                    {field.type === 'select' && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            {!isLocationField && (
+                                <div className="space-y-2">
+                                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Choice Source</label>
+                                    <div className="relative">
+                                        <select
+                                            className="w-full p-3.5 bg-white border border-gray-200 rounded-xl text-xs font-bold appearance-none outline-none focus:border-primary transition-all shadow-sm"
+                                            value={field.source || ""}
+                                            onChange={(e) => {
+                                                const newSource = e.target.value || undefined;
+                                                updateField(idx, "source", newSource);
+                                                if (newSource) {
+                                                    updateField(idx, "options", []);
+                                                }
+                                            }}
+                                        >
+                                            <option value="">Manual Entry</option>
+                                            <option value="COUNTRIES">Countries</option>
+                                            <option value="STATES">States</option>
+                                            <option value="LGAS">LGAs</option>
+                                        </select>
+                                        <ChevronDown size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-                        {field.source && !isLocationField && (
-                            <div className="space-y-2">
-                                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Link to Field</label>
-                                <div className="relative">
-                                    <select
-                                        className="w-full p-3.5 bg-white border border-gray-200 rounded-xl text-xs font-bold appearance-none outline-none focus:border-primary transition-all shadow-sm"
-                                        value={field.dependsOn || ""}
-                                        onChange={(e) => updateField(idx, "dependsOn", e.target.value || undefined)}
-                                    >
-                                        <option value="">Independent</option>
-                                        {formData.registration.fields.filter((_, i) => i !== idx).map((f, i) => (
-                                            <option key={i} value={f.name || f.label.toLowerCase().replace(/\s+/g, '-')}>{f.label}</option>
-                                        ))}
-                                    </select>
-                                    <ChevronDown size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                            )}
+                            {field.source && !isLocationField && (
+                                <div className="space-y-2">
+                                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Link to Field</label>
+                                    <div className="relative">
+                                        <select
+                                            className="w-full p-3.5 bg-white border border-gray-200 rounded-xl text-xs font-bold appearance-none outline-none focus:border-primary transition-all shadow-sm"
+                                            value={field.dependsOn || ""}
+                                            onChange={(e) => updateField(idx, "dependsOn", e.target.value || undefined)}
+                                        >
+                                            <option value="">Independent</option>
+                                            {formData.registration.fields.filter((_, i) => i !== idx).map((f, i) => (
+                                                <option key={i} value={f.name || f.label.toLowerCase().replace(/\s+/g, '-')}>{f.label}</option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-                    </div>
+                            )}
+                        </div>
+                    )}
                     {!isLocationField && (
                         <div className="space-y-3">
                             <div className="flex items-center justify-between px-1">
