@@ -7,54 +7,14 @@
    - Network:      http://192.168.0.2:3000
 
  ✓ Starting...
- ✓ Ready in 2.2s
- ○ Compiling /auth/login ...
- ✓ Compiled /auth/login in 14.5s (1805 modules)
- GET /auth/login 200 in 16131ms
- ○ Compiling /admin/events/users ...
- ✓ Compiled /admin/events/users in 3.8s (1833 modules)
- GET /auth/login 200 in 3615ms
- GET /admin/events/users 200 in 4579ms
- GET /auth/login 200 in 61ms
- GET /auth/login 200 in 180ms
- GET /admin/events/users 200 in 111ms
- GET /auth/login 200 in 77ms
- GET /auth/login 200 in 103ms
- GET /auth/login 200 in 88ms
- GET /auth/login 200 in 94ms
- GET /auth/login 200 in 60ms
- GET /auth/login 200 in 190ms
- GET /admin/events/users 200 in 148ms
- GET /auth/login 200 in 220ms
- GET /auth/login 200 in 222ms
- GET /auth/login 200 in 255ms
- GET /auth/login 200 in 257ms
- GET /auth/login 200 in 210ms
- GET /auth/login 200 in 168ms
- GET /admin/events/users 200 in 146ms
- GET /auth/login 200 in 191ms
- GET /auth/login 200 in 170ms
- GET /auth/login 200 in 169ms
- GET /auth/login 200 in 142ms
- GET /auth/login 200 in 164ms
- GET /admin/events/users 200 in 117ms
- GET /auth/login 200 in 155ms
- GET /admin/events/users 200 in 120ms
- ○ Compiling /api/v1/events/admin/organizers ...
- ✓ Compiled /api/v1/events/admin/organizers in 1270ms (1834 modules)
- GET /api/v1/events/admin/organizers?page=1&limit=10 200 in 1562ms
- ✓ Compiled /api/v1/events/admin/organizers/[organizerId] in 478ms (1836 modules)
- GET /api/v1/events/admin/organizers/550e8400-e29b-41d4-a716-446655440000 200 in 1273ms
- ✓ Compiled /api/v1/events/admin/packages in 461ms (1838 modules)
- GET /api/v1/events/admin/packages 200 in 547ms
- ○ Compiling /admin/events/settings ...
- ✓ Compiled /admin/events/settings in 2.1s (1853 modules)
- GET /admin/events/settings 200 in 2874ms
- ○ Compiling /api/v1/events/admin/config ...
- ✓ Compiled /api/v1/events/admin/config in 567ms (1855 modules)
- GET /api/v1/events/admin/config 200 in 670ms
- GET /api/v1/events/admin/config 200 in 674ms
- GET /api/v1/events/admin/config 200 in 37ms
- GET /api/v1/events/admin/packages 200 in 38ms
- ✓ Compiled in 15.2s (1849 modules)
- ✓ Compiled in 12.5s (1849 modules)
+ ✓ Ready in 2s
+ ○ Compiling /host-event ...
+ ✓ Compiled /host-event in 10.7s (1850 modules)
+ GET /host-event 200 in 11935ms
+ GET /host-event 200 in 324ms
+ GET /host-event 200 in 204ms
+ GET /host-event 200 in 184ms
+ GET /host-event 200 in 208ms
+ GET /host-event 200 in 206ms
+ GET /host-event 200 in 208ms
+ GET /host-event 200 in 185ms
