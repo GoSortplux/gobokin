@@ -1677,9 +1677,60 @@ const EventDetails = () => {
 
                           <div className="flex items-center gap-3">
                              <button
-                               onClick={() => {
+                               onClick={async () => {
                                  if (!handleRestrictedAction('BULK_IMPORT_ALLOWED', 'Feature Restricted', 'Bulk import and export is not available on your current plan.')) {
-                                   // Original export logic
+                                   try {
+                                     Swal.fire({
+                                       title: 'Exporting Attendance...',
+                                       text: 'Please wait while we prepare your file.',
+                                       allowOutsideClick: false,
+                                       didOpen: () => {
+                                         Swal.showLoading();
+                                       }
+                                     });
+
+                                     const response = await api.get(`/events/${eventId}/export-attendance`, {
+                                       responseType: 'blob',
+                                     });
+
+                                     const blob = new Blob([response.data], {
+                                       type: response.headers['content-type'] || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                                     });
+                                     const url = window.URL.createObjectURL(blob);
+                                     const link = document.createElement('a');
+                                     link.href = url;
+
+                                     let filename = `attendance_event_${eventId}.xlsx`;
+                                     const contentDisposition = response.headers['content-disposition'];
+                                     if (contentDisposition) {
+                                       const filenameMatch = contentDisposition.match(/filename="?(.+?)"?$/);
+                                       if (filenameMatch && filenameMatch[1]) {
+                                         filename = filenameMatch[1];
+                                       }
+                                     }
+
+                                     link.setAttribute('download', filename);
+                                     document.body.appendChild(link);
+                                     link.click();
+
+                                     document.body.removeChild(link);
+                                     window.URL.revokeObjectURL(url);
+
+                                     Swal.fire({
+                                       icon: 'success',
+                                       title: 'Export Successful',
+                                       text: 'Your attendance list has been exported successfully.',
+                                       timer: 2000,
+                                       showConfirmButton: false,
+                                     });
+                                   } catch (error) {
+                                     console.error('Failed to export attendance list:', error);
+                                     Swal.fire({
+                                       icon: 'error',
+                                       title: 'Export Failed',
+                                       text: 'Could not export attendance list. Please try again later.',
+                                     });
+                                   }
                                  }
                                }}
                                className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-700 font-bold text-xs rounded-xl border border-gray-100 hover:bg-gray-100 transition-all"
