@@ -23,6 +23,16 @@ api.interceptors.request.use(
         delete config.headers.Authorization;
       }
     }
+
+    // Redirect specific super admin endpoints to the local Next.js API route handlers
+    if (config.url && (
+      config.url.startsWith('/events/admin/organizers') ||
+      config.url.startsWith('/events/admin/packages') ||
+      config.url.startsWith('/events/admin/config')
+    )) {
+      config.baseURL = '/api/v1';
+    }
+
     return config;
   },
   (error) => {
