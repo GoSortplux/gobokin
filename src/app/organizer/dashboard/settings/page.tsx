@@ -222,17 +222,11 @@ const OrganizerSettings = () => {
   };
 
   const handlePurchase = async (packageId: string) => {
-    if (!selectedEventId) {
-        Swal.fire('Error', 'Please select an event for the subscription.', 'error');
-        return;
-    }
-
     try {
         setPurchasingId(packageId);
         Swal.showLoading();
         const response = await api.post("/events/subscriptions/initialize", {
-            packageId,
-            eventId: selectedEventId
+            packageId
         });
 
         if (response.data.success && response.data.data.paymentUrl) {
@@ -646,7 +640,7 @@ const OrganizerSettings = () => {
                             </AnimatePresence>
                         </div>
 
-                        {/* 1. Header & Selection Section */}
+                        {/* 1. Header Section */}
                         <div className="space-y-4">
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 <h3 className="text-2xl font-black text-gray-900 tracking-tight italic uppercase">Select <span className="text-primary not-italic">Subscription</span></h3>
@@ -654,21 +648,6 @@ const OrganizerSettings = () => {
                                     <Zap size={14} className="text-amber-500" />
                                     Secure Payment via Monnify
                                 </div>
-                            </div>
-
-                            {/* Minimal Event Selection */}
-                            <div className="relative max-w-sm">
-                                <select
-                                    className="w-full p-4 bg-white border border-gray-100 rounded-2xl text-xs font-bold focus:ring-4 focus:ring-primary/5 transition-all appearance-none shadow-sm"
-                                    value={selectedEventId}
-                                    onChange={(e) => setSelectedEventId(e.target.value)}
-                                >
-                                    <option value="" disabled>Target Event...</option>
-                                    {rawEvents.map(event => (
-                                        <option key={event.id} value={event.id}>{event.title}</option>
-                                    ))}
-                                </select>
-                                <ChevronDown size={16} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                             </div>
                         </div>
 
@@ -744,18 +723,12 @@ const OrganizerSettings = () => {
 
                                         <button
                                             onClick={() => handlePurchase(selectedPackage.id)}
-                                            disabled={purchasingId === selectedPackage.id || !selectedEventId}
+                                            disabled={purchasingId === selectedPackage.id}
                                             className="w-full bg-gray-900 text-white font-black py-4 rounded-2xl hover:bg-primary transition-all shadow-xl shadow-gray-900/10 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest text-xs"
                                         >
                                             {purchasingId === selectedPackage.id ? 'Processing...' : 'Unlock Package'}
                                             <ArrowRight size={16} />
                                         </button>
-
-                                        {!selectedEventId && (
-                                            <p className="text-[9px] text-rose-500 font-black uppercase tracking-widest text-center mt-3 animate-pulse">
-                                                Select a target event above to proceed
-                                            </p>
-                                        )}
                                     </div>
                                     <div className="bg-gray-50/50 py-3 px-8 border-t border-gray-50 flex items-center justify-between">
                                         <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest italic">Instant Activation after payment</p>
