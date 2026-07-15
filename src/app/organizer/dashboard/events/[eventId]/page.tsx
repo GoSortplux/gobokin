@@ -986,7 +986,10 @@ const EventDetails = () => {
                 <div className="space-y-8">
                    <div className="flex items-center justify-between">
                       <h3 className="text-lg font-black text-gray-900 border-l-4 border-primary pl-4">Featured Speakers</h3>
-                      <button className="flex items-center gap-2 text-primary font-bold text-sm bg-blue-50 px-4 py-2 rounded-xl hover:bg-blue-100 transition-colors">
+                      <button
+                        onClick={() => router.push(`/organizer/dashboard/events/${eventId}/edit?step=1`)}
+                        className="flex items-center gap-2 text-primary font-bold text-sm bg-blue-50 px-4 py-2 rounded-xl hover:bg-blue-100 transition-colors"
+                      >
                         <Plus size={16} />
                         Add Speaker
                       </button>
@@ -1029,7 +1032,10 @@ const EventDetails = () => {
                 <div className="space-y-8">
                    <div className="flex items-center justify-between">
                       <h3 className="text-lg font-black text-gray-900 border-l-4 border-primary pl-4">Event Agenda</h3>
-                      <button className="flex items-center gap-2 text-primary font-bold text-sm bg-blue-50 px-4 py-2 rounded-xl hover:bg-blue-100 transition-colors">
+                      <button
+                        onClick={() => router.push(`/organizer/dashboard/events/${eventId}/edit?step=1`)}
+                        className="flex items-center gap-2 text-primary font-bold text-sm bg-blue-50 px-4 py-2 rounded-xl hover:bg-blue-100 transition-colors"
+                      >
                         <Plus size={16} />
                         Add Agenda Item
                       </button>
