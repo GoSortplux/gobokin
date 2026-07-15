@@ -4,6 +4,7 @@ import { X, Globe, Instagram, Twitter, Linkedin, Facebook, Mail, Info } from "lu
 import api from "@/services/api";
 import CustomLoader from "@/components/CustomLoader";
 import { Organizer } from "@/types";
+import OrganizerStatusBadge from "@/components/shared/OrganizerStatusBadge";
 
 interface PublicOrganizerProfileModalProps {
   isOpen: boolean;
@@ -111,13 +112,14 @@ const PublicOrganizerProfileModal = ({ isOpen, onClose, slug }: PublicOrganizerP
                   {organizer.userProfile?.fullName?.[0] || 'O'}
                 </div>
 
-                <div className="space-y-1">
-                  <h3 className="text-2xl font-black text-gray-900 tracking-tight">
+                <div className="space-y-1 flex flex-col items-center">
+                  <h3 className="text-2xl font-black text-gray-900 tracking-tight mb-2">
                     {organizer.userProfile?.fullName || "Verified Organizer"}
                   </h3>
-                  <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">
-                    Verified Organizer
-                  </p>
+                  <OrganizerStatusBadge
+                    status={organizer.organizerStatus}
+                    isVerified={organizer.isVerified}
+                  />
                 </div>
               </div>
 

@@ -30,6 +30,7 @@ import { Event, Ticket as TicketType, Session, Registration, Speaker } from "@/t
 import { eventTracking } from "@/services/eventTracking";
 import PublicOrganizerProfileModal from "@/components/organizer/PublicOrganizerProfileModal";
 import CustomLoader from "@/components/CustomLoader";
+import OrganizerStatusBadge from "@/components/shared/OrganizerStatusBadge";
 import EventCountdown from "@/components/events/EventCountdown";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
@@ -1189,10 +1190,17 @@ const EventDetailClient = () => {
                   </div>
                   <div className="flex-1 overflow-hidden">
                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-0.5">Organized by</p>
-                     <h4 className="font-semibold text-gray-900 tracking-tight truncate">{event.organizer?.userProfile?.fullName || "Verified Organizer"}</h4>
+                     <div className="flex flex-col gap-1 items-start">
+                        <h4 className="font-semibold text-gray-900 tracking-tight truncate mb-0.5">{event.organizer?.userProfile?.fullName || "Verified Organizer"}</h4>
+                        <OrganizerStatusBadge
+                          status={event.organizer?.organizerStatus}
+                          isVerified={event.organizer?.isVerified}
+                          size="small"
+                        />
+                     </div>
                      <button
                        onClick={() => router.push(`/events/${event.organizer?.slug || organizerSlug}`)}
-                       className="text-[10px] font-black text-primary uppercase tracking-[0.15em] mt-1 hover:underline"
+                       className="text-[10px] font-black text-primary uppercase tracking-[0.15em] mt-2 hover:underline block"
                      >
                        View Profile
                      </button>

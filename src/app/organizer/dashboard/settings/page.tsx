@@ -30,10 +30,13 @@ import { translateError } from "@/utils/errors";
 import OrganizerProfileModal from "./OrganizerProfileModal";
 import GlobalDiscountModal from "./GlobalDiscountModal";
 import VerificationModal from "./VerificationModal";
+import { useAuth } from "@/context/AuthContext";
+import OrganizerStatusBadge from "@/components/shared/OrganizerStatusBadge";
 
 type TabType = 'profile' | 'subscriptions' | 'discounts';
 
 const OrganizerSettings = () => {
+  const { user } = useAuth();
   const { rules, loading: rulesLoading } = useOrganizerRules();
   const [activeTab, setActiveTab] = useState<TabType>('profile');
   const [profile, setProfile] = useState<OrganizerProfile | null>(null);
@@ -304,12 +307,16 @@ const OrganizerSettings = () => {
             <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 md:p-8 text-center relative overflow-hidden">
                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl"></div>
                <div className="w-24 h-24 bg-primary text-white rounded-[2rem] flex items-center justify-center mx-auto mb-6 text-4xl font-black shadow-xl shadow-primary/20">
-                  {profile?.bio?.[0] || 'O'}
+                  {(user?.fullName?.[0] || profile?.bio?.[0] || 'O').toUpperCase()}
                </div>
-               <h3 className="text-2xl font-black text-gray-900 leading-tight mb-2">Verified Organizer</h3>
-               <div className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-emerald-100 text-emerald-700 rounded-xl text-[10px] font-black uppercase tracking-widest border border-emerald-200">
-                  <Shield size={12} />
-                  {profile?.status}
+               <h3 className="text-2xl font-black text-gray-900 leading-tight mb-2">
+                  {user?.fullName || "Organizer Profile"}
+               </h3>
+               <div className="flex justify-center mb-4">
+                  <OrganizerStatusBadge
+                     status={profile?.organizerStatus || user?.eventTicketOrganizer?.organizerStatus}
+                     isVerified={profile?.isVerified}
+                  />
                </div>
 
                <div className="grid grid-cols-2 gap-4 mt-8 pt-8 border-t border-gray-50">

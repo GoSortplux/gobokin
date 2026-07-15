@@ -196,6 +196,11 @@ export interface User {
   hallIds?: string[];
   commissionRate?: number;
   outstandingReferralCommission?: number;
+  eventTicketOrganizer?: {
+    status: string;
+    isVerified: boolean;
+    organizerStatus: string;
+  };
 }
 
 export interface PlatformContact {
@@ -515,6 +520,7 @@ export interface OrganizerProfile {
   status: string;
   slug: string;
   isVerified: boolean;
+  organizerStatus?: string;
   bio: string | null;
   website: string | null;
   commissionRate: number;
@@ -531,6 +537,7 @@ export interface Organizer {
   slug: string;
   status: string;
   isVerified: boolean;
+  organizerStatus?: string;
   bio?: string | null;
   website?: string | null;
   socialLinks?: Record<string, string> | null;
