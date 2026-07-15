@@ -10,7 +10,8 @@ import {
   Hash,
   Info,
   Edit2,
-  X
+  X,
+  ChevronDown
 } from "lucide-react";
 import api from "@/services/api";
 import CustomLoader from "@/components/CustomLoader";
@@ -29,8 +30,12 @@ const SystemSettings = () => {
   const [loading, setLoading] = useState(true);
   const [newCategory, setNewCategory] = useState("");
 
+  // Config Keys for rules select
+  const [configKeys, setConfigKeys] = useState<string[]>(['MAX_GUESTS', 'MAX_ACTIVE_EVENTS', 'BULK_IMPORT_ALLOWED', 'COMMISSION_RATE']);
+
   // Package Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingPackageId, setEditingPackageId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     price: 0,
@@ -51,10 +56,25 @@ const SystemSettings = () => {
       if (activeTab === 'config') {
         const res = await api.get("/events/admin/config");
         setConfig(res.data.data || []);
+        const keys = (res.data.data || []).map((item: { key: string }) => item.key);
+        if (keys.length > 0) {
+          setConfigKeys(keys);
+        }
       } else if (activeTab === 'categories') {
         const res = await api.get("/events/utils/categories");
         setCategories(res.data.data || []);
       } else if (activeTab === 'packages') {
+        // Also fetch config keys in packages tab to populate dropdown options
+        try {
+          const configRes = await api.get("/events/admin/config");
+          const keys = (configRes.data.data || []).map((item: { key: string }) => item.key);
+          if (keys.length > 0) {
+            setConfigKeys(keys);
+          }
+        } catch (err) {
+          console.error("Failed to fetch config keys for packages:", err);
+        }
+
         const res = await api.get("/events/admin/packages");
         setPackages(res.data.data || []);
       }
@@ -116,32 +136,91 @@ const SystemSettings = () => {
     e.preventDefault();
     try {
       Swal.showLoading();
-      await api.post("/events/admin/packages", formData);
-      Swal.fire("Success!", "Subscription package created successfully.", "success");
+      if (editingPackageId) {
+        await api.patch(`/events/admin/packages/${editingPackageId}`, formData);
+        Swal.fire("Success!", "Subscription package updated successfully.", "success");
+      } else {
+        await api.post("/events/admin/packages", formData);
+        Swal.fire("Success!", "Subscription package created successfully.", "success");
+      }
       setIsModalOpen(false);
+      setEditingPackageId(null);
+      setFormData({
+        name: "",
+        price: 0,
+        durationDays: 30,
+        type: "SUBSCRIPTION",
+        discountPercentage: 0,
+        rules: [{ ruleKey: "MAX_GUESTS", ruleValue: "1000" }]
+      });
       fetchData();
     } catch (_error) {
-      Swal.fire("Error", "Failed to create package", "error");
+      Swal.fire("Error", editingPackageId ? "Failed to update package" : "Failed to create package", "error");
+    }
+  };
+
+  const handleEditPackage = (pkg: { id: string; name: string; price: number; durationDays: number; type?: string; discountPercentage?: number; rules?: { ruleKey: string; ruleValue: string }[] }) => {
+    setEditingPackageId(pkg.id);
+    setFormData({
+      name: pkg.name,
+      price: pkg.price,
+      durationDays: pkg.durationDays,
+      type: pkg.type || "SUBSCRIPTION",
+      discountPercentage: pkg.discountPercentage || 0,
+      rules: pkg.rules && pkg.rules.length > 0 ? pkg.rules : [{ ruleKey: "", ruleValue: "" }]
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleDeletePackage = async (id: string, name: string) => {
+    try {
+      const result = await Swal.fire({
+        title: "Delete Package?",
+        text: `Are you sure you want to remove package "${name}"?`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#ef4444"
+      });
+
+      if (result.isConfirmed) {
+        Swal.showLoading();
+        const res = await api.delete(`/events/admin/packages/${id}`);
+        if (res.data?.success) {
+          Swal.fire("Success!", res.data.message || "Package deleted successfully.", "success");
+          fetchData();
+        } else {
+          Swal.fire("Error", res.data?.message || "Failed to remove package", "error");
+        }
+      }
+    } catch (_error) {
+      Swal.fire("Error", "Failed to remove package", "error");
     }
   };
 
   const addRule = () => {
-    setFormData({
-      ...formData,
-      rules: [...formData.rules, { ruleKey: "", ruleValue: "" }]
-    });
+    if (formData.rules.length >= configKeys.length) return;
+    setFormData(prev => ({
+      ...prev,
+      rules: [...prev.rules, { ruleKey: "", ruleValue: "" }]
+    }));
   };
 
   const removeRule = (index: number) => {
-    const newRules = formData.rules.filter((_, i) => i !== index);
-    setFormData({ ...formData, rules: newRules });
+    setFormData(prev => {
+      const newRules = prev.rules.filter((_, i) => i !== index);
+      return { ...prev, rules: newRules };
+    });
   };
 
   const updateRule = (index: number, key: 'ruleKey' | 'ruleValue', value: string) => {
-    const newRules = [...formData.rules];
-    newRules[index][key] = value;
-    setFormData({ ...formData, rules: newRules });
+    setFormData(prev => {
+      const newRules = [...prev.rules];
+      newRules[index] = { ...newRules[index], [key]: value };
+      return { ...prev, rules: newRules };
+    });
   };
+
+  const isAddRuleDisabled = formData.rules.length >= configKeys.length || formData.rules.some(r => !r.ruleKey);
 
   return (
     <div className="space-y-8 max-w-6xl">
@@ -260,7 +339,18 @@ const SystemSettings = () => {
         <div className="space-y-8">
           <div className="flex justify-end">
             <button
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => {
+                setEditingPackageId(null);
+                setFormData({
+                  name: "",
+                  price: 0,
+                  durationDays: 30,
+                  type: "SUBSCRIPTION",
+                  discountPercentage: 0,
+                  rules: [{ ruleKey: "MAX_GUESTS", ruleValue: "1000" }]
+                });
+                setIsModalOpen(true);
+              }}
               className="flex items-center justify-center gap-2 bg-primary text-white font-bold px-6 py-4 rounded-2xl hover:bg-opacity-90 transition-all shadow-xl shadow-primary/20"
             >
               <Plus size={20} />
@@ -276,9 +366,24 @@ const SystemSettings = () => {
                     <span className="px-3 py-1 bg-primary/10 text-primary rounded-lg text-[10px] font-black uppercase tracking-widest">
                       {pkg.type}
                     </span>
+                    {!pkg.isActive && (
+                      <span className="px-3 py-1 bg-red-100 text-red-700 rounded-lg text-[10px] font-black uppercase tracking-widest">
+                        INACTIVE
+                      </span>
+                    )}
                     <div className="flex gap-2">
-                       <button className="p-2 text-gray-400 hover:text-primary transition-all"><Edit2 size={16} /></button>
-                       <button className="p-2 text-gray-400 hover:text-rose-600 transition-all"><Trash2 size={16} /></button>
+                       <button
+                         onClick={() => handleEditPackage(pkg)}
+                         className="p-2 text-gray-400 hover:text-primary transition-all"
+                       >
+                         <Edit2 size={16} />
+                       </button>
+                       <button
+                         onClick={() => handleDeletePackage(pkg.id, pkg.name)}
+                         className="p-2 text-gray-400 hover:text-rose-600 transition-all"
+                       >
+                         <Trash2 size={16} />
+                       </button>
                     </div>
                   </div>
                   <h3 className="text-2xl font-black text-gray-900 mb-1">{pkg.name}</h3>
@@ -313,8 +418,10 @@ const SystemSettings = () => {
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
               <div className="bg-white w-full max-w-2xl my-8 rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
                 <div className="p-8 border-b border-gray-100 flex items-center justify-between">
-                  <h3 className="text-2xl font-black text-gray-900 tracking-tight">New Package</h3>
-                  <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-all">
+                  <h3 className="text-2xl font-black text-gray-900 tracking-tight">
+                    {editingPackageId ? "Edit Subscription Package" : "New Subscription Package"}
+                  </h3>
+                  <button onClick={() => { setIsModalOpen(false); setEditingPackageId(null); }} className="p-2 hover:bg-gray-100 rounded-xl transition-all">
                     <X size={24} className="text-gray-400" />
                   </button>
                 </div>
@@ -327,7 +434,7 @@ const SystemSettings = () => {
                          required
                          className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all"
                          value={formData.name}
-                         onChange={e => setFormData({...formData, name: e.target.value})}
+                         onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
                        />
                      </div>
                      <div className="space-y-2">
@@ -336,7 +443,7 @@ const SystemSettings = () => {
                          type="number"
                          className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all"
                          value={formData.discountPercentage}
-                         onChange={e => setFormData({...formData, discountPercentage: Number(e.target.value)})}
+                         onChange={e => setFormData(prev => ({ ...prev, discountPercentage: Number(e.target.value) }))}
                        />
                      </div>
                    </div>
@@ -349,7 +456,7 @@ const SystemSettings = () => {
                          required
                          className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all"
                          value={formData.price}
-                         onChange={e => setFormData({...formData, price: Number(e.target.value)})}
+                         onChange={e => setFormData(prev => ({ ...prev, price: Number(e.target.value) }))}
                        />
                      </div>
                      <div className="space-y-2">
@@ -359,7 +466,7 @@ const SystemSettings = () => {
                          required
                          className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all"
                          value={formData.durationDays}
-                         onChange={e => setFormData({...formData, durationDays: Number(e.target.value)})}
+                         onChange={e => setFormData(prev => ({ ...prev, durationDays: Number(e.target.value) }))}
                        />
                      </div>
                    </div>
@@ -370,7 +477,10 @@ const SystemSettings = () => {
                        <button
                          type="button"
                          onClick={addRule}
-                         className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-1 hover:underline"
+                         disabled={isAddRuleDisabled}
+                         className={`text-[10px] font-black uppercase tracking-widest flex items-center gap-1 hover:underline ${
+                           isAddRuleDisabled ? 'text-gray-300 cursor-not-allowed' : 'text-primary'
+                         }`}
                        >
                          <Plus size={12} /> Add Rule
                        </button>
@@ -378,17 +488,32 @@ const SystemSettings = () => {
                      <div className="space-y-3">
                        {formData.rules.map((rule, index) => (
                          <div key={index} className="flex gap-3 items-center">
-                           <input
-                             type="text"
-                             placeholder="Rule Key (e.g. MAX_GUESTS)"
-                             className="flex-1 px-5 py-3 bg-gray-50 border-none rounded-2xl text-sm font-bold"
-                             value={rule.ruleKey}
-                             onChange={e => updateRule(index, 'ruleKey', e.target.value)}
-                           />
+                           {/* Beautiful custom dropdown styled with ChevronDown absolute wrapper */}
+                           <div className="relative flex-1">
+                             <select
+                               className="w-full px-5 py-3 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all appearance-none"
+                               value={rule.ruleKey}
+                               onChange={e => updateRule(index, 'ruleKey', e.target.value)}
+                             >
+                               <option value="">Select Rule Key</option>
+                               {configKeys.map(key => {
+                                 const isSelectedElsewhere = formData.rules.some((r, i) => r.ruleKey === key && i !== index);
+                                 return (
+                                   <option key={key} value={key} disabled={isSelectedElsewhere}>
+                                     {key.replace(/_/g, ' ')}
+                                   </option>
+                                 );
+                               })}
+                             </select>
+                             <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                               <ChevronDown size={16} />
+                             </div>
+                           </div>
+
                            <input
                              type="text"
                              placeholder="Value"
-                             className="flex-1 px-5 py-3 bg-gray-50 border-none rounded-2xl text-sm font-bold"
+                             className="flex-1 px-5 py-3 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all"
                              value={rule.ruleValue}
                              onChange={e => updateRule(index, 'ruleValue', e.target.value)}
                            />
@@ -407,7 +532,7 @@ const SystemSettings = () => {
                    </div>
 
                    <button className="w-full bg-primary text-white font-black py-5 rounded-2xl hover:bg-opacity-90 transition-all shadow-xl shadow-primary/20 uppercase tracking-widest text-sm">
-                     Create Subscription Package
+                     {editingPackageId ? "Update Subscription Package" : "Create Subscription Package"}
                    </button>
                 </form>
               </div>
