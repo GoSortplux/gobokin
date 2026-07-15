@@ -56,3 +56,6 @@
  GET /api/v1/events/admin/config 200 in 674ms
  GET /api/v1/events/admin/config 200 in 37ms
  GET /api/v1/events/admin/packages 200 in 38ms
+ ✓ Compiled in 10.5s (819 modules)
+ ✓ Compiled in 2.3s (1849 modules)
+ ✓ Compiled in 967ms (819 modules)
