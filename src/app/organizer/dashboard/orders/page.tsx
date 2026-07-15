@@ -51,10 +51,9 @@ const OrdersView = () => {
             const eventList = res.data.data || [];
             setEvents(eventList);
 
-            if (isStaff && eventList.length > 0) {
+            if (eventList.length > 0) {
                 setSelectedEventId(eventList[0].id);
             } else {
-                // For regular organizer, start with global view (empty event id)
                 await fetchOrders();
             }
         } catch (error) {
