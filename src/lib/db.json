@@ -1,12 +1,47 @@
 {
   "users": [
-    { "_id": "60d5ecb8b391640015f32e56", "fullName": "Tech Events Ltd", "email": "organizer1@tech.com", "role": ["organizer"], "phone": "+2348012345678" },
-    { "_id": "60d5ecb8b391640015f32e57", "fullName": "FESTAC Music Group", "email": "music@festac.com", "role": ["organizer"], "phone": "+2348098765432" },
-    { "_id": "6789abcdef1234567890abcd", "fullName": "John Staff", "email": "john@example.com", "role": ["staff"], "phone": "+2348011111111" },
-    { "_id": "owner-123", "fullName": "Alice Owner", "email": "alice@example.com", "role": ["hall-owner"] }
+    {
+      "_id": "60d5ecb8b391640015f32e56",
+      "fullName": "Tech Events Ltd",
+      "email": "organizer1@tech.com",
+      "role": [
+        "organizer"
+      ],
+      "phone": "+2348012345678"
+    },
+    {
+      "_id": "60d5ecb8b391640015f32e57",
+      "fullName": "FESTAC Music Group",
+      "email": "music@festac.com",
+      "role": [
+        "organizer"
+      ],
+      "phone": "+2348098765432"
+    },
+    {
+      "_id": "6789abcdef1234567890abcd",
+      "fullName": "John Staff",
+      "email": "john@example.com",
+      "role": [
+        "staff"
+      ],
+      "phone": "+2348011111111"
+    },
+    {
+      "_id": "owner-123",
+      "fullName": "Alice Owner",
+      "email": "alice@example.com",
+      "role": [
+        "hall-owner"
+      ]
+    }
   ],
   "assignments": [
-    { "staffId": "6789abcdef1234567890abcd", "ownerId": "owner-123", "hallId": "venue-101" }
+    {
+      "staffId": "6789abcdef1234567890abcd",
+      "ownerId": "owner-123",
+      "hallId": "venue-101"
+    }
   ],
   "wallets": [
     {
@@ -106,21 +141,6 @@
   ],
   "packages": [
     {
-      "id": "pkg-basic-123",
-      "name": "Basic Event Package",
-      "price": 15000,
-      "isActive": true,
-      "isPublic": true,
-      "durationDays": 30,
-      "type": "SUBSCRIPTION",
-      "discountPercentage": 0,
-      "rules": [
-        { "ruleKey": "MAX_GUESTS", "ruleValue": "500" },
-        { "ruleKey": "MAX_ACTIVE_EVENTS", "ruleValue": "2" },
-        { "ruleKey": "BULK_IMPORT_ALLOWED", "ruleValue": "false" }
-      ]
-    },
-    {
       "id": "pkg-pro-123",
       "name": "Pro Event Package",
       "price": 45000,
@@ -130,9 +150,18 @@
       "type": "SUBSCRIPTION",
       "discountPercentage": 10,
       "rules": [
-        { "ruleKey": "MAX_GUESTS", "ruleValue": "5000" },
-        { "ruleKey": "MAX_ACTIVE_EVENTS", "ruleValue": "10" },
-        { "ruleKey": "BULK_IMPORT_ALLOWED", "ruleValue": "true" }
+        {
+          "ruleKey": "MAX_GUESTS",
+          "ruleValue": "5000"
+        },
+        {
+          "ruleKey": "MAX_ACTIVE_EVENTS",
+          "ruleValue": "10"
+        },
+        {
+          "ruleKey": "BULK_IMPORT_ALLOWED",
+          "ruleValue": "true"
+        }
       ]
     },
     {
@@ -145,16 +174,65 @@
       "type": "SUBSCRIPTION",
       "discountPercentage": 15,
       "rules": [
-        { "ruleKey": "MAX_GUESTS", "ruleValue": "-1" },
-        { "ruleKey": "MAX_ACTIVE_EVENTS", "ruleValue": "-1" },
-        { "ruleKey": "BULK_IMPORT_ALLOWED", "ruleValue": "true" }
+        {
+          "ruleKey": "MAX_GUESTS",
+          "ruleValue": "-1"
+        },
+        {
+          "ruleKey": "MAX_ACTIVE_EVENTS",
+          "ruleValue": "-1"
+        },
+        {
+          "ruleKey": "BULK_IMPORT_ALLOWED",
+          "ruleValue": "true"
+        }
       ]
+    },
+    {
+      "name": "Basic Package",
+      "price": 15000,
+      "durationDays": 30,
+      "type": "SUBSCRIPTION",
+      "isActive": true,
+      "isPublic": true,
+      "rules": [
+        {
+          "ruleKey": "MAX_GUESTS",
+          "ruleValue": "500"
+        },
+        {
+          "ruleKey": "MAX_ACTIVE_EVENTS",
+          "ruleValue": "2"
+        },
+        {
+          "ruleKey": "BULK_IMPORT_ALLOWED",
+          "ruleValue": "false"
+        }
+      ],
+      "discountPercentage": 0,
+      "id": "pkg-1784138883849"
     }
   ],
   "config": [
-    { "key": "MAX_ACTIVE_EVENTS", "value": "5", "description": "Maximum active events allowed per organizer by default." },
-    { "key": "MAX_GUESTS", "value": "1000", "description": "Maximum guests allowed per event by default." },
-    { "key": "COMMISSION_RATE", "value": "5", "description": "Default platform commission rate percentage on ticket sales." },
-    { "key": "BULK_IMPORT_ALLOWED", "value": "false", "description": "Whether bulk import of attendees is enabled by default." }
+    {
+      "key": "MAX_ACTIVE_EVENTS",
+      "value": "5",
+      "description": "Maximum active events allowed per organizer by default."
+    },
+    {
+      "key": "MAX_GUESTS",
+      "value": "1000",
+      "description": "Maximum guests allowed per event by default."
+    },
+    {
+      "key": "COMMISSION_RATE",
+      "value": "5",
+      "description": "Default platform commission rate percentage on ticket sales."
+    },
+    {
+      "key": "BULK_IMPORT_ALLOWED",
+      "value": "false",
+      "description": "Whether bulk import of attendees is enabled by default."
+    }
   ]
 }
