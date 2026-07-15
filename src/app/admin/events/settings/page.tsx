@@ -322,17 +322,20 @@ const SystemSettings = () => {
 
           <div className="grid grid-cols-1 gap-3">
             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            {categories.map((cat: any, i: number) => (
-              <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl group">
-                <span className="text-sm font-bold text-gray-900">{cat.name}</span>
-                <button
-                  onClick={() => deleteCategory(cat.name)}
-                  className="p-2 text-gray-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
-                >
-                  <Trash2 size={18} />
-                </button>
-              </div>
-            ))}
+            {categories.map((cat: any, i: number) => {
+              const catName = typeof cat === 'object' && cat ? (cat.name || '') : cat;
+              return (
+                <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl group">
+                  <span className="text-sm font-bold text-gray-900">{catName}</span>
+                  <button
+                    onClick={() => deleteCategory(catName)}
+                    className="p-2 text-gray-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </div>
       ) : (
