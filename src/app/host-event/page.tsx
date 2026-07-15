@@ -2108,7 +2108,11 @@ const HostEventPage = () => {
 
                     <div className="space-y-8">
                       {formData.tickets.map((ticket, index) => (
-                        <div key={ticket.id} className="p-4 sm:p-8 bg-white rounded-2xl sm:rounded-3xl border border-gray-200 space-y-6 sm:space-y-8 relative shadow-sm hover:border-primary/20 transition-all">
+                        <React.Fragment key={ticket.id}>
+                          {index > 0 && (
+                            <div className="border-t-2 border-dashed border-gray-200/80 my-4 sm:my-6" />
+                          )}
+                          <div className="p-4 sm:p-8 bg-white rounded-2xl sm:rounded-3xl border border-gray-200 space-y-6 sm:space-y-8 relative shadow-sm hover:border-primary/20 transition-all">
                           <div className="flex items-center justify-between gap-3">
                              <div className="flex items-center gap-3 sm:gap-4">
                                 <div className="w-10 h-10 rounded-xl bg-gray-50 text-primary flex items-center justify-center border border-gray-100 shrink-0">
@@ -2262,7 +2266,8 @@ const HostEventPage = () => {
                                   </button>
                               </div>
                           </div>
-                        </div>
+                          </div>
+                        </React.Fragment>
                       ))}
                     </div>
                   </div>

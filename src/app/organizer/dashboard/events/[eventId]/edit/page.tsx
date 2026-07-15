@@ -2132,7 +2132,11 @@ const EditEventContent = () => {
                  </div>
                  <div className="grid grid-cols-1 gap-8">
                     {tickets.map((ticket, _index) => (
-                        <div key={ticket.id} className="p-4 sm:p-8 md:p-10 bg-gray-50/50 rounded-2xl sm:rounded-[3.5rem] border border-gray-100 space-y-8 sm:space-y-10 relative group/ticket hover:bg-white hover:shadow-4xl hover:shadow-secondary/10 transition-all duration-700">
+                      <React.Fragment key={ticket.id}>
+                        {_index > 0 && (
+                          <div className="border-t-2 border-dashed border-gray-200/80 my-4 sm:my-6" />
+                        )}
+                        <div className="p-4 sm:p-8 md:p-10 bg-gray-50/50 rounded-2xl sm:rounded-[3.5rem] border border-gray-100 space-y-8 sm:space-y-10 relative group/ticket hover:bg-white hover:shadow-4xl hover:shadow-secondary/10 transition-all duration-700">
                             <div className="flex justify-between items-center gap-3">
                                 <div className="flex items-center gap-3 sm:gap-5">
                                    <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-white text-secondary flex items-center justify-center shadow-xl shadow-gray-200/50 border border-gray-100 group-hover/ticket:bg-secondary group-hover/ticket:text-white transition-all duration-500 shrink-0">
@@ -2430,6 +2434,7 @@ const EditEventContent = () => {
                                 </div>
                             </div>
                         </div>
+                      </React.Fragment>
                     ))}
                  </div>
               </div>
