@@ -22,14 +22,14 @@ import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 
-interface BroadcastModalProps {
+interface MessageGuestModalProps {
   isOpen: boolean;
   onClose: () => void;
   eventId: string;
   tickets: ITicket[];
 }
 
-const BroadcastModal = ({ isOpen, onClose, eventId, tickets }: BroadcastModalProps) => {
+const MessageGuestModal = ({ isOpen, onClose, eventId, tickets }: MessageGuestModalProps) => {
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   const [segmentType, setSegmentType] = useState<"all" | "registered" | "checked-in" | "not_checked_in" | "tickets">("all");
@@ -92,7 +92,7 @@ const BroadcastModal = ({ isOpen, onClose, eventId, tickets }: BroadcastModalPro
     );
   };
 
-  const handleSendBroadcast = async () => {
+  const handleSendMessage = async () => {
     if (!subject.trim() || !body.trim()) {
       Swal.fire("Missing Information", "Please provide both a subject and a message body.", "warning");
       return;
@@ -117,7 +117,7 @@ const BroadcastModal = ({ isOpen, onClose, eventId, tickets }: BroadcastModalPro
       await api.post(`/events/${eventId}/broadcast`, payload);
 
       await Swal.fire({
-        title: "Broadcast Sent!",
+        title: "Message Sent!",
         text: "Your message is being delivered to the selected audience via email and app notification.",
         icon: "success",
         confirmButtonColor: "#295FA7"
@@ -131,7 +131,7 @@ const BroadcastModal = ({ isOpen, onClose, eventId, tickets }: BroadcastModalPro
       removeAttachment();
       onClose();
     } catch (_error) {
-      console.error("Broadcast failed:", _error);
+      console.error("Message send failed:", _error);
       Swal.fire("Error", translateError(_error), "error");
     } finally {
       setIsSending(false);
@@ -154,7 +154,7 @@ const BroadcastModal = ({ isOpen, onClose, eventId, tickets }: BroadcastModalPro
               <Send className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div>
-              <h2 className="text-xl sm:text-2xl font-black tracking-tight">Event Broadcast</h2>
+              <h2 className="text-xl sm:text-2xl font-black tracking-tight">Message Guests</h2>
               <p className="text-white/70 text-[11px] sm:text-sm font-medium">Reach your attendees instantly via Email & App</p>
             </div>
           </div>
@@ -293,7 +293,7 @@ const BroadcastModal = ({ isOpen, onClose, eventId, tickets }: BroadcastModalPro
           <div className="bg-amber-50 p-4 rounded-2xl border border-amber-100 flex items-start gap-3">
             <AlertCircle size={16} className="text-amber-600 shrink-0 mt-0.5" />
             <p className="text-[10px] text-amber-700 font-medium leading-relaxed">
-              This message will be sent to the selected audience segment. Please ensure your content is accurate before sending, as broadcasts cannot be undone.
+              This message will be sent to the selected audience segment. Please ensure your content is accurate before sending, as messages cannot be undone.
             </p>
           </div>
         </div>
@@ -320,7 +320,7 @@ const BroadcastModal = ({ isOpen, onClose, eventId, tickets }: BroadcastModalPro
                 Cancel
               </button>
               <button
-                onClick={handleSendBroadcast}
+                onClick={handleSendMessage}
                 disabled={isSending || isUploading}
                 className="flex-1 sm:flex-none flex items-center justify-center gap-2 sm:gap-3 bg-primary text-white px-6 sm:px-10 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl font-black text-[10px] uppercase tracking-[0.1em] sm:tracking-[0.2em] shadow-xl shadow-primary/30 hover:shadow-primary/40 hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50 disabled:pointer-events-none"
               >
@@ -332,7 +332,7 @@ const BroadcastModal = ({ isOpen, onClose, eventId, tickets }: BroadcastModalPro
                 ) : (
                   <>
                     <Send size={16} />
-                    <span className="whitespace-nowrap">Send Broadcast</span>
+                    <span className="whitespace-nowrap">Send Message</span>
                   </>
                 )}
               </button>
@@ -344,4 +344,4 @@ const BroadcastModal = ({ isOpen, onClose, eventId, tickets }: BroadcastModalPro
   );
 };
 
-export default BroadcastModal;
+export default MessageGuestModal;

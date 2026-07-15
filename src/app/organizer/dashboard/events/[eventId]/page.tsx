@@ -51,7 +51,7 @@ import { translateError } from "@/utils/errors";
 import AssignStaffModal from "@/components/organizer/AssignStaffModal";
 import WalkInRegistrationModal from "@/components/organizer/WalkInRegistrationModal";
 import SuspendModal from "@/components/organizer/SuspendModal";
-import BroadcastModal from "@/components/organizer/BroadcastModal";
+import MessageGuestModal from "@/components/organizer/MessageGuestModal";
 import { ResourcesTab } from "@/components/organizer/ResourcesTab";
 import RegistrationDetailsModal from "@/components/organizer/RegistrationDetailsModal";
 
@@ -504,12 +504,12 @@ const EventDetails = () => {
     }
   };
 
-  const handleBroadcast = () => {
+  const handleMessageGuest = () => {
     if (isRestricted('BROADCAST_ALLOWED')) {
       const rule = getRule('BROADCAST_ALLOWED');
       Swal.fire({
         title: rule?.title || 'Feature Restricted',
-        text: rule?.uxContext || 'Manual broadcasting is not available on your current plan.',
+        text: rule?.uxContext || 'Manual messaging is not available on your current plan.',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Upgrade Now',
@@ -690,9 +690,9 @@ const EventDetails = () => {
                 </button>
               )}
 
-              <button onClick={handleBroadcast} className="flex items-center gap-2 bg-blue-50 text-primary font-bold px-4 sm:px-5 py-2.5 rounded-xl hover:bg-blue-100 transition-all border border-blue-100 whitespace-nowrap shrink-0">
-                <Radio size={18} />
-                Broadcast
+              <button onClick={handleMessageGuest} className="flex items-center gap-2 bg-blue-50 text-primary font-bold px-4 sm:px-5 py-2.5 rounded-xl hover:bg-blue-100 transition-all border border-blue-100 whitespace-nowrap shrink-0">
+                <Mail size={18} />
+                Message Guest
               </button>
               <Link href={`/organizer/dashboard/events/${eventId}/edit`} className="flex items-center gap-2 bg-primary text-white font-bold px-4 sm:px-5 py-2.5 rounded-xl hover:bg-opacity-90 transition-all shadow-lg shadow-primary/20 whitespace-nowrap shrink-0">
                 <Settings size={18} />
@@ -2133,7 +2133,7 @@ const EventDetails = () => {
       />
 
       {event && (
-        <BroadcastModal
+        <MessageGuestModal
           isOpen={isBroadcastModalOpen}
           onClose={() => setIsBroadcastModalOpen(false)}
           eventId={event.id}
