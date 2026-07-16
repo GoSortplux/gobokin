@@ -934,13 +934,13 @@ const EventDetailClient = () => {
                                      <div className="flex items-baseline gap-2 flex-wrap">
                                         {isEarlyBirdActive(ticket) ? (
                                            <>
+                                              <p className="text-lg text-gray-400 line-through">
+                                                 ₦{Number(ticket.price).toLocaleString()}
+                                              </p>
                                               <p className={`text-3xl font-semibold ${isTicketSoldOut ? 'text-gray-400' : 'text-emerald-600 font-bold'}`}>
                                                  ₦{Number(ticket.earlyBirdPrice).toLocaleString()}
                                               </p>
-                                              <p className="text-sm text-gray-400 line-through">
-                                                 ₦{Number(ticket.price).toLocaleString()}
-                                              </p>
-                                              <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded uppercase tracking-wider">Early Bird</span>
+                                              <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded uppercase tracking-wider self-center">Early Bird</span>
                                            </>
                                         ) : (
                                            <p className={`text-3xl font-semibold ${isTicketSoldOut ? 'text-gray-400' : 'text-gray-900'}`}>
@@ -1052,13 +1052,13 @@ const EventDetailClient = () => {
                                              <div className="flex items-baseline gap-2 flex-wrap">
                                                 {isEarlyBirdActive(ticket) ? (
                                                    <>
+                                                      <p className="text-lg text-gray-400 line-through">
+                                                         ₦{Number(ticket.price).toLocaleString()}
+                                                      </p>
                                                       <p className={`text-3xl font-semibold ${isTicketSoldOut ? 'text-gray-400' : 'text-emerald-600 font-bold'}`}>
                                                          ₦{Number(ticket.earlyBirdPrice).toLocaleString()}
                                                       </p>
-                                                      <p className="text-sm text-gray-400 line-through">
-                                                         ₦{Number(ticket.price).toLocaleString()}
-                                                      </p>
-                                                      <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded uppercase tracking-wider">Early Bird</span>
+                                                      <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded uppercase tracking-wider self-center">Early Bird</span>
                                                    </>
                                                 ) : (
                                                    <p className={`text-3xl font-semibold ${isTicketSoldOut ? 'text-gray-400' : 'text-gray-900'}`}>

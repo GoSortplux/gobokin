@@ -20,3 +20,6 @@
  ○ Compiling /events/[organizerSlug]/[eventSlug] ...
  ✓ Compiled /events/[organizerSlug]/[eventSlug] in 2.4s (2000 modules)
  GET /events/ola/robotevent 200 in 5222ms
+ ✓ Compiled in 12.3s (2020 modules)
+ GET /events 200 in 1071ms
+ GET /events/ola/robotevent 200 in 1210ms
