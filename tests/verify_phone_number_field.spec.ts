@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('Verify default Phone Number registration field type is "number"', async ({ page }) => {
+const setupLocalStorageAndMocks = async (page) => {
   // Inject auth into localStorage and clear previous state/drafts
   await page.addInitScript(() => {
     window.localStorage.clear();
@@ -91,6 +91,10 @@ test('Verify default Phone Number registration field type is "number"', async ({
       body: JSON.stringify({ data: ['Conference', 'Workshop'] }),
     });
   });
+};
+
+test('Verify default Phone Number registration field type is "number"', async ({ page }) => {
+  await setupLocalStorageAndMocks(page);
 
   // Goto create page
   await page.goto('http://localhost:3000/organizer/dashboard/events/create');
@@ -113,4 +117,47 @@ test('Verify default Phone Number registration field type is "number"', async ({
 
   // Take screenshot for verification
   await page.screenshot({ path: 'verify_phone_number_field.png', fullPage: true });
+});
+
+test('Verify trash/delete button is visible on mobile and hover-only on desktop', async ({ page }) => {
+  await setupLocalStorageAndMocks(page);
+
+  // Set desktop viewport size
+  await page.setViewportSize({ width: 1280, height: 800 });
+
+  // Goto create page
+  await page.goto('http://localhost:3000/organizer/dashboard/events/create');
+
+  // Wait for hydration and page to be ready
+  await page.waitForTimeout(5000);
+
+  // Go to sub-step 2
+  const nextButton = page.locator('button:has-text("Next")').first();
+  await nextButton.click();
+
+  // Locate the trash/delete button for the Phone Number field
+  const fieldContainer = page.locator('div.group:has(input[value="Phone Number"])').first();
+  const deleteButton = fieldContainer.locator('button:has(svg.lucide-trash-2)').first();
+  await deleteButton.waitFor({ state: 'attached' });
+
+  // On desktop
+  const desktopOpacity = await deleteButton.evaluate((el) => {
+    return window.getComputedStyle(el).opacity;
+  });
+  console.log(`Desktop computed opacity: "${desktopOpacity}"`);
+
+  // Change viewport to mobile
+  await page.setViewportSize({ width: 375, height: 667 });
+  await page.waitForTimeout(1000);
+
+  const mobileOpacity = await deleteButton.evaluate((el) => {
+    return window.getComputedStyle(el).opacity;
+  });
+  console.log(`Mobile computed opacity: "${mobileOpacity}"`);
+
+  expect(mobileOpacity).toBe('1');
+  expect(desktopOpacity).toBe('0');
+
+  // Take mobile screenshot
+  await page.screenshot({ path: 'verify_delete_button_mobile.png' });
 });

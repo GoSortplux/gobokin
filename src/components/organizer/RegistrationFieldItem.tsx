@@ -109,7 +109,7 @@ export const RegistrationFieldItem = ({
         {!isGroupNameField && (
           <button
             onClick={() => removeField(idx)}
-            className="absolute top-4 right-4 w-10 h-10 bg-white/80 text-gray-300 hover:text-secondary rounded-xl flex items-center justify-center shadow-sm border border-gray-100 transition-all opacity-0 group-hover:opacity-100 z-10"
+            className="absolute top-4 right-4 w-10 h-10 bg-white/80 text-gray-300 hover:text-secondary rounded-xl flex items-center justify-center shadow-sm border border-gray-100 transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100 z-10"
           >
             <Trash2 size={16} />
           </button>
