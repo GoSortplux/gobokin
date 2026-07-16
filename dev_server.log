@@ -2,27 +2,20 @@
 > gobokin-app@0.1.0 dev
 > next dev
 
+ ⚠ Port 3000 is in use by an unknown process, using available port 3001 instead.
    ▲ Next.js 15.5.9
-   - Local:        http://localhost:3000
-   - Network:      http://192.168.0.2:3000
+   - Local:        http://localhost:3001
+   - Network:      http://192.168.0.2:3001
 
  ✓ Starting...
- ✓ Ready in 2.1s
+ ✓ Ready in 2.3s
  ○ Compiling /events ...
- ✓ Compiled /events in 13s (1846 modules)
- GET /events 200 in 14559ms
- ○ Compiling /auth/login ...
- ✓ Compiled /auth/login in 3.3s (1836 modules)
- GET /events?search=Tech+Conference 200 in 3092ms
- GET /auth/login 200 in 3633ms
- GET /events 200 in 503ms
- GET /events 200 in 207ms
+ ✓ Compiled /events in 3.6s (1795 modules)
+ GET /events 200 in 5088ms
  ○ Compiling /events/[organizerSlug]/[eventSlug] ...
- ✓ Compiled /events/[organizerSlug]/[eventSlug] in 2.4s (2000 modules)
- GET /events/ola/robotevent 200 in 5222ms
- ✓ Compiled in 12.3s (2020 modules)
- GET /events 200 in 1071ms
- GET /events/ola/robotevent 200 in 1210ms
- ✓ Compiled in 3.2s (2020 modules)
- GET /events 200 in 924ms
- GET /events/ola/robotevent 200 in 1071ms
+ ✓ Compiled /events/[organizerSlug]/[eventSlug] in 1605ms (1991 modules)
+ GET /events/ola/robotevent 200 in 3714ms
+ ○ Compiling /events/[organizerSlug]/[eventSlug]/register ...
+ ✓ Compiled /events/[organizerSlug]/[eventSlug]/register in 1047ms (2012 modules)
+ GET /events/ola/robotevent/register?ticketId=mock-ticket-id&qty=2 200 in 2231ms
+ GET /events/ola/robotevent/register?ticketId=mock-ticket-id&qty=2 200 in 237ms

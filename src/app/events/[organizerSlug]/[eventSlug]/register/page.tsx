@@ -708,24 +708,24 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
 
               {/* Order Summary Footer */}
               <div className="pt-12 border-t border-gray-100">
-                <div className="bg-gray-900 rounded-[2.5rem] p-8 lg:p-12 text-white relative overflow-hidden shadow-2xl">
+                <div className="bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 lg:p-12 text-white relative overflow-hidden shadow-2xl">
                   <div className="absolute top-0 right-0 w-1/3 h-full bg-white/5 skew-x-12"></div>
-                  <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-12">
+                  <div className="relative z-10 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-8 md:gap-12">
                     <div className="space-y-4 text-center md:text-left">
-                      <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Order Summary</p>
-                      <div className="flex items-center justify-center md:justify-start gap-4">
-                        <h2 className="text-4xl lg:text-5xl font-black">₦{((getTicketEffectivePrice(ticket)) * quantity).toLocaleString()}</h2>
-                        <div className="px-4 py-2 bg-white/10 rounded-xl border border-white/10 text-xs font-black uppercase tracking-widest">
+                      <p className="text-xs sm:text-sm font-bold text-gray-400 uppercase tracking-widest">Order Summary</p>
+                      <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-3 sm:gap-4">
+                        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black">₦{((getTicketEffectivePrice(ticket)) * quantity).toLocaleString()}</h2>
+                        <div className="px-3 py-1.5 sm:px-4 sm:py-2 bg-white/10 rounded-xl border border-white/10 text-[10px] sm:text-xs font-black uppercase tracking-widest truncate max-w-[280px]">
                           {ticket.name} x {quantity}
                         </div>
                       </div>
-                      <div className="flex items-center gap-6 justify-center md:justify-start text-xs font-bold text-gray-400 uppercase tracking-widest">
+                      <div className="flex flex-wrap items-center gap-4 sm:gap-6 justify-center md:justify-start text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-widest">
                         <div className="flex items-center gap-2">
-                          <ShieldCheck size={16} className="text-emerald-400" />
+                          <ShieldCheck size={14} className="text-emerald-400 sm:w-4 sm:h-4" />
                           Secure Checkout
                         </div>
                         <div className="flex items-center gap-2">
-                          <CreditCard size={16} className="text-blue-400" />
+                          <CreditCard size={14} className="text-blue-400 sm:w-4 sm:h-4" />
                           Instant Ticket
                         </div>
                       </div>
@@ -734,10 +734,10 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="w-full md:w-auto bg-white text-gray-900 font-black px-12 py-6 rounded-[2rem] hover:bg-primary hover:text-white transition-all shadow-xl text-lg flex items-center justify-center gap-3 group disabled:opacity-50"
+                      className="w-full md:w-auto bg-white text-gray-900 font-black px-6 py-4 sm:px-12 sm:py-6 rounded-2xl sm:rounded-[2rem] hover:bg-primary hover:text-white transition-all shadow-xl text-base sm:text-lg flex items-center justify-center gap-3 group disabled:opacity-50"
                     >
                       {submitting ? "Processing..." : getTicketEffectivePrice(ticket) === 0 ? "Get Tickets Now" : "Pay & Register Now"}
-                      <ArrowRight size={22} className="group-hover:translate-x-1 transition-transform" />
+                      <ArrowRight size={20} className="sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
                     </button>
                   </div>
                 </div>
