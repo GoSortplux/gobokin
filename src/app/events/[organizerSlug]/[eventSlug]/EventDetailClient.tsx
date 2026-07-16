@@ -555,23 +555,59 @@ const EventDetailClient = () => {
                   {/* Floating Date Badge */}
                   <div className="absolute top-6 left-6">
                      <div className="bg-white/95 backdrop-blur-md px-4 py-2 rounded-xl shadow-md flex items-center gap-3.5 w-fit">
-                        <div className="flex flex-col items-center">
-                           <span className="text-[10px] font-semibold uppercase tracking-widest text-primary mb-0.5">
-                             {new Date(event.startDate).toLocaleDateString(undefined, { month: 'short' })}
-                           </span>
-                           <span className="text-2xl font-semibold text-gray-900 leading-none">
-                             {new Date(event.startDate).toLocaleDateString(undefined, { day: 'numeric' })}
-                           </span>
-                        </div>
-                        <div className="h-8 w-[1px] bg-gray-200"></div>
-                        <div>
-                           <p className="text-sm font-semibold text-gray-900 mb-0.5">
-                             {new Date(event.startDate).toLocaleDateString(undefined, { weekday: 'long' })}
-                           </p>
-                           <p className="text-[10px] font-medium text-gray-400 uppercase tracking-widest">
-                             {new Date(event.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                           </p>
-                        </div>
+                        {(() => {
+                          const start = new Date(event.startDate);
+                          const end = event.endDate ? new Date(event.endDate) : start;
+                          const isMultiDay = start.toDateString() !== end.toDateString();
+
+                          if (isMultiDay) {
+                            return (
+                              <>
+                                <div className="flex flex-col items-center">
+                                   <span className="text-[10px] font-semibold uppercase tracking-widest text-primary mb-0.5">
+                                     {start.toLocaleDateString(undefined, { month: 'short' })}
+                                   </span>
+                                   <span className="text-2xl font-semibold text-gray-900 leading-none">
+                                     {start.toLocaleDateString(undefined, { day: 'numeric' })}
+                                   </span>
+                                </div>
+                                <div className="text-[10px] font-bold text-primary uppercase tracking-widest px-1">
+                                  to
+                                </div>
+                                <div className="flex flex-col items-center">
+                                   <span className="text-[10px] font-semibold uppercase tracking-widest text-primary mb-0.5">
+                                     {end.toLocaleDateString(undefined, { month: 'short' })}
+                                   </span>
+                                   <span className="text-2xl font-semibold text-gray-900 leading-none">
+                                     {end.toLocaleDateString(undefined, { day: 'numeric' })}
+                                   </span>
+                                </div>
+                              </>
+                            );
+                          } else {
+                            return (
+                              <>
+                                <div className="flex flex-col items-center">
+                                   <span className="text-[10px] font-semibold uppercase tracking-widest text-primary mb-0.5">
+                                     {start.toLocaleDateString(undefined, { month: 'short' })}
+                                   </span>
+                                   <span className="text-2xl font-semibold text-gray-900 leading-none">
+                                     {start.toLocaleDateString(undefined, { day: 'numeric' })}
+                                   </span>
+                                </div>
+                                <div className="h-8 w-[1px] bg-gray-200"></div>
+                                <div>
+                                   <p className="text-sm font-semibold text-gray-900 mb-0.5">
+                                     {start.toLocaleDateString(undefined, { weekday: 'long' })}
+                                   </p>
+                                   <p className="text-[10px] font-medium text-gray-400 uppercase tracking-widest">
+                                     {start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                   </p>
+                                </div>
+                              </>
+                            );
+                          }
+                        })()}
                      </div>
                   </div>
 
@@ -605,6 +641,37 @@ const EventDetailClient = () => {
                      )}
                   </div>
                   <h1 className="text-3xl lg:text-5xl font-semibold text-gray-900 tracking-tighter leading-tight">{event.title}</h1>
+
+                  {/* Event Detail Metadata Section - similar to organizer dashboard */}
+                  <div className="flex flex-wrap items-center gap-y-3 gap-x-6 text-gray-500 font-medium pt-2">
+                     <div className="flex items-center gap-2">
+                        <Calendar className="text-primary flex-shrink-0" size={18} />
+                        <span className="text-sm">
+                           {(() => {
+                             const start = new Date(event.startDate);
+                             const end = event.endDate ? new Date(event.endDate) : start;
+                             const isMultiDay = start.toDateString() !== end.toDateString();
+                             const formatOptions: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long', year: 'numeric' };
+                             if (isMultiDay) {
+                               return `${start.toLocaleDateString(undefined, formatOptions)} - ${end.toLocaleDateString(undefined, formatOptions)}`;
+                             }
+                             return start.toLocaleDateString(undefined, formatOptions);
+                           })()}
+                        </span>
+                     </div>
+                     <div className="flex items-center gap-2">
+                        <MapPin className="text-primary flex-shrink-0" size={18} />
+                        <span className="text-sm">
+                           {event.hideLocationDetails ? "Available for registered guests" : (event.location || "Virtual Event")}
+                        </span>
+                     </div>
+                     {event.capacity && (
+                       <div className="flex items-center gap-2">
+                          <Users className="text-primary flex-shrink-0" size={18} />
+                          <span className="text-sm">{event.capacity} Capacity</span>
+                       </div>
+                     )}
+                  </div>
                </div>
             </div>
 
