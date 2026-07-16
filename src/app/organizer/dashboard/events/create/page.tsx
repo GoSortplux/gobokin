@@ -595,7 +595,7 @@ const CreateEvent = () => {
     fields: [
       { name: "fullName", label: "Full Name", type: "text", required: true, isPerAttendee: true },
       { name: "email", label: "Email Address", type: "text", required: true, isPerAttendee: true },
-      { name: "phone", label: "Phone Number", type: "tel", required: true, isPerAttendee: true },
+      { name: "phone", label: "Phone Number", type: "number", required: true, isPerAttendee: true },
       { name: "country", label: "Country", type: "select", source: "COUNTRIES", required: true, isPerAttendee: true },
       { name: "state", label: "State", type: "select", source: "STATES", dependsOn: "country", required: true, isPerAttendee: true },
       { name: "lga", label: "LGA", type: "select", source: "LGAS", dependsOn: "state", required: true, isPerAttendee: true },

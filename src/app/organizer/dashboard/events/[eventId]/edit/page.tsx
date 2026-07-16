@@ -662,7 +662,7 @@ const EditEventContent = () => {
           fields: (event.registrationFields || [
             { name: "fullName", label: "Full Name", type: "text", required: true, isPerAttendee: true },
             { name: "email", label: "Email Address", type: "text", required: true, isPerAttendee: true },
-            { name: "phone", label: "Phone Number", type: "tel", required: true, isPerAttendee: true },
+            { name: "phone", label: "Phone Number", type: "number", required: true, isPerAttendee: true },
           ]).map((f: RegistrationField) => ({
             ...f,
             id: f.id || f.name || Math.random().toString()
