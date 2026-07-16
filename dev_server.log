@@ -1,0 +1,22 @@
+
+> gobokin-app@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.5.9
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.2:3000
+
+ ✓ Starting...
+ ✓ Ready in 2.1s
+ ○ Compiling /events ...
+ ✓ Compiled /events in 13s (1846 modules)
+ GET /events 200 in 14559ms
+ ○ Compiling /auth/login ...
+ ✓ Compiled /auth/login in 3.3s (1836 modules)
+ GET /events?search=Tech+Conference 200 in 3092ms
+ GET /auth/login 200 in 3633ms
+ GET /events 200 in 503ms
+ GET /events 200 in 207ms
+ ○ Compiling /events/[organizerSlug]/[eventSlug] ...
+ ✓ Compiled /events/[organizerSlug]/[eventSlug] in 2.4s (2000 modules)
+ GET /events/ola/robotevent 200 in 5222ms

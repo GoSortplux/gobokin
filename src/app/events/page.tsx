@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import api from "@/services/api";
-import { Event } from "@/types";
+import { Event, Ticket } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 import { eventTracking } from "@/services/eventTracking";
 import { motion, AnimatePresence } from "framer-motion";
@@ -40,6 +40,29 @@ import useOnClickOutside from "@/hooks/useOnClickOutside";
 import useIntersectionObserver from "@/hooks/useIntersectionObserver";
 import Swal from "@/utils/sweetalert";
 import LoginRequiredModal from "@/components/auth/LoginRequiredModal";
+const isEarlyBirdActive = (ticket: Ticket | undefined | null) => {
+  if (!ticket) return false;
+  if (!ticket.earlyBirdPrice || Number(ticket.earlyBirdPrice) <= 0) return false;
+
+  // Check expiry
+  if (ticket.earlyBirdExpiry) {
+    const expiryDate = new Date(ticket.earlyBirdExpiry);
+    if (expiryDate < new Date()) {
+      return false;
+    }
+  }
+
+  // Check limit
+  if (ticket.earlyBirdLimit && ticket.earlyBirdLimit > 0) {
+    const sold = ticket.soldQuantity || 0;
+    if (sold >= ticket.earlyBirdLimit) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
 interface DiscoveryData {
   featured: Event[];
   upcoming: Event[];
@@ -432,6 +455,8 @@ const EventDiscoveryContent = () => {
       ? `/events/${event.organizer.slug}/${event.slug}?src=${surface}`
       : `/events/${event.id}?src=${surface}`;
 
+    const activeEarlyBirdTicket = event.tickets?.find(ticket => isEarlyBirdActive(ticket));
+
     return (
     <div
       ref={cardRef}
@@ -568,6 +593,11 @@ const EventDiscoveryContent = () => {
                 : (event.tickets && event.tickets[0]?.price > 0 ? `₦${event.tickets[0].price.toLocaleString()}` : "Free")
               }
             </p>
+            {activeEarlyBirdTicket && !showWaitlist && (
+              <p className="text-[10px] font-bold text-emerald-600 animate-pulse mt-0.5">
+                Early Bird Available: ₦{Number(activeEarlyBirdTicket.earlyBirdPrice).toLocaleString()}
+              </p>
+            )}
           </div>
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-md transition-all ${
             (!isSoldOut || isWaitlistEnabled)

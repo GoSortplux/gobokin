@@ -30,6 +30,37 @@ const isNigeria = (countryValue: string, countries: { _id: string; name: string 
   return countryValue === NIGERIA_ID || countries.find(c => c._id === countryValue)?.name === 'Nigeria';
 };
 
+const isEarlyBirdActive = (ticket: TicketType | undefined | null) => {
+  if (!ticket) return false;
+  if (!ticket.earlyBirdPrice || Number(ticket.earlyBirdPrice) <= 0) return false;
+
+  // Check expiry
+  if (ticket.earlyBirdExpiry) {
+    const expiryDate = new Date(ticket.earlyBirdExpiry);
+    if (expiryDate < new Date()) {
+      return false;
+    }
+  }
+
+  // Check limit
+  if (ticket.earlyBirdLimit && ticket.earlyBirdLimit > 0) {
+    const sold = ticket.soldQuantity || 0;
+    if (sold >= ticket.earlyBirdLimit) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
+const getTicketEffectivePrice = (ticket: TicketType | undefined | null) => {
+  if (!ticket) return 0;
+  if (isEarlyBirdActive(ticket)) {
+    return Number(ticket.earlyBirdPrice);
+  }
+  return Number(ticket.price);
+};
+
 const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | null, quantity: number }) => {
   const { organizerSlug, eventSlug } = useParams();
   const router = useRouter();
@@ -348,7 +379,7 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
       const orderData = response.data.data;
 
       // If order is successful, check if it's a free ticket or needs payment
-      if (Number(ticket?.price) === 0) {
+      if (getTicketEffectivePrice(ticket) === 0) {
         await Swal.fire({
           title: "Registration Successful!",
           text: "Your ticket has been sent to your email.",
@@ -650,7 +681,7 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
               </div>
 
               {/* Discount Code Section */}
-              <div className={`p-8 bg-white rounded-[2.5rem] border border-gray-100 space-y-6 ${(ticket.price === 0) ? 'opacity-50 select-none' : ''}`}>
+              <div className={`p-8 bg-white rounded-[2.5rem] border border-gray-100 space-y-6 ${(getTicketEffectivePrice(ticket) === 0) ? 'opacity-50 select-none' : ''}`}>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
                     <Tag size={20} />
@@ -663,14 +694,14 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
                   </label>
                   <input
                     type="text"
-                    placeholder={(ticket.price === 0) ? "Not applicable for free events" : "Enter discount code"}
-                    disabled={ticket.price === 0}
+                    placeholder={(getTicketEffectivePrice(ticket) === 0) ? "Not applicable for free events" : "Enter discount code"}
+                    disabled={getTicketEffectivePrice(ticket) === 0}
                     className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 transition-all font-bold tracking-widest uppercase disabled:cursor-not-allowed disabled:bg-gray-100/50"
                     value={discountCode}
                     onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
                   />
                   <p className="text-[10px] font-bold text-gray-400 ml-1">
-                    {(ticket.price === 0) ? "Discount codes are disabled for free tickets." : "If you have a referral or promo code, enter it here."}
+                    {(getTicketEffectivePrice(ticket) === 0) ? "Discount codes are disabled for free tickets." : "If you have a referral or promo code, enter it here."}
                   </p>
                 </div>
               </div>
@@ -683,7 +714,7 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
                     <div className="space-y-4 text-center md:text-left">
                       <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Order Summary</p>
                       <div className="flex items-center justify-center md:justify-start gap-4">
-                        <h2 className="text-4xl lg:text-5xl font-black">₦{((ticket.price || 0) * quantity).toLocaleString()}</h2>
+                        <h2 className="text-4xl lg:text-5xl font-black">₦{((getTicketEffectivePrice(ticket)) * quantity).toLocaleString()}</h2>
                         <div className="px-4 py-2 bg-white/10 rounded-xl border border-white/10 text-xs font-black uppercase tracking-widest">
                           {ticket.name} x {quantity}
                         </div>
@@ -705,7 +736,7 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
                       disabled={submitting}
                       className="w-full md:w-auto bg-white text-gray-900 font-black px-12 py-6 rounded-[2rem] hover:bg-primary hover:text-white transition-all shadow-xl text-lg flex items-center justify-center gap-3 group disabled:opacity-50"
                     >
-                      {submitting ? "Processing..." : ticket.price === 0 ? "Get Tickets Now" : "Pay & Register Now"}
+                      {submitting ? "Processing..." : getTicketEffectivePrice(ticket) === 0 ? "Get Tickets Now" : "Pay & Register Now"}
                       <ArrowRight size={22} className="group-hover:translate-x-1 transition-transform" />
                     </button>
                   </div>

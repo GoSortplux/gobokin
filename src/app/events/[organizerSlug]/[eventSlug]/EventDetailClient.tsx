@@ -202,6 +202,37 @@ const SessionCard = ({ session }: { session: Session }) => {
   );
 };
 
+const isEarlyBirdActive = (ticket: TicketType | undefined | null) => {
+  if (!ticket) return false;
+  if (!ticket.earlyBirdPrice || Number(ticket.earlyBirdPrice) <= 0) return false;
+
+  // Check expiry
+  if (ticket.earlyBirdExpiry) {
+    const expiryDate = new Date(ticket.earlyBirdExpiry);
+    if (expiryDate < new Date()) {
+      return false;
+    }
+  }
+
+  // Check limit
+  if (ticket.earlyBirdLimit && ticket.earlyBirdLimit > 0) {
+    const sold = ticket.soldQuantity || 0;
+    if (sold >= ticket.earlyBirdLimit) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
+const getTicketEffectivePrice = (ticket: TicketType | undefined | null) => {
+  if (!ticket) return 0;
+  if (isEarlyBirdActive(ticket)) {
+    return Number(ticket.earlyBirdPrice);
+  }
+  return Number(ticket.price);
+};
+
 const EventDetailClient = () => {
   const { organizerSlug, eventSlug } = useParams();
   const router = useRouter();
@@ -875,6 +906,11 @@ const EventDetailClient = () => {
                                             </div>
                                           ) : (
                                              <>
+                                               {isEarlyBirdActive(ticket) && (
+                                                 <div className="px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-emerald-500 text-white animate-pulse">
+                                                   EARLY BIRD ACTIVE
+                                                 </div>
+                                               )}
                                                {ticketStatus === "UPCOMING" && (
                                                  <div className="px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-amber-100 text-amber-700">
                                                    STARTING SOON
@@ -895,10 +931,22 @@ const EventDetailClient = () => {
                                         )}
                                      </div>
                                      <h4 className={`text-2xl font-semibold mb-3 tracking-tight ${isTicketSoldOut ? 'text-gray-400' : 'text-gray-900'}`}>{ticket.name}</h4>
-                                     <div className="flex items-baseline gap-2">
-                                        <p className={`text-3xl font-semibold ${isTicketSoldOut ? 'text-gray-400' : 'text-gray-900'}`}>
-                                           {ticket.price > 0 ? `₦${ticket.price.toLocaleString()}` : "FREE"}
-                                        </p>
+                                     <div className="flex items-baseline gap-2 flex-wrap">
+                                        {isEarlyBirdActive(ticket) ? (
+                                           <>
+                                              <p className={`text-3xl font-semibold ${isTicketSoldOut ? 'text-gray-400' : 'text-emerald-600 font-bold'}`}>
+                                                 ₦{Number(ticket.earlyBirdPrice).toLocaleString()}
+                                              </p>
+                                              <p className="text-sm text-gray-400 line-through">
+                                                 ₦{Number(ticket.price).toLocaleString()}
+                                              </p>
+                                              <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded uppercase tracking-wider">Early Bird</span>
+                                           </>
+                                        ) : (
+                                           <p className={`text-3xl font-semibold ${isTicketSoldOut ? 'text-gray-400' : 'text-gray-900'}`}>
+                                              {ticket.price > 0 ? `₦${ticket.price.toLocaleString()}` : "FREE"}
+                                           </p>
+                                        )}
                                         {ticket.price > 0 && <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">/ seat</span>}
                                      </div>
 
@@ -975,6 +1023,11 @@ const EventDetailClient = () => {
                                                       </div>
                                                    ) : (
                                                       <>
+                                                         {isEarlyBirdActive(ticket) && (
+                                                            <div className="px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-emerald-500 text-white animate-pulse">
+                                                               EARLY BIRD ACTIVE
+                                                            </div>
+                                                         )}
                                                          {ticketStatus === "UPCOMING" && (
                                                             <div className="px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-amber-100 text-amber-700">
                                                                STARTING SOON
@@ -996,10 +1049,22 @@ const EventDetailClient = () => {
                                              </div>
                                              <h4 className={`text-2xl font-semibold mb-3 tracking-tight ${isTicketSoldOut ? 'text-gray-400' : 'text-gray-900'}`}>{ticket.name}</h4>
                                              {ticket.description && <p className="text-xs text-gray-500 font-medium mb-4 line-clamp-2">{ticket.description}</p>}
-                                             <div className="flex items-baseline gap-2">
-                                                <p className={`text-3xl font-semibold ${isTicketSoldOut ? 'text-gray-400' : 'text-gray-900'}`}>
-                                                   {ticket.price > 0 ? `₦${ticket.price.toLocaleString()}` : "FREE"}
-                                                </p>
+                                             <div className="flex items-baseline gap-2 flex-wrap">
+                                                {isEarlyBirdActive(ticket) ? (
+                                                   <>
+                                                      <p className={`text-3xl font-semibold ${isTicketSoldOut ? 'text-gray-400' : 'text-emerald-600 font-bold'}`}>
+                                                         ₦{Number(ticket.earlyBirdPrice).toLocaleString()}
+                                                      </p>
+                                                      <p className="text-sm text-gray-400 line-through">
+                                                         ₦{Number(ticket.price).toLocaleString()}
+                                                      </p>
+                                                      <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded uppercase tracking-wider">Early Bird</span>
+                                                   </>
+                                                ) : (
+                                                   <p className={`text-3xl font-semibold ${isTicketSoldOut ? 'text-gray-400' : 'text-gray-900'}`}>
+                                                      {ticket.price > 0 ? `₦${ticket.price.toLocaleString()}` : "FREE"}
+                                                   </p>
+                                                )}
                                                 {ticket.price > 0 && <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">/ seat</span>}
                                              </div>
 
@@ -1065,7 +1130,9 @@ const EventDetailClient = () => {
                               </div>
                               <div className="text-left min-w-0">
                                  <p className="text-sm sm:text-base font-bold text-gray-900 leading-tight truncate">{selectedTicket?.name || "Choose a ticket"}</p>
-                                 <p className="text-[9px] font-black text-primary uppercase tracking-widest mt-1">{selectedTicket?.type || "Pending Selection"}</p>
+                                 <p className="text-[9px] font-black text-primary uppercase tracking-widest mt-1">
+                                    {isEarlyBirdActive(selectedTicket) ? "EARLY BIRD PASS" : (selectedTicket?.type || "Pending Selection")}
+                                 </p>
                               </div>
                            </div>
                            <div
@@ -1127,7 +1194,7 @@ const EventDetailClient = () => {
                   <div className="bg-gray-50 rounded-2xl p-5 sm:p-6 space-y-3 sm:space-y-4 relative z-10 border border-gray-100/50">
                      <div className="flex items-center justify-between text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-widest">
                         <span className="truncate max-w-[150px]">{selectedTicket?.name || 'Selection'}</span>
-                        <span className="text-gray-900 font-black">₦{((selectedTicket?.price || 0) * quantity).toLocaleString()}</span>
+                        <span className="text-gray-900 font-black">₦{((getTicketEffectivePrice(selectedTicket)) * quantity).toLocaleString()}</span>
                      </div>
                      <div className="flex items-center justify-between text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-widest">
                         <span>Service Fee</span>
@@ -1135,7 +1202,7 @@ const EventDetailClient = () => {
                      </div>
                      <div className="pt-4 sm:pt-5 border-t border-gray-200 flex items-center justify-between">
                         <span className="text-base sm:text-lg font-black text-gray-900 tracking-tighter uppercase italic">Total</span>
-                        <span className="text-2xl sm:text-3xl font-black text-primary tracking-tighter">₦{((selectedTicket?.price || 0) * quantity).toLocaleString()}</span>
+                        <span className="text-2xl sm:text-3xl font-black text-primary tracking-tighter">₦{((getTicketEffectivePrice(selectedTicket)) * quantity).toLocaleString()}</span>
                      </div>
                   </div>
 
