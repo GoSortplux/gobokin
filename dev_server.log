@@ -23,3 +23,6 @@
  ✓ Compiled in 12.3s (2020 modules)
  GET /events 200 in 1071ms
  GET /events/ola/robotevent 200 in 1210ms
+ ✓ Compiled in 3.2s (2020 modules)
+ GET /events 200 in 924ms
+ GET /events/ola/robotevent 200 in 1071ms
