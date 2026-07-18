@@ -6,7 +6,8 @@ import Link from "next/link";
 import api from "@/services/api";
 import CustomLoader from "@/components/CustomLoader";
 import EventTicketReceipt from "@/components/shared/EventTicketReceipt";
-import { ArrowLeft, Home, LayoutDashboard } from "lucide-react";
+import { ArrowLeft, Home, LayoutDashboard, Search } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 const EventPaymentSuccessContent = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -15,6 +16,7 @@ const EventPaymentSuccessContent = () => {
   const [error, setError] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
@@ -75,13 +77,23 @@ const EventPaymentSuccessContent = () => {
   return (
     <div className="bg-gray-50 min-h-screen pb-20 pt-24">
       <div className="max-w-4xl mx-auto px-4 mb-8 flex justify-between items-center">
-        <Link
-            href="/dashboard?tab=events"
-            className="flex items-center gap-2 text-gray-500 hover:text-primary transition-colors font-black uppercase text-xs tracking-widest group"
-        >
-            <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-            My Tickets
-        </Link>
+        {user ? (
+          <Link
+              href="/dashboard?tab=events"
+              className="flex items-center gap-2 text-gray-500 hover:text-primary transition-colors font-black uppercase text-xs tracking-widest group"
+          >
+              <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+              My Tickets
+          </Link>
+        ) : (
+          <Link
+              href="/events"
+              className="flex items-center gap-2 text-gray-500 hover:text-primary transition-colors font-black uppercase text-xs tracking-widest group"
+          >
+              <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+              Browse Events
+          </Link>
+        )}
         <Link
             href="/"
             className="flex items-center gap-2 text-gray-500 hover:text-primary transition-colors font-black uppercase text-xs tracking-widest"
@@ -94,13 +106,23 @@ const EventPaymentSuccessContent = () => {
       <EventTicketReceipt order={orderData} isSuccessPage={true} />
 
       <div className="max-w-4xl mx-auto px-4 mt-12 flex flex-col md:flex-row justify-center gap-4">
-        <Link
-          href="/dashboard?tab=events"
-          className="inline-flex items-center justify-center px-10 py-5 bg-primary text-white font-black italic uppercase rounded-2xl shadow-2xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all group"
-        >
-          <LayoutDashboard className="mr-3" size={20} />
-          Go to Dashboard
-        </Link>
+        {user ? (
+          <Link
+            href="/dashboard?tab=events"
+            className="inline-flex items-center justify-center px-10 py-5 bg-primary text-white font-black italic uppercase rounded-2xl shadow-2xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all group"
+          >
+            <LayoutDashboard className="mr-3" size={20} />
+            Go to Dashboard
+          </Link>
+        ) : (
+          <Link
+            href="/events"
+            className="inline-flex items-center justify-center px-10 py-5 bg-primary text-white font-black italic uppercase rounded-2xl shadow-2xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all group"
+          >
+            <Search className="mr-3" size={20} />
+            Browse More Events
+          </Link>
+        )}
         <button
           onClick={() => window.print()}
           className="inline-flex items-center justify-center px-10 py-5 bg-white text-gray-900 border-2 border-gray-100 font-black italic uppercase rounded-2xl shadow-xl hover:bg-gray-50 transition-all"

@@ -335,8 +335,11 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    await proceedWithOrder(false);
+  };
 
-    if (!user) {
+  const proceedWithOrder = async (overrideGuest: boolean) => {
+    if (!user && !overrideGuest) {
       // Save draft to localStorage
       const draftKey = `gobokin_registration_draft_${event?.id}`;
       localStorage.setItem(draftKey, JSON.stringify({
@@ -386,7 +389,7 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
           icon: "success",
           confirmButtonColor: "#295FA7",
         });
-        router.push("/dashboard?tab=events");
+        router.push(`/payment-success/event?orderId=${orderData.id}`);
       } else {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const registrationIds = orderData.registrations.map((reg: any) => reg.id);
@@ -426,6 +429,10 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
         onClose={() => setShowLoginModal(false)}
         title="Sign in required"
         message="You need to sign in to complete your ticket purchase."
+        onGuestCheckout={() => {
+          setShowLoginModal(false);
+          proceedWithOrder(true);
+        }}
       />
       {pricingBreakdown && (
         <CheckoutBreakdownModal

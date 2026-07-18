@@ -7,13 +7,15 @@ interface LoginRequiredModalProps {
   onClose: () => void;
   title?: string;
   message?: string;
+  onGuestCheckout?: () => void;
 }
 
 const LoginRequiredModal: React.FC<LoginRequiredModalProps> = ({
   isOpen,
   onClose,
   title = "Sign in required",
-  message = "You need to sign in to save events to your bookmarks."
+  message = "You need to sign in to save events to your bookmarks.",
+  onGuestCheckout
 }) => {
   const router = useRouter();
 
@@ -64,6 +66,15 @@ const LoginRequiredModal: React.FC<LoginRequiredModalProps> = ({
             <UserPlus size={18} />
             Create an Account
           </button>
+
+          {onGuestCheckout && (
+            <button
+              onClick={onGuestCheckout}
+              className="w-full bg-secondary text-white font-bold py-4 rounded-xl shadow-lg shadow-secondary/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
+            >
+              Continue as Guest
+            </button>
+          )}
         </div>
 
         <div className="p-4 text-center">

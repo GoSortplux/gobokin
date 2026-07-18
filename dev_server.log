@@ -2,20 +2,25 @@
 > gobokin-app@0.1.0 dev
 > next dev
 
- ⚠ Port 3000 is in use by an unknown process, using available port 3001 instead.
    ▲ Next.js 15.5.9
-   - Local:        http://localhost:3001
-   - Network:      http://192.168.0.2:3001
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.2:3000
 
  ✓ Starting...
- ✓ Ready in 2.3s
- ○ Compiling /events ...
- ✓ Compiled /events in 3.6s (1795 modules)
- GET /events 200 in 5088ms
- ○ Compiling /events/[organizerSlug]/[eventSlug] ...
- ✓ Compiled /events/[organizerSlug]/[eventSlug] in 1605ms (1991 modules)
- GET /events/ola/robotevent 200 in 3714ms
+ ✓ Ready in 3.1s
  ○ Compiling /events/[organizerSlug]/[eventSlug]/register ...
- ✓ Compiled /events/[organizerSlug]/[eventSlug]/register in 1047ms (2012 modules)
- GET /events/ola/robotevent/register?ticketId=mock-ticket-id&qty=2 200 in 2231ms
- GET /events/ola/robotevent/register?ticketId=mock-ticket-id&qty=2 200 in 237ms
+ ✓ Compiled /events/[organizerSlug]/[eventSlug]/register in 14.8s (1824 modules)
+ GET /events/test-org/test-event/register?ticketId=ticket-1&qty=1 200 in 18031ms
+ ○ Compiling /events ...
+ ✓ Compiled /events in 1606ms (1842 modules)
+ GET /events?ticketId=ticket-1&qty=1 200 in 1823ms
+ GET /events?ticketId=ticket-1&qty=1 200 in 83ms
+ GET /events/test-org/test-event/register?ticketId=ticket-1&qty=1 200 in 692ms
+ GET /events/test-org/test-event/register?ticketId=ticket-1&qty=1 200 in 280ms
+ GET /events/test-org/test-event/register?ticketId=ticket-1&qty=1 200 in 250ms
+ GET /events/test-org/test-event/register?ticketId=ticket-1&qty=1 200 in 216ms
+ ○ Compiling /payment-success/event ...
+ ✓ Compiled /payment-success/event in 4.6s (2330 modules)
+ GET /payment-success/event?orderId=order-123 200 in 5134ms
+ GET /events/test-org/test-event/register?ticketId=ticket-1&qty=1 200 in 675ms
+ GET /payment-success/event?orderId=order-123 200 in 172ms
