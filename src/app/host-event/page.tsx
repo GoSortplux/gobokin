@@ -872,7 +872,7 @@ const HostEventPage = () => {
                 </button>
             </div>
 
-            {(field.type === 'select' || field.type === 'checkbox' || !!field.source) && (
+            {(field.type === 'checkbox' || (isLocationField && field.type === 'select')) && (
                 <div className="bg-gray-50/50 rounded-[2rem] p-6 border border-gray-100 mt-2 ml-4 mr-4 space-y-5">
                     {field.type === 'select' && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
