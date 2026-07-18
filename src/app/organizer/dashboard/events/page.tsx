@@ -418,21 +418,13 @@ const MyEvents = () => {
 
                   <div className="flex items-center gap-3 mt-4">
                     {!isStaff ? (
-                      <>
-                        <Link
-                            href={`/organizer/dashboard/events/${event.id}`}
-                            className="flex-1 bg-gray-50 text-gray-900 font-black py-4 rounded-2xl hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-2 group/btn shadow-sm text-sm uppercase tracking-widest"
-                        >
-                            Manage Event
-                            <ArrowRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
-                        </Link>
-                        <button
-                            onClick={() => deleteEvent(event.id)}
-                            className="w-14 h-14 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all shadow-sm"
-                        >
-                            <Trash2 size={20} />
-                        </button>
-                      </>
+                      <Link
+                          href={`/organizer/dashboard/events/${event.id}`}
+                          className="w-full bg-gray-50 text-gray-900 font-black py-4 rounded-2xl hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-2 group/btn shadow-sm text-sm uppercase tracking-widest"
+                      >
+                          Manage Event
+                          <ArrowRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
+                      </Link>
                     ) : (
                       <div className="flex items-center gap-2 w-full">
                         <Link

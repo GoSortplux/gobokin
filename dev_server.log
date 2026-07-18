@@ -66,3 +66,22 @@ https://nextjs.org/telemetry
  ✓ Compiled in 405ms (827 modules)
  GET /organizer/dashboard/events/create 200 in 97ms
  ✓ Compiled in 486ms (827 modules)
+ ✓ Compiled in 9.3s (1861 modules)
+ ✓ Compiled in 764ms (827 modules)
+ ✓ Compiled in 615ms (827 modules)
+ GET /organizer/dashboard/events/create 200 in 2457ms
+ ✓ Compiled in 1093ms (827 modules)
+ GET /organizer/dashboard/events/create 200 in 540ms
+ ✓ Compiled in 599ms (827 modules)
+ GET /organizer/dashboard/events/create 200 in 100ms
+ ✓ Compiled in 437ms (827 modules)
+ ✓ Compiled in 434ms (827 modules)
+ GET /organizer/dashboard/events/create 200 in 120ms
+ ✓ Compiled in 800ms (827 modules)
+ GET /organizer/dashboard/events/create 200 in 129ms
+ ✓ Compiled in 627ms (827 modules)
+ ✓ Compiled in 398ms (827 modules)
+ ○ Compiling /organizer/dashboard/events ...
+ ✓ Compiled /organizer/dashboard/events in 3.7s (1868 modules)
+ GET /organizer/dashboard/events 200 in 4400ms
+ ✓ Compiled in 417ms (839 modules)

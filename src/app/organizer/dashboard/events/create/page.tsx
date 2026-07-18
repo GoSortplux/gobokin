@@ -2848,7 +2848,14 @@ const CreateEvent = () => {
 
                                     <div className="pt-8 border-t border-gray-50 space-y-6">
                                         <div className="flex items-center justify-between">
-                                            <h6 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Quantity Discounts</h6>
+                                            <div className="flex items-center gap-1.5 relative group/discount-tooltip">
+                                                <h6 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Quantity Discounts</h6>
+                                                <Info size={12} className="text-gray-400 hover:text-primary cursor-help shrink-0 -mt-0.5" />
+                                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover/discount-tooltip:block bg-gray-900 text-white text-[10px] font-bold rounded-xl p-3 w-64 z-[110] shadow-xl pointer-events-none text-left leading-relaxed normal-case tracking-normal">
+                                                    <p className="mb-2">Offer automatic discounts when attendees purchase multiple tickets.</p>
+                                                    <p className="text-gray-300 font-normal">For example, buy 5 tickets and get 10% off.</p>
+                                                </div>
+                                            </div>
                                             <button
                                                 onClick={() => addQuantityDiscount(ticket.id!)}
                                                 className="text-[9px] font-black text-secondary uppercase tracking-widest hover:underline flex items-center gap-1"
