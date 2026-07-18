@@ -439,6 +439,12 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, sessions, tickets, agenda
   );
 };
 
+const getLocalDateTimeString = () => {
+  const d = new Date();
+  const pad = (num: number) => String(num).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
 const CreateEvent = () => {
   const router = useRouter();
   const { updateToken } = useAuth();
@@ -451,6 +457,8 @@ const CreateEvent = () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).setCurrentStep = setCurrentStep;
     }
+    // Set current date/time for the initial ticket to avoid hydration mismatch
+    setTickets(prev => prev.map(t => t.id === "1" && !t.salesStart ? { ...t, salesStart: getLocalDateTimeString() } : t));
   }, []);
   const [loading, setLoading] = useState(false);
   const [isConfigExpanded, setIsConfigExpanded] = useState(false);
@@ -704,8 +712,8 @@ const CreateEvent = () => {
                           groupSize: rest.groupSize,
                           allocationType: rest.allocationType,
                           maxPerOrder: rest.maxPerOrder,
-                          salesStart: rest.salesStart ? new Date(rest.salesStart).toISOString() : undefined,
-                          salesEnd: rest.salesEnd ? new Date(rest.salesEnd).toISOString() : undefined,
+                          salesStart: (rest.salesStart ? new Date(rest.salesStart) : new Date()).toISOString(),
+                          salesEnd: rest.salesEnd ? new Date(rest.salesEnd).toISOString() : (basicInfo.endDate ? new Date(basicInfo.endDate).toISOString() : undefined),
                           isOffline: rest.isOffline,
                           isSpecial: rest.isSpecial || false,
                           quantityDiscounts: rest.quantityDiscounts
@@ -1010,6 +1018,9 @@ const CreateEvent = () => {
       });
     } else {
       setBasicInfo(prev => ({ ...prev, [name]: value }));
+      if (name === "endDate") {
+        setTickets(prevTickets => prevTickets.map(t => ({ ...t, salesEnd: value })));
+      }
     }
   };
 
@@ -1143,8 +1154,8 @@ const CreateEvent = () => {
         allocationType: "GENERAL",
         totalQuantity: remaining,
         maxPerOrder: 5,
-        salesStart: "",
-        salesEnd: "",
+        salesStart: getLocalDateTimeString(),
+        salesEnd: basicInfo.endDate || "",
         groupSize: 1,
         description: "",
         earlyBirdPrice: 0,

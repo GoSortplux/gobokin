@@ -410,6 +410,12 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, tickets, sessions, agenda
   );
 };
 
+const getLocalDateTimeString = () => {
+  const d = new Date();
+  const pad = (num: number) => String(num).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
 const HostEventPage = () => {
   const router = useRouter();
   const { user } = useAuth();
@@ -421,6 +427,14 @@ const HostEventPage = () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).setCurrentStep = setCurrentStep;
     }
+  }, []);
+
+  useEffect(() => {
+    // Populate the first ticket's salesStart on client mount to avoid hydration mismatch
+    setFormData(prev => ({
+      ...prev,
+      tickets: prev.tickets.map(t => t.id === "1" && !t.salesStart ? { ...t, salesStart: getLocalDateTimeString() } : t)
+    }));
   }, []);
   const [showPreview, setShowPreview] = useState(true);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
@@ -1066,14 +1080,21 @@ const HostEventPage = () => {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleChange = (section: string, field: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [section]: {
+    setFormData(prev => {
+      const updatedSection = {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ...(prev as any)[section],
         [field]: value
+      };
+      const updated = {
+        ...prev,
+        [section]: updatedSection
+      };
+      if (section === "basicInfo" && field === "endDate") {
+        updated.tickets = prev.tickets.map(t => ({ ...t, salesEnd: value }));
       }
-    }));
+      return updated;
+    });
   };
 
   const addSpeaker = () => {
@@ -1105,7 +1126,9 @@ const HostEventPage = () => {
             id: Math.random().toString(),
             name: "", price: 0, type: "PAID" as TicketType,
             allocationType: "GENERAL", totalQuantity: remaining, maxPerOrder: 5,
-            salesStart: "", salesEnd: "", groupSize: 1, description: "",
+            salesStart: getLocalDateTimeString(),
+            salesEnd: formData.basicInfo.endDate || "",
+            groupSize: 1, description: "",
             earlyBirdPrice: 0, earlyBirdLimit: 0, earlyBirdExpiry: "",
             isOffline: false, isSpecial: false, quantityDiscounts: []
         }]
@@ -1238,8 +1261,8 @@ const HostEventPage = () => {
                 ...rest,
                 price: rest.type === 'FREE' ? 0 : rest.price,
                 totalQuantity: Math.max(1, rest.totalQuantity || 1),
-                salesStart: rest.salesStart ? new Date(rest.salesStart).toISOString() : undefined,
-                salesEnd: rest.salesEnd ? new Date(rest.salesEnd).toISOString() : undefined,
+                salesStart: (rest.salesStart ? new Date(rest.salesStart) : new Date()).toISOString(),
+                salesEnd: rest.salesEnd ? new Date(rest.salesEnd).toISOString() : (formData.basicInfo.endDate ? new Date(formData.basicInfo.endDate).toISOString() : undefined),
                 earlyBirdExpiry: rest.earlyBirdExpiry ? new Date(rest.earlyBirdExpiry).toISOString() : undefined,
             }))
         };

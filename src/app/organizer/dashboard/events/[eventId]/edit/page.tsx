@@ -440,6 +440,12 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, sessions, tickets, agenda
 };
 
 
+const getLocalDateTimeString = () => {
+  const d = new Date();
+  const pad = (num: number) => String(num).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
 const EditEventContent = () => {
   const router = useRouter();
   const { getRule } = useOrganizerRules();
@@ -781,6 +787,9 @@ const EditEventContent = () => {
       });
     } else {
       setBasicInfo(prev => ({ ...prev, [name]: value }));
+      if (name === "endDate") {
+        setTickets(prevTickets => prevTickets.map(t => ({ ...t, salesEnd: value })));
+      }
     }
   };
 
@@ -1128,8 +1137,8 @@ const EditEventContent = () => {
         groupSize: ticket.groupSize,
         allocationType: ticket.allocationType,
         maxPerOrder: ticket.maxPerOrder,
-        salesStart: ticket.salesStart ? new Date(ticket.salesStart).toISOString() : undefined,
-        salesEnd: ticket.salesEnd ? new Date(ticket.salesEnd).toISOString() : undefined,
+        salesStart: (ticket.salesStart ? new Date(ticket.salesStart) : new Date()).toISOString(),
+        salesEnd: ticket.salesEnd ? new Date(ticket.salesEnd).toISOString() : (basicInfo.endDate ? new Date(basicInfo.endDate).toISOString() : undefined),
         isOffline: ticket.isOffline,
         isSpecial: ticket.isSpecial || false,
         quantityDiscounts: ticket.quantityDiscounts
@@ -1315,8 +1324,8 @@ const EditEventContent = () => {
               groupSize: ticket.groupSize,
               allocationType: ticket.allocationType,
               maxPerOrder: ticket.maxPerOrder,
-              salesStart: ticket.salesStart ? new Date(ticket.salesStart).toISOString() : undefined,
-              salesEnd: ticket.salesEnd ? new Date(ticket.salesEnd).toISOString() : undefined,
+              salesStart: (ticket.salesStart ? new Date(ticket.salesStart) : new Date()).toISOString(),
+              salesEnd: ticket.salesEnd ? new Date(ticket.salesEnd).toISOString() : (basicInfo.endDate ? new Date(basicInfo.endDate).toISOString() : undefined),
               isOffline: ticket.isOffline,
               isSpecial: ticket.isSpecial || false,
               quantityDiscounts: ticket.quantityDiscounts
@@ -1343,8 +1352,8 @@ const EditEventContent = () => {
                       groupSize: t.groupSize,
                       allocationType: t.allocationType,
                       maxPerOrder: t.maxPerOrder,
-                      salesStart: t.salesStart ? new Date(t.salesStart).toISOString() : undefined,
-                      salesEnd: t.salesEnd ? new Date(t.salesEnd).toISOString() : undefined,
+                      salesStart: (t.salesStart ? new Date(t.salesStart) : new Date()).toISOString(),
+                      salesEnd: t.salesEnd ? new Date(t.salesEnd).toISOString() : (basicInfo.endDate ? new Date(basicInfo.endDate).toISOString() : undefined),
                       isOffline: t.isOffline,
                       isSpecial: t.isSpecial || false,
                       quantityDiscounts: t.quantityDiscounts
@@ -2119,8 +2128,8 @@ const EditEventContent = () => {
                            earlyBirdExpiry: "",
                            allocationType: "GENERAL",
                            maxPerOrder: 10,
-                           salesStart: "",
-                           salesEnd: "",
+                           salesStart: getLocalDateTimeString(),
+                           salesEnd: basicInfo.endDate || "",
                            isOffline: false,
                            isSpecial: false,
                            quantityDiscounts: []
