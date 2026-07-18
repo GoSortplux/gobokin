@@ -872,67 +872,24 @@ const HostEventPage = () => {
                 </button>
             </div>
 
-            {(field.type === 'checkbox' || (isLocationField && field.type === 'select')) && (
+            {(field.type === 'select' || field.type === 'checkbox') && (
                 <div className="bg-gray-50/50 rounded-[2rem] p-6 border border-gray-100 mt-2 ml-4 mr-4 space-y-5">
-                    {field.type === 'select' && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            {!isLocationField && (
-                                <div className="space-y-2">
-                                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Choice Source</label>
-                                    <div className="relative">
-                                        <select
-                                            className="w-full p-3.5 bg-white border border-gray-200 rounded-xl text-xs font-bold appearance-none outline-none focus:border-primary transition-all shadow-sm"
-                                            value={field.source || ""}
-                                            onChange={(e) => {
-                                                const newSource = e.target.value || undefined;
-                                                updateField(idx, "source", newSource);
-                                                if (newSource) {
-                                                    updateField(idx, "options", []);
-                                                }
-                                            }}
-                                        >
-                                            <option value="">Manual Entry</option>
-                                            <option value="COUNTRIES">Countries</option>
-                                            <option value="STATES">States</option>
-                                            <option value="LGAS">LGAs</option>
-                                        </select>
-                                        <ChevronDown size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                                    </div>
-                                </div>
-                            )}
-                            {field.source && !isLocationField && (
-                                <div className="space-y-2">
-                                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Link to Field</label>
-                                    <div className="relative">
-                                        <select
-                                            className="w-full p-3.5 bg-white border border-gray-200 rounded-xl text-xs font-bold appearance-none outline-none focus:border-primary transition-all shadow-sm"
-                                            value={field.dependsOn || ""}
-                                            onChange={(e) => updateField(idx, "dependsOn", e.target.value || undefined)}
-                                        >
-                                            <option value="">Independent</option>
-                                            {formData.registration.fields.filter((_, i) => i !== idx).map((f, i) => (
-                                                <option key={i} value={f.name || f.label.toLowerCase().replace(/\s+/g, '-')}>{f.label}</option>
-                                            ))}
-                                        </select>
-                                        <ChevronDown size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    )}
                     {!isLocationField && (
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                             <div className="flex items-center justify-between px-1">
-                                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
                                     {field.source ? "Auto-Managed" : "Your Options"}
                                 </p>
                                 {!field.source && (
-                                    <button onClick={() => addFieldOption(idx)} className="text-[9px] font-black text-primary uppercase tracking-widest hover:underline flex items-center gap-1">
-                                        <Plus size={10} strokeWidth={3} /> Add
+                                    <button
+                                        onClick={() => addFieldOption(idx)}
+                                        className="text-xs font-black text-primary uppercase tracking-widest hover:underline flex items-center gap-1.5 bg-primary/10 px-4 py-2 rounded-lg border border-primary/20 hover:bg-primary/25 transition-all shadow-sm"
+                                    >
+                                        <Plus size={12} strokeWidth={3} /> Add Option
                                     </button>
                                 )}
                             </div>
-                            <div className="flex flex-wrap gap-2.5">
+                            <div className="flex flex-wrap gap-3">
                                 {field.source ? (
                                     <div className="flex items-center gap-2.5 p-3.5 bg-primary/5 rounded-xl border border-primary/10 w-full">
                                         <Info size={14} className="text-primary shrink-0" />
@@ -944,25 +901,46 @@ const HostEventPage = () => {
                                 ) : (
                                     <>
                                         {(field.options || []).map((opt, oIdx) => (
-                                            <div key={oIdx} className="flex items-center gap-2 bg-white p-2.5 sm:p-1.5 pl-4 sm:pl-3 rounded-lg border border-gray-100 shadow-sm group/opt transition-all hover:border-primary/20">
+                                            <div key={oIdx} className="flex items-center gap-3 bg-white px-5 py-3 rounded-xl border border-gray-200 shadow-sm group/opt transition-all hover:border-primary/30">
                                                 <input
                                                     type="text"
                                                     value={opt}
                                                     onChange={(e) => updateFieldOption(idx, oIdx, e.target.value)}
-                                                    placeholder="Option"
-                                                    className="bg-transparent border-none outline-none text-xs sm:text-[10px] font-bold text-gray-600 w-28 sm:w-20"
+                                                    placeholder="Option Name"
+                                                    className="bg-transparent border-none outline-none text-sm font-bold text-gray-700 w-40 sm:w-32"
                                                 />
-                                                <button onClick={() => removeFieldOption(idx, oIdx)} className="w-6 h-6 sm:w-5 sm:h-5 rounded flex items-center justify-center text-gray-300 hover:text-secondary transition-all">
-                                                    <X size={12} strokeWidth={3} />
+                                                <button
+                                                    onClick={() => removeFieldOption(idx, oIdx)}
+                                                    className="w-7 h-7 rounded-lg flex items-center justify-center bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-600 transition-all cursor-pointer"
+                                                >
+                                                    <X size={14} strokeWidth={3} />
                                                 </button>
                                             </div>
                                         ))}
                                         {(field.options || []).length === 0 && (
-                                            <p className="text-[9px] text-gray-400 italic px-1">Add options for your guests to select.</p>
+                                            <p className="text-xs text-gray-400 italic px-1">Add options for your guests to select.</p>
                                         )}
                                     </>
                                 )}
                             </div>
+                        </div>
+                    )}
+
+                    {!isLocationField && field.type === 'select' && (
+                        <div className="flex items-center justify-between p-4 bg-primary/5 rounded-2xl border border-primary/10 mt-4">
+                            <div className="space-y-0.5">
+                                <p className="text-xs font-bold text-gray-900">Select Multiple Options</p>
+                                <p className="text-[10px] font-medium text-gray-400 leading-relaxed">Allows guests to select more than one choice during registration</p>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={!!field.multiple}
+                                    onChange={(e) => updateField(idx, "multiple", e.target.checked)}
+                                    className="sr-only peer"
+                                />
+                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                            </label>
                         </div>
                     )}
                 </div>
