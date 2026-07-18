@@ -855,16 +855,33 @@ const HostEventPage = () => {
                         />
                         <span className="text-[10px] font-black text-gray-400 group-hover/toggle:text-gray-900 uppercase tracking-widest transition-colors">Required</span>
                     </label>
-                    <label className={`flex items-center gap-3 group/toggle ${!formData.registration.isGroupingEnabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}>
-                        <input
-                            type="checkbox"
-                            disabled={!formData.registration.isGroupingEnabled}
-                            checked={field.isPerAttendee}
-                            onChange={(e) => updateField(idx, "isPerAttendee", e.target.checked)}
-                            className="w-6 h-6 rounded-lg border-gray-200 text-primary cursor-pointer shadow-sm transition-all"
-                        />
-                        <span className="text-[10px] font-black text-gray-400 group-hover/toggle:text-gray-900 uppercase tracking-widest transition-colors">Per Attendee</span>
-                    </label>
+                    <div className="relative inline-block group/tooltip">
+                        <label className={`flex items-center gap-3 group/toggle ${!formData.registration.isGroupingEnabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}>
+                            <input
+                                type="checkbox"
+                                disabled={!formData.registration.isGroupingEnabled}
+                                checked={field.isPerAttendee}
+                                onChange={(e) => updateField(idx, "isPerAttendee", e.target.checked)}
+                                className="w-6 h-6 rounded-lg border-gray-200 text-primary cursor-pointer shadow-sm transition-all"
+                            />
+                            <span className="text-[10px] font-black text-gray-400 group-hover/toggle:text-gray-900 uppercase tracking-widest transition-colors flex items-center gap-1.5">
+                                Collect this for every attendee.
+                                <Info size={14} className="text-gray-400 group-hover/toggle:text-primary transition-colors shrink-0" />
+                            </span>
+                        </label>
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover/tooltip:block bg-gray-900 text-white text-[10px] font-bold rounded-xl p-3 w-64 z-[110] shadow-xl pointer-events-none text-left leading-relaxed">
+                            {!formData.registration.isGroupingEnabled ? (
+                                "Enable 'Allow Grouping' to collect details per attendee."
+                            ) : (
+                                <>
+                                    <p className="font-extrabold text-white mb-1">When enabled:</p>
+                                    <p className="text-gray-300 font-normal mb-2">Every attendee in the registration group must answer this question.</p>
+                                    <p className="font-extrabold text-white mb-1">When disabled:</p>
+                                    <p className="text-gray-300 font-normal">Only the group organizer answers it once.</p>
+                                </>
+                            )}
+                        </div>
+                    </div>
                 </div>
 
                 <button onClick={() => removeField(idx)} className="text-gray-300 hover:text-secondary rounded-xl flex items-center justify-center transition-all">
