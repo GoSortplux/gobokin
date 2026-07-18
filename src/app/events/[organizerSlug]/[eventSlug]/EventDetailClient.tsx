@@ -34,6 +34,7 @@ import OrganizerStatusBadge from "@/components/shared/OrganizerStatusBadge";
 import EventCountdown from "@/components/events/EventCountdown";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
+import MediaViewerModal from "@/components/MediaViewerModal";
 
 const SpeakerCard = ({ speaker }: { speaker: Speaker }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -251,6 +252,10 @@ const EventDetailClient = () => {
   const [isRegistered, setIsRegistered] = useState(false);
   const [showOrganizerModal, setShowOrganizerModal] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(true);
+
+  // New state for banner full-screen media viewer
+  const [activeBannerIndex, setActiveBannerIndex] = useState(0);
+  const [isMediaViewerOpen, setIsMediaViewerOpen] = useState(false);
 
   useEffect(() => {
     const interacted = localStorage.getItem("has_interacted_ticket_selector") === "true";
@@ -532,6 +537,15 @@ const EventDetailClient = () => {
         slug={event.organizer?.slug || (organizerSlug as string)}
       />
 
+      {allMedia.length > 0 && (
+        <MediaViewerModal
+          isOpen={isMediaViewerOpen}
+          onClose={() => setIsMediaViewerOpen(false)}
+          media={allMedia}
+          startIndex={activeBannerIndex}
+        />
+      )}
+
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Breadcrumbs - Minimal Luma style */}
         <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-8 overflow-x-auto no-scrollbar whitespace-nowrap">
@@ -562,9 +576,14 @@ const EventDetailClient = () => {
                       autoplaySpeed={5000}
                       arrows={false}
                       className="h-full"
+                      afterChange={(index) => setActiveBannerIndex(index)}
                     >
                       {allMedia.map((url, index) => (
-                        <div key={index} className="relative aspect-video lg:aspect-[21/10]">
+                        <div
+                          key={index}
+                          className="relative aspect-video lg:aspect-[21/10] cursor-zoom-in"
+                          onClick={() => setIsMediaViewerOpen(true)}
+                        >
                           <Image
                             src={url}
                             alt={`${event.title} - ${index + 1}`}
@@ -576,7 +595,15 @@ const EventDetailClient = () => {
                       ))}
                     </Slider>
                   ) : event.bannerUrl ? (
-                    <Image src={event.bannerUrl} alt={event.title} fill className="object-cover group-hover:scale-105 transition-transform duration-1000" />
+                    <div
+                      className="relative w-full h-full cursor-zoom-in"
+                      onClick={() => {
+                        setActiveBannerIndex(0);
+                        setIsMediaViewerOpen(true);
+                      }}
+                    >
+                      <Image src={event.bannerUrl} alt={event.title} fill className="object-cover group-hover:scale-105 transition-transform duration-1000" />
+                    </div>
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
                       <Calendar size={80} className="text-primary/10" />
@@ -584,7 +611,7 @@ const EventDetailClient = () => {
                   )}
 
                   {/* Floating Date Badge */}
-                  <div className="absolute top-6 left-6">
+                  <div className="absolute top-6 left-6" onClick={(e) => e.stopPropagation()}>
                      <div className="bg-white/95 backdrop-blur-md px-4 py-2 rounded-xl shadow-md flex items-center gap-3.5 w-fit">
                         {(() => {
                           const start = new Date(event.startDate);
@@ -643,7 +670,7 @@ const EventDetailClient = () => {
                   </div>
 
                   {/* Floating Countdown on Banner */}
-                  <div className="absolute bottom-6 right-6 z-20">
+                  <div className="absolute bottom-6 right-6 z-20" onClick={(e) => e.stopPropagation()}>
                      <EventCountdown targetDate={event.startDate} />
                   </div>
                </div>

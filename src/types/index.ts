@@ -490,6 +490,7 @@ export interface RegistrationField {
   options?: string[];
   source?: string;
   dependsOn?: string;
+  multiple?: boolean;
 }
 
 export interface OrganizerApplication {
