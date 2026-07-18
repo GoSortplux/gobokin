@@ -1973,12 +1973,26 @@ const CreateEvent = () => {
                                    <ShieldCheck size={24} />
                                 </div>
                                 <div>
-                                   <h3 className="text-2xl font-black text-gray-900 tracking-tight">Event Configuration</h3>
+                                   <div className="flex flex-wrap items-center gap-2">
+                                      <h3 className="text-2xl font-black text-gray-900 tracking-tight">Event Configuration</h3>
+                                      {!isConfigExpanded && (
+                                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-secondary/15 text-secondary animate-pulse">
+                                            <Sparkles size={10} /> Expand for Settings
+                                         </span>
+                                      )}
+                                   </div>
                                    <p className="text-sm text-gray-400 font-medium">Fine-tune your event&apos;s visibility and registration.</p>
                                 </div>
                              </div>
-                             <div className={`w-12 h-12 rounded-full border border-gray-100 flex items-center justify-center transition-all duration-500 ${isConfigExpanded ? 'rotate-180 bg-primary/5 text-primary border-primary/10' : 'bg-gray-50 text-gray-400'}`}>
-                                <ChevronDown size={24} strokeWidth={3} />
+                             <div className="flex items-center gap-3">
+                                {!isConfigExpanded && (
+                                   <span className="text-[10px] font-black text-secondary uppercase tracking-widest hidden sm:inline animate-pulse">
+                                      Click to Expand
+                                   </span>
+                                )}
+                                <div className={`w-12 h-12 rounded-full border flex items-center justify-center transition-all duration-500 ${isConfigExpanded ? 'rotate-180 bg-primary/5 text-primary border-primary/10' : 'bg-secondary text-white border-secondary shadow-lg shadow-secondary/30 ring-4 ring-secondary/20 animate-pulse'}`}>
+                                   <ChevronDown size={24} strokeWidth={3} />
+                                </div>
                              </div>
                           </div>
 

@@ -115,6 +115,24 @@ test('Verify ticket sales start and end dates propagate and default correctly', 
   await eventEndDateInput.blur();
   await page.waitForTimeout(1000);
 
+  // Click Next to go to sub-step 2 of Details where Event Configuration collapsible header is shown
+  const nextButton = page.locator('button:has-text("Next")').first();
+  await nextButton.waitFor({ state: 'visible' });
+  await nextButton.click(); // Now on sub-step 2 of Details
+  await page.waitForTimeout(2000);
+
+  // Verify that the attention drawing elements are visible
+  const expandBadge = page.locator('text=Expand for Settings');
+  await expect(expandBadge).toBeVisible();
+
+  const clickToExpandText = page.locator('text=Click to Expand');
+  await expect(clickToExpandText).toBeVisible();
+
+  // Scroll Event Configuration header into view and capture screenshot
+  await expandBadge.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(1000);
+  await page.screenshot({ path: 'tests/verify_event_configuration_attention.png' });
+
   // Directly set currentStep to 2 (Ticketing) using window.setCurrentStep helper
   await page.evaluate(() => {
     if (typeof (window as any).setCurrentStep === 'function') {
