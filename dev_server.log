@@ -7,10 +7,10 @@
    - Network:      http://192.168.0.2:3000
 
  ✓ Starting...
- ✓ Ready in 3.3s
+ ✓ Ready in 4s
  ○ Compiling /organizer/dashboard/events/create ...
- ✓ Compiled /organizer/dashboard/events/create in 6.2s (1841 modules)
- GET /organizer/dashboard/events/create 200 in 7869ms
- GET /organizer/dashboard/events/create 200 in 8014ms
- ✓ Compiled in 2.2s (827 modules)
- ✓ Compiled in 447ms (827 modules)
+ ✓ Compiled /organizer/dashboard/events/create in 4.6s (1841 modules)
+ GET /organizer/dashboard/events/create 200 in 5968ms
+ GET /organizer/dashboard/events/create 200 in 5994ms
+ ✓ Compiled in 1428ms (827 modules)
+ ✓ Compiled in 483ms (827 modules)

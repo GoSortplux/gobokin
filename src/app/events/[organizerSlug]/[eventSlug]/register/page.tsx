@@ -198,7 +198,11 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
             const attendeeObj: any = {};
             (eventData.registrationFields || []).forEach(f => {
               if (f.isPerAttendee) {
-                attendeeObj[f.name] = f.type === 'checkbox' ? false : "";
+                if (f.type === 'checkbox') {
+                  attendeeObj[f.name] = (f.options && f.options.length > 0) ? [] : false;
+                } else {
+                  attendeeObj[f.name] = "";
+                }
               }
             });
             // Defensive fallbacks for buyerInfo requirements
@@ -214,7 +218,11 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
           const initialShared: any = {};
           (eventData.registrationFields || []).forEach(f => {
             if (!f.isPerAttendee) {
-              initialShared[f.name] = f.type === 'checkbox' ? false : "";
+              if (f.type === 'checkbox') {
+                initialShared[f.name] = (f.options && f.options.length > 0) ? [] : false;
+              } else {
+                initialShared[f.name] = "";
+              }
             }
           });
           setSharedData(initialShared);
@@ -339,6 +347,30 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
   };
 
   const proceedWithOrder = async (overrideGuest: boolean) => {
+    // Validate required fields
+    const requiredFields = (event?.registrationFields || []).filter(f => f.required);
+    for (const field of requiredFields) {
+      if (field.isPerAttendee) {
+        // Check for every attendee
+        for (let i = 0; i < attendees.length; i++) {
+          const val = attendees[i]?.[field.name];
+          const hasValue = Array.isArray(val) ? val.length > 0 : (val !== undefined && val !== null && val !== "" && val !== false);
+          if (!hasValue) {
+            Swal.fire("Required Field", `Attendee #${i + 1}: "${field.label}" is required.`, "warning");
+            return;
+          }
+        }
+      } else {
+        // Check group-level shared field
+        const val = sharedData[field.name];
+        const hasValue = Array.isArray(val) ? val.length > 0 : (val !== undefined && val !== null && val !== "" && val !== false);
+        if (!hasValue) {
+          Swal.fire("Required Field", `"${field.label}" is required.`, "warning");
+          return;
+        }
+      }
+    }
+
     if (!user && !overrideGuest) {
       // Save draft to localStorage
       const draftKey = `gobokin_registration_draft_${event?.id}`;
@@ -548,6 +580,42 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
                                     field.options?.map(opt => <option key={opt} value={opt}>{opt}</option>)
                                   )}
                                 </select>
+                              ) : (field.type === 'checkbox' && field.options && field.options.length > 0) ? (
+                                <div className="space-y-3">
+                                  {field.options.map((opt) => {
+                                    const currentValue = sharedData[field.name] || [];
+                                    const isChecked = Array.isArray(currentValue)
+                                      ? currentValue.includes(opt)
+                                      : currentValue === opt;
+
+                                    return (
+                                      <label key={opt} className="flex items-center gap-3 p-4 bg-white border border-gray-100 rounded-2xl cursor-pointer hover:bg-gray-50/50 transition-colors">
+                                        <input
+                                          type="checkbox"
+                                          checked={isChecked}
+                                          onChange={(e) => {
+                                            let nextValue;
+                                            if (field.multiple) {
+                                              const arr = Array.isArray(currentValue) ? [...currentValue] : (currentValue ? [currentValue] : []);
+                                              if (e.target.checked) {
+                                                if (!arr.includes(opt)) arr.push(opt);
+                                              } else {
+                                                const index = arr.indexOf(opt);
+                                                if (index > -1) arr.splice(index, 1);
+                                              }
+                                              nextValue = arr;
+                                            } else {
+                                              nextValue = e.target.checked ? [opt] : [];
+                                            }
+                                            handleSharedChange(field, nextValue);
+                                          }}
+                                          className="w-5 h-5 rounded border-gray-300 text-primary cursor-pointer"
+                                        />
+                                        <span className="text-sm font-medium text-gray-700">{opt}</span>
+                                      </label>
+                                    );
+                                  })}
+                                </div>
                               ) : (
                                 <div className="flex items-center gap-3 p-4 bg-white border border-gray-100 rounded-2xl">
                                   <input
@@ -666,6 +734,46 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
                                       field.options?.map(opt => <option key={opt} value={opt}>{opt}</option>)
                                     )}
                                   </select>
+                                ) : (field.type === 'checkbox' && field.options && field.options.length > 0) ? (
+                                  <div className="space-y-3">
+                                    {field.options.map((opt) => {
+                                      const currentValue = (field.isPerAttendee ? attendees[index][field.name] : sharedData[field.name]) || [];
+                                      const isChecked = Array.isArray(currentValue)
+                                        ? currentValue.includes(opt)
+                                        : currentValue === opt;
+
+                                      return (
+                                        <label key={opt} className="flex items-center gap-3 p-4 bg-white border border-gray-100 rounded-2xl cursor-pointer hover:bg-gray-50/50 transition-colors">
+                                          <input
+                                            type="checkbox"
+                                            checked={isChecked}
+                                            onChange={(e) => {
+                                              let nextValue;
+                                              if (field.multiple) {
+                                                const arr = Array.isArray(currentValue) ? [...currentValue] : (currentValue ? [currentValue] : []);
+                                                if (e.target.checked) {
+                                                  if (!arr.includes(opt)) arr.push(opt);
+                                                } else {
+                                                  const indexOpt = arr.indexOf(opt);
+                                                  if (indexOpt > -1) arr.splice(indexOpt, 1);
+                                                }
+                                                nextValue = arr;
+                                              } else {
+                                                nextValue = e.target.checked ? [opt] : [];
+                                              }
+                                              if (field.isPerAttendee) {
+                                                handleAttendeeChange(index, field, nextValue);
+                                              } else {
+                                                handleSharedChange(field, nextValue);
+                                              }
+                                            }}
+                                            className="w-5 h-5 rounded border-gray-300 text-primary cursor-pointer"
+                                          />
+                                          <span className="text-sm font-medium text-gray-700">{opt}</span>
+                                        </label>
+                                      );
+                                    })}
+                                  </div>
                                 ) : (
                                   <div className="flex items-center gap-3 p-4 bg-white border border-gray-100 rounded-2xl">
                                     <input
