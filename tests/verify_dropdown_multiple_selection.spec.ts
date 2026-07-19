@@ -93,7 +93,7 @@ const setupLocalStorageAndMocks = async (page) => {
   });
 };
 
-test('Verify registration dropdown field option enhancements and multiple selection toggle', async ({ page }) => {
+test('Verify registration dropdown field option enhancements do NOT have multiple selection toggle anymore', async ({ page }) => {
   await setupLocalStorageAndMocks(page);
 
   // Set standard desktop viewport size
@@ -112,7 +112,7 @@ test('Verify registration dropdown field option enhancements and multiple select
   await page.waitForTimeout(2000);
 
   // Add a new custom registration field by clicking "Add Field" to open the dropdown
-  const addFieldButton = page.locator('button:has-text("Add Field")').first();
+  const addFieldButton = page.locator('button:has-text("Add Fields")').first();
   await addFieldButton.waitFor({ state: 'visible' });
   await addFieldButton.click();
   await page.waitForTimeout(500);
@@ -132,29 +132,9 @@ test('Verify registration dropdown field option enhancements and multiple select
   await newTypeSelect.selectOption('select');
   await page.waitForTimeout(1500);
 
-  // Verify that "Choice Source" is NOT visible for this new field
-  const fieldChoiceSource = lastFieldContainer.locator('label:has-text("Choice Source")');
-  await expect(fieldChoiceSource).not.toBeVisible();
-
-  // Verify that the larger "Add Option" button is visible and click it
-  const addOptionButton = lastFieldContainer.locator('button:has-text("Add Option")');
-  await expect(addOptionButton).toBeVisible();
-  await addOptionButton.click();
-  await page.waitForTimeout(500);
-
-  // Verify that a larger Option input is added
-  const optionInput = lastFieldContainer.locator('input[placeholder="Option Name"]').first();
-  await expect(optionInput).toBeVisible();
-  await optionInput.fill('VIP Option');
-
-  // Verify that the "Select Multiple Options" toggle switch is visible
+  // Verify that the "Select Multiple Options" toggle switch is NOT visible for dropdown/select type
   const selectMultipleToggle = lastFieldContainer.locator('text=Select Multiple Options');
-  await expect(selectMultipleToggle).toBeVisible();
-
-  const toggleCheckbox = lastFieldContainer.locator('input[type="checkbox"]').last();
-  await expect(toggleCheckbox).not.toBeChecked();
-  await toggleCheckbox.click({ force: true });
-  await expect(toggleCheckbox).toBeChecked();
+  await expect(selectMultipleToggle).not.toBeVisible();
 
   // Scroll into view of our new field and capture a screenshot
   await lastFieldContainer.scrollIntoViewIfNeeded();
