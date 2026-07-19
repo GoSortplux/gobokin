@@ -460,7 +460,7 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}
         title="Sign in required"
-        message="You need to sign in to complete your ticket purchase."
+        message="Sign in to your account to save your bookings, or continue as a guest to complete your purchase instantly!"
         onGuestCheckout={() => {
           setShowLoginModal(false);
           proceedWithOrder(true);
