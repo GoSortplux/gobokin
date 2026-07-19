@@ -17,6 +17,7 @@ import api from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
 import { Analytics } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
+import DownloadReportModal from "@/components/organizer/DownloadReportModal";
 import {
   XAxis,
   YAxis,
@@ -34,6 +35,7 @@ const OrganizerDashboard = () => {
   const { user } = useAuth();
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
 
   const isStaff = user?.role?.includes('organizer-staff');
 
@@ -153,7 +155,10 @@ const OrganizerDashboard = () => {
         </div>
         {!isStaff && (
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                <button className="flex items-center justify-center gap-2 bg-white text-gray-700 font-bold px-5 py-3.5 rounded-2xl border border-gray-100 shadow-sm hover:bg-gray-50 transition-all">
+                <button
+                    onClick={() => setIsDownloadModalOpen(true)}
+                    className="flex items-center justify-center gap-2 bg-white text-gray-700 font-bold px-5 py-3.5 rounded-2xl border border-gray-100 shadow-sm hover:bg-gray-50 transition-all"
+                >
                     <BarChart3 size={18} />
                     Download Reports
                 </button>
@@ -417,6 +422,12 @@ const OrganizerDashboard = () => {
             )}
         </div>
       </div>
+
+      <DownloadReportModal
+        isOpen={isDownloadModalOpen}
+        onClose={() => setIsDownloadModalOpen(false)}
+        initialReportType="finance"
+      />
     </div>
   );
 };
