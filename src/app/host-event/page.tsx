@@ -943,7 +943,7 @@ const HostEventPage = () => {
                         </div>
                     )}
 
-                    {!isLocationField && field.type === 'select' && (
+                    {!isLocationField && (field.type === 'select' || field.type === 'checkbox') && (
                         <div className="flex items-center justify-between p-4 bg-primary/5 rounded-2xl border border-primary/10 mt-4">
                             <div className="space-y-0.5">
                                 <p className="text-xs font-bold text-gray-900">Select Multiple Options</p>

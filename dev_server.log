@@ -8,50 +8,10 @@
 
  ✓ Starting...
  ✓ Ready in 2.1s
- ○ Compiling /events/[organizerSlug]/[eventSlug] ...
- ✓ Compiled /events/[organizerSlug]/[eventSlug] in 13.7s (2047 modules)
-Failed to fetch event with slug: test-event, status: 404
- GET /events/test-organizer/test-event 200 in 18403ms
- ✓ Compiled in 705ms (832 modules)
-Failed to fetch event with slug: test-event, status: 404
- GET /events/test-organizer/test-event 200 in 674ms
- ✓ Compiled in 500ms (832 modules)
-Failed to fetch event with slug: test-event, status: 404
- GET /events/test-organizer/test-event 200 in 695ms
  ○ Compiling /organizer/dashboard/events/create ...
- ✓ Compiled /organizer/dashboard/events/create in 2.3s (2057 modules)
- GET /organizer/dashboard/events/create 200 in 3107ms
- GET /organizer/dashboard/events/create 200 in 134ms
- ○ Compiling /organizer/dashboard/events/[eventId]/edit ...
- ✓ Compiled /organizer/dashboard/events/[eventId]/edit in 1682ms (2066 modules)
- GET /organizer/dashboard/events/create 200 in 248ms
- GET /organizer/dashboard/events/test-event-id/edit 200 in 3131ms
- ○ Compiling /auth/login ...
- ✓ Compiled /auth/login in 2.6s (2083 modules)
- GET /auth/login 200 in 3178ms
- GET /auth/login 200 in 3180ms
- GET /auth/login 200 in 3166ms
- GET /auth/login 200 in 3306ms
- GET /auth/login 200 in 3186ms
- GET /auth/login 200 in 3307ms
- ✓ Compiled in 747ms (883 modules)
-Failed to fetch event with slug: test-event, status: 404
- GET /events/test-organizer/test-event 200 in 1164ms
- ○ Compiling /events ...
- ✓ Compiled /events in 944ms (2114 modules)
- GET /events 200 in 1399ms
- GET /auth/login 200 in 105ms
- ○ Compiling /organizer/dashboard/events ...
- ✓ Compiled /organizer/dashboard/events in 2.3s (2137 modules)
- GET /organizer/dashboard/events 200 in 2650ms
- ✓ Compiled in 454ms (907 modules)
- GET /organizer/dashboard/events/create 200 in 429ms
- GET /auth/login 200 in 259ms
- GET /events 200 in 221ms
- GET /organizer/dashboard/events/create 200 in 107ms
- GET /organizer/dashboard/events/create 200 in 217ms
- GET /organizer/dashboard/events/create 200 in 103ms
- ✓ Compiled in 367ms (907 modules)
- GET /organizer/dashboard/events/create 200 in 173ms
- GET /organizer/dashboard/events/create 200 in 165ms
- ✓ Compiled in 442ms (907 modules)
+ ✓ Compiled /organizer/dashboard/events/create in 19.7s (1892 modules)
+ GET /organizer/dashboard/events/create 200 in 21293ms
+ GET /organizer/dashboard/events/create 200 in 166ms
+ ✓ Compiled in 756ms (827 modules)
+ GET /organizer/dashboard/events/create 200 in 132ms
+ ✓ Compiled in 479ms (827 modules)
