@@ -18,13 +18,15 @@ import {
   Ticket,
   RotateCcw,
   Clock,
-  ExternalLink
+  ExternalLink,
+  Download
 } from "lucide-react";
 import api from "@/services/api";
 import { FinanceSummary, RefundRequest, Transaction, OrganizerBankAccount } from "@/types";
 import CustomLoader from "@/components/CustomLoader";
 import ProcessRefundModal from "@/components/ProcessRefundModal";
 import ManageBankModal from "@/components/organizer/ManageBankModal";
+import DownloadReportModal from "@/components/organizer/DownloadReportModal";
 import withAuth from "@/components/auth/withAuth";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
@@ -38,6 +40,7 @@ const FinanceDashboardContent = () => {
   const [activeView, setActiveView] = useState<'transactions' | 'refunds'>('transactions');
   const [selectedRequest, setSelectedRequest] = useState<RefundRequest | null>(null);
   const [isBankModalOpen, setIsBankModalOpen] = useState(false);
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
 
   useEffect(() => {
     const view = searchParams.get("view");
@@ -171,6 +174,13 @@ const FinanceDashboardContent = () => {
           <p className="text-gray-500 font-medium mt-1">Monitor your earnings, transactions, and payouts.</p>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+          <button
+            onClick={() => setIsDownloadModalOpen(true)}
+            className="flex items-center justify-center gap-2 bg-white text-gray-900 font-bold px-6 py-4 rounded-2xl hover:bg-gray-50 transition-all shadow-sm border border-gray-100"
+          >
+            <Download size={20} className="text-primary" />
+            Download Report
+          </button>
           <button
             onClick={handleTopUp}
             className="flex items-center justify-center gap-2 bg-white text-gray-900 font-bold px-6 py-4 rounded-2xl hover:bg-gray-50 transition-all shadow-sm border border-gray-100"
@@ -495,6 +505,12 @@ const FinanceDashboardContent = () => {
         onClose={() => setIsBankModalOpen(false)}
         onSuccess={fetchBankAccount}
         initialData={bankAccount}
+      />
+
+      <DownloadReportModal
+        isOpen={isDownloadModalOpen}
+        onClose={() => setIsDownloadModalOpen(false)}
+        initialReportType="finance"
       />
     </div>
   );

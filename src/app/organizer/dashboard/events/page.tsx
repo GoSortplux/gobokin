@@ -17,7 +17,8 @@ import {
   Trash2,
   ExternalLink,
   Edit,
-  Settings
+  Settings,
+  Download
 } from "lucide-react";
 import Image from "next/image";
 import api from "@/services/api";
@@ -29,6 +30,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useOrganizerRules } from "@/hooks/useOrganizerRules";
 import { useRouter } from "next/navigation";
 import WalkInRegistrationModal from "@/components/organizer/WalkInRegistrationModal";
+import DownloadReportModal from "@/components/organizer/DownloadReportModal";
 import useOnClickOutside from "@/hooks/useOnClickOutside";
 
 const MyEvents = () => {
@@ -43,6 +45,7 @@ const MyEvents = () => {
   const [selectedEventForWalkIn, setSelectedEventForWalkIn] = useState<Event | null>(null);
   const [isWalkInModalOpen, setIsWalkInModalOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useOnClickOutside(menuRef, () => setActiveMenu(null));
@@ -287,15 +290,24 @@ const MyEvents = () => {
           <h1 className="text-4xl font-black text-primary tracking-tight">My Events</h1>
           <p className="text-gray-500 font-medium mt-1">{isStaff ? "View and manage check-ins for your assigned events." : "Manage and monitor all your events in one place."}</p>
         </div>
-        {!isStaff && (
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
           <button
-            onClick={handleCreateEvent}
-            className="flex items-center justify-center gap-2 bg-primary text-white font-bold px-6 py-4 rounded-2xl hover:bg-opacity-90 transition-all shadow-xl shadow-primary/20 w-full md:w-auto"
+            onClick={() => setIsDownloadModalOpen(true)}
+            className="flex items-center justify-center gap-2 bg-white text-gray-900 font-bold px-6 py-4 rounded-2xl hover:bg-gray-50 transition-all shadow-sm border border-gray-100"
           >
-            <PlusCircle size={20} />
-            Create New Event
+            <Download size={20} className="text-primary" />
+            Download Report
           </button>
-        )}
+          {!isStaff && (
+            <button
+              onClick={handleCreateEvent}
+              className="flex items-center justify-center gap-2 bg-primary text-white font-bold px-6 py-4 rounded-2xl hover:bg-opacity-90 transition-all shadow-xl shadow-primary/20"
+            >
+              <PlusCircle size={20} />
+              Create New Event
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Toolbar */}
@@ -705,6 +717,12 @@ const MyEvents = () => {
           }}
         />
       )}
+
+      <DownloadReportModal
+        isOpen={isDownloadModalOpen}
+        onClose={() => setIsDownloadModalOpen(false)}
+        initialReportType="events"
+      />
     </div>
   );
 };
