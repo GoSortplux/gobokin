@@ -856,20 +856,31 @@ const HostEventPage = () => {
                         <span className="text-[10px] font-black text-gray-400 group-hover/toggle:text-gray-900 uppercase tracking-widest transition-colors">Required</span>
                     </label>
                     <div className="relative inline-block group/tooltip">
-                        <label className={`flex items-center gap-3 group/toggle ${!formData.registration.isGroupingEnabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}>
-                            <input
-                                type="checkbox"
-                                disabled={!formData.registration.isGroupingEnabled}
-                                checked={field.isPerAttendee}
-                                onChange={(e) => updateField(idx, "isPerAttendee", e.target.checked)}
-                                className="w-6 h-6 rounded-lg border-gray-200 text-primary cursor-pointer shadow-sm transition-all"
-                            />
-                            <span className="text-[10px] font-black text-gray-400 group-hover/toggle:text-gray-900 uppercase tracking-widest transition-colors flex items-center gap-1.5">
-                                Collect this for every attendee.
-                                <Info size={14} className="text-gray-400 group-hover/toggle:text-primary transition-colors shrink-0" />
-                            </span>
-                        </label>
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover/tooltip:block bg-gray-900 text-white text-[10px] font-bold rounded-xl p-3 w-64 z-[110] shadow-xl pointer-events-none text-left leading-relaxed">
+                        <div className="flex items-center gap-2">
+                            <label className={`flex items-center gap-3 group/toggle ${!formData.registration.isGroupingEnabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}>
+                                <input
+                                    type="checkbox"
+                                    disabled={!formData.registration.isGroupingEnabled}
+                                    checked={field.isPerAttendee}
+                                    onChange={(e) => updateField(idx, "isPerAttendee", e.target.checked)}
+                                    className="w-6 h-6 rounded-lg border-gray-200 text-primary cursor-pointer shadow-sm transition-all"
+                                />
+                                <span className="text-[10px] font-black text-gray-400 group-hover/toggle:text-gray-900 uppercase tracking-widest transition-colors">
+                                    Collect this for every attendee.
+                                </span>
+                            </label>
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                }}
+                                className="text-gray-400 hover:text-primary focus:text-primary transition-colors focus:outline-none shrink-0 cursor-help"
+                            >
+                                <Info size={14} />
+                            </button>
+                        </div>
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover/tooltip:block group-focus-within/tooltip:block bg-gray-900 text-white text-[10px] font-bold rounded-xl p-3 w-64 z-[110] shadow-xl pointer-events-none text-left leading-relaxed">
                             {!formData.registration.isGroupingEnabled ? (
                                 "Enable 'Allow Grouping' to collect details per attendee."
                             ) : (
