@@ -506,10 +506,23 @@ const EventDetails = () => {
 
   const handleMessageGuest = () => {
     if (isRestricted('BROADCAST_ALLOWED')) {
-      const rule = getRule('BROADCAST_ALLOWED');
       Swal.fire({
-        title: rule?.title || 'Feature Restricted',
-        text: rule?.uxContext || 'Manual messaging is not available on your current plan.',
+        title: 'Connect with Your Guests 💬',
+        html: `
+          <div class="text-center space-y-4 font-sans">
+            <p class="text-sm text-gray-600 leading-relaxed">
+              Keep your attendees informed with real-time announcements, friendly reminders, and important event updates, all sent directly from your dashboard.
+            </p>
+            <div class="flex justify-center py-1">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-xs font-semibold">
+                🔒 Premium Feature
+              </span>
+            </div>
+            <p class="text-sm text-gray-600 leading-relaxed">
+              Upgrade to a <strong class="text-primary font-bold">Premium Plan</strong> today to unlock <strong class="text-primary font-bold">Guest Messaging</strong> and access other powerful tools to manage your events effortlessly!
+            </p>
+          </div>
+        `,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Upgrade Now',
