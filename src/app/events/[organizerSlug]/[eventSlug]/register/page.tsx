@@ -594,20 +594,14 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
                                           type="checkbox"
                                           checked={isChecked}
                                           onChange={(e) => {
-                                            let nextValue;
-                                            if (field.multiple) {
-                                              const arr = Array.isArray(currentValue) ? [...currentValue] : (currentValue ? [currentValue] : []);
-                                              if (e.target.checked) {
-                                                if (!arr.includes(opt)) arr.push(opt);
-                                              } else {
-                                                const index = arr.indexOf(opt);
-                                                if (index > -1) arr.splice(index, 1);
-                                              }
-                                              nextValue = arr;
+                                            const arr = Array.isArray(currentValue) ? [...currentValue] : (currentValue ? [currentValue] : []);
+                                            if (e.target.checked) {
+                                              if (!arr.includes(opt)) arr.push(opt);
                                             } else {
-                                              nextValue = e.target.checked ? [opt] : [];
+                                              const index = arr.indexOf(opt);
+                                              if (index > -1) arr.splice(index, 1);
                                             }
-                                            handleSharedChange(field, nextValue);
+                                            handleSharedChange(field, arr);
                                           }}
                                           className="w-5 h-5 rounded border-gray-300 text-primary cursor-pointer shrink-0"
                                         />
@@ -748,23 +742,17 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
                                             type="checkbox"
                                             checked={isChecked}
                                             onChange={(e) => {
-                                              let nextValue;
-                                              if (field.multiple) {
-                                                const arr = Array.isArray(currentValue) ? [...currentValue] : (currentValue ? [currentValue] : []);
-                                                if (e.target.checked) {
-                                                  if (!arr.includes(opt)) arr.push(opt);
-                                                } else {
-                                                  const indexOpt = arr.indexOf(opt);
-                                                  if (indexOpt > -1) arr.splice(indexOpt, 1);
-                                                }
-                                                nextValue = arr;
+                                              const arr = Array.isArray(currentValue) ? [...currentValue] : (currentValue ? [currentValue] : []);
+                                              if (e.target.checked) {
+                                                if (!arr.includes(opt)) arr.push(opt);
                                               } else {
-                                                nextValue = e.target.checked ? [opt] : [];
+                                                const indexOpt = arr.indexOf(opt);
+                                                if (indexOpt > -1) arr.splice(indexOpt, 1);
                                               }
                                               if (field.isPerAttendee) {
-                                                handleAttendeeChange(index, field, nextValue);
+                                                handleAttendeeChange(index, field, arr);
                                               } else {
-                                                handleSharedChange(field, nextValue);
+                                                handleSharedChange(field, arr);
                                               }
                                             }}
                                             className="w-5 h-5 rounded border-gray-300 text-primary cursor-pointer shrink-0"
