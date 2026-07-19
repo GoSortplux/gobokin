@@ -581,7 +581,7 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
                                   )}
                                 </select>
                               ) : (field.type === 'checkbox' && field.options && field.options.length > 0) ? (
-                                <div className="space-y-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                   {field.options.map((opt) => {
                                     const currentValue = sharedData[field.name] || [];
                                     const isChecked = Array.isArray(currentValue)
@@ -589,7 +589,7 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
                                       : currentValue === opt;
 
                                     return (
-                                      <label key={opt} className="flex items-center gap-3 p-4 bg-white border border-gray-100 rounded-2xl cursor-pointer hover:bg-gray-50/50 transition-colors">
+                                      <label key={opt} className="flex items-center gap-3 p-3.5 bg-white border border-gray-100 rounded-xl cursor-pointer hover:bg-gray-50/50 transition-all hover:border-primary/20 hover:shadow-sm">
                                         <input
                                           type="checkbox"
                                           checked={isChecked}
@@ -609,9 +609,9 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
                                             }
                                             handleSharedChange(field, nextValue);
                                           }}
-                                          className="w-5 h-5 rounded border-gray-300 text-primary cursor-pointer"
+                                          className="w-5 h-5 rounded border-gray-300 text-primary cursor-pointer shrink-0"
                                         />
-                                        <span className="text-sm font-medium text-gray-700">{opt}</span>
+                                        <span className="text-sm font-medium text-gray-700 break-words">{opt}</span>
                                       </label>
                                     );
                                   })}
@@ -735,7 +735,7 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
                                     )}
                                   </select>
                                 ) : (field.type === 'checkbox' && field.options && field.options.length > 0) ? (
-                                  <div className="space-y-3">
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     {field.options.map((opt) => {
                                       const currentValue = (field.isPerAttendee ? attendees[index][field.name] : sharedData[field.name]) || [];
                                       const isChecked = Array.isArray(currentValue)
@@ -743,7 +743,7 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
                                         : currentValue === opt;
 
                                       return (
-                                        <label key={opt} className="flex items-center gap-3 p-4 bg-white border border-gray-100 rounded-2xl cursor-pointer hover:bg-gray-50/50 transition-colors">
+                                        <label key={opt} className="flex items-center gap-3 p-3.5 bg-white border border-gray-100 rounded-xl cursor-pointer hover:bg-gray-50/50 transition-all hover:border-primary/20 hover:shadow-sm">
                                           <input
                                             type="checkbox"
                                             checked={isChecked}
@@ -767,9 +767,9 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
                                                 handleSharedChange(field, nextValue);
                                               }
                                             }}
-                                            className="w-5 h-5 rounded border-gray-300 text-primary cursor-pointer"
+                                            className="w-5 h-5 rounded border-gray-300 text-primary cursor-pointer shrink-0"
                                           />
-                                          <span className="text-sm font-medium text-gray-700">{opt}</span>
+                                          <span className="text-sm font-medium text-gray-700 break-words">{opt}</span>
                                         </label>
                                       );
                                     })}
