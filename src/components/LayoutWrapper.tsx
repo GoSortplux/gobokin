@@ -15,6 +15,14 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   const { user, updateToken } = useAuth();
   const pathname = usePathname();
   const [showGeneralPolicy, setShowGeneralPolicy] = useState(false);
+  const [isEventDomain, setIsEventDomain] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.hostname.includes("event.gobokin.com")) {
+      setIsEventDomain(true);
+    }
+  }, []);
+
   const isAuthPage =
     pathname.startsWith("/auth/login") ||
     pathname.startsWith("/auth/register") ||
@@ -29,7 +37,7 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   const isPaymentPage = pathname.startsWith("/payment/verify") ||
                         pathname.startsWith("/payment-success") ||
                         pathname.startsWith("/events/verify");
-  const isEventPage = pathname.startsWith("/events") || pathname.startsWith("/host-event");
+  const isEventPage = pathname.startsWith("/events") || pathname.startsWith("/host-event") || isEventDomain;
 
   useEffect(() => {
     if (user && !user.hasAcceptedLatestPolicies && !isAuthPage) {
