@@ -458,9 +458,9 @@ const EventHeaderContent = () => {
               </form>
 
               <nav className="flex flex-col gap-2">
-                 <Link href="/events" className="flex items-center gap-3 p-4 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+                 <Link href="/" className="flex items-center gap-3 p-4 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
                     <Calendar size={20} className="text-primary" />
-                    Browse for Event / Sell Ticket
+                    Book Venue
                  </Link>
                  {user && (
                     <>
