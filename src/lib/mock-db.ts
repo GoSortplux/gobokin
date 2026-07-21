@@ -350,5 +350,187 @@ export const db = {
         return newConf;
       }
     }
+  },
+  policies: {
+    findMany: async () => {
+      // Returns all published policies without content field or with,
+      // but in the request we map policies.
+      return mockPolicies.map(({ content: _, ...p }) => p);
+    },
+    findBySlug: async (slug: string) => {
+      return mockPolicies.find(p => p.slug === slug) || null;
+    }
   }
 };
+
+export interface Policy {
+  _id: string;
+  title: string;
+  slug: string;
+  content: string;
+  version: number;
+  effectiveDate: string;
+}
+
+const mockPolicies: Policy[] = [
+  {
+    _id: "697dddc908cccb7ff57c9d82",
+    title: "Gobokin Platform Policies",
+    slug: "ancillary-policies",
+    version: 1,
+    effectiveDate: "2026-01-28T00:00:00.000Z",
+    content: `# Gobokin Platform Policies
+
+## 1. Introduction
+Welcome to the Gobokin Platform. This Ancillary Policies document governs specific services, activities, and additional features on our platform.
+
+## 2. Platform Usage
+ **Account Integrity**: Users must provide accurate, current, and complete registration information.
+ **Acceptable Conduct**: You agree not to misuse the platform or assist anyone else in doing so.
+ **Data Protection**: We protect your personal data in accordance with our Privacy Policy.
+
+## 3. Amendments
+We reserves the right to modify these policies at any time. Changes become effective on the designated date.
+`
+  },
+  {
+    _id: "697dddc808cccb7ff57c9d7c",
+    title: "Gobokin Venue Usage & Booking Policy",
+    slug: "default-hall-policy",
+    version: 1,
+    effectiveDate: "2026-01-28T00:00:00.000Z",
+    content: `# Gobokin Venue Usage & Booking Policy
+
+## 1. Booking Guidelines
+This policy sets forth the standard conditions of booking and using venues listed on the Gobokin platform.
+
+## 2. Host and Guest Obligations
+ **Venue Standards**: Hosts must ensure that venues are safe, clean, and match the listed description.
+ **Respectful Use**: Guests must respect the venue rules, noise limits, and leave the property in good condition.
+ **Damages**: Guests are fully responsible for any damage caused to the venue during their booking.
+
+## 3. Dispute Resolution
+Any disagreements regarding venue conditions or booking times should be mediated through Gobokin Customer Support.
+`
+  },
+  {
+    _id: "697dddc808cccb7ff57c9d7f",
+    title: "Gobokin Venue Partner Master Agreement",
+    slug: "hall-owner-agreement",
+    version: 1,
+    effectiveDate: "2026-01-28T00:00:00.000Z",
+    content: `# Gobokin Venue Partner Master Agreement
+
+## 1. Partnership Overview
+This Master Agreement regulates the relationship between Gobokin and Venue Owners / Hall Partners listing their spaces on the platform.
+
+## 2. Listing and Payouts
+ **Accurate Representation**: Venue owners must list actual prices, capacities, and facilities.
+ **Service Commission**: Gobokin charges a standard commission on successful bookings.
+ **Payout Schedule**: Verified venue owners receive payouts in accordance with the bank verification guidelines.
+
+## 3. Compliance and Termination
+Failure to adhere to the platform standards can result in immediate listing suspension or account termination.
+`
+  },
+  {
+    _id: "6a5e2baaebc42b10b9c23efa",
+    slug: "organizer-agreement",
+    effectiveDate: "2026-01-28T00:00:00.000Z",
+    title: "Gobokin Organizer Master Agreement",
+    version: 1,
+    content: `# Gobokin Organizer Master Agreement
+
+## 1. Agreement Scope
+This agreement applies to all Event Organizers using Gobokin to host events, issue tickets, or handle event registration.
+
+## 2. Organizer Responsibilities
+ **Accurate Ticketing**: Organizers are solely responsible for setting ticket quantities and pricing details correctly.
+ **Fulfillment**: You must host the event as described. Any cancellation or relocation must be communicated to attendees immediately.
+ **Compliance**: Event activities must comply with all local laws and regulations.
+
+## 3. Financial Terms
+Payouts of ticket sales proceeds will be processed to the organizer's linked and verified bank account.
+`
+  },
+  {
+    _id: "697dddc708cccb7ff57c9d79",
+    title: "Gobokin Privacy Policy",
+    slug: "privacy-policy",
+    version: 1,
+    effectiveDate: "2026-01-28T00:00:00.000Z",
+    content: `# Gobokin Privacy Policy
+
+## 1. Information Collection
+We collect personal information that you provide when creating an account, buying tickets, or listing a venue.
+
+## 2. Information Usage
+ **Service Provision**: To handle ticket registration, payments, and notifications.
+ **Analytics**: To improve platform performance and user experience.
+ **Security**: To protect against fraud and ensure account security.
+
+## 3. Third-Party Sharing
+We do not sell your personal information. We only share data with payment processors and venue/event organizers as necessary to complete transactions.
+`
+  },
+  {
+    _id: "697dddc708cccb7ff57c9d76",
+    title: "Gobokin Refund, Cancellation & Rescheduling Policy",
+    slug: "refund-policy",
+    version: 1,
+    effectiveDate: "2026-01-28T00:00:00.000Z",
+    content: `# Gobokin Refund, Cancellation & Rescheduling Policy
+
+## 1. Standard Refund Terms
+Refund policies are defined by the Event Organizer or Venue Owner during setup.
+
+## 2. Cancellation Process
+ **Request Submissions**: Attendees may request refunds through their dashboard within the allowed timeline.
+ **Platform Commissions**: Platform booking/ticketing fees are non-refundable.
+ **Event Cancellations**: If an event is canceled by the host, full refunds are issued to attendees.
+
+## 3. Process Timelines
+Approved refunds are credited to the user's original payment method within 5-10 business days.
+`
+  },
+  {
+    _id: "6a5e2bacebc42b10b9c23efb",
+    slug: "trust-safety-standards",
+    effectiveDate: "2026-01-28T00:00:00.000Z",
+    title: "Gobokin Trust & Safety Standards",
+    version: 1,
+    content: `# Gobokin Trust & Safety Standards
+
+## 1. Core Principles
+Gobokin is committed to maintaining a safe, transparent, and trustworthy marketplace.
+
+## 2. Platform Policies
+ **Zero Tolerance**: We have zero tolerance for hate speech, harassment, or illegal activities.
+ **Honesty**: Users, organizers, and hosts must act with complete integrity.
+ **Identity Verification**: We may request identity verification to maintain community standards.
+
+## 3. Reporting Misconduct
+You can report any suspicious activity or violations directly to safety@gobokin.com.
+`
+  },
+  {
+    _id: "697dddc608cccb7ff57c9d73",
+    title: "Gobokin Platform Terms of Service",
+    slug: "user-agreement",
+    version: 1,
+    effectiveDate: "2026-01-28T00:00:00.000Z",
+    content: `# Gobokin Platform Terms of Service
+
+## 1. Introduction
+By using the Gobokin platform, you agree to comply with and be bound by these Terms of Service.
+
+## 2. General Use
+ **Account Custody**: You are responsible for keeping your account details and password secure.
+ **Permitted Use**: You may only use Gobokin for legal ticket purchases, venue bookings, and listings.
+ **Intellectual Property**: All platform content and software are owned by Gobokin.
+
+## 3. Limitation of Liability
+Gobokin is a service platform and is not liable for issues arising directly from event organizer or venue operations.
+`
+  }
+];
