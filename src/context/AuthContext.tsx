@@ -44,8 +44,8 @@ const ACTIVITY_UPDATE_INTERVAL = 60 * 1000; // 1 minute in milliseconds
 const getCookieDomain = () => {
   if (typeof window === 'undefined') return '';
   const hostname = window.location.hostname;
-  if (hostname.endsWith('.gobokin.com')) {
-    return '; domain=.gobokin.com';
+  if (hostname === 'gobokin.com' || hostname.endsWith('.gobokin.com')) {
+    return 'domain=.gobokin.com';
   }
   return '';
 };
@@ -54,7 +54,9 @@ const setCookie = (name: string, value: string, days = 7) => {
   if (typeof document === 'undefined') return;
   const expires = new Date(Date.now() + days * 864e5).toUTCString();
   const domain = getCookieDomain();
-  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/${domain}; SameSite=Lax`;
+  const domainString = domain ? `; ${domain}` : '';
+  const secureString = typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; Secure' : '';
+  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax${domainString}${secureString}`;
 };
 
 const getCookie = (name: string): string | null => {
@@ -72,7 +74,8 @@ const getCookie = (name: string): string | null => {
 const deleteCookie = (name: string) => {
   if (typeof document === 'undefined') return;
   const domain = getCookieDomain();
-  document.cookie = `${name}=; Path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;${domain}`;
+  const domainString = domain ? `; ${domain}` : '';
+  document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT${domainString}`;
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
