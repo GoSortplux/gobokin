@@ -226,7 +226,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('token') || getCookie('token');
+    const localToken = localStorage.getItem('token');
+    const cookieToken = getCookie('token');
+
+    // If we have a local token but no cookie token, a logout occurred on another subdomain/domain.
+    if (localToken && !cookieToken) {
+      logout();
+      setLoading(false);
+      return;
+    }
+
+    const storedToken = localToken || cookieToken;
     const storedLastActivity = localStorage.getItem('lastActivity');
 
     if (storedToken) {
