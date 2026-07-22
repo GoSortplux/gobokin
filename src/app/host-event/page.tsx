@@ -419,9 +419,17 @@ const getLocalDateTimeString = () => {
 
 const HostEventPage = () => {
   const router = useRouter();
-  const { user, updateToken } = useAuth();
+  const { user, updateToken, fetchUserProfile } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [categories, setCategories] = useState<string[]>([]);
+  const hasRefreshedUser = useRef(false);
+
+  useEffect(() => {
+    if (user && !hasRefreshedUser.current) {
+      hasRefreshedUser.current = true;
+      fetchUserProfile().catch(err => console.error("Failed to refresh user profile on mount:", err));
+    }
+  }, [user, fetchUserProfile]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -1375,6 +1383,13 @@ const HostEventPage = () => {
 
         const response = await api.post("/events", payload);
         const eventId = response.data.data.id;
+
+        // Refresh user profile after creating the event to sync new roles or permissions
+        try {
+            await fetchUserProfile();
+        } catch (fetchErr) {
+            console.error("Failed to refresh user profile during event finalization:", fetchErr);
+        }
 
         // Update draft with eventId
         const updatedDraft = { ...formData, eventId };
@@ -2627,6 +2642,7 @@ const HostEventPage = () => {
               if (response.data?.data?.accessToken) {
                 updateToken(response.data.data.accessToken);
               }
+              await fetchUserProfile();
             } catch (err) {
               console.error('Failed to refresh token after organizer policy acceptance:', err);
             }
