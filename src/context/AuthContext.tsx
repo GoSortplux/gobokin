@@ -15,6 +15,7 @@ interface DecodedToken {
   activeRole: string;
   hasAcceptedLatestPolicies: boolean;
   hasAcceptedHallOwnerPolicy: boolean;
+  hasAcceptedOrganizerPolicy: boolean;
   iat: number;
   exp: number;
   hallOwnerApplication?: {
@@ -198,6 +199,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 fullName: '',
                 hasAcceptedLatestPolicies: decodedToken.hasAcceptedLatestPolicies,
                 hasAcceptedHallOwnerPolicy: decodedToken.hasAcceptedHallOwnerPolicy,
+                hasAcceptedOrganizerPolicy: decodedToken.hasAcceptedOrganizerPolicy,
                 hallOwnerApplication: decodedToken.hallOwnerApplication
             };
             setUser(userFromToken);
@@ -272,6 +274,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           // Prefer true if either the token or the current state has it as true (persistence fix)
           hasAcceptedLatestPolicies: decodedToken.hasAcceptedLatestPolicies === true || prev?.hasAcceptedLatestPolicies === true,
           hasAcceptedHallOwnerPolicy: decodedToken.hasAcceptedHallOwnerPolicy === true || prev?.hasAcceptedHallOwnerPolicy === true,
+          hasAcceptedOrganizerPolicy: decodedToken.hasAcceptedOrganizerPolicy === true || prev?.hasAcceptedOrganizerPolicy === true,
           hallOwnerApplication: decodedToken.hallOwnerApplication || prev?.hallOwnerApplication,
         };
         localStorage.setItem('user', JSON.stringify(updatedUser));

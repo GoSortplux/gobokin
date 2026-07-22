@@ -187,6 +187,7 @@ export interface User {
   nin?: string;
   hasAcceptedLatestPolicies: boolean;
   hasAcceptedHallOwnerPolicy: boolean;
+  hasAcceptedOrganizerPolicy: boolean;
   isVerified?: boolean;
   isEmailVerified?: boolean;
   hallOwnerApplication?: {

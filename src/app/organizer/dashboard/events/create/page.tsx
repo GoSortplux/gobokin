@@ -41,6 +41,7 @@ import {
 import api from "@/services/api";
 import { RegistrationFieldItem } from "@/components/organizer/RegistrationFieldItem";
 import { EventReminderSection } from "@/components/organizer/EventReminderSection";
+import PolicyModal from "@/components/PolicyModal";
 import axios from "axios";
 import Swal from "@/utils/sweetalert";
 import { triggerSuccessConfetti } from "@/utils/confetti";
@@ -467,6 +468,7 @@ const CreateEvent = () => {
   const [showPreview, setShowPreview] = useState(true);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [showOrganizerPolicyModal, setShowOrganizerPolicyModal] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
   const [organizerSlug, setOrganizerSlug] = useState<string>("");
   const [activeEventsCount, setActiveEventsCount] = useState<number>(0);
@@ -1496,7 +1498,12 @@ const CreateEvent = () => {
       });
     } catch (_error) {
       console.error("Failed to create event:", _error);
-      Swal.fire("Error", translateError(_error), "error");
+      const errMsg = translateError(_error);
+      if (errMsg.includes("Organizer Master Agreement")) {
+        setShowOrganizerPolicyModal(true);
+      } else {
+        Swal.fire("Error", errMsg, "error");
+      }
     } finally {
       setLoading(false);
     }
@@ -3259,6 +3266,44 @@ const CreateEvent = () => {
             />
           </div>
         </div>
+      )}
+
+      {showOrganizerPolicyModal && (
+        <PolicyModal
+          type="general"
+          isOpen={showOrganizerPolicyModal}
+          slug="organizer-agreement"
+          isMandatory={true}
+          compact={true}
+          onAccept={async () => {
+            setShowOrganizerPolicyModal(false);
+            // Show a clean setup loader so there is no blank/frozen state
+            Swal.fire({
+              title: 'Completing Setup',
+              text: 'Creating your event...',
+              allowOutsideClick: false,
+              showConfirmButton: false,
+              didOpen: () => {
+                Swal.showLoading();
+              }
+            });
+
+            try {
+              const response = await api.post('/auth/refresh-token');
+              if (response.data?.data?.accessToken) {
+                updateToken(response.data.data.accessToken);
+              }
+            } catch (err) {
+              console.error('Failed to refresh token after organizer policy acceptance:', err);
+            }
+
+            Swal.close();
+
+            // Automatically re-trigger event creation
+            createEventBase();
+          }}
+          onClose={() => setShowOrganizerPolicyModal(false)}
+        />
       )}
 
       {/* Visual Support Badges */}

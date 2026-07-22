@@ -41,6 +41,7 @@ import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 import LoginRequiredModal from "@/components/auth/LoginRequiredModal";
 import { EventReminderSection } from "@/components/organizer/EventReminderSection";
+import PolicyModal from "@/components/PolicyModal";
 
 const steps = [
   { id: 1, title: "Identity", icon: Type },
@@ -418,7 +419,7 @@ const getLocalDateTimeString = () => {
 
 const HostEventPage = () => {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, updateToken } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [categories, setCategories] = useState<string[]>([]);
 
@@ -439,6 +440,7 @@ const HostEventPage = () => {
   const [showPreview, setShowPreview] = useState(true);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [showOrganizerPolicyModal, setShowOrganizerPolicyModal] = useState(false);
   const [isFinalizing, setIsFinalizing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -1396,7 +1398,12 @@ const HostEventPage = () => {
         window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (_error) {
         console.error("Failed to finalized event creation:", _error);
-      Swal.fire("Error", translateError(_error), "error");
+        const errMsg = translateError(_error);
+        if (errMsg.includes("Organizer Master Agreement")) {
+            setShowOrganizerPolicyModal(true);
+        } else {
+            Swal.fire("Error", errMsg, "error");
+        }
     } finally {
         setIsFinalizing(false);
     }
@@ -2593,6 +2600,44 @@ const HostEventPage = () => {
             />
           </div>
         </div>
+      )}
+
+      {showOrganizerPolicyModal && (
+        <PolicyModal
+          type="general"
+          isOpen={showOrganizerPolicyModal}
+          slug="organizer-agreement"
+          isMandatory={true}
+          compact={true}
+          onAccept={async () => {
+            setShowOrganizerPolicyModal(false);
+            // Show a clean setup loader so there is no blank/frozen state
+            Swal.fire({
+              title: 'Completing Setup',
+              text: 'Creating your event...',
+              allowOutsideClick: false,
+              showConfirmButton: false,
+              didOpen: () => {
+                Swal.showLoading();
+              }
+            });
+
+            try {
+              const response = await api.post('/auth/refresh-token');
+              if (response.data?.data?.accessToken) {
+                updateToken(response.data.data.accessToken);
+              }
+            } catch (err) {
+              console.error('Failed to refresh token after organizer policy acceptance:', err);
+            }
+
+            Swal.close();
+
+            // Automatically re-trigger event creation
+            handleFinalize();
+          }}
+          onClose={() => setShowOrganizerPolicyModal(false)}
+        />
       )}
     </div>
   );
