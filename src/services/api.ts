@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { translateError } from '@/utils/errors';
 
-export const API_BASE_URL = 'https://api.gobokin.com/api/v1';
+export const API_BASE_URL = 'https://dev.gobokin.com/api/v1';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

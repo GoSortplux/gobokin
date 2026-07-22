@@ -234,16 +234,34 @@ const PolicyModal = ({
       onAccept();
       return;
     }
+
+    // Show beautiful loading state while policy acceptance is being processed
+    Swal.fire({
+      title: 'Saving Policy Acceptance',
+      text: 'Please wait while we update your profile...',
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
     try {
-      const payload = type === 'general'
-        ? { hasAcceptedLatestPolicies: true }
-        : { hasAcceptedHallOwnerPolicy: true };
+      let payload: Record<string, boolean> = {};
+      if (slug === 'organizer-agreement') {
+        payload = { hasAcceptedOrganizerPolicy: true };
+      } else if (type === 'general') {
+        payload = { hasAcceptedLatestPolicies: true };
+      } else {
+        payload = { hasAcceptedHallOwnerPolicy: true };
+      }
 
       await api.patch('/users/me', payload);
 
       // Update local context immediately to prevent modal from flickering/reappearing
       updateUser(payload);
 
+      Swal.close();
       Swal.toast.fire({
         icon: 'success',
         title: 'Policy accepted successfully',
@@ -252,6 +270,7 @@ const PolicyModal = ({
       onAccept();
     } catch (err) {
       console.error('Failed to accept policy:', err);
+      Swal.close();
       Swal.fire({
         icon: 'error',
         title: 'Error',
