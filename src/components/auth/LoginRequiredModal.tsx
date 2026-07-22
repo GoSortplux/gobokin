@@ -1,6 +1,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { LogIn, UserPlus, X } from 'lucide-react';
+import { setSharedReturnUrl } from '@/context/AuthContext';
 
 interface LoginRequiredModalProps {
   isOpen: boolean;
@@ -47,7 +48,7 @@ const LoginRequiredModal: React.FC<LoginRequiredModalProps> = ({
             onClick={() => {
               // Store current URL to redirect back after login if needed
               if (typeof window !== 'undefined') {
-                localStorage.setItem('returnUrl', window.location.pathname + window.location.search);
+                setSharedReturnUrl(window.location.pathname + window.location.search);
               }
               router.push('/auth/login');
             }}

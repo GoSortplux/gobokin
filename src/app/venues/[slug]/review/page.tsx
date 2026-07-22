@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Star, X, ArrowLeft, Loader2 } from 'lucide-react';
 import api from '@/services/api';
 import Swal from "@/utils/sweetalert";
-import { useAuth } from '@/context/AuthContext';
+import { useAuth, setSharedReturnUrl } from '@/context/AuthContext';
 import { Booking, Venue } from '@/types';
 interface ReviewPageProps {
   params: Promise<{ slug: string }>;
@@ -30,7 +30,7 @@ const ReviewPage = ({ params }: ReviewPageProps) => {
     if (authLoading) return;
 
     if (!user) {
-      localStorage.setItem('returnUrl', window.location.pathname);
+      setSharedReturnUrl(window.location.pathname);
       router.push('/auth/login');
       return;
     }
