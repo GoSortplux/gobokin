@@ -2611,6 +2611,17 @@ const HostEventPage = () => {
           compact={true}
           onAccept={async () => {
             setShowOrganizerPolicyModal(false);
+            // Show a clean setup loader so there is no blank/frozen state
+            Swal.fire({
+              title: 'Completing Setup',
+              text: 'Creating your event...',
+              allowOutsideClick: false,
+              showConfirmButton: false,
+              didOpen: () => {
+                Swal.showLoading();
+              }
+            });
+
             try {
               const response = await api.post('/auth/refresh-token');
               if (response.data?.data?.accessToken) {
@@ -2619,12 +2630,11 @@ const HostEventPage = () => {
             } catch (err) {
               console.error('Failed to refresh token after organizer policy acceptance:', err);
             }
-            Swal.fire({
-              title: "Agreement Accepted!",
-              text: "You can now click 'Next' to proceed.",
-              icon: "success",
-              confirmButtonColor: "#295FA7",
-            });
+
+            Swal.close();
+
+            // Automatically re-trigger event creation
+            handleFinalize();
           }}
           onClose={() => setShowOrganizerPolicyModal(false)}
         />
