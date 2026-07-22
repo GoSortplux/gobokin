@@ -49,26 +49,31 @@ const MarkdownRenderer = ({ content }: { content?: string }) => {
           );
         }
 
+        // Bold parsing helper
+        const renderLineWithBold = (text: string) => {
+          const parts = text.split(/(\*\*.*?\*\*)/g);
+          return parts.map((part, i) => {
+            if (part.startsWith('**') && part.endsWith('**')) {
+              return <strong key={i} className="font-bold text-gray-900">{part.slice(2, -2)}</strong>;
+            }
+            return part;
+          });
+        };
+
         // List items with special bullet 
         if (trimmedLine.startsWith('')) {
+          const rawText = trimmedLine.substring(1).trim();
           return (
             <div key={index} className="flex items-start space-x-4 ml-6 mb-4 group">
               <div className="mt-2.5 w-1.5 h-1.5 rounded-full bg-primary/30 group-hover:bg-primary transition-colors shrink-0" />
-              <p className="flex-1 text-base md:text-lg text-gray-600">{trimmedLine.substring(1).trim()}</p>
+              <p className="flex-1 text-base md:text-lg text-gray-600">
+                {renderLineWithBold(rawText)}
+              </p>
             </div>
           );
         }
 
-        // Bold text logic
-        const parts = line.split(/(\*\*.*?\*\*)/g);
-        const renderedLine = parts.map((part, i) => {
-          if (part.startsWith('**') && part.endsWith('**')) {
-            return <strong key={i} className="font-bold text-gray-900">{part.slice(2, -2)}</strong>;
-          }
-          return part;
-        });
-
-        return <p key={index} className="text-base md:text-lg text-gray-600">{renderedLine}</p>;
+        return <p key={index} className="text-base md:text-lg text-gray-600">{renderLineWithBold(line)}</p>;
       })}
     </div>
   );
@@ -297,7 +302,7 @@ const PolicyModal = ({
             </div>
             <div>
               <h2 className={`${compact ? 'text-xl' : 'text-2xl'} font-black text-gray-900 tracking-tight`}>
-                {type === 'hall-owner' ? 'Venue Owner Agreement' : (slug === 'refund-policy' ? 'Refund & Cancellation Policy' : 'Updated Policies')}
+                {type === 'hall-owner' ? 'Venue Owner Agreement' : (slug === 'refund-policy' ? 'Refund & Cancellation Policy' : 'Policies')}
               </h2>
               <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mt-0.5">Review and Accept Agreement</p>
             </div>
