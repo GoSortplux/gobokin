@@ -13,10 +13,22 @@ const api = axios.create({
 // https://hallbooker.onrender.com/api/v1
 // https://qspfh08j-8000.uks1.devtunnels.ms/api/v1
 
+const getCookie = (name: string): string | null => {
+  if (typeof document === 'undefined') return null;
+  const nameEQ = name + "=";
+  const ca = document.cookie.split(';');
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
+  }
+  return null;
+};
+
 api.interceptors.request.use(
   (config) => {
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token') || getCookie('token');
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       } else {

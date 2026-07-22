@@ -41,6 +41,40 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const IDLE_TIMEOUT = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
 const ACTIVITY_UPDATE_INTERVAL = 60 * 1000; // 1 minute in milliseconds
 
+const getCookieDomain = () => {
+  if (typeof window === 'undefined') return '';
+  const hostname = window.location.hostname;
+  if (hostname.endsWith('.gobokin.com')) {
+    return '; domain=.gobokin.com';
+  }
+  return '';
+};
+
+const setCookie = (name: string, value: string, days = 7) => {
+  if (typeof document === 'undefined') return;
+  const expires = new Date(Date.now() + days * 864e5).toUTCString();
+  const domain = getCookieDomain();
+  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/${domain}; SameSite=Lax`;
+};
+
+const getCookie = (name: string): string | null => {
+  if (typeof document === 'undefined') return null;
+  const nameEQ = name + "=";
+  const ca = document.cookie.split(';');
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
+  }
+  return null;
+};
+
+const deleteCookie = (name: string) => {
+  if (typeof document === 'undefined') return;
+  const domain = getCookieDomain();
+  document.cookie = `${name}=; Path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;${domain}`;
+};
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -55,6 +89,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('lastActivity');
+    deleteCookie('token');
+    deleteCookie('user');
     delete api.defaults.headers.Authorization;
     router.push('/auth/login');
   }, [router]);
@@ -150,7 +186,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const userData = response.data.data || response.data;
       setUser(prev => {
         const updated = { ...prev, ...userData };
-        localStorage.setItem('user', JSON.stringify(updated));
+        const updatedStr = JSON.stringify(updated);
+        localStorage.setItem('user', updatedStr);
+        setCookie('user', updatedStr);
         return updated;
       });
     } catch (error) {
@@ -159,10 +197,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
+    const storedToken = localStorage.getItem('token') || getCookie('token');
     const storedLastActivity = localStorage.getItem('lastActivity');
 
     if (storedToken) {
+      // Sync it to localStorage if it was only present in cookies (cross-subdomain sync)
+      if (!localStorage.getItem('token')) {
+        localStorage.setItem('token', storedToken);
+      }
+
+      // Sync to cookie if it was only present in localStorage
+      if (!getCookie('token')) {
+        setCookie('token', storedToken);
+      }
+
       // Check for inactivity timeout
       if (storedLastActivity) {
         if (Date.now() - parseInt(storedLastActivity, 10) > IDLE_TIMEOUT) {
@@ -184,9 +232,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setToken(storedToken);
           api.defaults.headers.Authorization = `Bearer ${storedToken}`;
           // Fetch user data if not in local storage or if it's stale
-          const storedUser = localStorage.getItem('user');
+          const storedUser = localStorage.getItem('user') || getCookie('user');
           if (storedUser) {
             setUser(JSON.parse(storedUser));
+
+            // Sync user to both places
+            if (!localStorage.getItem('user')) {
+              localStorage.setItem('user', storedUser);
+            }
+            if (!getCookie('user')) {
+              setCookie('user', storedUser);
+            }
+
             fetchUserProfile(); // Background refresh
           } else {
             // Initial load from token then background fetch
@@ -217,9 +274,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = useCallback((newToken: string, newUser: User, redirectPath?: string) => {
     setToken(newToken);
     setUser(newUser);
+    const userStr = JSON.stringify(newUser);
     localStorage.setItem('token', newToken);
-    localStorage.setItem('user', JSON.stringify(newUser));
+    localStorage.setItem('user', userStr);
     localStorage.setItem('lastActivity', Date.now().toString());
+    setCookie('token', newToken);
+    setCookie('user', userStr);
     api.defaults.headers.Authorization = `Bearer ${newToken}`;
 
     if (redirectPath) {
@@ -249,7 +309,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(prev => {
       if (!prev) return null;
       const updated = { ...prev, ...updates };
-      localStorage.setItem('user', JSON.stringify(updated));
+      const updatedStr = JSON.stringify(updated);
+      localStorage.setItem('user', updatedStr);
+      setCookie('user', updatedStr);
       return updated;
     });
   }, []);
@@ -258,6 +320,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setToken(newToken);
     localStorage.setItem('token', newToken);
     localStorage.setItem('lastActivity', Date.now().toString());
+    setCookie('token', newToken);
     api.defaults.headers.Authorization = `Bearer ${newToken}`;
 
     try {
@@ -277,7 +340,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           hasAcceptedOrganizerPolicy: decodedToken.hasAcceptedOrganizerPolicy === true || prev?.hasAcceptedOrganizerPolicy === true,
           hallOwnerApplication: decodedToken.hallOwnerApplication || prev?.hallOwnerApplication,
         };
-        localStorage.setItem('user', JSON.stringify(updatedUser));
+        const updatedStr = JSON.stringify(updatedUser);
+        localStorage.setItem('user', updatedStr);
+        setCookie('user', updatedStr);
         return updatedUser;
       });
 
@@ -321,7 +386,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           status,
         },
       };
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      const updatedStr = JSON.stringify(updatedUser);
+      localStorage.setItem('user', updatedStr);
+      setCookie('user', updatedStr);
       return updatedUser;
     });
   }, []);
