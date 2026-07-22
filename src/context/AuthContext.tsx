@@ -74,8 +74,12 @@ const getCookie = (name: string): string | null => {
 const deleteCookie = (name: string) => {
   if (typeof document === 'undefined') return;
   const domain = getCookieDomain();
-  const domainString = domain ? `; ${domain}` : '';
-  document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT${domainString}`;
+  // 1. Delete on wildcard domain if applicable
+  if (domain) {
+    document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; ${domain}`;
+  }
+  // 2. Always delete on host-only domain to clear any legacy/host-specific cookies
+  document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT`;
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
