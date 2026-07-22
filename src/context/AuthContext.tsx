@@ -41,7 +41,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const IDLE_TIMEOUT = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
 const ACTIVITY_UPDATE_INTERVAL = 60 * 1000; // 1 minute in milliseconds
 
-const getCookieDomain = () => {
+export const getCookieDomain = () => {
   if (typeof window === 'undefined') return '';
   const hostname = window.location.hostname;
   if (hostname === 'gobokin.com' || hostname.endsWith('.gobokin.com')) {
@@ -50,7 +50,7 @@ const getCookieDomain = () => {
   return '';
 };
 
-const setCookie = (name: string, value: string, days = 7) => {
+export const setCookie = (name: string, value: string, days = 7) => {
   if (typeof document === 'undefined') return;
   const expires = new Date(Date.now() + days * 864e5).toUTCString();
   const domain = getCookieDomain();
@@ -59,7 +59,7 @@ const setCookie = (name: string, value: string, days = 7) => {
   document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax${domainString}${secureString}`;
 };
 
-const getCookie = (name: string): string | null => {
+export const getCookie = (name: string): string | null => {
   if (typeof document === 'undefined') return null;
   const nameEQ = name + "=";
   const ca = document.cookie.split(';');
@@ -71,7 +71,7 @@ const getCookie = (name: string): string | null => {
   return null;
 };
 
-const deleteCookie = (name: string) => {
+export const deleteCookie = (name: string) => {
   if (typeof document === 'undefined') return;
   const domain = getCookieDomain();
   // 1. Delete on wildcard domain if applicable
@@ -80,6 +80,27 @@ const deleteCookie = (name: string) => {
   }
   // 2. Always delete on host-only domain to clear any legacy/host-specific cookies
   document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT`;
+};
+
+export const setSharedReturnUrl = (url: string) => {
+  if (typeof window === 'undefined') return;
+  let targetUrl = url;
+  if (url.startsWith('/')) {
+    targetUrl = window.location.origin + url;
+  }
+  localStorage.setItem('returnUrl', targetUrl);
+  setCookie('returnUrl', targetUrl, 1);
+};
+
+export const getSharedReturnUrl = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('returnUrl') || getCookie('returnUrl');
+};
+
+export const clearSharedReturnUrl = () => {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem('returnUrl');
+  deleteCookie('returnUrl');
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -116,7 +137,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     if (typeof window !== 'undefined') {
-      localStorage.setItem('returnUrl', window.location.pathname + window.location.search);
+      const currentUrl = window.location.origin + window.location.pathname + window.location.search;
+      setSharedReturnUrl(currentUrl);
     }
 
     await Swal.fire({
@@ -294,9 +316,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    const returnUrl = localStorage.getItem('returnUrl');
+    const returnUrl = getSharedReturnUrl();
     if (returnUrl) {
-      localStorage.removeItem('returnUrl');
+      clearSharedReturnUrl();
       window.location.href = returnUrl;
     } else {
       // First-time users (customers) go to home page for the tour
@@ -361,9 +383,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
-      const returnUrl = localStorage.getItem('returnUrl');
+      const returnUrl = getSharedReturnUrl();
       if (returnUrl) {
-        localStorage.removeItem('returnUrl');
+        clearSharedReturnUrl();
         window.location.href = returnUrl;
       } else {
         // First-time users (customers) go to home page for the tour

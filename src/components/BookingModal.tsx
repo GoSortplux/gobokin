@@ -9,7 +9,7 @@ import Calendar from './Calendar';
 import { Venue, Facility } from '@/types';
 import FacilityIcon from './FacilityIcon';
 import { useBookingAvailability } from '@/hooks/useBookingAvailability';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth, setSharedReturnUrl } from '@/context/AuthContext';
 import Swal from "@/utils/sweetalert";
 import PolicyModal from './PolicyModal';
 
@@ -388,7 +388,7 @@ const BookingModal: FC<BookingModalProps> = ({
         dateTimes,
       };
       localStorage.setItem('pendingBooking', JSON.stringify(bookingState));
-      localStorage.setItem('returnUrl', window.location.pathname + window.location.search);
+      setSharedReturnUrl(window.location.pathname + window.location.search);
 
       Swal.fire({
         title: 'You are almost there! ....',

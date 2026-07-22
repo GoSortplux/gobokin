@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff } from 'lucide-react';
 import api from '@/services/api';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth, getSharedReturnUrl, clearSharedReturnUrl } from '@/context/AuthContext';
 import AuthLayout from '@/components/auth/AuthLayout';
 import PolicyModal from '@/components/PolicyModal';
 import CustomLoader from '@/components/CustomLoader';
@@ -67,8 +67,8 @@ const RegisterPage = () => {
 
       if (accessToken && user) {
         // Check for returnUrl in localStorage
-        const returnUrl = localStorage.getItem('returnUrl');
-        if (returnUrl) localStorage.removeItem('returnUrl');
+        const returnUrl = getSharedReturnUrl();
+        if (returnUrl) clearSharedReturnUrl();
         const redirectPath = returnUrl || '/auth/verify-email';
         login(accessToken, user as User, redirectPath);
       } else {

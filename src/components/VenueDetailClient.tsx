@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { toPng } from 'html-to-image';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth, setSharedReturnUrl } from '@/context/AuthContext';
 import api from '@/services/api';
 import BookingModal, { FacilityWithQuantity } from '@/components/BookingModal';
 import DemoModal from '@/components/DemoModal';
@@ -162,7 +162,7 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
   const handleGenerateReferralCode = useCallback(async () => {
     if (!user) {
       localStorage.setItem('pendingAction', JSON.stringify({ hallId: slugOrId, action: 'generateReferral' }));
-      localStorage.setItem('returnUrl', window.location.pathname + window.location.search);
+      setSharedReturnUrl(window.location.pathname + window.location.search);
       Swal.fire({
         title: 'Want a Discount?',
         text: 'Kindly sign in to generate your unique discount code and enjoy exclusive savings.',
@@ -289,7 +289,7 @@ const VenueDetailClient = ({ slugOrId, initialVenue }: VenueDetailClientProps) =
 
     if (!user) {
       localStorage.setItem('pendingAction', JSON.stringify({ hallId: slugOrId, action: 'contactOwner' }));
-      localStorage.setItem('returnUrl', window.location.pathname + window.location.search);
+      setSharedReturnUrl(window.location.pathname + window.location.search);
       Swal.fire({
         title: 'Want to reach out to the owner?',
         text: 'Please log in to view the contact details.',

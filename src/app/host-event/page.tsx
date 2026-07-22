@@ -35,7 +35,7 @@ import api from "@/services/api";
 import axios from "axios";
 import Image from "next/image";
 import { Reorder } from "framer-motion";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth, setSharedReturnUrl } from "@/context/AuthContext";
 import { EventType, RegistrationMode, RegistrationField, Speaker, TicketType, Ticket as ITicket } from "@/types";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
@@ -1334,7 +1334,7 @@ const HostEventPage = () => {
         // Save draft and set flag to resume at Step 5 in THIS page
         localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
         localStorage.setItem("gobokin_host_event_resume_step_5", "true");
-        localStorage.setItem("returnUrl", "/host-event");
+        setSharedReturnUrl("/host-event");
         showLoginRequired("Sign in required", "You need to sign in to finalize your event and go live.");
         return;
     }
