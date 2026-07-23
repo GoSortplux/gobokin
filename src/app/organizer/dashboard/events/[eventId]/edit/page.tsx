@@ -574,116 +574,117 @@ const EditEventContent = () => {
   });
 
   // Fetch Event Data
-  useEffect(() => {
-    const fetchEvent = async () => {
-      try {
-        const [eventRes, categoriesRes, profileRes] = await Promise.all([
-          api.get(`/events/${eventId}`),
-          api.get("/events/utils/categories"),
-          api.get("/events/my-organizer-profile")
-        ]);
+  const fetchEvent = useCallback(async () => {
+    try {
+      const [eventRes, categoriesRes, profileRes] = await Promise.all([
+        api.get(`/events/${eventId}`),
+        api.get("/events/utils/categories"),
+        api.get("/events/my-organizer-profile")
+      ]);
 
-        const event = eventRes.data.data;
+      const event = eventRes.data.data;
 
-        // Populate Categories
-        const categoryData = categoriesRes.data.data || [];
-        setCategories(categoryData.map((cat: string | { name: string }) => typeof cat === 'string' ? cat : cat.name));
+      // Populate Categories
+      const categoryData = categoriesRes.data.data || [];
+      setCategories(categoryData.map((cat: string | { name: string }) => typeof cat === 'string' ? cat : cat.name));
 
-        if (profileRes.data?.data?.slug) {
-          setOrganizerSlug(profileRes.data.data.slug);
-        }
-
-        // Format dates for input[type="datetime-local"]
-        const formatDate = (dateStr: string) => dateStr ? new Date(dateStr).toISOString().slice(0, 16) : "";
-
-        setBasicInfo({
-          title: event.title || "",
-          description: event.description || "",
-          slug: event.slug || "",
-          type: event.type || "PHYSICAL",
-          startDate: formatDate(event.startDate),
-          endDate: formatDate(event.endDate),
-          location: event.location || "",
-          virtualLink: event.virtualLink || "",
-          capacity: event.capacity || 0,
-          category: event.category || "",
-          tags: Array.isArray(event.tags) ? event.tags : [],
-          isPublic: event.isPublic !== false,
-          status: event.status || "UPCOMING",
-          agendaEnabled: !!event.agendaEnabled,
-          hideLocationDetails: !!event.hideLocationDetails,
-          isWaitlistEnabled: !!event.isWaitlistEnabled,
-          remindersEnabled: !!event.remindersEnabled,
-          reminderCustomText: event.reminderCustomText || "",
-          reminderFrequencies: Array.isArray(event.reminderFrequencies) ? event.reminderFrequencies : [],
-          useDefaultFrequencies: !Array.isArray(event.reminderFrequencies) || event.reminderFrequencies.length === 0,
-        });
-
-        setMediaInfo({
-          bannerUrl: event.bannerUrl || "",
-          mediaUrls: (event.mediaUrls || []) as (string | { file: File; preview: string })[],
-          seoTitle: event.seoTitle || "",
-          seoDescription: event.seoDescription || "",
-          socialImage: event.socialImage || "",
-        });
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        setSpeakers((event.speakers || []).map((s: any) => ({
-          ...s,
-          id: s.id || s._id,
-          name: s.name || "",
-          title: s.title || "",
-          bio: s.bio || "",
-          imageUrl: s.imageUrl || ""
-        })));
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        setSessions((event.sessions || []).map((s: any) => ({
-          ...s,
-          id: s.id || s._id || Math.random().toString(),
-          startTime: formatDate(s.startTime),
-          endTime: formatDate(s.endTime),
-          speakerIds: s.speakerIds || [],
-          speakerNames: s.speakerNames || []
-        })));
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        setTickets((event.tickets || []).map((t: any) => ({
-          ...t,
-          id: t.id || t._id || Math.random().toString(),
-          earlyBirdExpiry: formatDate(t.earlyBirdExpiry),
-          salesStart: formatDate(t.salesStart || ""),
-          salesEnd: formatDate(t.salesEnd || ""),
-          allocationType: t.allocationType || "GENERAL",
-          maxPerOrder: t.maxPerOrder || 10,
-          isOffline: !!t.isOffline,
-          isSpecial: !!t.isSpecial,
-          quantityDiscounts: t.quantityDiscounts || []
-        })));
-
-        setRegistration({
-          mode: event.registrationMode || "FULL_DETAILS",
-          isGroupingEnabled: !!event.isGroupingEnabled,
-          enforceUniqueGroupNames: !!event.enforceUniqueGroupNames,
-          fields: (event.registrationFields || [
-            { name: "fullName", label: "Full Name", type: "text", required: true, isPerAttendee: true },
-            { name: "email", label: "Email Address", type: "text", required: true, isPerAttendee: true },
-            { name: "phone", label: "Phone Number", type: "number", required: true, isPerAttendee: true },
-          ]).map((f: RegistrationField) => ({
-            ...f,
-            id: f.id || f.name || Math.random().toString()
-          })),
-        });
-
-      } catch (error) {
-        console.error("Failed to fetch event:", error);
-        Swal.fire("Error", "Could not load event data.", "error");
-      } finally {
-        setLoading(false);
+      if (profileRes.data?.data?.slug) {
+        setOrganizerSlug(profileRes.data.data.slug);
       }
-    };
-    fetchEvent();
+
+      // Format dates for input[type="datetime-local"]
+      const formatDate = (dateStr: string) => dateStr ? new Date(dateStr).toISOString().slice(0, 16) : "";
+
+      setBasicInfo({
+        title: event.title || "",
+        description: event.description || "",
+        slug: event.slug || "",
+        type: event.type || "PHYSICAL",
+        startDate: formatDate(event.startDate),
+        endDate: formatDate(event.endDate),
+        location: event.location || "",
+        virtualLink: event.virtualLink || "",
+        capacity: event.capacity || 0,
+        category: event.category || "",
+        tags: Array.isArray(event.tags) ? event.tags : [],
+        isPublic: event.isPublic !== false,
+        status: event.status || "UPCOMING",
+        agendaEnabled: !!event.agendaEnabled,
+        hideLocationDetails: !!event.hideLocationDetails,
+        isWaitlistEnabled: !!event.isWaitlistEnabled,
+        remindersEnabled: !!event.remindersEnabled,
+        reminderCustomText: event.reminderCustomText || "",
+        reminderFrequencies: Array.isArray(event.reminderFrequencies) ? event.reminderFrequencies : [],
+        useDefaultFrequencies: !Array.isArray(event.reminderFrequencies) || event.reminderFrequencies.length === 0,
+      });
+
+      setMediaInfo({
+        bannerUrl: event.bannerUrl || "",
+        mediaUrls: (event.mediaUrls || []) as (string | { file: File; preview: string })[],
+        seoTitle: event.seoTitle || "",
+        seoDescription: event.seoDescription || "",
+        socialImage: event.socialImage || "",
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setSpeakers((event.speakers || []).map((s: any) => ({
+        ...s,
+        id: s.id || s._id,
+        name: s.name || "",
+        title: s.title || "",
+        bio: s.bio || "",
+        imageUrl: s.imageUrl || ""
+      })));
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setSessions((event.sessions || []).map((s: any) => ({
+        ...s,
+        id: s.id || s._id || Math.random().toString(),
+        startTime: formatDate(s.startTime),
+        endTime: formatDate(s.endTime),
+        speakerIds: s.speakerIds || [],
+        speakerNames: s.speakerNames || []
+      })));
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setTickets((event.tickets || []).map((t: any) => ({
+        ...t,
+        id: t.id || t._id || Math.random().toString(),
+        earlyBirdExpiry: formatDate(t.earlyBirdExpiry),
+        salesStart: formatDate(t.salesStart || ""),
+        salesEnd: formatDate(t.salesEnd || ""),
+        allocationType: t.allocationType || "GENERAL",
+        maxPerOrder: t.maxPerOrder || 10,
+        isOffline: !!t.isOffline,
+        isSpecial: !!t.isSpecial,
+        quantityDiscounts: t.quantityDiscounts || []
+      })));
+
+      setRegistration({
+        mode: event.registrationMode || "FULL_DETAILS",
+        isGroupingEnabled: !!event.isGroupingEnabled,
+        enforceUniqueGroupNames: !!event.enforceUniqueGroupNames,
+        fields: (event.registrationFields || [
+          { name: "fullName", label: "Full Name", type: "text", required: true, isPerAttendee: true },
+          { name: "email", label: "Email Address", type: "text", required: true, isPerAttendee: true },
+          { name: "phone", label: "Phone Number", type: "number", required: true, isPerAttendee: true },
+        ]).map((f: RegistrationField) => ({
+          ...f,
+          id: f.id || f.name || Math.random().toString()
+        })),
+      });
+
+    } catch (error) {
+      console.error("Failed to fetch event:", error);
+      Swal.fire("Error", "Could not load event data.", "error");
+    } finally {
+      setLoading(false);
+    }
   }, [eventId]);
+
+  useEffect(() => {
+    fetchEvent();
+  }, [fetchEvent]);
 
   // Media Upload State
   const [isUploading, setIsUploading] = useState(false);
@@ -1150,6 +1151,7 @@ const EditEventContent = () => {
           payload.earlyBirdExpiry = ticket.earlyBirdExpiry ? new Date(ticket.earlyBirdExpiry).toISOString() : undefined;
       }
       await api.patch(`/events/${eventId}/tickets/${ticket.id}`, payload);
+      await fetchEvent();
       Swal.fire("Updated!", "Ticket updated successfully.", "success");
     } catch (error) {
       Swal.fire("Error", translateError(error), "error");
@@ -1206,6 +1208,7 @@ const EditEventContent = () => {
         speakerNames: session.speakerNames
       };
       await api.patch(`/events/${eventId}/sessions/${session.id}`, payload);
+      await fetchEvent();
       Swal.fire("Updated!", "Session updated successfully.", "success");
     } catch (error) {
       Swal.fire("Error", translateError(error), "error");
@@ -1412,6 +1415,7 @@ const EditEventContent = () => {
           }
       }
 
+      await fetchEvent();
       Swal.fire("Success", "Event updated successfully", "success");
 
       // Clear pending uploads state
