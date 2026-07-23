@@ -531,6 +531,22 @@ export interface OrganizerProfile {
   defaultRefundPercentage: number;
   defaultRefundCutoffDays: number;
   wallet: Wallet;
+  verification?: {
+    id: string;
+    organizerId: string;
+    status: string;
+    experience: string;
+    eventCount: number;
+    maxCapacity: number;
+    specialization: string;
+    website: string;
+    socialMedia: string;
+    isIndependent: boolean;
+    adminNotes?: string | null;
+    rejectionReason?: string | null;
+    createdAt: string;
+    updatedAt: string;
+  };
 }
 
 export interface Organizer {

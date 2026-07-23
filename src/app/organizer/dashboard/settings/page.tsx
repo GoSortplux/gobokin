@@ -359,7 +359,7 @@ const OrganizerSettings = () => {
                     <CheckCircle2 size={18} />
                     Verified Organizer
                   </div>
-               ) : profile?.status === 'PENDING' ? (
+               ) : (profile?.status === 'PENDING' || profile?.verification?.status === 'PENDING') ? (
                   <div className="w-full bg-amber-500/10 border border-amber-500/20 text-amber-400 font-black py-4 rounded-[2rem] text-sm flex items-center justify-center gap-2">
                     <Calendar size={18} />
                     Application Pending
