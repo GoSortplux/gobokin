@@ -38,9 +38,7 @@ api.interceptors.request.use(
 
     // Redirect specific super admin and policies endpoints to the local Next.js API route handlers
     if (config.url && (
-      config.url.startsWith('/events/admin/organizers') ||
       config.url.startsWith('/events/admin/packages') ||
-      config.url.startsWith('/events/admin/config') ||
       config.url.startsWith('/policies') ||
       config.url.startsWith('policies')
     )) {
