@@ -21,8 +21,9 @@ export const OrganizerRulesProvider: React.FC<{ children: ReactNode }> = ({ chil
   const [loading, setLoading] = useState(false);
 
   const fetchRules = useCallback(async () => {
-    // Only fetch for organizers or organizer-staff
-    if (!user?.role?.includes('organizer')) {
+    // Only fetch for active organizer or organizer-staff roles
+    const activeRole = user?.activeRole;
+    if (activeRole !== 'organizer' && activeRole !== 'organizer-staff') {
       setRules([]);
       return;
     }
