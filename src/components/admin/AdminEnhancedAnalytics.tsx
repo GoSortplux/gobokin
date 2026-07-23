@@ -496,14 +496,14 @@ const AdminEnhancedAnalytics = ({ defaultView = 'venues' }: { defaultView?: 'ven
           <div className="space-y-2">
             <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Platform Event Metrics</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <AdminStatCard title="Total Platform Revenue" value={safeFormatCurrency(eventAnalytics.summary.grossRevenue)} icon={DollarSign} />
+              <AdminStatCard title="Gross Revenue" value={safeFormatCurrency(eventAnalytics.summary.grossRevenue)} icon={DollarSign} />
+              <AdminStatCard title="Net Revenue" value={safeFormatCurrency(eventAnalytics.summary.netRevenue)} icon={Wallet} />
+              <AdminStatCard title="Total Commission" value={safeFormatCurrency(eventAnalytics.summary.totalCommission)} icon={Percent} />
+              <AdminStatCard title="Published Events" value={safeFormatNumber(eventAnalytics.summary.publishedEvents)} icon={Ticket} />
               <AdminStatCard title="Total Registrations" value={safeFormatNumber(eventAnalytics.summary.totalRegistrations)} icon={Users} />
-              <AdminStatCard title="Platform Net Revenue" value={safeFormatCurrency(eventAnalytics.summary.netRevenue)} icon={Wallet} />
-              <AdminStatCard title="Avg. Conversion Rate" value={(eventAnalytics.summary.conversionRate !== undefined && eventAnalytics.summary.conversionRate !== null) ? `${eventAnalytics.summary.conversionRate}%` : 'N/A'} icon={MousePointerClick} />
               <AdminStatCard title="Total Orders" value={safeFormatNumber(eventAnalytics.summary.totalOrders)} icon={ShoppingBag} />
               <AdminStatCard title="Total Platform Views" value={safeFormatNumber(eventAnalytics.summary.totalViews)} icon={Eye} />
               <AdminStatCard title="Attendance Rate" value={(eventAnalytics.summary.attendanceRate !== undefined && eventAnalytics.summary.attendanceRate !== null) ? `${eventAnalytics.summary.attendanceRate}%` : 'N/A'} icon={BarChart3} />
-              <AdminStatCard title="Total Platform Events" value={safeFormatNumber(eventAnalytics.summary.totalEvents)} icon={Ticket} />
             </div>
           </div>
 
@@ -607,6 +607,7 @@ const AdminEnhancedAnalytics = ({ defaultView = 'venues' }: { defaultView?: 'ven
                             <th className="pb-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Views</th>
                             <th className="pb-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Orders</th>
                             <th className="pb-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Registrations</th>
+                            <th className="pb-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Paid Registrations</th>
                             <th className="pb-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">Gross Revenue</th>
                         </tr>
                       </thead>
@@ -620,12 +621,13 @@ const AdminEnhancedAnalytics = ({ defaultView = 'venues' }: { defaultView?: 'ven
                                   <td className="py-4 text-center text-sm font-bold text-gray-600">{safeFormatNumber(event.views)}</td>
                                   <td className="py-4 text-center text-sm font-bold text-gray-600">{safeFormatNumber(event.orders)}</td>
                                   <td className="py-4 text-center text-sm font-bold text-gray-600">{safeFormatNumber(event.registrations)}</td>
+                                  <td className="py-4 text-center text-sm font-bold text-gray-600">{safeFormatNumber(event.paidRegistrations)}</td>
                                   <td className="py-4 text-right text-sm font-black text-gray-900">
                                       {safeFormatCurrency(event.grossRevenue)}
                                   </td>
                               </tr>
                           ))}
-                          {eventAnalytics.topEvents.length === 0 && (<tr><td colSpan={5} className="text-center py-20 text-gray-400 italic">No event activity recorded for this period.</td></tr>)}
+                          {eventAnalytics.topEvents.length === 0 && (<tr><td colSpan={6} className="text-center py-20 text-gray-400 italic">No event activity recorded for this period.</td></tr>)}
                       </tbody>
                   </table>
               </div>
