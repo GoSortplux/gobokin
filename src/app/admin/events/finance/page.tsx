@@ -4,8 +4,6 @@ import {
   Wallet,
   TrendingUp,
   DollarSign,
-  ArrowUpRight,
-  Activity,
   Layers,
   CreditCard,
   CheckCircle2,
@@ -18,16 +16,39 @@ import CustomLoader from "@/components/CustomLoader";
 import { formatCurrency } from "@/utils/currency";
 import Swal from "@/utils/sweetalert";
 import { OrganizerBankAccount } from "@/types";
+import OrganizerStatusBadge from "@/components/shared/OrganizerStatusBadge";
 
 interface AdminFinanceSummary {
-  totalGrossVolume: number;
-  platformRevenue: number;
-  organizerEarnings: number;
-  pendingWithdrawals: number;
-  totalEvents: number;
-  activeOrganizers: number;
-  organizerPayouts: number;
-  activeSubscriptions: number;
+  totals: {
+    amount: string | number;
+    commission: string | number;
+    netAmount: string | number;
+  };
+  totalWithdrawals: string | number;
+  organizerCount: number;
+  topOrganizers: Array<{
+    id: string;
+    organizerId: string;
+    pendingBalance: string | number;
+    availableBalance: string | number;
+    withdrawnBalance: string | number;
+    currency: string;
+    updatedAt: string;
+    organizer: {
+      id: string;
+      mongoUserId: string;
+      slug: string;
+      status: string;
+      isVerified: boolean;
+      bio: string | null;
+      website: string | null;
+      socialLinks: Record<string, string> | null;
+      commissionRate: string | number;
+      payoutPolicy: string;
+      createdAt: string;
+      updatedAt: string;
+    };
+  }>;
 }
 
 interface AdminWithdrawalRequest {
@@ -209,34 +230,43 @@ const FinancePage = () => {
     }
   };
 
+  const parseFloatSafe = (val: string | number | undefined): number => {
+    if (val === undefined || val === null) return 0;
+    if (typeof val === "number") return val;
+    const parsed = parseFloat(val);
+    return isNaN(parsed) ? 0 : parsed;
+  };
+
   const stats = [
     {
       title: "Total Gross Volume",
-      value: formatCurrency(summary?.totalGrossVolume || 0),
+      value: formatCurrency(parseFloatSafe(summary?.totals?.amount)),
       icon: DollarSign,
-      color: "bg-blue-500",
-      trend: "+12.5%"
+      color: "bg-blue-500"
     },
     {
       title: "Platform Revenue",
-      value: formatCurrency(summary?.platformRevenue || 0),
+      value: formatCurrency(parseFloatSafe(summary?.totals?.commission)),
       icon: TrendingUp,
-      color: "bg-emerald-500",
-      trend: "+8.2%"
+      color: "bg-emerald-500"
     },
     {
-      title: "Organizer Payouts",
-      value: formatCurrency(summary?.organizerPayouts || 0),
+      title: "Net Amount / Earnings",
+      value: formatCurrency(parseFloatSafe(summary?.totals?.netAmount)),
       icon: Wallet,
-      color: "bg-amber-500",
-      trend: "+5.4%"
+      color: "bg-amber-500"
     },
     {
-      title: "Active Subscriptions",
-      value: summary?.activeSubscriptions || 0,
+      title: "Total Withdrawals",
+      value: formatCurrency(parseFloatSafe(summary?.totalWithdrawals)),
+      icon: CreditCard,
+      color: "bg-rose-500"
+    },
+    {
+      title: "Total Organizers",
+      value: summary?.organizerCount || 0,
       icon: Layers,
-      color: "bg-indigo-500",
-      trend: "+15%"
+      color: "bg-indigo-500"
     }
   ];
 
@@ -295,16 +325,12 @@ const FinancePage = () => {
 
       {activeTab === 'summary' ? (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
             {stats.map((stat, i) => (
               <div key={i} className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300">
                 <div className="flex items-center justify-between mb-4">
                   <div className={`p-3 rounded-2xl ${stat.color} text-white`}>
                     <stat.icon size={24} />
-                  </div>
-                  <div className="flex items-center gap-1 text-emerald-600 font-bold text-sm">
-                    <ArrowUpRight size={16} />
-                    {stat.trend}
                   </div>
                 </div>
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{stat.title}</p>
@@ -313,58 +339,86 @@ const FinancePage = () => {
             ))}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
-              <h3 className="text-lg font-black text-gray-900 uppercase tracking-tighter mb-6">Recent Transactions</h3>
-              <div className="space-y-4">
-                {[1, 2, 3, 4, 5].map((_, i) => (
-                  <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-primary shadow-sm">
-                        <Activity size={18} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-gray-900">Ticket Sale - Tech Conf 2024</p>
-                        <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">Oct 24, 2024 • 2:30 PM</p>
-                      </div>
-                    </div>
-                    <p className="text-sm font-black text-emerald-600">+₦45,000</p>
-                  </div>
-                ))}
-              </div>
+          <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden mt-8">
+            <div className="p-8 border-b border-gray-100">
+              <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter">Top Organizers &amp; Wallets</h3>
+              <p className="text-gray-500 text-sm font-medium mt-1">Detailed overview of the leading organizers, split payout rules, and current wallet balances.</p>
             </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-gray-50 border-b border-gray-100">
+                  <tr>
+                    <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Organizer</th>
+                    <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Commission</th>
+                    <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Payout Policy</th>
+                    <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Available Balance</th>
+                    <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Pending Balance</th>
+                    <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Withdrawn Balance</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {summary?.topOrganizers && summary.topOrganizers.length > 0 ? (
+                    summary.topOrganizers.map((orgItem) => {
+                      const displaySlug = orgItem.organizer?.slug || "N/A";
+                      const displayTitle = displaySlug
+                        .split("-")
+                        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                        .join(" ");
 
-            <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
-              <h3 className="text-lg font-black text-gray-900 uppercase tracking-tighter mb-6">Revenue Breakdown</h3>
-              <div className="space-y-6">
-                <div>
-                  <div className="flex justify-between mb-2">
-                    <span className="text-xs font-bold text-gray-600">Ticket Commissions</span>
-                    <span className="text-xs font-black text-gray-900">75%</span>
-                  </div>
-                  <div className="w-full h-3 bg-gray-50 rounded-full overflow-hidden">
-                    <div className="h-full bg-primary rounded-full" style={{ width: '75%' }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between mb-2">
-                    <span className="text-xs font-bold text-gray-600">Subscription Plans</span>
-                    <span className="text-xs font-black text-gray-900">20%</span>
-                  </div>
-                  <div className="w-full h-3 bg-gray-50 rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: '20%' }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between mb-2">
-                    <span className="text-xs font-bold text-gray-600">Featured Placement</span>
-                    <span className="text-xs font-black text-gray-900">5%</span>
-                  </div>
-                  <div className="w-full h-3 bg-gray-50 rounded-full overflow-hidden">
-                    <div className="h-full bg-amber-500 rounded-full" style={{ width: '5%' }}></div>
-                  </div>
-                </div>
-              </div>
+                      return (
+                        <tr key={orgItem.id} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-8 py-6">
+                            <div className="flex flex-col gap-1.5 items-start">
+                              <span className="font-bold text-gray-900 text-sm">{displayTitle}</span>
+                              <div className="flex items-center gap-2">
+                                <OrganizerStatusBadge
+                                  status={orgItem.organizer?.status}
+                                  isVerified={orgItem.organizer?.isVerified}
+                                  size="small"
+                                />
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-8 py-6">
+                            <span className="font-bold text-gray-700 text-sm">
+                              {parseFloatSafe(orgItem.organizer?.commissionRate)}%
+                            </span>
+                          </td>
+                          <td className="px-8 py-6">
+                            <span className="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-700">
+                              {orgItem.organizer?.payoutPolicy?.replace("_", " ") || "N/A"}
+                            </span>
+                          </td>
+                          <td className="px-8 py-6">
+                            <span className="font-black text-emerald-600 text-sm">
+                              {formatCurrency(parseFloatSafe(orgItem.availableBalance))}
+                            </span>
+                          </td>
+                          <td className="px-8 py-6">
+                            <span className="font-bold text-amber-600 text-sm">
+                              {formatCurrency(parseFloatSafe(orgItem.pendingBalance))}
+                            </span>
+                          </td>
+                          <td className="px-8 py-6">
+                            <span className="font-bold text-rose-600 text-sm">
+                              {formatCurrency(parseFloatSafe(orgItem.withdrawnBalance))}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={6} className="px-8 py-20 text-center">
+                        <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
+                          <Wallet size={40} />
+                        </div>
+                        <p className="text-gray-500 font-bold">No top organizers data available.</p>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         </>

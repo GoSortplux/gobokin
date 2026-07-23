@@ -7,9 +7,17 @@
    - Network:      http://192.168.0.2:3000
 
  ✓ Starting...
- ✓ Ready in 2.2s
- ○ Compiling /verify-modal ...
- ✓ Compiled /verify-modal in 10.6s (1806 modules)
- GET /verify-modal 200 in 11843ms
- ✓ Compiled in 965ms (757 modules)
- ✓ Compiled in 4.9s (777 modules)
+ ✓ Ready in 2.7s
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 1048ms (114 modules)
+ ○ Compiling /admin/events/finance ...
+ ✓ Compiled /admin/events/finance in 11.9s (1846 modules)
+ GET /admin/events/finance 200 in 13671ms
+ ○ Compiling /auth/login ...
+ ✓ Compiled /auth/login in 2.6s (1834 modules)
+ GET /auth/login 200 in 2802ms
+ GET /auth/login 200 in 2804ms
+ ✓ Compiled in 768ms (812 modules)
+ GET /admin/events/finance 200 in 551ms
+ ✓ Compiled in 576ms (812 modules)
+ GET /admin/events/finance 200 in 110ms
