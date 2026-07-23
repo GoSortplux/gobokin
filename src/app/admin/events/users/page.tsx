@@ -894,8 +894,8 @@ const UserManagementPage = () => {
                       <tr key={org.id} className="hover:bg-gray-50/30 transition-all">
                         <td className="p-6">
                           <div className="space-y-1">
-                            <h4 className="font-extrabold text-gray-900 text-sm">{org.userProfile?.fullName || 'Organizer'}</h4>
-                            <p className="text-xs text-gray-500 font-medium">{org.userProfile?.email || 'N/A'}</p>
+                            <h4 className="font-extrabold text-gray-900 text-sm">{org.userProfile?.fullName || org.user?.fullName || 'Organizer'}</h4>
+                            <p className="text-xs text-gray-500 font-medium">{org.userProfile?.email || org.user?.email || 'N/A'}</p>
                             {org.website && (
                               <a
                                 href={org.website}
