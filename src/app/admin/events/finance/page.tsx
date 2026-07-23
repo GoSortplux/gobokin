@@ -47,12 +47,27 @@ interface AdminWithdrawalRequest {
   adminNotes?: string;
 }
 
+interface Subaccount {
+  _id: string;
+  user?: {
+    _id: string;
+    fullName: string;
+    email: string;
+  };
+  subAccountCode: string;
+  bankName: string;
+  accountNumber: string;
+  accountName: string;
+}
+
 const FinancePage = () => {
   const [activeTab, setActiveTab] = useState<'summary' | 'withdrawals' | 'verifications'>('summary');
   const [summary, setSummary] = useState<AdminFinanceSummary | null>(null);
   const [requests, setRequests] = useState<AdminWithdrawalRequest[]>([]);
   const [bankAccounts, setBankAccounts] = useState<OrganizerBankAccount[]>([]);
+  const [subaccounts, setSubaccounts] = useState<Subaccount[]>([]);
   const [loading, setLoading] = useState(true);
+  const [subaccountsLoading, setSubaccountsLoading] = useState(false);
   const [withdrawFilter, setWithdrawFilter] = useState("PENDING");
   const [verificationFilter, setVerificationFilter] = useState("PENDING");
   const [searchTerm, setSearchTerm] = useState("");
@@ -65,6 +80,14 @@ const FinancePage = () => {
     } else if (activeTab === 'verifications') {
       fetchBankAccounts();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, verificationFilter]);
+
+  useEffect(() => {
+    if (activeTab === 'verifications') {
+      fetchSubaccounts();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   const fetchSummary = async () => {
@@ -95,13 +118,44 @@ const FinancePage = () => {
   const fetchBankAccounts = async () => {
     try {
       setLoading(true);
-      const response = await api.get("/events/admin/bank-accounts");
-      setBankAccounts(response.data.data || []);
+      if (verificationFilter === "ALL") {
+        const [pendingRes, verifiedRes, rejectedRes] = await Promise.all([
+          api.get("/events/admin/bank-accounts"),
+          api.get("/events/admin/bank-accounts?status=VERIFIED"),
+          api.get("/events/admin/bank-accounts?status=REJECTED"),
+        ]);
+        const pendingList = pendingRes.data.data || [];
+        const verifiedList = verifiedRes.data.data || [];
+        const rejectedList = rejectedRes.data.data || [];
+        setBankAccounts([...pendingList, ...verifiedList, ...rejectedList]);
+      } else if (verificationFilter === "APPROVED") {
+        const response = await api.get("/events/admin/bank-accounts?status=VERIFIED");
+        setBankAccounts(response.data.data || []);
+      } else if (verificationFilter === "REJECTED") {
+        const response = await api.get("/events/admin/bank-accounts?status=REJECTED");
+        setBankAccounts(response.data.data || []);
+      } else {
+        const response = await api.get("/events/admin/bank-accounts");
+        setBankAccounts(response.data.data || []);
+      }
     } catch (_error) {
       console.error("Failed to fetch bank accounts:", _error);
       setBankAccounts([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSubaccounts = async () => {
+    try {
+      setSubaccountsLoading(true);
+      const response = await api.get("/subaccounts");
+      setSubaccounts(response.data.data || []);
+    } catch (_error) {
+      console.error("Failed to fetch sub-accounts:", _error);
+      setSubaccounts([]);
+    } finally {
+      setSubaccountsLoading(false);
     }
   };
 
@@ -194,12 +248,12 @@ const FinancePage = () => {
           <p className="text-gray-500 font-medium">Manage platform revenue and process organizer withdrawals.</p>
         </div>
 
-        {activeTab === 'withdrawals' && (
+        {(activeTab === 'withdrawals' || activeTab === 'verifications') && (
           <div className="relative w-full md:w-80">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input
               type="text"
-              placeholder="Search by name or email..."
+              placeholder={activeTab === 'withdrawals' ? "Search by name or email..." : "Search account or details..."}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm shadow-sm"
@@ -447,11 +501,15 @@ const FinancePage = () => {
                       <td colSpan={5} className="px-8 py-20 text-center"><CustomLoader /></td>
                     </tr>
                   ) : bankAccounts.length > 0 ? bankAccounts.filter(acc => {
-                    const matchesFilter = verificationFilter === "ALL" || acc.status === verificationFilter;
+                    const matchesFilter =
+                      verificationFilter === "ALL" ||
+                      (acc.status as string) === verificationFilter ||
+                      (verificationFilter === "APPROVED" && ((acc.status as string) === "APPROVED" || (acc.status as string) === "VERIFIED"));
                     const matchesSearch =
                       acc.accountName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                       acc.verifiedAccountName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                      acc.bankName?.toLowerCase().includes(searchTerm.toLowerCase());
+                      acc.bankName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      acc.accountNumber?.includes(searchTerm);
                     return matchesFilter && matchesSearch;
                   }).map((acc) => (
                     <tr key={acc.id} className="hover:bg-gray-50 transition-colors">
@@ -471,8 +529,8 @@ const FinancePage = () => {
                       </td>
                       <td className="px-8 py-6">
                         <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${
-                          acc.status === 'PENDING' ? 'bg-amber-100 text-amber-700' :
-                          acc.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+                          (acc.status as string) === 'PENDING' ? 'bg-amber-100 text-amber-700' :
+                          ((acc.status as string) === 'APPROVED' || (acc.status as string) === 'VERIFIED') ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
                         }`}>
                           {acc.status}
                         </span>
@@ -504,12 +562,85 @@ const FinancePage = () => {
                         <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
                           <ShieldCheck size={40} />
                         </div>
-                        <p className="text-gray-500 font-bold">No pending bank verifications found.</p>
+                        <p className="text-gray-500 font-bold">No bank verifications found.</p>
                       </td>
                     </tr>
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+
+          {/* System Sub-Accounts Section */}
+          <div className="mt-12 space-y-4">
+            <div>
+              <h2 className="text-xl font-black text-gray-900 tracking-tight uppercase italic">
+                System <span className="text-primary not-italic">Sub-Accounts</span>
+              </h2>
+              <p className="text-gray-500 text-sm font-medium">List of all split-payment sub-accounts on the system.</p>
+            </div>
+
+            <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="bg-gray-50 border-b border-gray-100">
+                    <tr>
+                      <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Venue Owner / User</th>
+                      <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Bank Details</th>
+                      <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Account Name</th>
+                      <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Subaccount Code</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {subaccountsLoading ? (
+                      <tr>
+                        <td colSpan={4} className="px-8 py-20 text-center"><CustomLoader /></td>
+                      </tr>
+                    ) : subaccounts.length > 0 ? (
+                      subaccounts.filter(sub => {
+                        const searchLower = searchTerm.toLowerCase();
+                        return (
+                          !searchTerm ||
+                          sub.accountName?.toLowerCase().includes(searchLower) ||
+                          sub.bankName?.toLowerCase().includes(searchLower) ||
+                          sub.accountNumber?.includes(searchTerm) ||
+                          sub.subAccountCode?.toLowerCase().includes(searchLower) ||
+                          sub.user?.fullName?.toLowerCase().includes(searchLower) ||
+                          sub.user?.email?.toLowerCase().includes(searchLower)
+                        );
+                      }).map((sub) => (
+                        <tr key={sub._id} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-8 py-6">
+                            <p className="font-bold text-gray-900">{sub.user?.fullName || "N/A"}</p>
+                            <p className="text-xs text-gray-500 font-medium">{sub.user?.email || "N/A"}</p>
+                          </td>
+                          <td className="px-8 py-6">
+                            <p className="text-sm font-bold text-gray-700">{sub.bankName}</p>
+                            <p className="text-xs text-gray-500 font-medium">{sub.accountNumber}</p>
+                          </td>
+                          <td className="px-8 py-6 font-bold text-gray-900 text-sm">
+                            {sub.accountName}
+                          </td>
+                          <td className="px-8 py-6">
+                            <span className="px-3 py-1 rounded-lg text-[10px] font-mono font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-100">
+                              {sub.subAccountCode}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={4} className="px-8 py-20 text-center">
+                          <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
+                            <CreditCard size={40} />
+                          </div>
+                          <p className="text-gray-500 font-bold">No system sub-accounts found.</p>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </>
