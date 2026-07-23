@@ -325,6 +325,7 @@ const OrganizerDashboard = () => {
                         <th className="pb-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
                         <th className="pb-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Views</th>
                         <th className="pb-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Registrations</th>
+                        <th className="pb-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Paid Registrations</th>
                         {!isStaff && <th className="pb-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">Revenue</th>}
                         {isStaff && <th className="pb-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">Attendance</th>}
                     </tr>
@@ -352,6 +353,9 @@ const OrganizerDashboard = () => {
                             <td className="py-5 text-center text-sm font-bold text-gray-600">
                                 {(event.registrations || 0).toLocaleString()}
                             </td>
+                            <td className="py-5 text-center text-sm font-bold text-gray-600">
+                                {(event.paidRegistrations || 0).toLocaleString()}
+                            </td>
                             {!isStaff ? (
                                 <td className="py-5 text-right font-black text-gray-900 text-sm">
                                     {formatCurrency(event.grossRevenue)}
@@ -365,7 +369,7 @@ const OrganizerDashboard = () => {
                     ))}
                     {!analytics?.topEvents?.length && (
                         <tr>
-                            <td colSpan={5} className="py-12 text-center text-gray-400 font-bold">
+                            <td colSpan={6} className="py-12 text-center text-gray-400 font-bold">
                                 No event data available for this period.
                             </td>
                         </tr>
@@ -401,15 +405,19 @@ const OrganizerDashboard = () => {
                             <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-1">Registrations</p>
                             <p className="text-sm font-bold text-gray-900">{(event.registrations || 0).toLocaleString()}</p>
                         </div>
+                        <div>
+                            <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-1">Paid Registrations</p>
+                            <p className="text-sm font-bold text-gray-900">{(event.paidRegistrations || 0).toLocaleString()}</p>
+                        </div>
                         {!isStaff ? (
-                            <div className="col-span-2">
+                            <div>
                                 <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-1">Revenue</p>
-                                <p className="text-base font-black text-primary">{formatCurrency(event.grossRevenue)}</p>
+                                <p className="text-sm font-black text-primary">{formatCurrency(event.grossRevenue)}</p>
                             </div>
                         ) : (
-                            <div className="col-span-2">
+                            <div>
                                 <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-1">Attendance Rate</p>
-                                <p className="text-base font-black text-primary">{event.attendanceRate || 0}%</p>
+                                <p className="text-sm font-black text-primary">{event.attendanceRate || 0}%</p>
                             </div>
                         )}
                     </div>
