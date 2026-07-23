@@ -180,7 +180,7 @@ const HomePage = () => {
           {/* Mobile-only Browse Events / Sell Ticket CTA */}
           <div className="mt-6 lg:hidden flex justify-center px-4">
             <Link
-              href="/events"
+              href="https://event.gobokin.com"
               className="w-full max-w-md bg-secondary text-white font-black text-xs uppercase tracking-widest py-4 px-6 rounded-2xl shadow-xl shadow-secondary/25 hover:brightness-110 active:scale-95 transition-all text-center flex items-center justify-center gap-2"
             >
               <Calendar size={16} />

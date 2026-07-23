@@ -165,7 +165,7 @@ const Header = () => {
 
             <div className="hidden lg:flex items-center space-x-4">
               <Link
-                href="/events"
+                href="https://event.gobokin.com"
                 className="px-4 py-2 text-sm font-medium text-white rounded-xl shadow-sm bg-primary hover:bg-primary/90 transition-all duration-300"
               >
                 Browse for Event / Sell Ticket
@@ -389,7 +389,7 @@ const Header = () => {
                     {/* Nav Links */}
                     <nav id="mobile-nav" className="space-y-4">
                       <Link
-                        href="/events"
+                        href="https://event.gobokin.com"
                         className="flex items-center justify-center gap-2 w-full py-3 text-center bg-secondary text-white font-bold rounded-xl shadow-lg shadow-secondary/20 hover:bg-secondary/90 transition-all"
                       >
                         <Calendar className="w-5 h-5 text-white" />
@@ -452,7 +452,7 @@ const Header = () => {
                   <div className="space-y-4">
                     <p className="text-gray-600 text-sm">Log in to book venues and manage your reservations.</p>
                     <Link
-                      href="/events"
+                      href="https://event.gobokin.com"
                       className="flex items-center justify-center gap-2 w-full py-3 text-center bg-secondary text-white font-bold rounded-xl shadow-lg shadow-secondary/20 hover:bg-secondary/90 transition-all"
                     >
                       <Calendar className="w-5 h-5 text-white" />
