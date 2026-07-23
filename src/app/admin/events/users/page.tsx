@@ -576,10 +576,13 @@ const UserManagementPage = () => {
 
   const filteredApps = applications.filter(app => {
     const matchesFilter = appFilter === "ALL" || app.status === appFilter;
+    const portfolioUrl = app.website || app.data?.portfolio || "";
+    const experienceText = app.experience || app.data?.experience || "";
     const matchesSearch =
       app.organizerId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (app.data?.portfolio || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (app.data?.experience || "").toLowerCase().includes(searchTerm.toLowerCase());
+      portfolioUrl.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      experienceText.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (app.specialization || "").toLowerCase().includes(searchTerm.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 
@@ -712,20 +715,65 @@ const UserManagementPage = () => {
                                 </div>
                                <div>
                                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Portfolio/Website</p>
-                                  <a href={app.data?.portfolio} target="_blank" className="text-sm font-bold text-primary hover:underline">{app.data?.portfolio || "N/A"}</a>
+                                  {(app.website || app.data?.portfolio) ? (
+                                    <a href={app.website || app.data?.portfolio} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-primary hover:underline break-all">
+                                      {app.website || app.data?.portfolio}
+                                    </a>
+                                  ) : (
+                                    <p className="text-sm font-bold text-gray-500">N/A</p>
+                                  )}
                                </div>
                             </div>
+                            {(app.socialMedia || app.data?.socialMedia) && (
+                              <div className="flex items-start gap-4">
+                                 <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-primary">
+                                    <Globe size={18} />
+                                  </div>
+                                 <div>
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Social Media</p>
+                                    <a href={app.socialMedia || app.data?.socialMedia} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-primary hover:underline break-all">
+                                      {app.socialMedia || app.data?.socialMedia}
+                                    </a>
+                                 </div>
+                              </div>
+                            )}
                             <div className="flex items-start gap-4">
                                <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-primary">
                                   <Briefcase size={18} />
                                </div>
                                <div>
                                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Experience</p>
-                                  <p className="text-sm font-bold text-gray-700">{app.data?.experience || "N/A"}</p>
+                                  <p className="text-sm font-bold text-gray-700">{app.experience || app.data?.experience || "N/A"}</p>
                                </div>
                             </div>
                          </div>
                          <div className="space-y-4">
+                            {app.specialization && (
+                              <div className="flex items-start gap-4">
+                                 <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-primary">
+                                    <Briefcase size={18} />
+                                 </div>
+                                 <div>
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Specialization</p>
+                                    <p className="text-sm font-bold text-gray-700">{app.specialization}</p>
+                                 </div>
+                              </div>
+                            )}
+                            {(app.eventCount !== undefined || app.maxCapacity !== undefined) && (
+                              <div className="flex items-start gap-4">
+                                 <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-primary">
+                                    <Clock size={18} />
+                                 </div>
+                                 <div>
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Event Stats</p>
+                                    <p className="text-sm font-bold text-gray-700">
+                                      {app.eventCount !== undefined && `Events: ${app.eventCount}`}
+                                      {app.eventCount !== undefined && app.maxCapacity !== undefined && " | "}
+                                      {app.maxCapacity !== undefined && `Max Capacity: ${app.maxCapacity}`}
+                                    </p>
+                                 </div>
+                              </div>
+                            )}
                             <div className="flex items-start gap-4">
                                <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-primary">
                                   <FileText size={18} />
@@ -733,9 +781,13 @@ const UserManagementPage = () => {
                                <div className="flex-1">
                                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">References</p>
                                   <div className="flex flex-wrap gap-2 mt-1">
-                                     {app.data?.references?.map((ref: string, i: number) => (
-                                       <span key={i} className="px-3 py-1 bg-white border border-gray-100 rounded-lg text-xs font-medium text-gray-600">{ref}</span>
-                                     ))}
+                                     {(app.references || app.data?.references) && (app.references || app.data?.references).length > 0 ? (
+                                       (app.references || app.data?.references).map((ref: string, i: number) => (
+                                         <span key={i} className="px-3 py-1 bg-white border border-gray-100 rounded-lg text-xs font-medium text-gray-600">{ref}</span>
+                                       ))
+                                     ) : (
+                                       <span className="text-xs text-gray-400 italic">No references provided</span>
+                                     )}
                                   </div>
                                </div>
                             </div>
