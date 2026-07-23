@@ -16,12 +16,16 @@ const TourGuide = () => {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (!user || !activeRole) return;
+    const isHostEventPage = pathname === '/host-event';
+    if (!user) {
+      if (!isHostEventPage) return;
+    } else {
+      if (!activeRole) return;
+    }
 
     const isVendorPage = pathname.startsWith('/vendor');
     const isDashboardPage = pathname === '/dashboard';
     const isEventsDiscoveryPage = pathname === '/events';
-    const isHostEventPage = pathname === '/host-event';
     const isEventCreationPage = isHostEventPage || pathname === '/organizer/dashboard/events/create';
 
     const isCustomerCompleted = localStorage.getItem('gobokin_customer_tour_completed');
@@ -31,6 +35,7 @@ const TourGuide = () => {
     const isOrganizerDashboardCompleted = localStorage.getItem('gobokin_organizer_dashboard_tour_completed');
     const isOrganizerEventsCompleted = localStorage.getItem('gobokin_organizer_events_tour_completed');
     const isEventCreationCompleted = localStorage.getItem('gobokin_event_creation_tour_completed');
+    const isGuestEventCreationCompleted = localStorage.getItem('gobokin_guest_event_creation_tour_completed');
 
     const startTour = (steps: DriveStep[], storageKey: string) => {
         if (steps.length > 0 && !driverRef.current) {
@@ -56,8 +61,8 @@ const TourGuide = () => {
     const checkAndStartTour = () => {
         // Wait for page to be fully loaded and all data-fetching skeletons to disappear
         const isPageReady = document.readyState === 'complete';
-        // We ignore the pulse animation in the footer (Mobile App Coming Soon)
-        const isDataLoaded = !document.querySelector('.animate-pulse:not(footer *)');
+        // We ignore the pulse animation in the footer (Mobile App Coming Soon) and the Live Preview dot
+        const isDataLoaded = !document.querySelector('.animate-pulse:not(footer *):not(#event-creation-preview *)');
 
         if (!isPageReady || !isDataLoaded) {
             timerRef.current = setTimeout(checkAndStartTour, 500);
@@ -374,8 +379,8 @@ const TourGuide = () => {
           startTour(organizerEventsSteps as DriveStep[], 'gobokin_organizer_events_tour_completed');
         }
 
-        // 7. Event Creation Tour
-        else if (isEventCreationPage && !isEventCreationCompleted) {
+        // 7. Event Creation Tour (for logged-in users)
+        else if (isEventCreationPage && user && !isEventCreationCompleted) {
           const creationSteps = [
             {
               element: '#event-creation-steps',
@@ -406,6 +411,40 @@ const TourGuide = () => {
             },
           ].filter(step => document.querySelector(step.element));
           startTour(creationSteps as DriveStep[], 'gobokin_event_creation_tour_completed');
+        }
+
+        // 8. Guest Event Creation Tour (for unauthenticated users on `/host-event`)
+        else if (isHostEventPage && !user && !isGuestEventCreationCompleted) {
+          const guestCreationSteps = [
+            {
+              element: '#event-creation-steps',
+              popover: {
+                title: 'Start Your Creation!',
+                description: 'Welcome to the Gobokin Event Hosting setup! Follow these intuitive steps to construct your perfect event outline.',
+                side: "bottom",
+                align: 'start'
+              }
+            },
+            {
+              element: '#event-creation-form',
+              popover: {
+                title: 'Draft Unauthenticated',
+                description: 'Enter your event name, category, and formats here. All your draft changes are instantly and securely cached in your browser.',
+                side: "right",
+                align: 'start'
+              }
+            },
+            {
+              element: '#event-creation-preview',
+              popover: {
+                title: 'Real-time Live Preview',
+                description: 'See exactly how your custom layout, tickets, agenda, and speakers will look to attendees in real-time as you build.',
+                side: "left",
+                align: 'start'
+              }
+            },
+          ].filter(step => document.querySelector(step.element));
+          startTour(guestCreationSteps as DriveStep[], 'gobokin_guest_event_creation_tour_completed');
         }
     };
 
