@@ -84,6 +84,16 @@ const EventDetails = () => {
   const router = useRouter();
   const [event, setEvent] = useState<Event | null>(null);
 
+  const getEventDays = (startDateStr: string, endDateStr: string) => {
+    const start = new Date(startDateStr);
+    const end = new Date(endDateStr);
+    const sDate = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    const eDate = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+    const diffTime = Math.abs(eDate.getTime() - sDate.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+  };
+  const totalDays = event ? getEventDays(event.startDate, event.endDate) : 1;
+
   const isStaff = user?.role?.includes('organizer-staff');
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [staff, setStaff] = useState<StaffMember[]>([]);
@@ -1844,13 +1854,33 @@ const EventDetails = () => {
                                             </td>
                                             <td className="px-6 py-6 text-right">
                                                <div className="flex items-center justify-end gap-2">
-                                                  {!attendee.checkInStatus && (
+                                                  {(!attendee.checkInStatus || totalDays > 1) && (
                                                     <button
                                                       onClick={async () => {
                                                         try {
+                                                          let selectedDayNum = 1;
+                                                          if (totalDays > 1) {
+                                                            const inputOptions: Record<number, string> = {};
+                                                            for (let d = 1; d <= totalDays; d++) {
+                                                              inputOptions[d] = `Day ${d}`;
+                                                            }
+                                                            const { value: dayVal } = await Swal.fire({
+                                                              title: 'Select Check-in Day',
+                                                              input: 'select',
+                                                              inputOptions,
+                                                              inputPlaceholder: 'Select day',
+                                                              showCancelButton: true,
+                                                              confirmButtonColor: '#10b981',
+                                                            });
+                                                            if (!dayVal) return; // cancelled
+                                                            selectedDayNum = parseInt(dayVal);
+                                                          }
+
                                                           const result = await Swal.fire({
                                                             title: 'Confirm Check-in',
-                                                            text: `Are you sure you want to check in ${attendee.attendeeName}?`,
+                                                            text: totalDays > 1
+                                                              ? `Are you sure you want to check in ${attendee.attendeeName} for Day ${selectedDayNum}?`
+                                                              : `Are you sure you want to check in ${attendee.attendeeName}?`,
                                                             icon: 'question',
                                                             showCancelButton: true,
                                                             confirmButtonText: 'Yes, Check-in',
@@ -1860,9 +1890,10 @@ const EventDetails = () => {
                                                           if (result.isConfirmed) {
                                                             Swal.showLoading();
                                                             await api.post("/events/check-in", {
-                                                              ticketNumber: attendee.ticketNumber
+                                                              ticketNumber: attendee.ticketNumber,
+                                                              day: totalDays > 1 ? selectedDayNum : undefined
                                                             });
-                                                            await Swal.fire('Success', 'Attendee checked in successfully', 'success');
+                                                            await Swal.fire('Success', totalDays > 1 ? `Checked in for Day ${selectedDayNum}` : 'Attendee checked in successfully', 'success');
                                                             // Refresh data
                                                             if (!isStaff) {
                                                               api.get(`/events/${eventId}/analytics`).then(res => setAnalytics(res.data.data));
@@ -2067,9 +2098,35 @@ const EventDetails = () => {
                                                                   <CheckCircle2 size={16} />
                                                                </div>
                                                             ) : (
-                                                               <div className="w-8 h-8 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mx-auto border border-rose-100 cursor-pointer hover:bg-rose-100 transition-all">
+                                                               <button
+                                                                 onClick={async () => {
+                                                                   try {
+                                                                     const result = await Swal.fire({
+                                                                       title: 'Confirm Check-in',
+                                                                       text: `Are you sure you want to check in ${reg.attendeeName} for Day ${dayNum}?`,
+                                                                       icon: 'question',
+                                                                       showCancelButton: true,
+                                                                       confirmButtonText: 'Yes, Check-in',
+                                                                       confirmButtonColor: '#10b981',
+                                                                     });
+
+                                                                     if (result.isConfirmed) {
+                                                                       Swal.showLoading();
+                                                                       await api.post("/events/check-in", {
+                                                                         ticketNumber: reg.ticketNumber,
+                                                                         day: dayNum
+                                                                       });
+                                                                       await Swal.fire('Success', `Attendee checked in successfully for Day ${dayNum}`, 'success');
+                                                                       fetchTrackerRegistrations();
+                                                                     }
+                                                                   } catch (err) {
+                                                                     Swal.fire('Error', translateError(err), 'error');
+                                                                   }
+                                                                 }}
+                                                                 className="w-8 h-8 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mx-auto border border-rose-100 cursor-pointer hover:bg-rose-100 transition-all"
+                                                               >
                                                                   <XCircle size={16} />
-                                                               </div>
+                                                               </button>
                                                             )}
                                                             {/* Tooltip */}
                                                             {attended && (

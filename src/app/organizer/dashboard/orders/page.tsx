@@ -126,11 +126,55 @@ const OrdersView = () => {
     }
   };
 
-  const handleCheckIn = async (ticketNumber: string, attendeeName: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const isMultiDayEvent = (eventObj?: any) => {
+    if (!eventObj?.startDate || !eventObj?.endDate) return false;
+    const start = new Date(eventObj.startDate);
+    const end = new Date(eventObj.endDate);
+    const sDate = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    const eDate = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+    const diffTime = Math.abs(eDate.getTime() - sDate.getTime());
+    const totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    return totalDays > 1;
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleCheckIn = async (ticketNumber: string, attendeeName: string, eventObj?: any) => {
     try {
+        let selectedDay = 1;
+        let totalDays = 1;
+
+        if (eventObj?.startDate && eventObj?.endDate) {
+          const start = new Date(eventObj.startDate);
+          const end = new Date(eventObj.endDate);
+          const sDate = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+          const eDate = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+          const diffTime = Math.abs(eDate.getTime() - sDate.getTime());
+          totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        }
+
+        if (totalDays > 1) {
+          const inputOptions: Record<number, string> = {};
+          for (let d = 1; d <= totalDays; d++) {
+            inputOptions[d] = `Day ${d}`;
+          }
+          const { value: dayVal } = await Swal.fire({
+            title: 'Select Check-in Day',
+            input: 'select',
+            inputOptions,
+            inputPlaceholder: 'Select day',
+            showCancelButton: true,
+            confirmButtonColor: '#10b981',
+          });
+          if (!dayVal) return; // cancelled
+          selectedDay = parseInt(dayVal);
+        }
+
         const result = await Swal.fire({
             title: 'Confirm Check-in',
-            text: `Are you sure you want to check in ${attendeeName}?`,
+            text: totalDays > 1
+              ? `Are you sure you want to check in ${attendeeName} for Day ${selectedDay}?`
+              : `Are you sure you want to check in ${attendeeName}?`,
             icon: 'question',
             showCancelButton: true,
             confirmButtonText: 'Yes, Check-in',
@@ -139,8 +183,11 @@ const OrdersView = () => {
 
         if (result.isConfirmed) {
             Swal.showLoading();
-            await api.post("/events/check-in", { ticketNumber });
-            await Swal.fire('Success', 'Attendee checked in successfully', 'success');
+            await api.post("/events/check-in", {
+              ticketNumber,
+              day: totalDays > 1 ? selectedDay : undefined
+            });
+            await Swal.fire('Success', totalDays > 1 ? `Checked in successfully for Day ${selectedDay}` : 'Attendee checked in successfully', 'success');
             fetchOrders();
         }
     } catch (error) {
@@ -255,14 +302,14 @@ const OrdersView = () => {
                         </td>
                         <td className="px-6 py-5 text-right">
                            <div className="flex items-center justify-end gap-2">
-                                {order.checkInStatus ? (
+                                {order.checkInStatus && !isMultiDayEvent(order.event) ? (
                                     <span className="flex items-center gap-1 text-[9px] font-black text-blue-600 uppercase tracking-widest bg-blue-50 px-2 py-1 rounded-lg">
                                         <CheckCircle2 size={10} />
                                         Checked-in
                                     </span>
                                 ) : (
                                     <button
-                                        onClick={() => handleCheckIn(order.ticketNumber, order.attendeeName)}
+                                        onClick={() => handleCheckIn(order.ticketNumber, order.attendeeName, order.event)}
                                         disabled={order.status === 'PENDING' || order.status === 'FAILED'}
                                         title={order.status === 'PENDING' || order.status === 'FAILED' ? `Cannot check in a ${order.status.toLowerCase()} ticket` : ''}
                                         className={`px-3 py-1.5 font-bold text-[10px] rounded-lg border transition-all uppercase tracking-widest ${
@@ -349,14 +396,14 @@ const OrdersView = () => {
                         </div>
 
                         <div className="flex items-center gap-2 pt-2">
-                            {order.checkInStatus ? (
+                            {order.checkInStatus && !isMultiDayEvent(order.event) ? (
                                 <div className="flex-1 flex items-center justify-center gap-1.5 text-[10px] font-black text-blue-600 uppercase tracking-widest bg-blue-50 py-3 rounded-xl border border-blue-100">
                                     <CheckCircle2 size={14} />
                                     Checked-in
                                 </div>
                             ) : (
                                 <button
-                                    onClick={() => handleCheckIn(order.ticketNumber, order.attendeeName)}
+                                    onClick={() => handleCheckIn(order.ticketNumber, order.attendeeName, order.event)}
                                     disabled={order.status === 'PENDING' || order.status === 'FAILED'}
                                     className={`flex-1 flex items-center justify-center gap-1.5 py-3 font-bold text-[10px] rounded-xl border transition-all uppercase tracking-widest ${
                                         order.status === 'PENDING' || order.status === 'FAILED'

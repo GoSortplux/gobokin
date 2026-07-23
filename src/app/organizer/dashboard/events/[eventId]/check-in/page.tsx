@@ -73,6 +73,25 @@ const CheckInInterface = () => {
   const [selectedSessionId, setSelectedSessionId] = useState<string>("");
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [qrPayload, setQrPayload] = useState<string | null>(null);
+  const [selectedDay, setSelectedDay] = useState<number>(1);
+
+  const getEventDays = (startDateStr: string, endDateStr: string) => {
+    const start = new Date(startDateStr);
+    const end = new Date(endDateStr);
+    const sDate = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    const eDate = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+    const diffTime = Math.abs(eDate.getTime() - sDate.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+  };
+  const totalDays = event ? getEventDays(event.startDate, event.endDate) : 1;
+
+  useEffect(() => {
+    if (liveStats?.daily?.day) {
+      setSelectedDay(liveStats.daily.day);
+    } else if (liveStats?.currentDay) {
+      setSelectedDay(liveStats.currentDay);
+    }
+  }, [liveStats]);
 
   const fetchData = useCallback(async (showLoading = true) => {
     try {
@@ -158,9 +177,11 @@ const CheckInInterface = () => {
         ticketNumber: string;
         sessionId?: string;
         qrPayload?: string;
+        day?: number;
       } = {
         ticketNumber: searchResult.ticketNumber,
-        sessionId: selectedSessionId || undefined
+        sessionId: selectedSessionId || undefined,
+        day: totalDays > 1 ? selectedDay : undefined
       };
 
       if (qrPayload) {
@@ -400,9 +421,31 @@ const CheckInInterface = () => {
                            </p>
                         </div>
                     </div>
+
+                    {totalDays > 1 && (
+                      <div className="space-y-2 md:col-span-2">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Select Check-In Day</label>
+                        <div className="flex flex-wrap gap-2">
+                          {Array.from({ length: totalDays }, (_, i) => i + 1).map((dayNum) => (
+                            <button
+                              key={dayNum}
+                              type="button"
+                              onClick={() => setSelectedDay(dayNum)}
+                              className={`px-5 py-3 rounded-xl border text-xs font-bold transition-all ${
+                                selectedDay === dayNum
+                                  ? "bg-primary border-primary text-white shadow-md scale-105"
+                                  : "bg-gray-50 border-gray-100 text-gray-600 hover:border-gray-200"
+                              }`}
+                            >
+                              Day {dayNum}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  {searchResult.checkInStatus ? (
+                  {(searchResult.checkInStatus && totalDays <= 1) ? (
                     <div className="bg-amber-50 p-8 rounded-[2rem] border border-amber-100 flex items-start gap-5">
                        <div className="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-600 shrink-0 shadow-sm">
                           <AlertCircle size={24} />
@@ -420,7 +463,7 @@ const CheckInInterface = () => {
                       disabled={checkingIn}
                       className="w-full bg-emerald-600 text-white font-black py-7 rounded-[2rem] hover:bg-emerald-700 hover:scale-[1.02] active:scale-95 transition-all shadow-2xl shadow-emerald-900/20 flex items-center justify-center gap-4 text-xl disabled:opacity-50 group"
                     >
-                      {checkingIn ? "Validating..." : "Confirm & Complete Check-in"}
+                      {checkingIn ? "Validating..." : (totalDays > 1 ? `Confirm Day ${selectedDay} Check-in` : "Confirm & Complete Check-in")}
                       {!checkingIn && <CheckCircle2 size={28} className="group-hover:rotate-12 transition-transform" />}
                     </button>
                   )}

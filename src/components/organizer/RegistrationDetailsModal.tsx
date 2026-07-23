@@ -89,11 +89,35 @@ const RegistrationDetailsModal = ({
       setCheckingIn(true);
       Swal.showLoading();
 
-      await api.post("/events/check-in", { ticketNumber });
+      let selectedDayNum = 1;
+      if (eventDays > 1) {
+        const inputOptions: Record<number, string> = {};
+        for (let d = 1; d <= eventDays; d++) {
+          inputOptions[d] = `Day ${d}`;
+        }
+        const { value: dayVal } = await Swal.fire({
+          title: 'Select Check-in Day',
+          input: 'select',
+          inputOptions,
+          inputPlaceholder: 'Select day',
+          showCancelButton: true,
+          confirmButtonColor: '#10b981',
+        });
+        if (!dayVal) {
+          setCheckingIn(false);
+          return; // cancelled
+        }
+        selectedDayNum = parseInt(dayVal);
+      }
+
+      await api.post("/events/check-in", {
+        ticketNumber,
+        day: eventDays > 1 ? selectedDayNum : undefined
+      });
 
       await Swal.fire({
         title: "Success",
-        text: "Attendee checked in successfully",
+        text: eventDays > 1 ? `Attendee checked in for Day ${selectedDayNum}` : "Attendee checked in successfully",
         icon: "success",
         timer: 1500,
         showConfirmButton: false
@@ -301,7 +325,7 @@ const RegistrationDetailsModal = ({
                    Close
                  </button>
 
-                 {!registration?.overallCheckInStatus && (
+                 {(!registration?.overallCheckInStatus || eventDays > 1) && (
                     <button
                       onClick={handleCheckIn}
                       disabled={checkingIn || loading || !registration}
@@ -315,7 +339,7 @@ const RegistrationDetailsModal = ({
                       ) : (
                         <>
                           <CheckCircle2 size={16} />
-                          Check-in Attendee
+                          {eventDays > 1 ? "Check-in Day" : "Check-in Attendee"}
                         </>
                       )}
                     </button>
