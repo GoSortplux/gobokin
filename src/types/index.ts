@@ -803,6 +803,7 @@ export interface TopEvent {
   title: string;
   status: string;
   views: number;
+  detailViews?: number;
   orders: number;
   registrations: number;
   paidRegistrations: number;

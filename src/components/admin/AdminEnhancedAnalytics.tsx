@@ -618,7 +618,7 @@ const AdminEnhancedAnalytics = ({ defaultView = 'venues' }: { defaultView?: 'ven
                                       <div className="text-sm font-bold text-gray-900">{event.title}</div>
                                       <div className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">{event.status}</div>
                                   </td>
-                                  <td className="py-4 text-center text-sm font-bold text-gray-600">{safeFormatNumber(event.views)}</td>
+                                  <td className="py-4 text-center text-sm font-bold text-gray-600">{safeFormatNumber(event.detailViews !== undefined ? event.detailViews : event.views)}</td>
                                   <td className="py-4 text-center text-sm font-bold text-gray-600">{safeFormatNumber(event.orders)}</td>
                                   <td className="py-4 text-center text-sm font-bold text-gray-600">{safeFormatNumber(event.registrations)}</td>
                                   <td className="py-4 text-center text-sm font-bold text-gray-600">{safeFormatNumber(event.paidRegistrations)}</td>

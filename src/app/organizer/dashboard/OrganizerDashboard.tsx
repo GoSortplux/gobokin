@@ -51,8 +51,10 @@ const OrganizerDashboard = () => {
                 eventId: e.id,
                 title: e.title,
                 status: e.status,
-                views: e.views || 0,
+                views: e.detailViews || e.views || 0,
+                detailViews: e.detailViews || e.views || 0,
                 registrations: e.registrationCount || 0,
+                paidRegistrations: e.paidRegistrations || 0,
                 attendanceRate: e.attendanceRate || 0,
                 grossRevenue: 0 // Staff shouldn't see revenue
             }));
@@ -348,7 +350,7 @@ const OrganizerDashboard = () => {
                                 </span>
                             </td>
                             <td className="py-5 text-center text-sm font-bold text-gray-600">
-                                {(event.views || 0).toLocaleString()}
+                                {(event.detailViews !== undefined ? event.detailViews : event.views || 0).toLocaleString()}
                             </td>
                             <td className="py-5 text-center text-sm font-bold text-gray-600">
                                 {(event.registrations || 0).toLocaleString()}
@@ -399,7 +401,7 @@ const OrganizerDashboard = () => {
                     <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200/50">
                         <div>
                             <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-1">Views</p>
-                            <p className="text-sm font-bold text-gray-900">{(event.views || 0).toLocaleString()}</p>
+                            <p className="text-sm font-bold text-gray-900">{(event.detailViews !== undefined ? event.detailViews : event.views || 0).toLocaleString()}</p>
                         </div>
                         <div>
                             <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-1">Registrations</p>
