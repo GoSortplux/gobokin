@@ -457,10 +457,10 @@ const EventHeaderContent = () => {
                  </button>
               </form>
 
-              <nav className="flex flex-col gap-2">
-                 <Link href="/" className="flex items-center gap-3 p-4 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
-                    <Calendar size={20} className="text-primary" />
-                    Book Venue
+              <nav className="flex flex-col gap-4">
+                 <Link href="/" className="flex items-center justify-center gap-2 w-full py-3 text-center bg-secondary text-white font-bold rounded-xl shadow-lg shadow-secondary/20 hover:bg-secondary/90 transition-all">
+                    <Calendar size={20} className="text-white" />
+                    <span>Book Venue</span>
                  </Link>
                  {user && (
                     <>
@@ -499,10 +499,7 @@ const EventHeaderContent = () => {
               {!user && (
                  <div className="mt-auto space-y-4">
                     <Link href="/auth/login" className="block w-full py-4 text-center bg-primary text-white rounded-xl font-semibold shadow-md shadow-primary/10">
-                       Login
-                    </Link>
-                    <Link href="/auth/register" className="block w-full py-4 text-center border-2 border-primary text-primary rounded-xl font-semibold">
-                       Create Account
+                       Login/Register
                     </Link>
                  </div>
               )}

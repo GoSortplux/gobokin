@@ -387,16 +387,13 @@ const Header = () => {
                     </div>
 
                     {/* Nav Links */}
-                    <nav id="mobile-nav" className="space-y-2">
+                    <nav id="mobile-nav" className="space-y-4">
                       <Link
                         href="/events"
-                        className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors group"
+                        className="flex items-center justify-center gap-2 w-full py-3 text-center bg-secondary text-white font-bold rounded-xl shadow-lg shadow-secondary/20 hover:bg-secondary/90 transition-all"
                       >
-                        <div className="flex items-center space-x-3">
-                          <Calendar className="w-5 h-5 text-gray-500 group-hover:text-primary" />
-                          <span className="font-medium text-gray-700 group-hover:text-primary">Browse for Event / Sell Ticket</span>
-                        </div>
-                        <ChevronRight className="w-4 h-4 text-gray-400" />
+                        <Calendar className="w-5 h-5 text-white" />
+                        <span>Browse for Event / Sell Ticket</span>
                       </Link>
 
                       <Link
@@ -456,25 +453,16 @@ const Header = () => {
                     <p className="text-gray-600 text-sm">Log in to book venues and manage your reservations.</p>
                     <Link
                       href="/events"
-                      className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors group"
+                      className="flex items-center justify-center gap-2 w-full py-3 text-center bg-secondary text-white font-bold rounded-xl shadow-lg shadow-secondary/20 hover:bg-secondary/90 transition-all"
                     >
-                      <div className="flex items-center space-x-3">
-                        <Calendar className="w-5 h-5 text-gray-500 group-hover:text-primary" />
-                        <span className="font-medium text-gray-700 group-hover:text-primary">Browse for Event / Sell Ticket</span>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-gray-400" />
+                      <Calendar className="w-5 h-5 text-white" />
+                      <span>Browse for Event / Sell Ticket</span>
                     </Link>
                     <Link
                       href="/auth/login"
                       className="block w-full py-3 text-center bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20"
                     >
-                      Login
-                    </Link>
-                    <Link
-                      href="/auth/register"
-                      className="block w-full py-3 text-center border-2 border-primary text-primary font-bold rounded-xl"
-                    >
-                      Register
+                      Login/Register
                     </Link>
 
                     {renderBecomeOwnerButton() && (
