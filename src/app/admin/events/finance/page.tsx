@@ -53,16 +53,30 @@ interface AdminFinanceSummary {
 
 interface AdminWithdrawalRequest {
   id: string;
-  organizer: {
-    fullName: string;
-    email: string;
+  organizer?: {
+    fullName?: string;
+    email?: string;
+    slug?: string;
+  };
+  wallet?: {
+    organizer?: {
+      id?: string;
+      slug?: string;
+      fullName?: string;
+      email?: string;
+    };
   };
   amount: number;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
-  bankAccount: {
-    bankName: string;
-    accountNumber: string;
-    accountName: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'COMPLETED';
+  bankAccount?: {
+    bankName?: string;
+    accountNumber?: string;
+    accountName?: string;
+  };
+  bankDetails?: {
+    bankName?: string;
+    accountNumber?: string;
+    accountName?: string;
   };
   createdAt: string;
   adminNotes?: string;
@@ -506,21 +520,32 @@ const FinancePage = () => {
                     </tr>
                   ) : requests.length > 0 ? requests.filter(r => {
                     const matchesFilter = withdrawFilter === "ALL" || r.status === withdrawFilter;
+                    const org = r.organizer || r.wallet?.organizer;
+                    const orgName = org?.fullName || org?.slug || "";
+                    const orgEmail = org?.email || "";
                     const matchesSearch =
-                      r.organizer?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                      r.organizer?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      orgName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      orgEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
                       r.id?.toLowerCase().includes(searchTerm.toLowerCase());
                     return matchesFilter && matchesSearch;
-                  }).map((req) => (
+                  }).map((req) => {
+                    const org = req.organizer || req.wallet?.organizer;
+                    const orgName = org?.fullName || org?.slug || "Organizer";
+                    const orgEmail = org?.email || "No Email";
+                    const bankInfo = req.bankAccount || req.bankDetails;
+                    const bankName = bankInfo?.bankName || "N/A";
+                    const accountNumber = bankInfo?.accountNumber || "N/A";
+
+                    return (
                     <tr key={req.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-8 py-6">
-                        <p className="font-bold text-gray-900">{req.organizer?.fullName || "ID: " + (req.id?.slice(0, 8) || "N/A")}</p>
-                        <p className="text-xs text-gray-500 font-medium">{req.organizer?.email || "No Email"}</p>
+                        <p className="font-bold text-gray-900">{orgName || "ID: " + (req.id?.slice(0, 8) || "N/A")}</p>
+                        <p className="text-xs text-gray-500 font-medium">{orgEmail}</p>
                       </td>
                       <td className="px-8 py-6 font-black text-primary text-lg">{formatCurrency(req.amount)}</td>
                       <td className="px-8 py-6">
-                        <p className="text-sm font-bold text-gray-700">{req.bankAccount.bankName}</p>
-                        <p className="text-xs text-gray-500 font-medium">{req.bankAccount.accountNumber}</p>
+                        <p className="text-sm font-bold text-gray-700">{bankName}</p>
+                        <p className="text-xs text-gray-500 font-medium">{accountNumber}</p>
                       </td>
                       <td className="px-8 py-6">
                         <p className="text-sm font-bold text-gray-700">{new Date(req.createdAt).toLocaleDateString()}</p>
@@ -554,7 +579,7 @@ const FinancePage = () => {
                         )}
                       </td>
                     </tr>
-                  )) : (
+                  )}) : (
                     <tr>
                       <td colSpan={6} className="px-8 py-20 text-center">
                         <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
