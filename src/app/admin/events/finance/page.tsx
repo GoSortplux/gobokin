@@ -507,15 +507,15 @@ const FinancePage = () => {
                   ) : requests.length > 0 ? requests.filter(r => {
                     const matchesFilter = withdrawFilter === "ALL" || r.status === withdrawFilter;
                     const matchesSearch =
-                      r.organizer.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                      r.organizer.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      r.organizer?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      r.organizer?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                       r.id?.toLowerCase().includes(searchTerm.toLowerCase());
                     return matchesFilter && matchesSearch;
                   }).map((req) => (
                     <tr key={req.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-8 py-6">
-                        <p className="font-bold text-gray-900">{req.organizer.fullName || "ID: " + req.id.slice(0,8)}</p>
-                        <p className="text-xs text-gray-500 font-medium">{req.organizer.email}</p>
+                        <p className="font-bold text-gray-900">{req.organizer?.fullName || "ID: " + (req.id?.slice(0, 8) || "N/A")}</p>
+                        <p className="text-xs text-gray-500 font-medium">{req.organizer?.email || "No Email"}</p>
                       </td>
                       <td className="px-8 py-6 font-black text-primary text-lg">{formatCurrency(req.amount)}</td>
                       <td className="px-8 py-6">
@@ -616,7 +616,7 @@ const FinancePage = () => {
                   }).map((acc) => (
                     <tr key={acc.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-8 py-6">
-                         <p className="font-bold text-gray-900">ID: {acc.organizerId.slice(0,8)}</p>
+                         <p className="font-bold text-gray-900">ID: {acc.organizerId?.slice(0,8) || "N/A"}</p>
                          <p className="text-[10px] text-gray-400 font-medium">
                             {acc.createdAt ? new Date(acc.createdAt).toLocaleDateString() : "N/A"}
                          </p>
@@ -765,11 +765,11 @@ const FinancePage = () => {
                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                           <div>
                              <span className="text-[10px] font-black text-primary uppercase tracking-widest bg-blue-50 px-2.5 py-1 rounded-lg">
-                                {batch.source.replace('_', ' ')}
+                                {batch.source?.replace('_', ' ') || "GENERAL"}
                              </span>
-                             <h4 className="text-lg font-bold text-gray-900 mt-2">{batch.description}</h4>
+                             <h4 className="text-lg font-bold text-gray-900 mt-2">{batch.description || "No Description"}</h4>
                              <p className="text-xs text-gray-400 font-medium mt-1">
-                                Ref: {batch.reference} • Batch ID: {batch.id.slice(0, 8)} • Transaction ID: {batch.transactionId.slice(0, 8)} • {new Date(batch.createdAt).toLocaleDateString()}
+                                Ref: {batch.reference || "N/A"} • Batch ID: {batch.id?.slice(0, 8) || "N/A"} • Transaction ID: {batch.transactionId?.slice(0, 8) || "N/A"} • {batch.createdAt ? new Date(batch.createdAt).toLocaleDateString() : "N/A"}
                              </p>
                           </div>
                           <div className="text-left sm:text-right">

@@ -560,11 +560,11 @@ const FinanceDashboardContent = () => {
                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                               <div>
                                  <span className="text-[10px] font-black text-primary uppercase tracking-widest bg-blue-50 px-2.5 py-1 rounded-lg">
-                                    {batch.source.replace('_', ' ')}
+                                    {batch.source?.replace('_', ' ') || "GENERAL"}
                                  </span>
-                                 <h4 className="text-base font-bold text-gray-900 mt-2">{batch.description}</h4>
+                                 <h4 className="text-base font-bold text-gray-900 mt-2">{batch.description || "No Description"}</h4>
                                  <p className="text-xs text-gray-400 font-medium mt-1">
-                                    Ref: {batch.reference} • ID: {batch.id.slice(0, 8)} • {new Date(batch.createdAt).toLocaleDateString()}
+                                    Ref: {batch.reference || "N/A"} • ID: {batch.id?.slice(0, 8) || "N/A"} • {batch.createdAt ? new Date(batch.createdAt).toLocaleDateString() : "N/A"}
                                  </p>
                               </div>
                               <div className="text-left sm:text-right">
