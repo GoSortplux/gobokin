@@ -31,20 +31,61 @@ import withAuth from "@/components/auth/withAuth";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 
+interface OrganizerWithdrawal {
+  id: string;
+  amount: number;
+  status: 'PENDING' | 'COMPLETED' | 'REJECTED';
+  bankDetails?: {
+    bankName: string;
+    accountNumber: string;
+    accountName: string;
+  };
+  createdAt: string;
+  processedAt?: string;
+  adminNotes?: string;
+}
+
+interface LedgerEntry {
+  id: string;
+  debit: number;
+  credit: number;
+  memo: string;
+  account: {
+    code: string;
+    name: string;
+    type: string;
+  };
+}
+
+interface OrganizerLedgerBatch {
+  id: string;
+  transactionId: string;
+  source: string;
+  reference: string;
+  description: string;
+  totalDebit: number;
+  totalCredit: number;
+  currency: string;
+  createdAt: string;
+  entries: LedgerEntry[];
+}
+
 const FinanceDashboardContent = () => {
   const searchParams = useSearchParams();
   const [summary, setSummary] = useState<FinanceSummary | null>(null);
   const [refundRequests, setRefundRequests] = useState<RefundRequest[]>([]);
   const [bankAccount, setBankAccount] = useState<OrganizerBankAccount | null>(null);
+  const [withdrawals, setWithdrawals] = useState<OrganizerWithdrawal[]>([]);
+  const [ledgers, setLedgers] = useState<OrganizerLedgerBatch[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeView, setActiveView] = useState<'transactions' | 'refunds'>('transactions');
+  const [activeView, setActiveView] = useState<'transactions' | 'refunds' | 'withdrawals' | 'ledger'>('transactions');
   const [selectedRequest, setSelectedRequest] = useState<RefundRequest | null>(null);
   const [isBankModalOpen, setIsBankModalOpen] = useState(false);
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
 
   useEffect(() => {
     const view = searchParams.get("view");
-    if (view === "refunds" || view === "transactions") {
+    if (view === "refunds" || view === "transactions" || view === "withdrawals" || view === "ledger") {
       setActiveView(view);
     }
   }, [searchParams]);
@@ -53,6 +94,8 @@ const FinanceDashboardContent = () => {
     fetchFinanceData();
     fetchRefundRequests();
     fetchBankAccount();
+    fetchWithdrawals();
+    fetchLedgers();
   }, []);
 
   const fetchBankAccount = async () => {
@@ -61,6 +104,24 @@ const FinanceDashboardContent = () => {
       setBankAccount(response.data.data);
     } catch (error) {
       console.error("Failed to fetch bank account:", error);
+    }
+  };
+
+  const fetchWithdrawals = async () => {
+    try {
+      const response = await api.get("/events/my-organizer-profile/withdrawals");
+      setWithdrawals(response.data.data || []);
+    } catch (error) {
+      console.error("Failed to fetch withdrawals:", error);
+    }
+  };
+
+  const fetchLedgers = async () => {
+    try {
+      const response = await api.get("/events/my-organizer-profile/finance/ledger");
+      setLedgers(response.data.data || []);
+    } catch (error) {
+      console.error("Failed to fetch double-entry ledger:", error);
     }
   };
 
@@ -157,6 +218,7 @@ const FinanceDashboardContent = () => {
         });
         Swal.fire('Success!', 'Your withdrawal request has been submitted.', 'success');
         fetchFinanceData();
+        fetchWithdrawals();
       } catch (error) {
         Swal.fire('Error', translateError(error), 'error');
       }
@@ -286,6 +348,22 @@ const FinanceDashboardContent = () => {
                      </span>
                    )}
                  </button>
+                 <button
+                   onClick={() => setActiveView('withdrawals')}
+                   className={`flex-1 sm:flex-none px-4 md:px-6 py-2.5 rounded-xl text-xs md:text-sm font-black transition-all flex items-center justify-center gap-2 ${
+                     activeView === 'withdrawals' ? 'bg-white text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'
+                   }`}
+                 >
+                   Withdrawals
+                 </button>
+                 <button
+                   onClick={() => setActiveView('ledger')}
+                   className={`flex-1 sm:flex-none px-4 md:px-6 py-2.5 rounded-xl text-xs md:text-sm font-black transition-all flex items-center justify-center gap-2 ${
+                     activeView === 'ledger' ? 'bg-white text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'
+                   }`}
+                 >
+                   Ledger Audit
+                 </button>
                </div>
 
                <div className="flex items-center gap-2">
@@ -343,7 +421,7 @@ const FinanceDashboardContent = () => {
                    </div>
                  )}
               </div>
-            ) : (
+            ) : activeView === 'refunds' ? (
               <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden animate-in fade-in slide-in-from-right-4 duration-500">
                  {refundRequests && refundRequests.length > 0 ? (
                    <div className="divide-y divide-gray-50">
@@ -402,6 +480,146 @@ const FinanceDashboardContent = () => {
                       <div>
                          <h4 className="text-lg font-black text-gray-900">No refund requests</h4>
                          <p className="text-gray-500 font-medium max-w-xs mx-auto">Guest refund requests will appear here for your review and processing.</p>
+                      </div>
+                   </div>
+                 )}
+              </div>
+            ) : activeView === 'withdrawals' ? (
+              <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden animate-in fade-in slide-in-from-right-4 duration-500">
+                 {withdrawals && withdrawals.length > 0 ? (
+                   <div className="divide-y divide-gray-50">
+                      {withdrawals.map((w) => (
+                        <div key={w.id} className="p-5 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-gray-50 transition-colors group gap-4">
+                           <div className="flex items-center gap-4 md:gap-5">
+                              <div className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center shadow-sm shrink-0 ${
+                                w.status === 'PENDING' ? 'bg-amber-50 text-amber-600' :
+                                w.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600' :
+                                'bg-red-50 text-red-600'
+                              }`}>
+                                 {w.status === 'PENDING' ? <Clock size={20} className="md:w-6 md:h-6" /> : <CheckCircle2 size={20} className="md:w-6 md:h-6" />}
+                              </div>
+                              <div>
+                                 <div className="flex flex-wrap items-center gap-2">
+                                   <p className="font-bold text-gray-900 text-sm md:text-base">
+                                     {w.bankDetails?.bankName || 'Bank Payout'}
+                                   </p>
+                                   <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-1.5 md:px-2 py-0.5 rounded-full ${
+                                      w.status === 'PENDING' ? 'bg-amber-100 text-amber-700' :
+                                      w.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-700' :
+                                      'bg-red-100 text-red-700'
+                                   }`}>
+                                      {w.status}
+                                   </span>
+                                 </div>
+                                 <p className="text-[10px] md:text-xs text-gray-500 font-medium mt-0.5">
+                                    Account: {w.bankDetails?.accountNumber || 'N/A'} • {w.bankDetails?.accountName || 'N/A'}
+                                 </p>
+                                 {w.adminNotes && (
+                                   <div className="mt-2 text-xs bg-gray-50 border border-gray-100 rounded-xl p-3 text-gray-600 font-medium">
+                                     <span className="font-bold text-gray-800">Admin Notes:</span> {w.adminNotes}
+                                   </div>
+                                 )}
+                              </div>
+                           </div>
+                           <div className="flex items-center justify-between sm:justify-end gap-4 md:gap-8">
+                              <div className="text-left sm:text-right">
+                                 <p className="font-black text-base md:text-lg text-red-500">
+                                    -₦{(w.amount || 0).toLocaleString()}
+                                 </p>
+                                 <p className="text-[9px] md:text-[10px] text-gray-400 font-medium">
+                                    Requested: {new Date(w.createdAt).toLocaleDateString()}
+                                 </p>
+                                 {w.processedAt && (
+                                   <p className="text-[8px] md:text-[9px] text-gray-400 font-medium">
+                                      Processed: {new Date(w.processedAt).toLocaleDateString()}
+                                   </p>
+                                 )}
+                              </div>
+                           </div>
+                        </div>
+                      ))}
+                   </div>
+                 ) : (
+                   <div className="p-20 text-center space-y-4">
+                      <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto text-gray-300">
+                         <Banknote size={32} />
+                      </div>
+                      <div>
+                         <h4 className="text-lg font-black text-gray-900">No withdrawals yet</h4>
+                         <p className="text-gray-500 font-medium max-w-xs mx-auto">Your withdrawal requests and payout history will appear here once processed.</p>
+                      </div>
+                   </div>
+                 )}
+              </div>
+            ) : (
+              <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden animate-in fade-in slide-in-from-right-4 duration-500">
+                 {ledgers && ledgers.length > 0 ? (
+                   <div className="divide-y divide-gray-100">
+                      {ledgers.map((batch) => (
+                        <div key={batch.id} className="p-6 space-y-4">
+                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                              <div>
+                                 <span className="text-[10px] font-black text-primary uppercase tracking-widest bg-blue-50 px-2.5 py-1 rounded-lg">
+                                    {batch.source.replace('_', ' ')}
+                                 </span>
+                                 <h4 className="text-base font-bold text-gray-900 mt-2">{batch.description}</h4>
+                                 <p className="text-xs text-gray-400 font-medium mt-1">
+                                    Ref: {batch.reference} • ID: {batch.id.slice(0, 8)} • {new Date(batch.createdAt).toLocaleDateString()}
+                                 </p>
+                              </div>
+                              <div className="text-left sm:text-right">
+                                 <p className="text-sm font-black text-gray-900">Total Balanced Volume</p>
+                                 <p className="text-lg font-black text-emerald-600">
+                                    ₦{(batch.totalDebit || 0).toLocaleString()}
+                                 </p>
+                                 <span className="text-[9px] md:text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">
+                                    Balanced Ledger
+                                 </span>
+                              </div>
+                           </div>
+
+                           <div className="bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden mt-3">
+                              <table className="w-full text-left text-xs">
+                                 <thead className="bg-gray-100/50 border-b border-gray-200">
+                                    <tr>
+                                       <th className="px-4 py-2.5 font-bold text-gray-500">Account</th>
+                                       <th className="px-4 py-2.5 font-bold text-gray-500">Memo</th>
+                                       <th className="px-4 py-2.5 font-bold text-gray-500 text-right">Debit</th>
+                                       <th className="px-4 py-2.5 font-bold text-gray-500 text-right">Credit</th>
+                                    </tr>
+                                 </thead>
+                                 <tbody className="divide-y divide-gray-100">
+                                    {batch.entries?.map((entry) => (
+                                       <tr key={entry.id} className="hover:bg-gray-100/30">
+                                          <td className="px-4 py-2.5">
+                                             <p className="font-bold text-gray-900">{entry.account?.name}</p>
+                                             <p className="text-[10px] text-gray-400 font-mono">{entry.account?.code}</p>
+                                          </td>
+                                          <td className="px-4 py-2.5 text-gray-600 font-medium">
+                                             {entry.memo}
+                                          </td>
+                                          <td className="px-4 py-2.5 text-right font-bold text-emerald-600">
+                                             {entry.debit > 0 ? `₦${entry.debit.toLocaleString()}` : '—'}
+                                          </td>
+                                          <td className="px-4 py-2.5 text-right font-bold text-rose-600">
+                                             {entry.credit > 0 ? `₦${entry.credit.toLocaleString()}` : '—'}
+                                          </td>
+                                       </tr>
+                                    ))}
+                                 </tbody>
+                              </table>
+                           </div>
+                        </div>
+                      ))}
+                   </div>
+                 ) : (
+                   <div className="p-20 text-center space-y-4">
+                      <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto text-gray-300">
+                         <History size={32} />
+                      </div>
+                      <div>
+                         <h4 className="text-lg font-black text-gray-900">No ledger entries</h4>
+                         <p className="text-gray-500 font-medium max-w-xs mx-auto">Balanced double-entry ledger batches for auditing will appear here once your transactions begin.</p>
                       </div>
                    </div>
                  )}

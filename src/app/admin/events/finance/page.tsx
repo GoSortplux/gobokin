@@ -81,12 +81,36 @@ interface Subaccount {
   accountName: string;
 }
 
+interface AdminLedgerBatch {
+  id: string;
+  transactionId: string;
+  source: string;
+  reference: string;
+  description: string;
+  totalDebit: number;
+  totalCredit: number;
+  currency: string;
+  createdAt: string;
+  entries: Array<{
+    id: string;
+    debit: number;
+    credit: number;
+    memo: string;
+    account: {
+      name: string;
+      code: string;
+      type: string;
+    };
+  }>;
+}
+
 const FinancePage = () => {
-  const [activeTab, setActiveTab] = useState<'summary' | 'withdrawals' | 'verifications'>('summary');
+  const [activeTab, setActiveTab] = useState<'summary' | 'withdrawals' | 'verifications' | 'ledger'>('summary');
   const [summary, setSummary] = useState<AdminFinanceSummary | null>(null);
   const [requests, setRequests] = useState<AdminWithdrawalRequest[]>([]);
   const [bankAccounts, setBankAccounts] = useState<OrganizerBankAccount[]>([]);
   const [subaccounts, setSubaccounts] = useState<Subaccount[]>([]);
+  const [ledgers, setLedgers] = useState<AdminLedgerBatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [subaccountsLoading, setSubaccountsLoading] = useState(false);
   const [withdrawFilter, setWithdrawFilter] = useState("PENDING");
@@ -100,6 +124,8 @@ const FinancePage = () => {
       fetchRequests();
     } else if (activeTab === 'verifications') {
       fetchBankAccounts();
+    } else if (activeTab === 'ledger') {
+      fetchLedgers();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, verificationFilter]);
@@ -118,6 +144,19 @@ const FinancePage = () => {
       setSummary(response.data.data);
     } catch (_error) {
       console.error("Failed to fetch finance summary:", _error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchLedgers = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get("/events/admin/finance/ledger");
+      setLedgers(response.data.data || []);
+    } catch (_error) {
+      console.error("Failed to fetch platform ledgers:", _error);
+      setLedgers([]);
     } finally {
       setLoading(false);
     }
@@ -321,6 +360,15 @@ const FinancePage = () => {
           Bank Verifications
           {activeTab === 'verifications' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-full" />}
         </button>
+        <button
+          onClick={() => setActiveTab('ledger')}
+          className={`px-6 py-4 text-sm font-bold transition-all relative ${
+            activeTab === 'ledger' ? "text-primary" : "text-gray-400 hover:text-gray-600"
+          }`}
+        >
+          Audit Ledger
+          {activeTab === 'ledger' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-full" />}
+        </button>
       </div>
 
       {activeTab === 'summary' ? (
@@ -521,7 +569,7 @@ const FinancePage = () => {
             </div>
           </div>
         </>
-      ) : (
+      ) : activeTab === 'verifications' ? (
         <>
           <div className="bg-white p-3 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-2 overflow-x-auto no-scrollbar">
              {["ALL", "PENDING", "APPROVED", "REJECTED"].map(filter => (
@@ -698,6 +746,91 @@ const FinancePage = () => {
             </div>
           </div>
         </>
+      ) : (
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-xl font-black text-gray-900 tracking-tight uppercase italic">
+              Platform <span className="text-primary not-italic">Ledger Audit Trail</span>
+            </h2>
+            <p className="text-gray-500 text-sm font-medium">Balanced double-entry ledger batches across all platform organizers for audit and reconciliation.</p>
+          </div>
+
+          <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
+             {loading ? (
+               <div className="px-8 py-20 text-center"><CustomLoader /></div>
+             ) : ledgers.length > 0 ? (
+               <div className="divide-y divide-gray-100">
+                  {ledgers.map((batch) => (
+                    <div key={batch.id} className="p-8 space-y-4 hover:bg-gray-50/50 transition-colors">
+                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                          <div>
+                             <span className="text-[10px] font-black text-primary uppercase tracking-widest bg-blue-50 px-2.5 py-1 rounded-lg">
+                                {batch.source.replace('_', ' ')}
+                             </span>
+                             <h4 className="text-lg font-bold text-gray-900 mt-2">{batch.description}</h4>
+                             <p className="text-xs text-gray-400 font-medium mt-1">
+                                Ref: {batch.reference} • Batch ID: {batch.id.slice(0, 8)} • Transaction ID: {batch.transactionId.slice(0, 8)} • {new Date(batch.createdAt).toLocaleDateString()}
+                             </p>
+                          </div>
+                          <div className="text-left sm:text-right">
+                             <p className="text-sm font-bold text-gray-400 uppercase tracking-wider">Balanced Amount</p>
+                             <p className="text-xl font-black text-emerald-600">
+                                {formatCurrency(batch.totalDebit)}
+                             </p>
+                             <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full uppercase tracking-wider">
+                                Balanced Ledger
+                             </span>
+                          </div>
+                       </div>
+
+                       {/* Ledger Entries Table */}
+                       <div className="bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden mt-4">
+                          <table className="w-full text-left text-xs">
+                             <thead className="bg-gray-100/50 border-b border-gray-200">
+                                <tr>
+                                   <th className="px-6 py-3 font-bold text-gray-500 uppercase tracking-wider">Account Scope / Code</th>
+                                   <th className="px-6 py-3 font-bold text-gray-500 uppercase tracking-wider">Memo</th>
+                                   <th className="px-6 py-3 font-bold text-gray-500 uppercase tracking-wider text-right">Debit</th>
+                                   <th className="px-6 py-3 font-bold text-gray-500 uppercase tracking-wider text-right">Credit</th>
+                                </tr>
+                             </thead>
+                             <tbody className="divide-y divide-gray-100">
+                                {batch.entries?.map((entry) => (
+                                   <tr key={entry.id} className="hover:bg-gray-100/30">
+                                      <td className="px-6 py-3.5">
+                                         <p className="font-bold text-gray-900">{entry.account?.name}</p>
+                                         <p className="text-[10px] text-gray-400 font-mono">{entry.account?.code}</p>
+                                      </td>
+                                      <td className="px-6 py-3.5 text-gray-600 font-medium">
+                                         {entry.memo}
+                                      </td>
+                                      <td className="px-6 py-3.5 text-right font-black text-emerald-600 text-sm">
+                                         {entry.debit > 0 ? formatCurrency(entry.debit) : '—'}
+                                      </td>
+                                      <td className="px-6 py-3.5 text-right font-black text-rose-600 text-sm">
+                                         {entry.credit > 0 ? formatCurrency(entry.credit) : '—'}
+                                      </td>
+                                   </tr>
+                                ))}
+                             </tbody>
+                          </table>
+                       </div>
+                    </div>
+                  ))}
+               </div>
+             ) : (
+               <div className="p-20 text-center space-y-4">
+                  <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto text-gray-300">
+                     <Layers size={32} />
+                  </div>
+                  <div>
+                     <h4 className="text-lg font-black text-gray-900">No ledger entries</h4>
+                     <p className="text-gray-500 font-medium max-w-xs mx-auto">No platform-wide double-entry ledger batches found yet.</p>
+                  </div>
+               </div>
+             )}
+          </div>
+        </div>
       )}
     </div>
   );
