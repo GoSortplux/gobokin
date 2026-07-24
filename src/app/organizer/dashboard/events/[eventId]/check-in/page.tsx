@@ -75,6 +75,122 @@ const CheckInInterface = () => {
   const [qrPayload, setQrPayload] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<number>(1);
 
+  const [isOfflineMode, setIsOfflineMode] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [offlineCheckIns, setOfflineCheckIns] = useState<any[]>([]);
+  const [syncing, setSyncing] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem(`gobokin_offline_checkins_${eventId}`);
+      if (stored) {
+        try {
+          setOfflineCheckIns(JSON.parse(stored));
+        } catch (e) {
+          console.error("Failed to parse stored offline check-ins:", e);
+        }
+      }
+    }
+  }, [eventId]);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const saveOfflineCheckIns = (checkIns: any[]) => {
+    setOfflineCheckIns(checkIns);
+    localStorage.setItem(`gobokin_offline_checkins_${eventId}`, JSON.stringify(checkIns));
+  };
+
+  const handleToggleOfflineMode = () => {
+    if (!isOfflineMode) {
+      if (isRestricted('OFFLINE_CHECKIN_ALLOWED')) {
+        const rule = getRule('OFFLINE_CHECKIN_ALLOWED');
+        Swal.fire({
+          title: rule?.title || 'Feature Restricted',
+          text: rule?.uxContext || 'Offline check-in is not available on your current plan.',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Upgrade Now',
+          cancelButtonText: 'Later',
+          confirmButtonColor: '#295FA7',
+        }).then((result) => {
+          if (result.isConfirmed) {
+            router.push('/organizer/dashboard/settings?tab=subscriptions');
+          }
+        });
+        return;
+      }
+      setIsOfflineMode(true);
+      Swal.fire({
+        title: "Offline Mode Enabled",
+        text: "Check-ins will be cached locally on this device.",
+        icon: "info",
+        timer: 2000,
+        showConfirmButton: false
+      });
+    } else {
+      setIsOfflineMode(false);
+      Swal.fire({
+        title: "Online Mode Enabled",
+        text: "Checking-in will now sync in real-time with the server.",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false
+      });
+    }
+  };
+
+  const handleSyncOfflineCheckIns = async () => {
+    if (offlineCheckIns.length === 0) return;
+
+    if (isRestricted('OFFLINE_CHECKIN_ALLOWED')) {
+      const rule = getRule('OFFLINE_CHECKIN_ALLOWED');
+      Swal.fire({
+        title: rule?.title || 'Feature Restricted',
+        text: rule?.uxContext || 'Offline check-in is not available on your current plan.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Upgrade Now',
+        cancelButtonText: 'Later',
+        confirmButtonColor: '#295FA7',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          router.push('/organizer/dashboard/settings?tab=subscriptions');
+        }
+      });
+      return;
+    }
+
+    setSyncing(true);
+    try {
+      Swal.showLoading();
+      const payload = {
+        checkIns: offlineCheckIns.map(ci => ({
+          ticketNumber: ci.ticketNumber,
+          checkedInAt: ci.checkedInAt,
+          sessionId: ci.sessionId || undefined,
+          day: ci.day || undefined
+        }))
+      };
+
+      await api.post("/events/check-in/sync", payload);
+
+      await Swal.fire({
+        title: "Synchronization Successful!",
+        text: `Successfully synchronized ${offlineCheckIns.length} offline check-ins to the server.`,
+        icon: "success",
+        timer: 2500,
+        showConfirmButton: false
+      });
+
+      saveOfflineCheckIns([]);
+      fetchData(false); // Silent refresh of stats
+    } catch (error) {
+      console.error("Sync failed:", error);
+      Swal.fire("Synchronization Error", translateError(error), "error");
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const getEventDays = (startDateStr: string, endDateStr: string) => {
     const start = new Date(startDateStr);
     const end = new Date(endDateStr);
@@ -136,26 +252,32 @@ const CheckInInterface = () => {
     e.preventDefault();
     if (!searchTerm.trim()) return;
 
-    if (isRestricted('OFFLINE_CHECKIN_ALLOWED')) {
-      const rule = getRule('OFFLINE_CHECKIN_ALLOWED');
-      Swal.fire({
-        title: rule?.title || 'Feature Restricted',
-        text: rule?.uxContext || 'Offline check-in is not available on your current plan.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Upgrade Now',
-        cancelButtonText: 'Later',
-        confirmButtonColor: '#295FA7',
-      }).then((result) => {
-        if (result.isConfirmed) {
-          router.push('/organizer/dashboard/settings?tab=subscriptions');
-        }
-      });
+    setSearching(true);
+    setSearchResult(null);
+
+    if (isOfflineMode) {
+      const termUpper = searchTerm.trim().toUpperCase();
+      const isAlreadyCheckedInLocally = offlineCheckIns.some(
+        (ci) => ci.ticketNumber === termUpper
+      );
+
+      setTimeout(() => {
+        setSearchResult({
+          ticketNumber: termUpper,
+          attendeeName: `Offline Attendee (${termUpper})`,
+          attendeeEmail: "offline-captured@gobokin.com",
+          ticketName: "Standard Access",
+          paymentStatus: "PAID",
+          checkInStatus: isAlreadyCheckedInLocally,
+          checkedInAt: isAlreadyCheckedInLocally
+            ? offlineCheckIns.find((ci) => ci.ticketNumber === termUpper)?.checkedInAt
+            : undefined
+        });
+        setSearching(false);
+      }, 300);
       return;
     }
 
-    setSearching(true);
-    setSearchResult(null);
     try {
       const response = await api.get(`/events/check-in/lookup?ticketNumber=${searchTerm}`);
       setSearchResult(response.data.data);
@@ -178,30 +300,49 @@ const CheckInInterface = () => {
         sessionId?: string;
         qrPayload?: string;
         day?: number;
+        checkedInAt?: string;
       } = {
         ticketNumber: searchResult.ticketNumber,
         sessionId: selectedSessionId || undefined,
-        day: totalDays > 1 ? selectedDay : undefined
+        day: totalDays > 1 ? selectedDay : undefined,
+        checkedInAt: new Date().toISOString()
       };
 
       if (qrPayload) {
         payload.qrPayload = qrPayload;
       }
 
-      await api.post("/events/check-in", payload);
+      if (isOfflineMode) {
+        const newQueue = [...offlineCheckIns, payload];
+        saveOfflineCheckIns(newQueue);
 
-      await Swal.fire({
-        title: "Check-in Successful!",
-        text: `${searchResult?.attendeeName || searchResult?.attendeeData?.fullName || searchResult?.attendeeData?.["full-name"] || "Guest"} has been checked in.`,
-        icon: "success",
-        timer: 2000,
-        showConfirmButton: false
-      });
+        await Swal.fire({
+          title: "Check-in Cached!",
+          text: `${searchResult?.attendeeName || "Guest"} has been checked in offline. Remember to sync later!`,
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false
+        });
 
-      setSearchResult(null);
-      setSearchTerm("");
-      setQrPayload(null);
-      fetchData(false); // Silent refresh of stats
+        setSearchResult(null);
+        setSearchTerm("");
+        setQrPayload(null);
+      } else {
+        await api.post("/events/check-in", payload);
+
+        await Swal.fire({
+          title: "Check-in Successful!",
+          text: `${searchResult?.attendeeName || searchResult?.attendeeData?.fullName || searchResult?.attendeeData?.["full-name"] || "Guest"} has been checked in.`,
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false
+        });
+
+        setSearchResult(null);
+        setSearchTerm("");
+        setQrPayload(null);
+        fetchData(false); // Silent refresh of stats
+      }
     } catch (error) {
       console.error("Check-in failed:", error);
       Swal.fire("Check-in Error", translateError(error), "error");
@@ -213,17 +354,43 @@ const CheckInInterface = () => {
   const handleScanSuccess = async (decodedText: string) => {
     setIsScannerOpen(false);
     try {
-      const data = JSON.parse(decodedText);
-      if (!data.ticketNumber) {
-        throw new Error("Invalid QR code format");
+      let ticketNumber = decodedText;
+      try {
+        const data = JSON.parse(decodedText);
+        if (data.ticketNumber) {
+          ticketNumber = data.ticketNumber;
+        }
+      } catch (e) {
+        // use raw decodedText
       }
 
-      setSearchTerm(data.ticketNumber);
+      setSearchTerm(ticketNumber);
       setQrPayload(decodedText);
       setSearching(true);
       setSearchResult(null);
 
-      const response = await api.get(`/events/check-in/lookup?ticketNumber=${data.ticketNumber}`);
+      if (isOfflineMode) {
+        const termUpper = ticketNumber.trim().toUpperCase();
+        const isAlreadyCheckedInLocally = offlineCheckIns.some(
+          (ci) => ci.ticketNumber === termUpper
+        );
+
+        setSearchResult({
+          ticketNumber: termUpper,
+          attendeeName: `Offline Attendee (${termUpper})`,
+          attendeeEmail: "offline-captured@gobokin.com",
+          ticketName: "Standard Access",
+          paymentStatus: "PAID",
+          checkInStatus: isAlreadyCheckedInLocally,
+          checkedInAt: isAlreadyCheckedInLocally
+            ? offlineCheckIns.find((ci) => ci.ticketNumber === termUpper)?.checkedInAt
+            : undefined
+        });
+        setSearching(false);
+        return;
+      }
+
+      const response = await api.get(`/events/check-in/lookup?ticketNumber=${ticketNumber}`);
       setSearchResult(response.data.data);
     } catch (error) {
       console.error("Scan processing failed:", error);
@@ -248,9 +415,39 @@ const CheckInInterface = () => {
             <h1 className="text-4xl font-black text-gray-900 tracking-tight italic uppercase">Check-in <span className="text-primary not-italic">Portal</span></h1>
             <p className="text-gray-500 font-medium text-lg mt-1">Efficiently manage and track attendee arrival in real-time.</p>
           </div>
-          <div className="flex items-center gap-2 text-xs font-black text-primary bg-primary/5 px-4 py-2 rounded-full border border-primary/10">
-            <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-            LIVE SYNC ACTIVE
+          <div className="flex flex-wrap items-center gap-4">
+            {/* Offline Mode Toggle Switch */}
+            <div className="flex items-center gap-3 bg-white px-5 py-3 rounded-2xl border border-gray-100 shadow-sm">
+              <span className={`text-xs font-black uppercase tracking-wider ${isOfflineMode ? "text-amber-600" : "text-gray-400"}`}>
+                {isOfflineMode ? "Offline Mode Active" : "Online Mode"}
+              </span>
+              <button
+                type="button"
+                onClick={handleToggleOfflineMode}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+                  isOfflineMode ? "bg-amber-500" : "bg-gray-200"
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    isOfflineMode ? "translate-x-5" : "translate-x-0"
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Mode Status Badge */}
+            {!isOfflineMode ? (
+              <div className="flex items-center gap-2 text-xs font-black text-primary bg-primary/5 px-4 py-2 rounded-full border border-primary/10 h-11">
+                <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                LIVE SYNC ACTIVE
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-xs font-black text-amber-600 bg-amber-50 px-4 py-2 rounded-full border border-amber-200 h-11">
+                <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
+                OFFLINE CACHING ACTIVE
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -299,23 +496,6 @@ const CheckInInterface = () => {
                 <button
                   type="button"
                   onClick={() => {
-                    if (isRestricted('OFFLINE_CHECKIN_ALLOWED')) {
-                      const rule = getRule('OFFLINE_CHECKIN_ALLOWED');
-                      Swal.fire({
-                        title: rule?.title || 'Feature Restricted',
-                        text: rule?.uxContext || 'Offline check-in is not available on your current plan.',
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonText: 'Upgrade Now',
-                        cancelButtonText: 'Later',
-                        confirmButtonColor: '#295FA7',
-                      }).then((result) => {
-                        if (result.isConfirmed) {
-                          router.push('/organizer/dashboard/settings?tab=subscriptions');
-                        }
-                      });
-                      return;
-                    }
                     setIsScannerOpen(true);
                   }}
                   className="flex items-center gap-4 px-8 py-4 bg-gray-900 text-white rounded-[1.5rem] hover:scale-105 transition-all shadow-xl shadow-gray-900/10 group"
@@ -481,6 +661,37 @@ const CheckInInterface = () => {
 
         {/* Sidebar Column */}
         <div className="space-y-8">
+          {/* Offline Sync Widget */}
+          {offlineCheckIns.length > 0 && (
+            <div className="bg-amber-50 border border-amber-200 p-10 rounded-[3rem] shadow-xl shadow-amber-900/5 relative overflow-hidden">
+               <div className="absolute top-0 right-0 w-32 h-32 bg-amber-100/30 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+
+               <div className="flex items-center gap-4 mb-6 relative z-10">
+                  <div className="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-700 shadow-sm shrink-0">
+                     <Clock size={24} className="animate-pulse" />
+                  </div>
+                  <div>
+                     <h4 className="text-xl font-black text-amber-950 italic uppercase">Pending Sync</h4>
+                     <p className="text-xs text-amber-700 font-bold uppercase tracking-widest">{offlineCheckIns.length} Check-in{offlineCheckIns.length > 1 ? 's' : ''} Cached</p>
+                  </div>
+               </div>
+
+               <p className="text-sm text-amber-800 font-medium mb-8 leading-relaxed relative z-10">
+                  You have recorded check-ins offline. Click below to synchronize them to the Gobokin cloud when you have an active network connection.
+               </p>
+
+               <button
+                 type="button"
+                 onClick={handleSyncOfflineCheckIns}
+                 disabled={syncing}
+                 className="w-full bg-amber-600 text-white font-black py-5 rounded-[1.8rem] hover:bg-amber-700 hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-amber-600/20 flex items-center justify-center gap-3 text-base disabled:opacity-50 relative z-10"
+               >
+                  {syncing ? "Syncing..." : "Sync Offline Check-ins"}
+                  {!syncing && <CheckCircle2 size={20} />}
+               </button>
+            </div>
+          )}
+
           {/* Attendance Stats */}
           <div className="bg-gray-900 p-10 rounded-[3rem] text-white shadow-2xl shadow-gray-900/30 relative overflow-hidden group">
              <div className="absolute top-0 right-0 w-40 h-40 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-primary/20 transition-colors"></div>
