@@ -40,7 +40,12 @@ api.interceptors.request.use(
     if (config.url && (
       config.url.startsWith('/events/admin/packages') ||
       config.url.startsWith('/policies') ||
-      config.url.startsWith('policies')
+      config.url.startsWith('policies') ||
+      config.url.startsWith('/events/my-organizer-profile/withdrawals') ||
+      config.url.startsWith('/events/my-organizer-profile/finance') ||
+      config.url.startsWith('/events/admin/finance') ||
+      config.url.startsWith('/events/admin/withdrawals') ||
+      config.url.startsWith('/events/withdrawals')
     )) {
       config.baseURL = '/api/v1';
     }

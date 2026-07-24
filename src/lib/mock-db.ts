@@ -360,8 +360,181 @@ export const db = {
     findBySlug: async (slug: string) => {
       return mockPolicies.find(p => p.slug === slug) || null;
     }
+  },
+  withdrawals: {
+    findMany: async (filter?: { organizerId?: string; status?: string }) => {
+      let results = [...mockWithdrawals];
+      if (filter) {
+        if (filter.organizerId) {
+          results = results.filter(w => w.organizerId === filter.organizerId);
+        }
+        if (filter.status && filter.status !== 'ALL') {
+          results = results.filter(w => w.status === filter.status);
+        }
+      }
+      return results;
+    },
+    findUnique: async (id: string) => {
+      return mockWithdrawals.find(w => w.id === id) || null;
+    },
+    create: async (data: Omit<WithdrawalRequest, 'id' | 'createdAt' | 'updatedAt'>) => {
+      const newWithdrawal: WithdrawalRequest = {
+        ...data,
+        id: `wdr-${Date.now()}`,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      mockWithdrawals.push(newWithdrawal);
+      return newWithdrawal;
+    },
+    update: async (id: string, data: Partial<WithdrawalRequest>) => {
+      const idx = mockWithdrawals.findIndex(w => w.id === id);
+      if (idx !== -1) {
+        mockWithdrawals[idx] = {
+          ...mockWithdrawals[idx],
+          ...data,
+          updatedAt: new Date().toISOString()
+        };
+        return mockWithdrawals[idx];
+      }
+      return null;
+    }
+  },
+  transactions: {
+    findMany: async (filter?: { walletId?: string; type?: string; status?: string }) => {
+      let results = [...mockTransactions];
+      if (filter) {
+        if (filter.walletId) {
+          results = results.filter(t => t.walletId === filter.walletId);
+        }
+        if (filter.type) {
+          results = results.filter(t => t.type === filter.type);
+        }
+        if (filter.status) {
+          results = results.filter(t => t.status === filter.status);
+        }
+      }
+      return results;
+    },
+    findUnique: async (id: string) => {
+      return mockTransactions.find(t => t.id === id) || null;
+    },
+    create: async (data: Omit<WalletTransaction, 'id' | 'createdAt'>) => {
+      const newTx: WalletTransaction = {
+        ...data,
+        id: `tx-${Date.now()}`,
+        createdAt: new Date().toISOString()
+      };
+      mockTransactions.push(newTx);
+      return newTx;
+    }
+  },
+  ledger: {
+    findMany: async (filter?: { organizerId?: string; source?: string; transactionId?: string; reference?: string; startDate?: string; endDate?: string }) => {
+      let results = [...mockLedgers];
+      if (filter) {
+        if (filter.organizerId) {
+          results = results.filter(b => b.entries.some(e => e.account.organizerId === filter.organizerId));
+        }
+        if (filter.source) {
+          results = results.filter(b => b.source === filter.source);
+        }
+        if (filter.transactionId) {
+          results = results.filter(b => b.transactionId === filter.transactionId);
+        }
+        if (filter.reference) {
+          results = results.filter(b => b.reference === filter.reference);
+        }
+        if (filter.startDate) {
+          results = results.filter(b => new Date(b.createdAt) >= new Date(filter.startDate!));
+        }
+        if (filter.endDate) {
+          results = results.filter(b => new Date(b.createdAt) <= new Date(filter.endDate!));
+        }
+      }
+      return results;
+    },
+    findUnique: async (id: string) => {
+      return mockLedgers.find(b => b.id === id) || null;
+    },
+    create: async (data: Omit<LedgerBatch, 'id' | 'createdAt'>) => {
+      const newBatch: LedgerBatch = {
+        ...data,
+        id: `batch-${Date.now()}`,
+        createdAt: new Date().toISOString()
+      };
+      mockLedgers.push(newBatch);
+      return newBatch;
+    }
   }
 };
+
+export interface WithdrawalRequest {
+  id: string;
+  organizerId: string;
+  amount: number;
+  status: 'PENDING' | 'COMPLETED' | 'APPROVED' | 'REJECTED';
+  bankAccount: {
+    bankName: string;
+    accountNumber: string;
+    accountName: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+  adminNotes?: string;
+}
+
+export interface WalletTransaction {
+  id: string;
+  walletId: string;
+  type: 'TICKET_PURCHASE' | 'COMMISSION' | 'REFUND' | 'WITHDRAWAL';
+  amount: number;
+  commission: number;
+  netAmount: number;
+  balanceBefore: number;
+  balanceAfter: number;
+  status: 'PENDING' | 'SUCCESSFUL' | 'FAILED';
+  reference: string;
+  description: string;
+  metadata?: Record<string, unknown>;
+  isSettled: boolean;
+  createdAt: string;
+}
+
+export interface LedgerEntry {
+  id: string;
+  batchId: string;
+  accountId: string;
+  debit: number;
+  credit: number;
+  memo: string;
+  account: {
+    id: string;
+    organizerId: string;
+    accountScope: string;
+    code: string;
+    name: string;
+    type: string;
+    currency: string;
+    isActive: boolean;
+  };
+  createdAt: string;
+}
+
+export interface LedgerBatch {
+  id: string;
+  transactionId: string;
+  source: 'TICKET_PURCHASE' | 'REFUND' | 'WALLET_TOPUP' | 'WITHDRAWAL_REQUEST' | 'SETTLEMENT';
+  sourceId: string;
+  reference: string;
+  description: string;
+  totalDebit: number;
+  totalCredit: number;
+  currency: string;
+  entries: LedgerEntry[];
+  transaction?: WalletTransaction;
+  createdAt: string;
+}
 
 export interface Policy {
   _id: string;
@@ -371,6 +544,177 @@ export interface Policy {
   version: number;
   effectiveDate: string;
 }
+
+const mockWithdrawals: WithdrawalRequest[] = [
+  {
+    id: 'wdr-1',
+    organizerId: '550e8400-e29b-41d4-a716-446655440000',
+    amount: 50000,
+    status: 'PENDING',
+    bankAccount: {
+      bankName: 'Access Bank',
+      accountNumber: '0123456789',
+      accountName: 'Tech Events Ltd'
+    },
+    createdAt: '2026-07-20T06:58:54.994Z',
+    updatedAt: '2026-07-20T06:58:54.994Z',
+    adminNotes: ''
+  },
+  {
+    id: 'wdr-2',
+    organizerId: '550e8400-e29b-41d4-a716-446655440000',
+    amount: 150000,
+    status: 'APPROVED',
+    bankAccount: {
+      bankName: 'Access Bank',
+      accountNumber: '0123456789',
+      accountName: 'Tech Events Ltd'
+    },
+    createdAt: '2026-07-15T06:58:54.994Z',
+    updatedAt: '2026-07-15T08:00:00.000Z',
+    adminNotes: 'Transfer reference: TXN-998811'
+  },
+  {
+    id: 'wdr-3',
+    organizerId: '550e8400-e29b-41d4-a716-446655440001',
+    amount: 30000,
+    status: 'REJECTED',
+    bankAccount: {
+      bankName: 'Guaranty Trust Bank',
+      accountNumber: '0987654321',
+      accountName: 'FESTAC Music Group'
+    },
+    createdAt: '2026-07-10T06:58:54.994Z',
+    updatedAt: '2026-07-10T12:00:00.000Z',
+    adminNotes: 'Account name mismatch on verified portal.'
+  }
+];
+
+const mockTransactions: WalletTransaction[] = [
+  {
+    id: 'tx-1',
+    walletId: 'a1b2c3d4-e5f6-4a5b-bc6d-7e8f9a0b1c2d',
+    type: 'TICKET_PURCHASE',
+    amount: 20000,
+    commission: 1000,
+    netAmount: 19000,
+    balanceBefore: 50000,
+    balanceAfter: 69000,
+    status: 'SUCCESSFUL',
+    reference: 'PAY-1760000000000-123456',
+    description: 'Batch Ticket sale: 2 tickets',
+    isSettled: false,
+    createdAt: '2026-07-24T06:58:54.994Z'
+  },
+  {
+    id: 'tx-2',
+    walletId: 'a1b2c3d4-e5f6-4a5b-bc6d-7e8f9a0b1c2d',
+    type: 'WITHDRAWAL',
+    amount: 50000,
+    commission: 0,
+    netAmount: -50000,
+    balanceBefore: 125200,
+    balanceAfter: 75200,
+    status: 'SUCCESSFUL',
+    reference: 'WD-1760000000000-999999',
+    description: 'Withdrawal to Access Bank',
+    isSettled: true,
+    createdAt: '2026-07-23T10:00:00.000Z'
+  }
+];
+
+const mockLedgers: LedgerBatch[] = [
+  {
+    id: 'batch-1',
+    transactionId: 'tx-1',
+    source: 'TICKET_PURCHASE',
+    sourceId: 'tx-1',
+    reference: 'PAY-1760000000000-123456',
+    description: 'Ticket purchase double entry posting',
+    totalDebit: 20000,
+    totalCredit: 20000,
+    currency: 'NGN',
+    createdAt: '2026-07-24T07:02:00.133Z',
+    entries: [
+      {
+        id: 'entry-1',
+        batchId: 'batch-1',
+        accountId: 'acc-1',
+        debit: 19000,
+        credit: 0,
+        memo: 'Reduce pending payable',
+        createdAt: '2026-07-24T07:02:00.133Z',
+        account: {
+          id: 'acc-1',
+          organizerId: '550e8400-e29b-41d4-a716-446655440000',
+          accountScope: '550e8400-e29b-41d4-a716-446655440000',
+          code: 'ORGANIZER_PENDING_PAYABLE',
+          name: 'Organizer pending payable',
+          type: 'LIABILITY',
+          currency: 'NGN',
+          isActive: true
+        }
+      },
+      {
+        id: 'entry-2',
+        batchId: 'batch-1',
+        accountId: 'acc-2',
+        debit: 0,
+        credit: 19000,
+        memo: 'Available balance credit',
+        createdAt: '2026-07-24T07:02:00.133Z',
+        account: {
+          id: 'acc-2',
+          organizerId: '550e8400-e29b-41d4-a716-446655440000',
+          accountScope: '550e8400-e29b-41d4-a716-446655440000',
+          code: 'ORGANIZER_AVAILABLE_BALANCE',
+          name: 'Organizer available balance',
+          type: 'ASSET',
+          currency: 'NGN',
+          isActive: true
+        }
+      },
+      {
+        id: 'entry-3',
+        batchId: 'batch-1',
+        accountId: 'acc-3',
+        debit: 1000,
+        credit: 0,
+        memo: 'Platform commission debit',
+        createdAt: '2026-07-24T07:02:00.133Z',
+        account: {
+          id: 'acc-3',
+          organizerId: '550e8400-e29b-41d4-a716-446655440000',
+          accountScope: '550e8400-e29b-41d4-a716-446655440000',
+          code: 'PLATFORM_COMMISSION_RECEIVABLE',
+          name: 'Platform commission receivable',
+          type: 'ASSET',
+          currency: 'NGN',
+          isActive: true
+        }
+      },
+      {
+        id: 'entry-4',
+        batchId: 'batch-1',
+        accountId: 'acc-4',
+        debit: 0,
+        credit: 1000,
+        memo: 'Platform revenue credit',
+        createdAt: '2026-07-24T07:02:00.133Z',
+        account: {
+          id: 'acc-4',
+          organizerId: '550e8400-e29b-41d4-a716-446655440000',
+          accountScope: '550e8400-e29b-41d4-a716-446655440000',
+          code: 'PLATFORM_REVENUE',
+          name: 'Platform revenue',
+          type: 'REVENUE',
+          currency: 'NGN',
+          isActive: true
+        }
+      }
+    ]
+  }
+];
 
 const mockPolicies: Policy[] = [
   {
