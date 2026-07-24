@@ -33,3 +33,4 @@ https://nextjs.org/telemetry
  GET /auth/login 200 in 119ms
  GET /organizer/dashboard/events/test-event-id/check-in 200 in 158ms
  GET /organizer/dashboard/events/test-event-id/check-in 200 in 195ms
+ ✓ Compiled in 6.8s (845 modules)
