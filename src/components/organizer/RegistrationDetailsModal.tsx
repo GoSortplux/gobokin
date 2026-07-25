@@ -110,18 +110,33 @@ const RegistrationDetailsModal = ({
         selectedDayNum = parseInt(dayVal);
       }
 
-      await api.post("/events/check-in", {
+      const response = await api.post("/events/check-in", {
         ticketNumber,
         day: eventDays > 1 ? selectedDayNum : undefined
       });
+      const responseData = response.data?.data || response.data || {};
 
-      await Swal.fire({
-        title: "Success",
-        text: eventDays > 1 ? `Attendee checked in for Day ${selectedDayNum}` : "Attendee checked in successfully",
-        icon: "success",
-        timer: 1500,
-        showConfirmButton: false
-      });
+      if (responseData.alreadyCheckedIn) {
+        const checkInTimeStr = responseData.checkInTime || responseData.checkedInAt;
+        const formattedTime = checkInTimeStr
+          ? new Date(checkInTimeStr).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+          : '';
+
+        await Swal.fire({
+          title: "Duplicate Scan!",
+          text: `Duplicate Scan! Checked in at ${formattedTime || "earlier today"}.`,
+          icon: "warning",
+          confirmButtonColor: "#f59e0b"
+        });
+      } else {
+        await Swal.fire({
+          title: "Success",
+          text: eventDays > 1 ? `Attendee checked in for Day ${selectedDayNum}` : "Attendee checked in successfully",
+          icon: "success",
+          timer: 1500,
+          showConfirmButton: false
+        });
+      }
 
       fetchDetails(); // Refresh details in modal
       if (onCheckInSuccess) onCheckInSuccess();

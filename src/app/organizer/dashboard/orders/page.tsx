@@ -183,11 +183,27 @@ const OrdersView = () => {
 
         if (result.isConfirmed) {
             Swal.showLoading();
-            await api.post("/events/check-in", {
+            const response = await api.post("/events/check-in", {
               ticketNumber,
               day: totalDays > 1 ? selectedDay : undefined
             });
-            await Swal.fire('Success', totalDays > 1 ? `Checked in successfully for Day ${selectedDay}` : 'Attendee checked in successfully', 'success');
+            const responseData = response.data?.data || response.data || {};
+
+            if (responseData.alreadyCheckedIn) {
+                const checkInTimeStr = responseData.checkInTime || responseData.checkedInAt;
+                const formattedTime = checkInTimeStr
+                  ? new Date(checkInTimeStr).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+                  : '';
+
+                await Swal.fire({
+                  title: "Duplicate Scan!",
+                  text: `Duplicate Scan! Checked in at ${formattedTime || "earlier today"}.`,
+                  icon: "warning",
+                  confirmButtonColor: "#f59e0b"
+                });
+            } else {
+                await Swal.fire('Success', totalDays > 1 ? `Checked in successfully for Day ${selectedDay}` : 'Attendee checked in successfully', 'success');
+            }
             fetchOrders();
         }
     } catch (error) {
