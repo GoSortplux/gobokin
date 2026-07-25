@@ -1384,11 +1384,15 @@ const HostEventPage = () => {
         const response = await api.post("/events", payload);
         const eventId = response.data.data.id;
 
-        // Refresh user profile after creating the event to sync new roles or permissions
+        // Refresh token and user profile after creating the event to sync new roles (such as organizer) or permissions
         try {
+            const refreshRes = await api.post("/auth/refresh-token");
+            if (refreshRes.data?.data?.accessToken) {
+                updateToken(refreshRes.data.data.accessToken, null);
+            }
             await fetchUserProfile();
         } catch (fetchErr) {
-            console.error("Failed to refresh user profile during event finalization:", fetchErr);
+            console.error("Failed to refresh token or user profile during event finalization:", fetchErr);
         }
 
         // Update draft with eventId
