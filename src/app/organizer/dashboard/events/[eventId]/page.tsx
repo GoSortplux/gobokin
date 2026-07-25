@@ -1959,7 +1959,16 @@ const EventDetails = () => {
                                                       Check-in
                                                     </button>
                                                   )}
-                                                  <button className="p-2 text-gray-400 hover:text-primary transition-colors">
+                                                  <button
+                                                    onClick={() => {
+                                                      if (attendee.ticketNumber) {
+                                                        setSelectedTicketNumberForModal(attendee.ticketNumber);
+                                                        setIsDetailsModalOpen(true);
+                                                      }
+                                                    }}
+                                                    className="p-2 text-gray-400 hover:text-primary transition-colors"
+                                                    title="View Registration Details"
+                                                  >
                                                      <MoreVertical size={16} />
                                                   </button>
                                                </div>
