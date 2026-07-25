@@ -66,7 +66,7 @@ const SystemSettings = () => {
       } else if (activeTab === 'packages') {
         // Also fetch config keys in packages tab to populate dropdown options
         try {
-          const configRes = await api.get("/events/admin/config");
+          const configRes = await api.get("/events/admin/config", { params: { scope: 'packageRules' } });
           const keys = (configRes.data.data || []).map((item: { key: string }) => item.key);
           if (keys.length > 0) {
             setConfigKeys(keys);

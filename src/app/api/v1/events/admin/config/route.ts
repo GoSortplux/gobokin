@@ -6,9 +6,22 @@ import { db } from '@/lib/mock-db';
  *
  * Get system-wide events configuration
  */
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const config = await db.config.findMany();
+    const { searchParams } = new URL(req.url);
+    const scope = searchParams.get('scope');
+    let config = await db.config.findMany();
+
+    if (scope === 'packageRules') {
+      config = config.filter(item =>
+        ['MAX_ACTIVE_EVENTS', 'MAX_GUESTS', 'BULK_IMPORT_ALLOWED'].includes(item.key)
+      );
+    } else if (scope === 'settlementDelays') {
+      config = config.filter(item =>
+        ['SETTLEMENT_DELAY_DAYS', 'SETTLEMENT_DELAY_HOURS'].includes(item.key)
+      );
+    }
+
     return NextResponse.json({
       success: true,
       data: config

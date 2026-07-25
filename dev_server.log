@@ -7,37 +7,27 @@
    - Network:      http://192.168.0.2:3000
 
  ✓ Starting...
-Attention: Next.js now collects completely anonymous telemetry regarding usage.
-This information is used to shape Next.js' roadmap and prioritize features.
-You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
-https://nextjs.org/telemetry
-
  ✓ Ready in 2.1s
+ ○ Compiling /api/v1/events/admin/config ...
+ ✓ Compiled /api/v1/events/admin/config in 3s (297 modules)
+ GET /api/v1/events/admin/config 200 in 3310ms
+ GET /api/v1/events/admin/config?scope=packageRules 200 in 42ms
+ GET /api/v1/events/admin/config 200 in 58ms
+ GET /api/v1/events/admin/config?scope=packageRules 200 in 49ms
  ○ Compiling /middleware ...
- ✓ Compiled /middleware in 947ms (114 modules)
- ○ Compiling /organizer/dashboard/events/[eventId]/check-in ...
- ✓ Compiled /organizer/dashboard/events/[eventId]/check-in in 16.4s (1910 modules)
- GET /organizer/dashboard/events/test-event-id/check-in 200 in 20902ms
+ ✓ Compiled /middleware in 830ms (114 modules)
+ ○ Compiling /admin/events/settings ...
+ ✓ Compiled /admin/events/settings in 12.1s (1861 modules)
+ GET /admin/events/settings 200 in 14378ms
  ○ Compiling /auth/login ...
- ✓ Compiled /auth/login in 1421ms (1900 modules)
- GET /auth/login 200 in 1666ms
- GET /auth/login 200 in 1666ms
- GET /organizer/dashboard/events/test-event-id/check-in 200 in 728ms
- GET /auth/login 200 in 93ms
- GET /auth/login 200 in 119ms
- GET /organizer/dashboard/events/test-event-id/check-in 200 in 189ms
- GET /auth/login 200 in 92ms
- GET /auth/login 200 in 123ms
- GET /organizer/dashboard/events/test-event-id/check-in 200 in 181ms
- GET /auth/login 200 in 90ms
- GET /auth/login 200 in 119ms
- GET /organizer/dashboard/events/test-event-id/check-in 200 in 158ms
- GET /organizer/dashboard/events/test-event-id/check-in 200 in 195ms
- ✓ Compiled in 6.8s (845 modules)
- ✓ Compiled in 6.6s (1900 modules)
- ✓ Compiled in 392ms (845 modules)
- ✓ Compiled in 403ms (845 modules)
- ✓ Compiled in 431ms (845 modules)
- ✓ Compiled in 587ms (845 modules)
- ✓ Compiled in 9.5s (845 modules)
- ✓ Compiled in 6.2s (845 modules)
+ ✓ Compiled /auth/login in 1840ms (1831 modules)
+ GET /api/v1/events/admin/packages 200 in 1975ms
+ GET /auth/login 200 in 2117ms
+ GET /auth/login 200 in 2082ms
+ GET /auth/login 200 in 1941ms
+ GET /auth/login 200 in 1744ms
+ GET /auth/login 200 in 2122ms
+ ✓ Compiled in 584ms (810 modules)
+ GET /api/v1/events/admin/config 200 in 48ms
+ GET /api/v1/events/admin/config?scope=packageRules 200 in 34ms
+ GET /admin/events/settings 200 in 531ms
