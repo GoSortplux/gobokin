@@ -1885,11 +1885,27 @@ const EventDetails = () => {
 
                                                           if (result.isConfirmed) {
                                                             Swal.showLoading();
-                                                            await api.post("/events/check-in", {
+                                                            const checkInResponse = await api.post("/events/check-in", {
                                                               ticketNumber: attendee.ticketNumber,
                                                               day: totalDays > 1 ? selectedDayNum : undefined
                                                             });
-                                                            await Swal.fire('Success', totalDays > 1 ? `Checked in for Day ${selectedDayNum}` : 'Attendee checked in successfully', 'success');
+                                                            const responseData = checkInResponse.data?.data || checkInResponse.data || {};
+
+                                                            if (responseData.alreadyCheckedIn) {
+                                                              const checkInTimeStr = responseData.checkInTime || responseData.checkedInAt;
+                                                              const formattedTime = checkInTimeStr
+                                                                ? new Date(checkInTimeStr).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+                                                                : '';
+
+                                                              await Swal.fire({
+                                                                title: "Duplicate Scan!",
+                                                                text: `Duplicate Scan! Checked in at ${formattedTime || "earlier today"}.`,
+                                                                icon: "warning",
+                                                                confirmButtonColor: "#f59e0b"
+                                                              });
+                                                            } else {
+                                                              await Swal.fire('Success', totalDays > 1 ? `Checked in for Day ${selectedDayNum}` : 'Attendee checked in successfully', 'success');
+                                                            }
                                                             // Refresh data
                                                             if (!isStaff) {
                                                               api.get(`/events/${eventId}/analytics`).then(res => setAnalytics(res.data.data));
@@ -2108,11 +2124,27 @@ const EventDetails = () => {
 
                                                                      if (result.isConfirmed) {
                                                                        Swal.showLoading();
-                                                                       await api.post("/events/check-in", {
+                                                                       const checkInResponse = await api.post("/events/check-in", {
                                                                          ticketNumber: reg.ticketNumber,
                                                                          day: dayNum
                                                                        });
-                                                                       await Swal.fire('Success', `Attendee checked in successfully for Day ${dayNum}`, 'success');
+                                                                       const responseData = checkInResponse.data?.data || checkInResponse.data || {};
+
+                                                                       if (responseData.alreadyCheckedIn) {
+                                                                         const checkInTimeStr = responseData.checkInTime || responseData.checkedInAt;
+                                                                         const formattedTime = checkInTimeStr
+                                                                           ? new Date(checkInTimeStr).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+                                                                           : '';
+
+                                                                         await Swal.fire({
+                                                                           title: "Duplicate Scan!",
+                                                                           text: `Duplicate Scan! Checked in at ${formattedTime || "earlier today"}.`,
+                                                                           icon: "warning",
+                                                                           confirmButtonColor: "#f59e0b"
+                                                                         });
+                                                                       } else {
+                                                                         await Swal.fire('Success', `Attendee checked in successfully for Day ${dayNum}`, 'success');
+                                                                       }
                                                                        fetchTrackerRegistrations();
                                                                      }
                                                                    } catch (err) {

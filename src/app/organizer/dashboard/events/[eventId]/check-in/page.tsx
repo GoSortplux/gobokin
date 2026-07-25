@@ -328,15 +328,30 @@ const CheckInInterface = () => {
         setSearchTerm("");
         setQrPayload(null);
       } else {
-        await api.post("/events/check-in", payload);
+        const response = await api.post("/events/check-in", payload);
+        const responseData = response.data?.data || response.data || {};
 
-        await Swal.fire({
-          title: "Check-in Successful!",
-          text: `${searchResult?.attendeeName || searchResult?.attendeeData?.fullName || searchResult?.attendeeData?.["full-name"] || "Guest"} has been checked in.`,
-          icon: "success",
-          timer: 2000,
-          showConfirmButton: false
-        });
+        if (responseData.alreadyCheckedIn) {
+          const checkInTimeStr = responseData.checkInTime || responseData.checkedInAt;
+          const formattedTime = checkInTimeStr
+            ? new Date(checkInTimeStr).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+            : '';
+
+          await Swal.fire({
+            title: "Duplicate Scan!",
+            text: `Duplicate Scan! Checked in at ${formattedTime || "earlier today"}.`,
+            icon: "warning",
+            confirmButtonColor: "#f59e0b"
+          });
+        } else {
+          await Swal.fire({
+            title: "Check-in Successful!",
+            text: `${searchResult?.attendeeName || searchResult?.attendeeData?.fullName || searchResult?.attendeeData?.["full-name"] || "Guest"} has been checked in.`,
+            icon: "success",
+            timer: 2000,
+            showConfirmButton: false
+          });
+        }
 
         setSearchResult(null);
         setSearchTerm("");

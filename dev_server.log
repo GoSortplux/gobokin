@@ -34,3 +34,9 @@ https://nextjs.org/telemetry
  GET /organizer/dashboard/events/test-event-id/check-in 200 in 158ms
  GET /organizer/dashboard/events/test-event-id/check-in 200 in 195ms
  ✓ Compiled in 6.8s (845 modules)
+ ✓ Compiled in 6.6s (1900 modules)
+ ✓ Compiled in 392ms (845 modules)
+ ✓ Compiled in 403ms (845 modules)
+ ✓ Compiled in 431ms (845 modules)
+ ✓ Compiled in 587ms (845 modules)
+ ✓ Compiled in 9.5s (845 modules)
