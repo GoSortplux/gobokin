@@ -1885,11 +1885,11 @@ const EventDetails = () => {
 
                                                           if (result.isConfirmed) {
                                                             Swal.showLoading();
-                                                            const response = await api.post("/events/check-in", {
+                                                            const checkInResponse = await api.post("/events/check-in", {
                                                               ticketNumber: attendee.ticketNumber,
                                                               day: totalDays > 1 ? selectedDayNum : undefined
                                                             });
-                                                            const responseData = response.data?.data || response.data || {};
+                                                            const responseData = checkInResponse.data?.data || checkInResponse.data || {};
 
                                                             if (responseData.alreadyCheckedIn) {
                                                               const checkInTimeStr = responseData.checkInTime || responseData.checkedInAt;
@@ -2124,11 +2124,11 @@ const EventDetails = () => {
 
                                                                      if (result.isConfirmed) {
                                                                        Swal.showLoading();
-                                                                       const response = await api.post("/events/check-in", {
+                                                                       const checkInResponse = await api.post("/events/check-in", {
                                                                          ticketNumber: reg.ticketNumber,
                                                                          day: dayNum
                                                                        });
-                                                                       const responseData = response.data?.data || response.data || {};
+                                                                       const responseData = checkInResponse.data?.data || checkInResponse.data || {};
 
                                                                        if (responseData.alreadyCheckedIn) {
                                                                          const checkInTimeStr = responseData.checkInTime || responseData.checkedInAt;
