@@ -1273,14 +1273,30 @@ const HostEventPage = () => {
     Swal.showLoading();
     try {
         const payload = {
-            tickets: formData.tickets.map(({ id: _, ...rest }) => ({
-                ...rest,
-                price: rest.type === 'FREE' ? 0 : rest.price,
-                totalQuantity: Math.max(1, rest.totalQuantity || 1),
-                salesStart: (rest.salesStart ? new Date(rest.salesStart) : new Date()).toISOString(),
-                salesEnd: rest.salesEnd ? new Date(rest.salesEnd).toISOString() : (formData.basicInfo.endDate ? new Date(formData.basicInfo.endDate).toISOString() : undefined),
-                earlyBirdExpiry: rest.earlyBirdExpiry ? new Date(rest.earlyBirdExpiry).toISOString() : undefined,
-            }))
+            tickets: formData.tickets.map(({ id: _, ...rest }) => {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const tPayload: any = {
+                    name: rest.name,
+                    price: rest.type === 'FREE' ? 0 : rest.price,
+                    type: rest.type,
+                    totalQuantity: Math.max(1, rest.totalQuantity || 1),
+                    groupSize: rest.groupSize,
+                    allocationType: rest.allocationType,
+                    maxPerOrder: rest.maxPerOrder,
+                    salesStart: (rest.salesStart ? new Date(rest.salesStart) : new Date()).toISOString(),
+                    salesEnd: rest.salesEnd ? new Date(rest.salesEnd).toISOString() : (formData.basicInfo.endDate ? new Date(formData.basicInfo.endDate).toISOString() : undefined),
+                    isOffline: rest.isOffline,
+                    isSpecial: rest.isSpecial || false,
+                    quantityDiscounts: rest.quantityDiscounts
+                };
+
+                if (rest.type !== 'FREE' && (rest.earlyBirdLimit || 0) > 0 && (rest.earlyBirdPrice || 0) > 0) {
+                    tPayload.earlyBirdPrice = rest.earlyBirdPrice;
+                    tPayload.earlyBirdLimit = rest.earlyBirdLimit;
+                    tPayload.earlyBirdExpiry = rest.earlyBirdExpiry ? new Date(rest.earlyBirdExpiry).toISOString() : undefined;
+                }
+                return tPayload;
+            })
         };
         await api.post(`/events/${eventId}/tickets`, payload);
         setCurrentStep(7);
