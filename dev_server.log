@@ -14,3 +14,17 @@
  ✓ Compiled /host-event in 10.4s (1866 modules)
  HEAD /host-event 200 in 11488ms
  GET /host-event 200 in 255ms
+ ✓ Compiled in 7.9s (1835 modules)
+ GET /host-event 200 in 928ms
+ ○ Compiling / ...
+ ✓ Compiled /auth/login in 9.8s (3853 modules)
+ ✓ Compiled in 19s (2850 modules)
+ ✓ Compiled in 2.2s (2850 modules)
+ ✓ Compiled in 1542ms (2850 modules)
+ GET /host-event 200 in 270ms
+ ○ Compiling /auth/login ...
+ ✓ Compiled /auth/login in 2.8s (2010 modules)
+ ✓ Compiled (2042 modules)
+ GET /events 200 in 4077ms
+ GET / 200 in 4080ms
+ GET /auth/login 200 in 4081ms
