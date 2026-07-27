@@ -554,6 +554,10 @@ const HostEventPage = () => {
     }]
   });
 
+  const visibleSteps = formData.basicInfo.agendaEnabled
+    ? steps
+    : steps.filter(s => s.id !== 7);
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -1273,19 +1277,41 @@ const HostEventPage = () => {
     Swal.showLoading();
     try {
         const payload = {
-            tickets: formData.tickets.map(({ id: _, ...rest }) => ({
-                ...rest,
-                price: rest.type === 'FREE' ? 0 : rest.price,
-                totalQuantity: Math.max(1, rest.totalQuantity || 1),
-                salesStart: (rest.salesStart ? new Date(rest.salesStart) : new Date()).toISOString(),
-                salesEnd: rest.salesEnd ? new Date(rest.salesEnd).toISOString() : (formData.basicInfo.endDate ? new Date(formData.basicInfo.endDate).toISOString() : undefined),
-                earlyBirdExpiry: rest.earlyBirdExpiry ? new Date(rest.earlyBirdExpiry).toISOString() : undefined,
-            }))
+            tickets: formData.tickets.map(({ id: _, ...rest }) => {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const tPayload: any = {
+                    name: rest.name,
+                    price: rest.type === 'FREE' ? 0 : rest.price,
+                    type: rest.type,
+                    totalQuantity: Math.max(1, rest.totalQuantity || 1),
+                    groupSize: rest.groupSize,
+                    allocationType: rest.allocationType,
+                    maxPerOrder: rest.maxPerOrder,
+                    salesStart: (rest.salesStart ? new Date(rest.salesStart) : new Date()).toISOString(),
+                    salesEnd: rest.salesEnd ? new Date(rest.salesEnd).toISOString() : (formData.basicInfo.endDate ? new Date(formData.basicInfo.endDate).toISOString() : undefined),
+                    isOffline: rest.isOffline,
+                    isSpecial: rest.isSpecial || false,
+                    quantityDiscounts: rest.quantityDiscounts
+                };
+
+                if (rest.type !== 'FREE' && (rest.earlyBirdLimit || 0) > 0 && (rest.earlyBirdPrice || 0) > 0) {
+                    tPayload.earlyBirdPrice = rest.earlyBirdPrice;
+                    tPayload.earlyBirdLimit = rest.earlyBirdLimit;
+                    tPayload.earlyBirdExpiry = rest.earlyBirdExpiry ? new Date(rest.earlyBirdExpiry).toISOString() : undefined;
+                }
+                return tPayload;
+            })
         };
         await api.post(`/events/${eventId}/tickets`, payload);
-        setCurrentStep(7);
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        Swal.fire({ title: 'Step 6 Complete', icon: 'success', timer: 1500, showConfirmButton: false });
+        if (formData.basicInfo.agendaEnabled) {
+            setCurrentStep(7);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            Swal.fire({ title: 'Step 6 Complete', icon: 'success', timer: 1500, showConfirmButton: false });
+        } else {
+            await Swal.fire({ title: "Event Fully Launched!", icon: "success", confirmButtonColor: "#295FA7" });
+            localStorage.removeItem(STORAGE_KEY);
+            router.push(`/organizer/dashboard/events/${eventId}`);
+        }
     } catch (_error) {
         Swal.fire("Error", translateError(_error), "error");
     } finally {
@@ -1460,10 +1486,10 @@ const HostEventPage = () => {
         </div>
 
         <div id="event-creation-steps" className="flex items-center gap-4 mb-12 overflow-x-auto no-scrollbar pb-2">
-          {steps.map((step, idx) => (
+          {visibleSteps.map((step, idx) => (
             <React.Fragment key={step.id}>
               <button
-                onClick={() => idx + 1 < currentStep && setCurrentStep(idx + 1)}
+                onClick={() => step.id < currentStep && setCurrentStep(step.id)}
                 className="flex items-center gap-3 shrink-0"
               >
                 <div
@@ -1475,13 +1501,13 @@ const HostEventPage = () => {
                       : "bg-gray-100 text-gray-400"
                   }`}
                 >
-                  {currentStep > step.id ? <CheckCircle2 size={18} /> : step.id}
+                  {currentStep > step.id ? <CheckCircle2 size={18} /> : idx + 1}
                 </div>
                 <span className={`text-sm font-medium whitespace-nowrap ${currentStep === step.id ? "text-gray-900" : "text-gray-400"}`}>
                   {step.title}
                 </span>
               </button>
-              {idx < steps.length - 1 && (
+              {idx < visibleSteps.length - 1 && (
                 <div className="w-8 h-px bg-gray-200 shrink-0" />
               )}
             </React.Fragment>
@@ -2572,7 +2598,7 @@ const HostEventPage = () => {
               >
                 <span>
                     {currentStep === 4 ? (user ? "Create Event & Continue" : "Register to Finalize Event") :
-                     currentStep === 7 ? "Complete Setup" :
+                     (currentStep === 6 && !formData.basicInfo.agendaEnabled) || currentStep === 7 ? "Complete Setup" :
                      "Next Step"}
                 </span>
                 <ArrowRight size={18} />
