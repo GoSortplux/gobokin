@@ -135,8 +135,9 @@ test('Verify ticket sales start and end dates propagate and default correctly', 
 
   // Directly set currentStep to 2 (Ticketing) using window.setCurrentStep helper
   await page.evaluate(() => {
-    if (typeof (window as any).setCurrentStep === 'function') {
-      (window as any).setCurrentStep(2);
+    const win = window as typeof window & { setCurrentStep?: (step: number) => void };
+    if (typeof win.setCurrentStep === 'function') {
+      win.setCurrentStep(2);
     }
   });
   await page.waitForTimeout(2000);

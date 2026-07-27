@@ -30,6 +30,8 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
+      "server.js",
+      "scripts/**",
     ],
   },
 ];
