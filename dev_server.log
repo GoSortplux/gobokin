@@ -13,3 +13,5 @@
  ○ Compiling /host-event ...
  ✓ Compiled /host-event in 10.7s (1876 modules)
  GET /host-event 200 in 11816ms
+ ✓ Compiled in 6.7s (1845 modules)
+ ✓ Compiled in 1769ms (1845 modules)

@@ -428,13 +428,7 @@ const HostEventPage = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [categories, setCategories] = useState<string[]>([]);
   const hasRefreshedUser = useRef(false);
-  const wasOrganizerRef = useRef<boolean>(false);
-
-  useEffect(() => {
-    if (user && !wasOrganizerRef.current) {
-      wasOrganizerRef.current = user.role?.includes('organizer') || false;
-    }
-  }, [user]);
+  const isFirstTimeRef = useRef<boolean>(false);
 
   useEffect(() => {
     if (user && !hasRefreshedUser.current) {
@@ -1362,7 +1356,7 @@ const HostEventPage = () => {
   };
 
   const handleFinishCreation = async (eventId: string) => {
-    const isFirstTime = !wasOrganizerRef.current;
+    const isFirstTime = isFirstTimeRef.current;
 
     if (isFirstTime) {
       localStorage.setItem("gobokin_is_first_event_flow", "true");
@@ -1427,6 +1421,9 @@ const HostEventPage = () => {
 
   const handleFinalize = async () => {
     const isOrganizer = user?.role?.includes('organizer');
+    if (!isOrganizer) {
+      isFirstTimeRef.current = true;
+    }
 
     if (!user) {
         // Save draft and set flag to resume at Step 5 in THIS page
