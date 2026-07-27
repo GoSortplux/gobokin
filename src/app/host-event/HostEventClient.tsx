@@ -29,7 +29,11 @@ import {
   XCircle,
   Upload,
   UploadCloud,
-  Ticket
+  Ticket,
+  Coins,
+  Layers,
+  Settings,
+  MousePointer2
 } from "lucide-react";
 import api from "@/services/api";
 import axios from "axios";
@@ -553,6 +557,10 @@ const HostEventPage = () => {
       speakerNames: [] as string[],
     }]
   });
+
+  const visibleSteps = formData.basicInfo.agendaEnabled
+    ? steps
+    : steps.filter(s => s.id !== 7);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -1299,9 +1307,15 @@ const HostEventPage = () => {
             })
         };
         await api.post(`/events/${eventId}/tickets`, payload);
-        setCurrentStep(7);
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        Swal.fire({ title: 'Step 6 Complete', icon: 'success', timer: 1500, showConfirmButton: false });
+        if (formData.basicInfo.agendaEnabled) {
+            setCurrentStep(7);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            Swal.fire({ title: 'Step 6 Complete', icon: 'success', timer: 1500, showConfirmButton: false });
+        } else {
+            await Swal.fire({ title: "Event Fully Launched!", icon: "success", confirmButtonColor: "#295FA7" });
+            localStorage.removeItem(STORAGE_KEY);
+            router.push(`/organizer/dashboard/events/${eventId}`);
+        }
     } catch (_error) {
         Swal.fire("Error", translateError(_error), "error");
     } finally {
@@ -1476,10 +1490,10 @@ const HostEventPage = () => {
         </div>
 
         <div id="event-creation-steps" className="flex items-center gap-4 mb-12 overflow-x-auto no-scrollbar pb-2">
-          {steps.map((step, idx) => (
+          {visibleSteps.map((step, idx) => (
             <React.Fragment key={step.id}>
               <button
-                onClick={() => idx + 1 < currentStep && setCurrentStep(idx + 1)}
+                onClick={() => step.id < currentStep && setCurrentStep(step.id)}
                 className="flex items-center gap-3 shrink-0"
               >
                 <div
@@ -1491,13 +1505,13 @@ const HostEventPage = () => {
                       : "bg-gray-100 text-gray-400"
                   }`}
                 >
-                  {currentStep > step.id ? <CheckCircle2 size={18} /> : step.id}
+                  {currentStep > step.id ? <CheckCircle2 size={18} /> : idx + 1}
                 </div>
                 <span className={`text-sm font-medium whitespace-nowrap ${currentStep === step.id ? "text-gray-900" : "text-gray-400"}`}>
                   {step.title}
                 </span>
               </button>
-              {idx < steps.length - 1 && (
+              {idx < visibleSteps.length - 1 && (
                 <div className="w-8 h-px bg-gray-200 shrink-0" />
               )}
             </React.Fragment>
@@ -2278,8 +2292,8 @@ const HostEventPage = () => {
                              )}
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                            <div className="space-y-2 md:col-span-2">
+                          <div className="space-y-6 sm:space-y-8">
+                            <div className="space-y-2">
                                <div className="flex items-start gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10 mb-4">
                                   <input
                                      type="checkbox"
@@ -2307,49 +2321,110 @@ const HostEventPage = () => {
                                   </div>
                                </div>
                             </div>
-                            <div className="space-y-2 md:col-span-2">
-                               <label className="text-xs font-semibold text-gray-700 ml-1">Ticket Name</label>
-                               <input
-                                  type="text"
-                                  placeholder="e.g., General Admission"
-                                  className="w-full px-5 py-3 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:border-primary outline-none transition-all"
-                                  value={ticket.name}
-                                  onChange={(e) => updateTicket(ticket.id!, "name", e.target.value)}
-                               />
-                            </div>
-                            <div className="space-y-2">
-                               <label className="text-xs font-semibold text-gray-700 ml-1">Pricing</label>
-                               <select
-                                  className="w-full px-5 py-3 bg-white border border-gray-200 rounded-xl text-sm font-medium outline-none focus:border-primary"
-                                  value={ticket.type}
-                                  onChange={(e) => updateTicket(ticket.id!, "type", e.target.value as TicketType)}
-                               >
-                                  <option value="FREE">Free</option>
-                                  <option value="PAID">Paid</option>
-                               </select>
-                            </div>
-                            <div className="space-y-2">
-                               <label className="text-xs font-semibold text-gray-700 ml-1">Ticket Price</label>
-                               <div className="relative">
-                                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">₦</span>
+                             <div className="space-y-3">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
+                                    <Type size={12} className="text-secondary" />
+                                    Ticket Name
+                                </label>
+                                <input
+                                   type="text"
+                                   placeholder="e.g., VIP Early Bird"
+                                   className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none transition-all shadow-sm"
+                                   value={ticket.name}
+                                   onChange={(e) => updateTicket(ticket.id!, "name", e.target.value)}
+                                />
+                             </div>
+
+                             <div className="space-y-3">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
+                                    <FileText size={12} className="text-secondary" />
+                                    Description
+                                </label>
+                                <textarea
+                                   rows={2}
+                                   placeholder="What's included in this tier? (e.g., Free drinks, Front row seating)"
+                                   className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none transition-all shadow-sm resize-none"
+                                   value={ticket.description}
+                                   onChange={(e) => updateTicket(ticket.id!, "description", e.target.value)}
+                                />
+                             </div>
+
+                             <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
+                                <div className="space-y-3">
+                                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 h-10 flex items-end pb-1 gap-2">
+                                       <MousePointer2 size={12} className="text-secondary shrink-0" />
+                                       <span>Pricing</span>
+                                   </label>
+                                   <div className="relative">
+                                       <select
+                                          className="w-full pl-5 pr-10 py-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none appearance-none shadow-sm"
+                                          value={ticket.type}
+                                          onChange={(e) => updateTicket(ticket.id!, "type", e.target.value as TicketType)}
+                                       >
+                                          <option value="FREE">Free</option>
+                                          <option value="PAID">Paid</option>
+                                       </select>
+                                       <ChevronDown size={16} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none" />
+                                   </div>
+                                </div>
+                                <div className="space-y-3">
+                                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 h-10 flex items-end pb-1 gap-2">
+                                       <Coins size={12} className="text-secondary shrink-0" />
+                                       <span>Ticket Price</span>
+                                   </label>
+                                   <div className="relative">
+                                       <span className="absolute left-5 top-1/2 -translate-y-1/2 text-secondary font-black text-xs">₦</span>
+                                       <input
+                                          type="number"
+                                          disabled={ticket.type === "FREE"}
+                                          className="w-full pl-10 pr-5 py-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 disabled:bg-gray-100 disabled:opacity-50 outline-none shadow-sm"
+                                          value={ticket.price ?? ""}
+                                          onChange={(e) => updateTicket(ticket.id!, "price", e.target.value === "" ? "" : parseFloat(e.target.value))}
+                                       />
+                                   </div>
+                                </div>
+                                <div className="space-y-3 md:col-span-2 lg:col-span-1">
+                                   <label htmlFor={`totalQuantity-${ticket.id}`} className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 h-10 flex items-end pb-1 gap-2">
+                                       <Layers size={12} className="text-secondary shrink-0" />
+                                       <span>Available Quantity</span>
+                                   </label>
+                                   <input
+                                      id={`totalQuantity-${ticket.id}`}
+                                      type="number"
+                                      className="w-full px-5 py-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none shadow-sm"
+                                      value={ticket.totalQuantity ?? ""}
+                                      onChange={(e) => updateTicket(ticket.id!, "totalQuantity", e.target.value === "" ? "" : parseInt(e.target.value))}
+                                   />
+                                   <p className="text-[9px] font-bold text-gray-400 mt-1 ml-1 uppercase">
+                                       Max: {Math.max(0, formData.basicInfo.capacity - formData.tickets.filter(t => t.id !== ticket.id).reduce((sum, t) => sum + (t.totalQuantity || 0), 0))}
+                                   </p>
+                                </div>
+                                <div className="space-y-3">
+                                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 h-10 flex items-end pb-1 gap-2">
+                                       <Users size={12} className="text-secondary shrink-0" />
+                                       <span>Min Tickets per Order</span>
+                                   </label>
                                    <input
                                       type="number"
-                                      disabled={ticket.type === "FREE"}
-                                      className="w-full pl-8 pr-5 py-3 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:border-primary disabled:bg-gray-50 outline-none"
-                                      value={ticket.price}
-                                      onChange={(e) => updateTicket(ticket.id!, "price", parseFloat(e.target.value))}
+                                      min="1"
+                                      className="w-full px-5 py-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none shadow-sm"
+                                      value={ticket.groupSize ?? ""}
+                                      onChange={(e) => updateTicket(ticket.id!, "groupSize", e.target.value === "" ? "" : Math.max(1, parseInt(e.target.value) || 1))}
                                    />
-                               </div>
-                            </div>
-                            <div className="space-y-2 md:col-span-2">
-                               <label className="text-xs font-semibold text-gray-700 ml-1">Available Quantity</label>
-                               <input
-                                  type="number"
-                                  className="w-full px-5 py-3 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:border-primary outline-none"
-                                  value={ticket.totalQuantity}
-                                  onChange={(e) => updateTicket(ticket.id!, "totalQuantity", parseInt(e.target.value))}
-                               />
-                            </div>
+                                </div>
+                                <div className="space-y-3">
+                                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 h-10 flex items-end pb-1 gap-2">
+                                       <Ticket size={12} className="text-secondary shrink-0" />
+                                       <span>Max Tickets per Order</span>
+                                   </label>
+                                   <input
+                                      type="number"
+                                      className="w-full px-5 py-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none shadow-sm"
+                                      value={ticket.maxPerOrder ?? ""}
+                                      onChange={(e) => updateTicket(ticket.id!, "maxPerOrder", e.target.value === "" ? "" : parseInt(e.target.value))}
+                                   />
+                                </div>
+                             </div>
                           </div>
 
                           <div className="pt-6 border-t border-gray-50 space-y-6">
@@ -2588,7 +2663,7 @@ const HostEventPage = () => {
               >
                 <span>
                     {currentStep === 4 ? (user ? "Create Event & Continue" : "Register to Finalize Event") :
-                     currentStep === 7 ? "Complete Setup" :
+                     (currentStep === 6 && !formData.basicInfo.agendaEnabled) || currentStep === 7 ? "Complete Setup" :
                      "Next Step"}
                 </span>
                 <ArrowRight size={18} />

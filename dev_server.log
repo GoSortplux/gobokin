@@ -18,3 +18,84 @@
  GET /host-event 200 in 928ms
  ○ Compiling / ...
  ✓ Compiled /auth/login in 9.8s (3853 modules)
+ ✓ Compiled in 19s (2850 modules)
+ ✓ Compiled in 2.2s (2850 modules)
+ ✓ Compiled in 1542ms (2850 modules)
+ GET /host-event 200 in 270ms
+ ○ Compiling /auth/login ...
+ ✓ Compiled /auth/login in 2.8s (2010 modules)
+ ✓ Compiled (2042 modules)
+ GET /events 200 in 4077ms
+ GET / 200 in 4080ms
+ GET /auth/login 200 in 4081ms
+ ✓ Compiled in 11.7s (2850 modules)
+ ✓ Compiled in 9.4s (2855 modules)
+ GET /host-event 200 in 532ms
+ ○ Compiling /auth/login ...
+ ✓ Compiled /auth/login in 4s (2013 modules)
+ ✓ Compiled (2044 modules)
+ ⨯ Error: Cannot find module './4586.js'
+Require stack:
+- /app/.next/server/webpack-runtime.js
+- /app/.next/server/app/auth/login/page.js
+- /app/node_modules/next/dist/server/require.js
+- /app/node_modules/next/dist/server/load-components.js
+- /app/node_modules/next/dist/build/utils.js
+- /app/node_modules/next/dist/build/swc/options.js
+- /app/node_modules/next/dist/build/swc/index.js
+- /app/node_modules/next/dist/build/analysis/parse-module.js
+- /app/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /app/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /app/node_modules/next/dist/server/lib/router-server.js
+- /app/node_modules/next/dist/server/lib/start-server.js
+    at <unknown> (.next/server/app/auth/login/page.js:2:18129)
+    at Object.<anonymous> (.next/server/app/auth/login/page.js:2:18186) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/auth/login'
+}
+ ⨯ Error: Cannot find module './4586.js'
+Require stack:
+- /app/.next/server/webpack-runtime.js
+- /app/.next/server/app/auth/login/page.js
+- /app/node_modules/next/dist/server/require.js
+- /app/node_modules/next/dist/server/load-components.js
+- /app/node_modules/next/dist/build/utils.js
+- /app/node_modules/next/dist/build/swc/options.js
+- /app/node_modules/next/dist/build/swc/index.js
+- /app/node_modules/next/dist/build/analysis/parse-module.js
+- /app/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /app/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /app/node_modules/next/dist/server/lib/router-server.js
+- /app/node_modules/next/dist/server/lib/start-server.js
+    at <unknown> (.next/server/app/events/page.js:2:12926)
+    at Object.<anonymous> (.next/server/app/events/page.js:2:12983) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/events'
+}
+ ⨯ Error: Cannot find module './4586.js'
+Require stack:
+- /app/.next/server/webpack-runtime.js
+- /app/.next/server/app/auth/login/page.js
+- /app/node_modules/next/dist/server/require.js
+- /app/node_modules/next/dist/server/load-components.js
+- /app/node_modules/next/dist/build/utils.js
+- /app/node_modules/next/dist/build/swc/options.js
+- /app/node_modules/next/dist/build/swc/index.js
+- /app/node_modules/next/dist/build/analysis/parse-module.js
+- /app/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /app/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /app/node_modules/next/dist/server/lib/router-server.js
+- /app/node_modules/next/dist/server/lib/start-server.js
+    at <unknown> (.next/server/app/page.js:11:10625)
+    at Object.<anonymous> (.next/server/app/page.js:11:10702) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/'
+}
+ ○ Compiling /_error ...
+ GET /events 500 in 8875ms
+ GET /auth/login 500 in 8873ms
+ GET / 500 in 8948ms
+ ✓ Compiled /_error in 6s (4197 modules)
