@@ -46,6 +46,7 @@ import { translateError } from "@/utils/errors";
 import LoginRequiredModal from "@/components/auth/LoginRequiredModal";
 import { EventReminderSection } from "@/components/organizer/EventReminderSection";
 import PolicyModal from "@/components/PolicyModal";
+import { triggerSuccessConfetti } from "@/utils/confetti";
 
 const steps = [
   { id: 1, title: "Identity", icon: Type },
@@ -427,6 +428,13 @@ const HostEventPage = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [categories, setCategories] = useState<string[]>([]);
   const hasRefreshedUser = useRef(false);
+  const wasOrganizerRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    if (user && !wasOrganizerRef.current) {
+      wasOrganizerRef.current = user.role?.includes('organizer') || false;
+    }
+  }, [user]);
 
   useEffect(() => {
     if (user && !hasRefreshedUser.current) {
@@ -1312,9 +1320,7 @@ const HostEventPage = () => {
             window.scrollTo({ top: 0, behavior: "smooth" });
             Swal.fire({ title: 'Step 6 Complete', icon: 'success', timer: 1500, showConfirmButton: false });
         } else {
-            await Swal.fire({ title: "Event Fully Launched!", icon: "success", confirmButtonColor: "#295FA7" });
-            localStorage.removeItem(STORAGE_KEY);
-            router.push(`/organizer/dashboard/events/${eventId}`);
+            await handleFinishCreation(eventId);
         }
     } catch (_error) {
         Swal.fire("Error", translateError(_error), "error");
@@ -1347,14 +1353,76 @@ const HostEventPage = () => {
         if (payload.sessions.length > 0) {
             await api.post(`/events/${eventId}/sessions`, payload);
         }
-        await Swal.fire({ title: "Event Fully Launched!", icon: "success", confirmButtonColor: "#295FA7" });
-        localStorage.removeItem(STORAGE_KEY);
-        router.push(`/organizer/dashboard/events/${eventId}`);
+        await handleFinishCreation(eventId);
     } catch (_error) {
         Swal.fire("Error", translateError(_error), "error");
     } finally {
         setIsFinalizing(false);
     }
+  };
+
+  const handleFinishCreation = async (eventId: string) => {
+    const isFirstTime = !wasOrganizerRef.current;
+
+    if (isFirstTime) {
+      localStorage.setItem("gobokin_is_first_event_flow", "true");
+      localStorage.setItem("gobokin_show_profile_update_modal", "true");
+
+      // Refresh token and user profile after full setup to sync new roles/permissions
+      try {
+        const refreshRes = await api.post("/auth/refresh-token");
+        if (refreshRes.data?.data?.accessToken) {
+          updateToken(refreshRes.data.data.accessToken, null);
+        }
+        await fetchUserProfile();
+      } catch (fetchErr) {
+        console.error("Failed to refresh token or user profile after complete setup:", fetchErr);
+      }
+    }
+
+    // SweetAlert2 publish confirm (Option A)
+    const result = await Swal.fire({
+      title: "Publish Event Now? 🚀",
+      text: "Your event setup is complete! Would you like to publish this event to the public now?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Yes, Publish Now",
+      cancelButtonText: "Later (Keep as Draft)",
+      confirmButtonColor: "#10b981",
+      cancelButtonColor: "#6c757d",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        Swal.showLoading();
+        await api.post(`/events/${eventId}/publish`);
+        triggerSuccessConfetti();
+        await Swal.fire({
+          title: "Published!",
+          text: "Your event is now live on Gobokin!",
+          icon: "success",
+          confirmButtonColor: "#10b981"
+        });
+      } catch (err) {
+        console.error("Failed to publish event:", err);
+        await Swal.fire({
+          title: "Publish Failed",
+          text: translateError(err),
+          icon: "error",
+          confirmButtonColor: "#ef4444"
+        });
+      }
+    } else {
+      await Swal.fire({
+        title: "Draft Saved!",
+        text: "Your event has been saved as a draft. You can publish it anytime from your dashboard.",
+        icon: "success",
+        confirmButtonColor: "#295FA7"
+      });
+    }
+
+    localStorage.removeItem(STORAGE_KEY);
+    router.push(`/organizer/dashboard/events/${eventId}`);
   };
 
   const handleFinalize = async () => {
@@ -1430,23 +1498,6 @@ const HostEventPage = () => {
         setFormData(updatedDraft);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedDraft));
         localStorage.setItem("gobokin_event_creation_draft_auto_resume", "true");
-
-        if (!isOrganizer) {
-            localStorage.setItem("gobokin_is_first_event_flow", "true");
-            localStorage.setItem("gobokin_show_profile_update_modal", "true");
-
-            Swal.fire({
-                title: 'Event Outline Saved!',
-                text: 'Moving you to the editor to complete setup and publish.',
-                icon: 'success',
-                timer: 2000,
-                showConfirmButton: false
-            });
-
-            // Redirect to step 1, subStep 5 (Media/Banner Upload) in organizer edit dashboard
-            router.push(`/organizer/dashboard/events/${eventId}/edit?step=1&subStep=5`);
-            return;
-        }
 
         Swal.fire({
             title: 'Event Initialized!',
