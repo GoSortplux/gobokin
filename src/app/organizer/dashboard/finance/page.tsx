@@ -395,10 +395,19 @@ const FinanceDashboardContent = () => {
                            </div>
                            <div className="flex items-center justify-between sm:justify-end gap-4 md:gap-8">
                               <div className="text-left sm:text-right">
-                                 <p className={`font-black text-base md:text-lg ${tx.type === 'WITHDRAWAL' ? 'text-red-500' : 'text-emerald-600'}`}>
+                                 <p className={`font-black text-base md:text-lg ${
+                                    tx.type === 'WITHDRAWAL' ||
+                                    ['FAILED', 'REJECTED', 'CANCELLED'].includes(String(tx.status || "").toUpperCase())
+                                       ? 'text-red-500'
+                                       : 'text-emerald-600'
+                                 }`}>
                                     {tx.type === 'WITHDRAWAL' ? '-' : '+'}₦{(tx.amount || 0).toLocaleString()}
                                  </p>
-                                 <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
+                                 <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-xl ${
+                                    ['FAILED', 'REJECTED', 'CANCELLED'].includes(String(tx.status || "").toUpperCase())
+                                       ? 'bg-rose-50 text-rose-600 border border-rose-100'
+                                       : 'bg-gray-100 text-gray-500'
+                                 }`}>
                                     {tx.status}
                                  </span>
                               </div>

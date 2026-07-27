@@ -117,7 +117,13 @@ const OrdersView = () => {
         }));
       });
 
-      setOrders(flattened);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const filteredFlattened = flattened.filter((item: any) => {
+         const s = String(item.status || "").toUpperCase();
+         return s !== "PENDING" && s !== "FAILED";
+      });
+
+      setOrders(filteredFlattened);
     } catch (error) {
       console.error("Failed to fetch orders:", error);
       setOrders([]);
