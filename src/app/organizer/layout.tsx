@@ -32,8 +32,9 @@ const OrganizerLayout = ({ children }: { children: React.ReactNode }) => {
     if (isUserRoleOnly) {
       const isFirstEventFlow = localStorage.getItem('gobokin_is_first_event_flow') === 'true';
       const isCreatingEvent = pathname === '/organizer/dashboard/events/create';
+      const isEditingFirstEvent = pathname.startsWith('/organizer/dashboard/events/') && pathname.endsWith('/edit');
 
-      if (!isFirstEventFlow || !isCreatingEvent) {
+      if (!isFirstEventFlow || (!isCreatingEvent && !isEditingFirstEvent)) {
         router.replace('/');
       }
     }

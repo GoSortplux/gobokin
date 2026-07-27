@@ -1433,6 +1433,19 @@ const HostEventPage = () => {
 
         if (!isOrganizer) {
             localStorage.setItem("gobokin_is_first_event_flow", "true");
+            localStorage.setItem("gobokin_show_profile_update_modal", "true");
+
+            Swal.fire({
+                title: 'Event Outline Saved!',
+                text: 'Moving you to the editor to complete setup and publish.',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
+
+            // Redirect to step 1, subStep 5 (Media/Banner Upload) in organizer edit dashboard
+            router.push(`/organizer/dashboard/events/${eventId}/edit?step=1&subStep=5`);
+            return;
         }
 
         Swal.fire({

@@ -453,14 +453,23 @@ const EditEventContent = () => {
   const searchParams = useSearchParams();
   const [currentStep, setCurrentStep] = useState(1);
   const [subStep, setSubStep] = useState(1);
+  const [isPublished, setIsPublished] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
 
-  // Deep linking to steps
+  // Deep linking to steps and subSteps
   useEffect(() => {
     const step = searchParams.get("step");
     if (step) {
       const parsedStep = parseInt(step);
       if (!isNaN(parsedStep)) {
         setCurrentStep(parsedStep);
+      }
+    }
+    const sub = searchParams.get("subStep");
+    if (sub) {
+      const parsedSub = parseInt(sub);
+      if (!isNaN(parsedSub)) {
+        setSubStep(parsedSub);
       }
     }
   }, [searchParams]);
@@ -594,6 +603,8 @@ const EditEventContent = () => {
 
       // Format dates for input[type="datetime-local"]
       const formatDate = (dateStr: string) => dateStr ? new Date(dateStr).toISOString().slice(0, 16) : "";
+
+      setIsPublished(!!event.isPublished);
 
       setBasicInfo({
         title: event.title || "",
@@ -1435,6 +1446,31 @@ const EditEventContent = () => {
 
   if (loading) return <div className="h-screen flex items-center justify-center"><CustomLoader /></div>;
 
+  const handlePublish = async () => {
+    const result = await Swal.fire({
+      title: 'Publish Event?',
+      text: 'This will make your event visible to the public and allow ticket sales.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Publish Now',
+      confirmButtonColor: '#10b981',
+    });
+
+    if (result.isConfirmed) {
+      try {
+        setIsPublishing(true);
+        Swal.showLoading();
+        await api.post(`/events/${eventId}/publish`);
+        Swal.fire('Published!', 'Your event is now live.', 'success');
+        await fetchEvent();
+      } catch (error) {
+        Swal.fire('Error', translateError(error), 'error');
+      } finally {
+        setIsPublishing(false);
+      }
+    }
+  };
+
   const checkMaxTicketsRule = () => {
     const maxTicketsRule = getRule('MAX_TICKET_CATEGORIES');
     if (maxTicketsRule && maxTicketsRule.isRestricted) {
@@ -1473,6 +1509,17 @@ const EditEventContent = () => {
         </div>
 
         <div className="flex items-center gap-4">
+          {!isPublished && (
+            <button
+              onClick={handlePublish}
+              disabled={isPublishing}
+              className="flex items-center gap-2 bg-emerald-50 text-emerald-600 font-bold px-5 py-3.5 rounded-2xl border border-emerald-100 hover:bg-emerald-600 hover:text-white transition-all text-[10px] uppercase tracking-[0.2em] whitespace-nowrap shrink-0 shadow-sm"
+            >
+              <CheckCircle2 size={16} />
+              Publish
+            </button>
+          )}
+
           <button
             onClick={() => {
               if (isMobile) setIsPreviewModalOpen(!isPreviewModalOpen);
