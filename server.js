@@ -3,17 +3,19 @@ const { parse } = require('url');
 const next = require('next');
 
 const dev = process.env.NODE_ENV !== 'production';
+
+// Parse port correctly for Passenger (Passenger passes a Unix socket file path instead of a port number)
+const rawPort = process.env.PORT || 3000;
+const isSocket = isNaN(rawPort);
+const port = isSocket ? rawPort : parseInt(rawPort, 10);
+
 const hostname = 'localhost';
-const port = process.env.PORT || 3000;
-// when using middleware `hostname` and `port` must be provided below
-const app = next({ dev, hostname, port });
+const app = next({ dev, hostname, port: isSocket ? 3000 : port });
 const handle = app.getRequestHandler();
 
 app.prepare().then(() => {
   createServer(async (req, res) => {
     try {
-      // Be sure to pass `true` as the second argument to `url.parse`.
-      // This tells it to parse the query portion of the URL.
       const parsedUrl = parse(req.url, true);
       await handle(req, res, parsedUrl);
     } catch (err) {
@@ -27,6 +29,6 @@ app.prepare().then(() => {
       process.exit(1);
     })
     .listen(port, () => {
-      console.log(`> Ready on http://${hostname}:${port}`);
+      console.log(`> Ready on ${isSocket ? port : 'http://' + hostname + ':' + port}`);
     });
 });
