@@ -3,9 +3,14 @@ const { parse } = require('url');
 const next = require('next');
 
 const dev = process.env.NODE_ENV !== 'production';
-const port = process.env.PORT || 3000;
 
-const app = next({ dev });
+// Parse port correctly for Passenger (Passenger passes a Unix socket file path instead of a port number)
+const rawPort = process.env.PORT || 3000;
+const isSocket = isNaN(rawPort);
+const port = isSocket ? rawPort : parseInt(rawPort, 10);
+
+const hostname = 'localhost';
+const app = next({ dev, hostname, port: isSocket ? 3000 : port });
 const handle = app.getRequestHandler();
 
 app.prepare().then(() => {
@@ -23,7 +28,7 @@ app.prepare().then(() => {
       console.error(err);
       process.exit(1);
     })
-    .listen(port, '0.0.0.0', () => {
-      console.log(`> Ready on http://0.0.0.0:${port}`);
+    .listen(port, () => {
+      console.log(`> Ready on ${isSocket ? port : 'http://' + hostname + ':' + port}`);
     });
 });
