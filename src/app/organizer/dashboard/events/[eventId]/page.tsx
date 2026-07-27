@@ -273,7 +273,13 @@ const EventDetails = () => {
             });
           }
 
-          setAttendees(flattenedAttendees);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const filteredAttendeesList = flattenedAttendees.filter((attendee: any) => {
+            const s = String(attendee.status || "").toUpperCase();
+            return s !== "PENDING" && s !== "FAILED";
+          });
+
+          setAttendees(filteredAttendeesList);
         } catch (error) {
           console.error("Failed to fetch attendees/orders:", error);
           setAttendees([]);
@@ -1942,7 +1948,12 @@ const EventDetails = () => {
                                                                 }));
                                                               });
                                                             }
-                                                            setAttendees(flattenedAttendees);
+                                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                                            const filteredAttendeesList = flattenedAttendees.filter((attendee: any) => {
+                                                              const s = String(attendee.status || "").toUpperCase();
+                                                              return s !== "PENDING" && s !== "FAILED";
+                                                            });
+                                                            setAttendees(filteredAttendeesList);
                                                           }
                                                         } catch (error) {
                                                           Swal.fire('Error', translateError(error), 'error');
@@ -2305,7 +2316,12 @@ const EventDetails = () => {
                       }));
                     });
                   }
-                  setAttendees(flattenedAttendees);
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  const filteredAttendeesList = flattenedAttendees.filter((attendee: any) => {
+                     const s = String(attendee.status || "").toUpperCase();
+                     return s !== "PENDING" && s !== "FAILED";
+                  });
+                  setAttendees(filteredAttendeesList);
                 } catch (error) {
                   console.error("Failed to fetch attendees:", error);
                 } finally {
