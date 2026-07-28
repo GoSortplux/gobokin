@@ -89,7 +89,11 @@ const OrganizerSettings = () => {
   const fetchPackages = async () => {
     try {
       setPackagesLoading(true);
-      const response = await api.get("/events/admin/packages");
+      const response = await api.get("/events/admin/packages", {
+        headers: {
+          "X-Use-Production": "true"
+        }
+      });
       const packagesData = response.data.data || [];
       setPackages(packagesData);
       if (packagesData.length > 0) {

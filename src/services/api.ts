@@ -37,7 +37,13 @@ api.interceptors.request.use(
     }
 
     // Redirect specific super admin and policies endpoints to the local Next.js API route handlers
-    if (config.url && (
+    const useProduction = config.headers && (config.headers['X-Use-Production'] || config.headers['x-use-production']);
+    if (config.headers) {
+      delete config.headers['X-Use-Production'];
+      delete config.headers['x-use-production'];
+    }
+
+    if (!useProduction && config.url && (
       config.url.startsWith('/events/admin/packages') ||
       config.url.startsWith('/policies') ||
       config.url.startsWith('policies')
