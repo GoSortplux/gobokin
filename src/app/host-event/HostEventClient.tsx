@@ -1801,20 +1801,20 @@ const HostEventPage = () => {
                 )}
                 {currentStep === 2 && (
                   <div className="space-y-8 animate-in fade-in duration-500">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between gap-6 hover:bg-gray-50/50 transition-colors">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                      <div className="p-4 sm:p-6 bg-white rounded-2xl border border-gray-100 shadow-sm flex items-start sm:items-center justify-between gap-4 sm:gap-6 hover:bg-gray-50/50 transition-colors">
                         <div className="space-y-1">
                           <h4 className="text-sm font-semibold text-gray-900">Agenda Mode</h4>
                           <p className="text-xs text-gray-500">Enable session schedule</p>
                         </div>
                         <button
                           onClick={() => handleChange("basicInfo", "agendaEnabled", !formData.basicInfo.agendaEnabled)}
-                          className={`w-12 h-7 rounded-full transition-all relative ${formData.basicInfo.agendaEnabled ? "bg-primary" : "bg-gray-200"}`}
+                          className={`w-12 h-7 rounded-full transition-all relative shrink-0 ${formData.basicInfo.agendaEnabled ? "bg-primary" : "bg-gray-200"}`}
                         >
                           <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all ${formData.basicInfo.agendaEnabled ? "left-6" : "left-1"}`} />
                         </button>
                       </div>
-                      <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between gap-6 hover:bg-gray-50/50 transition-colors">
+                      <div className="p-4 sm:p-6 bg-white rounded-2xl border border-gray-100 shadow-sm flex items-start sm:items-center justify-between gap-4 sm:gap-6 hover:bg-gray-50/50 transition-colors">
                         <div className="space-y-1">
                           <h4 className="text-sm font-semibold text-gray-900">Public Listing</h4>
                           <p className="text-xs text-gray-500">
@@ -1830,7 +1830,7 @@ const HostEventPage = () => {
                           <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all ${formData.basicInfo.isPublic ? "left-6" : "left-1"}`} />
                         </button>
                       </div>
-                      <div className="p-8 bg-gray-50/50 rounded-2xl border border-gray-100 md:col-span-2 space-y-6">
+                      <div className="p-4 sm:p-6 md:p-8 bg-gray-50/50 rounded-2xl border border-gray-100 md:col-span-2 space-y-6">
                         <div className="space-y-1">
                           <h4 className="text-sm font-semibold text-gray-900 flex items-center justify-between">
                             Registration Mode
@@ -1843,7 +1843,7 @@ const HostEventPage = () => {
                                 <Info size={14} />
                               </button>
                               {showRegInfo && (
-                                <div className="absolute bottom-full right-0 mb-3 w-72 p-6 bg-white border border-gray-100 text-gray-900 rounded-[2rem] shadow-2xl z-[100] animate-in fade-in slide-in-from-bottom-2 duration-200">
+                                <div className="absolute bottom-full right-0 mb-3 w-72 max-w-[calc(100vw-2.5rem)] sm:max-w-none p-4 sm:p-6 bg-white border border-gray-100 text-gray-900 rounded-[1.5rem] sm:rounded-[2rem] shadow-2xl z-[100] animate-in fade-in slide-in-from-bottom-2 duration-200">
                                    <div className="flex items-center justify-between mb-4">
                                       <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Registration Modes Explained</p>
                                       <button onClick={() => setShowRegInfo(false)} className="text-gray-400 hover:text-gray-600">
@@ -1873,7 +1873,7 @@ const HostEventPage = () => {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <button
                             onClick={() => handleChange("registration", "mode", "FULL_DETAILS")}
-                            className={`p-6 rounded-2xl text-left border-2 transition-all ${
+                            className={`p-4 sm:p-6 rounded-2xl text-left border-2 transition-all ${
                               formData.registration.mode === "FULL_DETAILS"
                                 ? "bg-white border-primary shadow-sm ring-4 ring-primary/5"
                                 : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"
@@ -1884,7 +1884,7 @@ const HostEventPage = () => {
                           </button>
                           <button
                             onClick={() => handleChange("registration", "mode", "BASIC_QUANTITY")}
-                            className={`p-6 rounded-2xl text-left border-2 transition-all ${
+                            className={`p-4 sm:p-6 rounded-2xl text-left border-2 transition-all ${
                               formData.registration.mode === "BASIC_QUANTITY"
                                 ? "bg-white border-primary shadow-sm ring-4 ring-primary/5"
                                 : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"
@@ -1896,7 +1896,7 @@ const HostEventPage = () => {
                         </div>
                       </div>
 
-                      <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between gap-6 hover:bg-gray-50/50 transition-colors">
+                      <div className="p-4 sm:p-6 bg-white rounded-2xl border border-gray-100 shadow-sm flex items-start sm:items-center justify-between gap-4 sm:gap-6 hover:bg-gray-50/50 transition-colors">
                         <div className="space-y-1">
                           <h4 className="text-sm font-semibold text-gray-900">Group Registration</h4>
                           <p className="text-xs text-gray-500">Allow guests to register as a team.</p>
@@ -1913,21 +1913,21 @@ const HostEventPage = () => {
                                 }
                              }));
                           }}
-                          className={`w-12 h-7 rounded-full transition-all relative ${formData.registration.isGroupingEnabled ? "bg-primary" : "bg-gray-200"}`}
+                          className={`w-12 h-7 rounded-full transition-all relative shrink-0 ${formData.registration.isGroupingEnabled ? "bg-primary" : "bg-gray-200"}`}
                         >
                           <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all ${formData.registration.isGroupingEnabled ? "left-6" : "left-1"}`} />
                         </button>
                       </div>
 
                       {formData.registration.isGroupingEnabled && (
-                        <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between gap-6 hover:bg-gray-50/50 transition-colors">
+                        <div className="p-4 sm:p-6 bg-white rounded-2xl border border-gray-100 shadow-sm flex items-start sm:items-center justify-between gap-4 sm:gap-6 hover:bg-gray-50/50 transition-colors">
                             <div className="space-y-1">
                                 <h4 className="text-sm font-semibold text-gray-900">Unique Group Names</h4>
                                 <p className="text-xs text-gray-500">Prevent duplicate group names.</p>
                             </div>
                             <button
                                 onClick={() => setFormData(prev => ({ ...prev, registration: { ...prev.registration, enforceUniqueGroupNames: !prev.registration.enforceUniqueGroupNames } }))}
-                                className={`w-12 h-7 rounded-full transition-all relative ${formData.registration.enforceUniqueGroupNames ? "bg-primary" : "bg-gray-200"}`}
+                                className={`w-12 h-7 rounded-full transition-all relative shrink-0 ${formData.registration.enforceUniqueGroupNames ? "bg-primary" : "bg-gray-200"}`}
                             >
                                 <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all ${formData.registration.enforceUniqueGroupNames ? "left-6" : "left-1"}`} />
                             </button>
@@ -2337,7 +2337,7 @@ const HostEventPage = () => {
                           {index > 0 && (
                             <div className="border-t-2 border-dashed border-gray-200/80 my-4 sm:my-6" />
                           )}
-                          <div className="p-4 sm:p-8 bg-white rounded-2xl sm:rounded-3xl border border-gray-200 space-y-6 sm:space-y-8 relative shadow-sm hover:border-primary/20 transition-all">
+                          <div className="p-4 sm:p-6 md:p-8 bg-white rounded-2xl sm:rounded-[2rem] border border-gray-200 space-y-6 sm:space-y-8 relative shadow-sm hover:border-primary/20 transition-all">
                           <div className="flex items-center justify-between gap-3">
                              <div className="flex items-center gap-3 sm:gap-4">
                                 <div className="w-10 h-10 rounded-xl bg-gray-50 text-primary flex items-center justify-center border border-gray-100 shrink-0">
@@ -2410,15 +2410,15 @@ const HostEventPage = () => {
                                 />
                              </div>
 
-                             <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
+                             <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
                                 <div className="space-y-3">
-                                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 h-10 flex items-end pb-1 gap-2">
+                                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 sm:h-10 flex items-end pb-1 gap-2">
                                        <MousePointer2 size={12} className="text-secondary shrink-0" />
                                        <span>Pricing</span>
                                    </label>
                                    <div className="relative">
                                        <select
-                                          className="w-full pl-5 pr-10 py-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none appearance-none shadow-sm"
+                                          className="w-full pl-5 pr-10 py-3 sm:py-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none appearance-none shadow-sm"
                                           value={ticket.type}
                                           onChange={(e) => updateTicket(ticket.id!, "type", e.target.value as TicketType)}
                                        >
@@ -2429,7 +2429,7 @@ const HostEventPage = () => {
                                    </div>
                                 </div>
                                 <div className="space-y-3">
-                                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 h-10 flex items-end pb-1 gap-2">
+                                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 sm:h-10 flex items-end pb-1 gap-2">
                                        <Coins size={12} className="text-secondary shrink-0" />
                                        <span>Ticket Price</span>
                                    </label>
@@ -2438,21 +2438,21 @@ const HostEventPage = () => {
                                        <input
                                           type="number"
                                           disabled={ticket.type === "FREE"}
-                                          className="w-full pl-10 pr-5 py-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 disabled:bg-gray-100 disabled:opacity-50 outline-none shadow-sm"
+                                          className="w-full pl-10 pr-5 py-3 sm:py-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 disabled:bg-gray-100 disabled:opacity-50 outline-none shadow-sm"
                                           value={ticket.price ?? ""}
                                           onChange={(e) => updateTicket(ticket.id!, "price", e.target.value === "" ? "" : parseFloat(e.target.value))}
                                        />
                                    </div>
                                 </div>
-                                <div className="space-y-3 md:col-span-2 lg:col-span-1">
-                                   <label htmlFor={`totalQuantity-${ticket.id}`} className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 h-10 flex items-end pb-1 gap-2">
+                                <div className="space-y-3 md:col-span-1">
+                                   <label htmlFor={`totalQuantity-${ticket.id}`} className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 sm:h-10 flex items-end pb-1 gap-2">
                                        <Layers size={12} className="text-secondary shrink-0" />
                                        <span>Available Quantity</span>
                                    </label>
                                    <input
                                       id={`totalQuantity-${ticket.id}`}
                                       type="number"
-                                      className="w-full px-5 py-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none shadow-sm"
+                                      className="w-full px-5 py-3 sm:py-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none shadow-sm"
                                       value={ticket.totalQuantity ?? ""}
                                       onChange={(e) => updateTicket(ticket.id!, "totalQuantity", e.target.value === "" ? "" : parseInt(e.target.value))}
                                    />
@@ -2461,26 +2461,26 @@ const HostEventPage = () => {
                                    </p>
                                 </div>
                                 <div className="space-y-3">
-                                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 h-10 flex items-end pb-1 gap-2">
+                                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 sm:h-10 flex items-end pb-1 gap-2">
                                        <Users size={12} className="text-secondary shrink-0" />
                                        <span>Min Tickets per Order</span>
                                    </label>
                                    <input
                                       type="number"
                                       min="1"
-                                      className="w-full px-5 py-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none shadow-sm"
+                                      className="w-full px-5 py-3 sm:py-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none shadow-sm"
                                       value={ticket.groupSize ?? ""}
                                       onChange={(e) => updateTicket(ticket.id!, "groupSize", e.target.value === "" ? "" : Math.max(1, parseInt(e.target.value) || 1))}
                                    />
                                 </div>
                                 <div className="space-y-3">
-                                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 h-10 flex items-end pb-1 gap-2">
+                                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 sm:h-10 flex items-end pb-1 gap-2">
                                        <Ticket size={12} className="text-secondary shrink-0" />
                                        <span>Max Tickets per Order</span>
                                    </label>
                                    <input
                                       type="number"
-                                      className="w-full px-5 py-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none shadow-sm"
+                                      className="w-full px-5 py-3 sm:py-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none shadow-sm"
                                       value={ticket.maxPerOrder ?? ""}
                                       onChange={(e) => updateTicket(ticket.id!, "maxPerOrder", e.target.value === "" ? "" : parseInt(e.target.value))}
                                    />
@@ -2495,15 +2495,15 @@ const HostEventPage = () => {
                               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                   <div className="space-y-1">
                                       <label className="text-[10px] font-bold text-gray-400 uppercase">Sales Start Date</label>
-                                      <input type="datetime-local" className="w-full px-4 py-2 border border-gray-200 rounded-lg text-xs font-medium focus:border-primary outline-none" value={ticket.salesStart} onChange={(e) => updateTicket(ticket.id!, "salesStart", e.target.value)} />
+                                      <input type="datetime-local" className="w-full px-4 py-2 sm:py-3 border border-gray-200 rounded-xl text-sm font-semibold focus:border-primary outline-none" value={ticket.salesStart} onChange={(e) => updateTicket(ticket.id!, "salesStart", e.target.value)} />
                                   </div>
                                   <div className="space-y-1">
                                       <label className="text-[10px] font-bold text-gray-400 uppercase">Sales End Date</label>
-                                      <input type="datetime-local" className="w-full px-4 py-2 border border-gray-200 rounded-lg text-xs font-medium focus:border-primary outline-none" value={ticket.salesEnd} onChange={(e) => updateTicket(ticket.id!, "salesEnd", e.target.value)} />
+                                      <input type="datetime-local" className="w-full px-4 py-2 sm:py-3 border border-gray-200 rounded-xl text-sm font-semibold focus:border-primary outline-none" value={ticket.salesEnd} onChange={(e) => updateTicket(ticket.id!, "salesEnd", e.target.value)} />
                                   </div>
                                   <div className="space-y-1">
                                       <label className="text-[10px] font-bold text-gray-400 uppercase">Max Per Order</label>
-                                      <input type="number" className="w-full px-4 py-2 border border-gray-200 rounded-lg text-xs font-medium focus:border-primary outline-none" value={ticket.maxPerOrder} onChange={(e) => updateTicket(ticket.id!, "maxPerOrder", parseInt(e.target.value))} />
+                                      <input type="number" className="w-full px-4 py-2 sm:py-3 border border-gray-200 rounded-xl text-sm font-semibold focus:border-primary outline-none" value={ticket.maxPerOrder} onChange={(e) => updateTicket(ticket.id!, "maxPerOrder", parseInt(e.target.value))} />
                                   </div>
                               </div>
                           </div>
@@ -2515,15 +2515,15 @@ const HostEventPage = () => {
                               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                   <div className="space-y-1">
                                       <label className="text-[10px] font-bold text-gray-400 uppercase">Price</label>
-                                      <input type="number" disabled={ticket.type === "FREE"} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-xs font-medium focus:border-primary outline-none" value={ticket.earlyBirdPrice} onChange={(e) => updateTicket(ticket.id!, "earlyBirdPrice", parseFloat(e.target.value))} />
+                                      <input type="number" disabled={ticket.type === "FREE"} className="w-full px-4 py-2 sm:py-3 border border-gray-200 rounded-xl text-sm font-semibold focus:border-primary outline-none disabled:bg-gray-100 disabled:opacity-50" value={ticket.earlyBirdPrice} onChange={(e) => updateTicket(ticket.id!, "earlyBirdPrice", parseFloat(e.target.value))} />
                                   </div>
                                   <div className="space-y-1">
                                       <label className="text-[10px] font-bold text-gray-400 uppercase">Units</label>
-                                      <input type="number" disabled={ticket.type === "FREE"} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-xs font-medium focus:border-primary outline-none" value={ticket.earlyBirdLimit} onChange={(e) => updateTicket(ticket.id!, "earlyBirdLimit", parseInt(e.target.value))} />
+                                      <input type="number" disabled={ticket.type === "FREE"} className="w-full px-4 py-2 sm:py-3 border border-gray-200 rounded-xl text-sm font-semibold focus:border-primary outline-none disabled:bg-gray-100 disabled:opacity-50" value={ticket.earlyBirdLimit} onChange={(e) => updateTicket(ticket.id!, "earlyBirdLimit", parseInt(e.target.value))} />
                                   </div>
                                   <div className="space-y-1">
                                       <label className="text-[10px] font-bold text-gray-400 uppercase">Expiry</label>
-                                      <input type="datetime-local" disabled={ticket.type === "FREE"} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-xs font-medium focus:border-primary outline-none" value={ticket.earlyBirdExpiry} onChange={(e) => updateTicket(ticket.id!, "earlyBirdExpiry", e.target.value)} />
+                                      <input type="datetime-local" disabled={ticket.type === "FREE"} className="w-full px-4 py-2 sm:py-3 border border-gray-200 rounded-xl text-sm font-semibold focus:border-primary outline-none disabled:bg-gray-100 disabled:opacity-50" value={ticket.earlyBirdExpiry} onChange={(e) => updateTicket(ticket.id!, "earlyBirdExpiry", e.target.value)} />
                                   </div>
                               </div>
                           </div>
@@ -2706,11 +2706,11 @@ const HostEventPage = () => {
               </div>
             </div>
 
-            <div className="mt-12 flex items-center justify-between">
+            <div className="mt-12 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-6 border-t border-gray-100">
               <button
                 onClick={() => setCurrentStep(prev => prev - 1)}
                 disabled={currentStep === 1}
-                className={`flex items-center gap-2 px-6 py-4 rounded-xl border border-gray-200 text-gray-600 font-semibold transition-all hover:bg-gray-50 ${
+                className={`flex items-center justify-center gap-2 px-6 py-3.5 sm:py-4 rounded-xl border border-gray-200 text-gray-600 font-semibold transition-all hover:bg-gray-50 w-full sm:w-auto ${
                   currentStep === 1 ? "opacity-0 invisible" : ""
                 }`}
               >
@@ -2720,7 +2720,7 @@ const HostEventPage = () => {
               <button
                 onClick={handleNext}
                 disabled={isFinalizing || isUploading}
-                className={`flex items-center gap-3 bg-primary text-white font-semibold px-10 py-4 rounded-xl hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95 ${isFinalizing || isUploading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                className={`flex items-center justify-center gap-3 bg-primary text-white font-semibold px-6 sm:px-10 py-3.5 sm:py-4 rounded-xl hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95 w-full sm:w-auto ${isFinalizing || isUploading ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
                 <span>
                     {currentStep === 4 ? (user ? "Create Event & Continue" : "Register to Finalize Event") :

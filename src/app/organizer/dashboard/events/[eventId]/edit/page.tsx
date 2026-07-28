@@ -1705,8 +1705,8 @@ const EditEventContent = () => {
                           </div>
 
                           {isConfigExpanded && (
-                          <div className={`grid grid-cols-1 md:grid-cols-2 gap-8 animate-in slide-in-from-top-4 duration-500 ${showPreview ? "2xl:grid-cols-3" : "lg:grid-cols-3"}`}>
-                             <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
+                          <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 animate-in slide-in-from-top-4 duration-500 ${showPreview ? "2xl:grid-cols-3" : "lg:grid-cols-3"}`}>
+                             <div className="space-y-4 p-4 sm:p-6 md:p-8 bg-gray-50 rounded-2xl sm:rounded-[2.5rem] border border-gray-100">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
                                    <Globe size={12} />
                                    Public Visibility
@@ -1725,7 +1725,7 @@ const EditEventContent = () => {
                                    </button>
                                 </div>
                              </div>
-                             <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
+                             <div className="space-y-4 p-4 sm:p-6 md:p-8 bg-gray-50 rounded-2xl sm:rounded-[2.5rem] border border-gray-100">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
                                    <MapPin size={12} />
                                    Hide Location
@@ -1743,7 +1743,7 @@ const EditEventContent = () => {
                                    </button>
                                 </div>
                              </div>
-                             <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
+                             <div className="space-y-4 p-4 sm:p-6 md:p-8 bg-gray-50 rounded-2xl sm:rounded-[2.5rem] border border-gray-100">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
                                    Registration Mode
                                    <div className="relative" ref={regInfoRef}>
@@ -1755,7 +1755,7 @@ const EditEventContent = () => {
                                         <Info size={14} />
                                       </button>
                                       {showRegInfo && (
-                                        <div className="absolute bottom-full right-0 mb-3 w-72 p-6 bg-white border border-gray-100 text-gray-900 rounded-[2rem] shadow-2xl z-[100] animate-in fade-in slide-in-from-bottom-2 duration-200">
+                                        <div className="absolute bottom-full right-0 mb-3 w-72 max-w-[calc(100vw-2.5rem)] sm:max-w-none p-4 sm:p-6 bg-white border border-gray-100 text-gray-900 rounded-[1.5rem] sm:rounded-[2rem] shadow-2xl z-[100] animate-in fade-in slide-in-from-bottom-2 duration-200">
                                            <div className="flex items-center justify-between mb-4">
                                               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Registration Modes Explained</p>
                                               <button onClick={() => setShowRegInfo(false)} className="text-gray-400 hover:text-gray-600">
@@ -1781,14 +1781,14 @@ const EditEventContent = () => {
                                    </div>
                                 </label>
                                 <div className="relative">
-                                   <select className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-xs font-bold outline-none appearance-none" value={registration.mode} onChange={(e) => setRegistration(prev => ({ ...prev, mode: e.target.value as RegistrationMode }))}>
+                                   <select className="w-full p-3 sm:p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary appearance-none" value={registration.mode} onChange={(e) => setRegistration(prev => ({ ...prev, mode: e.target.value as RegistrationMode }))}>
                                        <option value="FULL_DETAILS">Attendee Registration (Full details)</option>
                                        <option value="BASIC_QUANTITY">Ticket Sales (basic quantity)</option>
                                    </select>
                                    <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                                 </div>
                              </div>
-                             <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
+                             <div className="space-y-4 p-4 sm:p-6 md:p-8 bg-gray-50 rounded-2xl sm:rounded-[2.5rem] border border-gray-100">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
                                    <Users size={12} />
                                    Grouping
@@ -1816,7 +1816,7 @@ const EditEventContent = () => {
                                 </div>
                              </div>
                              {registration.isGroupingEnabled && (
-                                <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
+                                <div className="space-y-4 p-4 sm:p-6 md:p-8 bg-gray-50 rounded-2xl sm:rounded-[2.5rem] border border-gray-100">
                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
                                       <Users size={12} />
                                       Unique Names
@@ -1835,7 +1835,7 @@ const EditEventContent = () => {
                                    </div>
                                 </div>
                              )}
-                             <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
+                             <div className="space-y-4 p-4 sm:p-6 md:p-8 bg-gray-50 rounded-2xl sm:rounded-[2.5rem] border border-gray-100">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Waitlist Feature</label>
                                 <div className="flex items-center justify-between">
                                    <span className="text-sm font-bold text-gray-700">{basicInfo.isWaitlistEnabled ? 'Enabled' : 'Disabled'}</span>
@@ -1845,7 +1845,7 @@ const EditEventContent = () => {
                                 </div>
                              </div>
                              <div className={`pt-4 ${showPreview ? "2xl:col-span-3" : "md:col-span-2 lg:col-span-3"}`}>
-                                <div className="flex items-center justify-between p-6 bg-gray-50 rounded-[2rem] border border-gray-100 hover:bg-white hover:shadow-xl transition-all duration-500 group/agenda">
+                                <div className="flex items-center justify-between p-4 sm:p-6 bg-gray-50 rounded-2xl sm:rounded-[2rem] border border-gray-100 hover:bg-white hover:shadow-xl transition-all duration-500 group/agenda">
                                    <div className="flex items-center gap-5">
                                       <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 ${basicInfo.agendaEnabled ? 'bg-secondary text-white shadow-lg shadow-secondary/20' : 'bg-white text-gray-300 border border-gray-100'}`}>
                                          <Calendar size={20} />
@@ -2196,7 +2196,7 @@ const EditEventContent = () => {
                         {_index > 0 && (
                           <div className="border-t-2 border-dashed border-gray-200/80 my-4 sm:my-6" />
                         )}
-                        <div className="p-4 sm:p-8 md:p-10 bg-gray-50/50 rounded-2xl sm:rounded-[3.5rem] border border-gray-100 space-y-8 sm:space-y-10 relative group/ticket hover:bg-white hover:shadow-4xl hover:shadow-secondary/10 transition-all duration-700">
+                        <div className="p-4 sm:p-6 md:p-8 lg:p-10 bg-gray-50/50 rounded-2xl sm:rounded-[2rem] lg:rounded-[3.5rem] border border-gray-100 space-y-6 sm:space-y-8 lg:space-y-10 relative group/ticket hover:bg-white hover:shadow-4xl hover:shadow-secondary/10 transition-all duration-700">
                             <div className="flex justify-between items-center gap-3">
                                 <div className="flex items-center gap-3 sm:gap-5">
                                    <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-white text-secondary flex items-center justify-center shadow-xl shadow-gray-200/50 border border-gray-100 group-hover/ticket:bg-secondary group-hover/ticket:text-white transition-all duration-500 shrink-0">
@@ -2264,7 +2264,7 @@ const EditEventContent = () => {
                                    <input
                                       type="text"
                                       placeholder="e.g., VIP Early Bird"
-                                      className="w-full p-4 sm:p-6 bg-white border border-gray-300 rounded-2xl sm:rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none transition-all shadow-sm"
+                                      className="w-full p-4 sm:p-5 bg-white border border-gray-300 rounded-2xl sm:rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none transition-all shadow-sm"
                                       value={ticket.name}
                                       onChange={(e) => updateTicket(ticket.id, "name", e.target.value)}
                                    />
@@ -2278,21 +2278,21 @@ const EditEventContent = () => {
                                    <textarea
                                       rows={2}
                                       placeholder="What's included in this tier? (e.g., Free drinks, Front row seating)"
-                                      className="w-full p-4 sm:p-6 bg-white border border-gray-300 rounded-2xl sm:rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none transition-all shadow-sm resize-none"
+                                      className="w-full p-4 sm:p-5 bg-white border border-gray-300 rounded-2xl sm:rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none transition-all shadow-sm resize-none"
                                       value={ticket.description || ""}
                                       onChange={(e) => updateTicket(ticket.id, "description", e.target.value)}
                                    />
                                 </div>
 
-                                <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
+                                <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
                                    <div className="space-y-3">
-                                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 h-10 flex items-end pb-1 gap-2">
+                                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 sm:h-10 flex items-end pb-1 gap-2">
                                           <MousePointer2 size={12} className="text-secondary shrink-0" />
                                           <span>Pricing</span>
                                       </label>
                                       <div className="relative">
                                           <select
-                                             className="w-full pl-5 pr-10 py-4 sm:py-5 bg-white border border-gray-300 rounded-2xl sm:rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none appearance-none shadow-sm"
+                                             className="w-full pl-5 pr-10 py-3 sm:py-4 bg-white border border-gray-300 rounded-2xl sm:rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none appearance-none shadow-sm"
                                              value={ticket.type}
                                              onChange={(e) => updateTicket(ticket.id, "type", e.target.value as TicketType)}
                                           >
@@ -2303,7 +2303,7 @@ const EditEventContent = () => {
                                       </div>
                                    </div>
                                    <div className="space-y-3">
-                                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 h-10 flex items-end pb-1 gap-2">
+                                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 sm:h-10 flex items-end pb-1 gap-2">
                                           <Coins size={12} className="text-secondary shrink-0" />
                                           <span>Ticket Price</span>
                                       </label>
@@ -2312,21 +2312,21 @@ const EditEventContent = () => {
                                           <input
                                              type="number"
                                              disabled={ticket.type === "FREE"}
-                                             className="w-full pl-10 pr-5 py-4 sm:py-5 bg-white border border-gray-300 rounded-2xl sm:rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 disabled:bg-gray-100 disabled:opacity-50 outline-none shadow-sm"
+                                             className="w-full pl-10 pr-5 py-3 sm:py-4 bg-white border border-gray-300 rounded-2xl sm:rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 disabled:bg-gray-100 disabled:opacity-50 outline-none shadow-sm"
                                              value={ticket.price ?? ""}
                                              onChange={(e) => updateTicket(ticket.id, "price", e.target.value === "" ? "" : parseFloat(e.target.value))}
                                           />
                                       </div>
                                    </div>
-                                   <div className="space-y-3">
-                                      <label htmlFor={`totalQuantity-${ticket.id}`} className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 h-10 flex items-end pb-1 gap-2">
+                                   <div className="space-y-3 md:col-span-1">
+                                      <label htmlFor={`totalQuantity-${ticket.id}`} className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 sm:h-10 flex items-end pb-1 gap-2">
                                           <Layers size={12} className="text-secondary shrink-0" />
                                           <span>Available Quantity</span>
                                       </label>
                                       <input
                                          id={`totalQuantity-${ticket.id}`}
                                          type="number"
-                                         className="w-full px-5 py-4 sm:py-5 bg-white border border-gray-300 rounded-2xl sm:rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none shadow-sm"
+                                         className="w-full px-5 py-3 sm:py-4 bg-white border border-gray-300 rounded-2xl sm:rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none shadow-sm"
                                          value={ticket.totalQuantity ?? ""}
                                          onChange={(e) => updateTicket(ticket.id, "totalQuantity", e.target.value === "" ? "" : parseInt(e.target.value))}
                                       />
@@ -2335,26 +2335,26 @@ const EditEventContent = () => {
                                    </p>
                                    </div>
                                    <div className="space-y-3">
-                                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 h-10 flex items-end pb-1 gap-2">
+                                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 sm:h-10 flex items-end pb-1 gap-2">
                                           <Users size={12} className="text-secondary shrink-0" />
                                           <span>Minimum Tickets per Order</span>
                                       </label>
                                       <input
                                          type="number"
                                       min="1"
-                                         className="w-full px-5 py-4 sm:py-5 bg-white border border-gray-300 rounded-2xl sm:rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none shadow-sm"
+                                         className="w-full px-5 py-3 sm:py-4 bg-white border border-gray-300 rounded-2xl sm:rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none shadow-sm"
                                          value={ticket.groupSize ?? ""}
                                       onChange={(e) => updateTicket(ticket.id, "groupSize", e.target.value === "" ? "" : Math.max(1, parseInt(e.target.value) || 1))}
                                       />
                                    </div>
                                    <div className="space-y-3">
-                                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 h-10 flex items-end pb-1 gap-2">
+                                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 sm:h-10 flex items-end pb-1 gap-2">
                                           <Ticket size={12} className="text-secondary shrink-0" />
                                           <span>Maximum Tickets per Order</span>
                                       </label>
                                       <input
                                          type="number"
-                                         className="w-full px-5 py-4 sm:py-5 bg-white border border-gray-300 rounded-2xl sm:rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none shadow-sm"
+                                         className="w-full px-5 py-3 sm:py-4 bg-white border border-gray-300 rounded-2xl sm:rounded-3xl text-sm font-bold focus:border-secondary focus:ring-4 focus:ring-secondary/5 outline-none shadow-sm"
                                          value={ticket.maxPerOrder ?? ""}
                                          onChange={(e) => updateTicket(ticket.id, "maxPerOrder", e.target.value === "" ? "" : parseInt(e.target.value))}
                                       />
@@ -2375,7 +2375,7 @@ const EditEventContent = () => {
                                                        <label className="text-[9px] font-bold text-gray-400 uppercase">Sales Start Date</label>
                                                        <input
                                                            type="datetime-local"
-                                                           className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-[10px] font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
+                                                           className="w-full px-4 py-2 sm:py-3 bg-white border border-gray-200 rounded-2xl text-sm font-semibold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
                                                            value={ticket.salesStart}
                                                            onChange={(e) => updateTicket(ticket.id, "salesStart", e.target.value)}
                                                        />
@@ -2384,7 +2384,7 @@ const EditEventContent = () => {
                                                        <label className="text-[9px] font-bold text-gray-400 uppercase">Sales End Date</label>
                                                        <input
                                                            type="datetime-local"
-                                                           className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-[10px] font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
+                                                           className="w-full px-4 py-2 sm:py-3 bg-white border border-gray-200 rounded-2xl text-sm font-semibold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none"
                                                            value={ticket.salesEnd}
                                                            onChange={(e) => updateTicket(ticket.id, "salesEnd", e.target.value)}
                                                        />
@@ -2394,7 +2394,7 @@ const EditEventContent = () => {
 
                                            <div className="pt-8 border-t border-gray-50 space-y-6">
                                            <h6 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Early Bird Discount (Optional)</h6>
-                                           <div className="grid gap-6 grid-cols-1 sm:grid-cols-3">
+                                           <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-3">
                                                <div className="space-y-2">
                                                    <label className="text-[9px] font-bold text-gray-400 uppercase">Early Bird Price</label>
                                                    <div className="relative">
@@ -2402,7 +2402,7 @@ const EditEventContent = () => {
                                                        <input
                                                            type="number"
                                                            disabled={ticket.type === "FREE"}
-                                                           className="w-full pl-8 pr-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none disabled:bg-gray-100 disabled:opacity-50"
+                                                           className="w-full pl-8 pr-4 py-2 sm:py-3 bg-white border border-gray-200 rounded-2xl text-sm font-semibold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none disabled:bg-gray-100 disabled:opacity-50"
                                                            value={ticket.earlyBirdPrice ?? ""}
                                                            onChange={(e) => updateTicket(ticket.id, "earlyBirdPrice", e.target.value === "" ? "" : parseFloat(e.target.value))}
                                                        />
@@ -2413,7 +2413,7 @@ const EditEventContent = () => {
                                                    <input
                                                        type="number"
                                                        disabled={ticket.type === "FREE"}
-                                                       className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none disabled:bg-gray-100 disabled:opacity-50"
+                                                       className="w-full px-4 py-2 sm:py-3 bg-white border border-gray-200 rounded-2xl text-sm font-semibold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none disabled:bg-gray-100 disabled:opacity-50"
                                                        value={ticket.earlyBirdLimit ?? ""}
                                                        onChange={(e) => updateTicket(ticket.id, "earlyBirdLimit", e.target.value === "" ? "" : parseInt(e.target.value))}
                                                    />
@@ -2423,7 +2423,7 @@ const EditEventContent = () => {
                                                    <input
                                                        type="datetime-local"
                                                        disabled={ticket.type === "FREE"}
-                                                       className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none disabled:bg-gray-100 disabled:opacity-50"
+                                                       className="w-full px-4 py-2 sm:py-3 bg-white border border-gray-200 rounded-2xl text-sm font-semibold focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none disabled:bg-gray-100 disabled:opacity-50"
                                                        value={ticket.earlyBirdExpiry}
                                                        onChange={(e) => updateTicket(ticket.id, "earlyBirdExpiry", e.target.value)}
                                                    />
@@ -2456,7 +2456,7 @@ const EditEventContent = () => {
                                                            <input
                                                                type="number"
                                                                min="2"
-                                                               className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold outline-none"
+                                                               className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold outline-none"
                                                                value={discount.minQuantity ?? ""}
                                                                onChange={(e) => updateQuantityDiscount(ticket.id, dIndex, "minQuantity", e.target.value === "" ? "" : Math.max(2, parseInt(e.target.value) || 2))}
                                                            />
@@ -2467,7 +2467,7 @@ const EditEventContent = () => {
                                                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-primary font-black text-[9px]">%</span>
                                                                <input
                                                                    type="number"
-                                                                   className="w-full pr-8 pl-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold outline-none"
+                                                                   className="w-full pr-8 pl-3 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold outline-none"
                                                                    value={discount.discountPercentage ?? ""}
                                                                    onChange={(e) => updateQuantityDiscount(ticket.id, dIndex, "discountPercentage", e.target.value === "" ? "" : parseFloat(e.target.value))}
                                                                />
@@ -2683,7 +2683,7 @@ const EditEventContent = () => {
           </div>
 
           {/* Action Footer */}
-          <div className={`bg-white px-6 md:px-10 lg:px-12 py-8 md:py-10 border-t border-gray-50 flex flex-col md:flex-row items-center justify-between gap-6 ${showPreview ? "2xl:px-16" : "xl:px-16"}`}>
+          <div className={`bg-white px-4 sm:px-6 md:px-10 lg:px-12 py-6 sm:py-8 border-t border-gray-50 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 sm:gap-6 ${showPreview ? "2xl:px-16" : "xl:px-16"}`}>
              <button onClick={() => router.back()} className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-gray-900 transition-colors order-last md:order-first">Discard Changes</button>
              <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4 w-full md:w-auto">
                 <button

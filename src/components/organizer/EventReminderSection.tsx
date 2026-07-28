@@ -165,10 +165,10 @@ export const EventReminderSection: React.FC<EventReminderSectionProps> = ({
   };
 
   const containerBg = isHostEventPage ? "bg-white" : "bg-gray-50";
-  const roundedStyle = isHostEventPage ? "rounded-2xl" : "rounded-[2.5rem]";
+  const roundedStyle = isHostEventPage ? "rounded-2xl" : "rounded-2xl sm:rounded-[2.5rem]";
 
   return (
-    <div className={`space-y-6 p-6 sm:p-8 ${containerBg} ${roundedStyle} border border-gray-100 shadow-sm transition-all duration-300`}>
+    <div className={`space-y-6 p-4 sm:p-6 md:p-8 ${containerBg} ${roundedStyle} border border-gray-100 shadow-sm transition-all duration-300`}>
       <div className="flex items-start justify-between gap-6">
         <div className="flex items-center gap-4">
           <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all shadow-sm ${remindersEnabled ? 'bg-primary text-white scale-105' : 'bg-white border border-gray-100 text-gray-400'}`}>
@@ -249,7 +249,7 @@ export const EventReminderSection: React.FC<EventReminderSectionProps> = ({
             {showTokenHelp && (
               <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 text-xs text-gray-700 space-y-2 animate-in fade-in duration-200">
                 <p className="font-bold text-primary">You can insert the following placeholders into your custom message:</p>
-                <div className="grid grid-cols-2 gap-2 text-[10px]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px]">
                   <div><code className="bg-white border border-gray-100 px-1.5 py-0.5 rounded font-mono text-primary font-bold">{"{{guest_name}}"}</code> - Guest full name</div>
                   <div><code className="bg-white border border-gray-100 px-1.5 py-0.5 rounded font-mono text-primary font-bold">{"{{event_name}}"}</code> - Event title</div>
                   <div><code className="bg-white border border-gray-100 px-1.5 py-0.5 rounded font-mono text-primary font-bold">{"{{event_date}}"}</code> - Event calendar date</div>
