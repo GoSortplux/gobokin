@@ -2492,7 +2492,7 @@ const HostEventPage = () => {
                               <div className="flex items-center justify-between">
                                   <h5 className="text-[10px] font-black text-primary uppercase tracking-widest">Ticket Selling Start and End Date</h5>
                               </div>
-                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                   <div className="space-y-1">
                                       <label className="text-[10px] font-bold text-gray-400 uppercase">Sales Start Date</label>
                                       <input type="datetime-local" className="w-full px-4 py-2 sm:py-3 border border-gray-200 rounded-xl text-sm font-semibold focus:border-primary outline-none" value={ticket.salesStart} onChange={(e) => updateTicket(ticket.id!, "salesStart", e.target.value)} />
@@ -2500,10 +2500,6 @@ const HostEventPage = () => {
                                   <div className="space-y-1">
                                       <label className="text-[10px] font-bold text-gray-400 uppercase">Sales End Date</label>
                                       <input type="datetime-local" className="w-full px-4 py-2 sm:py-3 border border-gray-200 rounded-xl text-sm font-semibold focus:border-primary outline-none" value={ticket.salesEnd} onChange={(e) => updateTicket(ticket.id!, "salesEnd", e.target.value)} />
-                                  </div>
-                                  <div className="space-y-1">
-                                      <label className="text-[10px] font-bold text-gray-400 uppercase">Max Per Order</label>
-                                      <input type="number" className="w-full px-4 py-2 sm:py-3 border border-gray-200 rounded-xl text-sm font-semibold focus:border-primary outline-none" value={ticket.maxPerOrder} onChange={(e) => updateTicket(ticket.id!, "maxPerOrder", parseInt(e.target.value))} />
                                   </div>
                               </div>
                           </div>
