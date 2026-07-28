@@ -52,7 +52,8 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
     try {
       const response = await api.post('/auth/refresh-token');
       if (response.data?.data?.accessToken) {
-        updateToken(response.data.data.accessToken);
+        // Pass null to prevent unexpected dashboard redirection, maintaining the user on the current page
+        updateToken(response.data.data.accessToken, null);
       } else {
         window.location.reload();
       }

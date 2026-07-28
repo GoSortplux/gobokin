@@ -385,6 +385,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return updatedUser;
       });
 
+      // If on the /host-event page, skip any redirection entirely to ensure they stay on the setup flow
+      if (typeof window !== "undefined" && window.location.pathname === "/host-event") {
+        return;
+      }
+
       // If customRedirectPath is explicitly null, skip redirection
       if (customRedirectPath === null) return;
 
