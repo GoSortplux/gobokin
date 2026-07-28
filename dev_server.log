@@ -1,0 +1,20 @@
+
+> gobokin-app@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.5.9
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.2:3000
+
+ ✓ Starting...
+ ✓ Ready in 2.2s
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 1553ms (114 modules)
+ ○ Compiling / ...
+ ✓ Compiled / in 16.4s (3787 modules)
+ HEAD / 200 in 18892ms
+ GET / 200 in 286ms
+ ○ Compiling /events/orders/[orderId]/success ...
+ ✓ Compiled /events/orders/[orderId]/success in 7.2s (4257 modules)
+ GET / 200 in 160ms
+ GET /events/orders/REG-123456/success?reference=REG-123456 200 in 10723ms

@@ -50,7 +50,7 @@ const VerifyPaymentContent = () => {
           const orderId = data?.orderId || data?.order?.id || data?.id;
           setPaymentStatus({ status: 'success', message: 'Payment verified! Preparing your tickets...' });
           setTimeout(() => {
-            router.push(`/payment-success/event?orderId=${orderId}`);
+            router.push(`/events/orders/${orderId}/success?reference=${reference}`);
           }, 1500);
           return;
         }
