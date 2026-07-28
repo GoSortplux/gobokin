@@ -2796,7 +2796,7 @@ const HostEventPage = () => {
             try {
               const response = await api.post('/auth/refresh-token');
               if (response.data?.data?.accessToken) {
-                updateToken(response.data.data.accessToken);
+                updateToken(response.data.data.accessToken, null);
               }
               await fetchUserProfile();
             } catch (err) {
