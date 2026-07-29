@@ -2410,7 +2410,7 @@ const HostEventPage = () => {
                                 />
                              </div>
 
-                             <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+                             <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
                                 <div className="space-y-3">
                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 sm:h-10 flex items-end pb-1 gap-2">
                                        <MousePointer2 size={12} className="text-secondary shrink-0" />
@@ -2460,6 +2460,9 @@ const HostEventPage = () => {
                                        Max: {Math.max(0, formData.basicInfo.capacity - formData.tickets.filter(t => t.id !== ticket.id).reduce((sum, t) => sum + (t.totalQuantity || 0), 0))}
                                    </p>
                                 </div>
+                             </div>
+
+                             <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2">
                                 <div className="space-y-3">
                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 sm:h-10 flex items-end pb-1 gap-2">
                                        <Users size={12} className="text-secondary shrink-0" />
