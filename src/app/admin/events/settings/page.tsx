@@ -513,13 +513,30 @@ const SystemSettings = () => {
                              </div>
                            </div>
 
-                           <input
-                             type="text"
-                             placeholder="Value"
-                             className="flex-1 px-5 py-3 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all"
-                             value={rule.ruleValue}
-                             onChange={e => updateRule(index, 'ruleValue', e.target.value)}
-                           />
+                           {rule.ruleKey === 'BULK_IMPORT_ALLOWED' || rule.ruleKey.endsWith('_ALLOWED') || rule.ruleKey.endsWith('_ENABLED') ? (
+                             <div className="relative flex-1">
+                               <select
+                                 className="w-full px-5 py-3 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all appearance-none"
+                                 value={rule.ruleValue}
+                                 onChange={e => updateRule(index, 'ruleValue', e.target.value)}
+                               >
+                                 <option value="">Select Value</option>
+                                 <option value="true">True</option>
+                                 <option value="false">False</option>
+                               </select>
+                               <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                 <ChevronDown size={16} />
+                               </div>
+                             </div>
+                           ) : (
+                             <input
+                               type="text"
+                               placeholder="Value"
+                               className="flex-1 px-5 py-3 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all"
+                               value={rule.ruleValue}
+                               onChange={e => updateRule(index, 'ruleValue', e.target.value)}
+                             />
+                           )}
                            {formData.rules.length > 1 && (
                              <button
                                type="button"
