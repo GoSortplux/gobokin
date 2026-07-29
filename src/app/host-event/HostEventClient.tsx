@@ -561,7 +561,17 @@ const HostEventPage = () => {
   useEffect(() => {
     const fetchRules = async () => {
       if (!user) {
-        setRules(DEFAULT_RULES as unknown as OrganizerRule[]);
+        try {
+          const response = await api.get('/api/v1/events/utils/default-rules');
+          if (response.data?.success && Array.isArray(response.data.data)) {
+            setRules(response.data.data);
+          } else {
+            setRules(DEFAULT_RULES as unknown as OrganizerRule[]);
+          }
+        } catch (error) {
+          console.error('Failed to fetch guest default rules, falling back to fallback list:', error);
+          setRules(DEFAULT_RULES as unknown as OrganizerRule[]);
+        }
         return;
       }
       try {
