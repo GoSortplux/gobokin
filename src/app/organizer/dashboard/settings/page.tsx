@@ -229,8 +229,9 @@ const OrganizerSettings = () => {
             packageId
         });
 
-        if (response.data.success && response.data.data.paymentUrl) {
-            window.location.href = response.data.data.paymentUrl;
+        const url = response.data?.data?.checkoutUrl || response.data?.data?.paymentUrl;
+        if (response.data.success && url) {
+            window.location.href = url;
         } else {
             throw new Error("Failed to initialize payment");
         }
