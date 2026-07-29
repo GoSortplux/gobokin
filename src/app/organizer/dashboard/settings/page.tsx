@@ -681,9 +681,9 @@ const OrganizerSettings = () => {
                                             <div>
                                                 <div className="flex items-center gap-3 mb-1">
                                                     <h4 className="text-2xl font-black text-gray-900 tracking-tighter uppercase italic">{selectedPackage.name}</h4>
-                                                    {selectedPackage.discountPercentage > 0 && (
+                                                    {((selectedPackage.pricingBreakdown?.discountPercentage ?? 0) > 0 || (selectedPackage.discountPercentage ?? 0) > 0) && (
                                                         <div className="bg-rose-50 text-rose-600 text-[9px] font-black px-2 py-0.5 rounded-full border border-rose-100 uppercase tracking-widest">
-                                                            {selectedPackage.discountPercentage}% OFF
+                                                            {selectedPackage.pricingBreakdown?.discountPercentage ?? selectedPackage.discountPercentage}% OFF
                                                         </div>
                                                     )}
                                                 </div>
@@ -694,11 +694,34 @@ const OrganizerSettings = () => {
                                             </div>
                                         </div>
 
-                                        <div className="mb-8 p-6 bg-gray-50/50 rounded-2xl border border-gray-50 flex items-baseline gap-2">
-                                            <span className="text-4xl font-black text-primary tracking-tighter italic">
-                                                ₦{selectedPackage.price.toLocaleString()}
-                                            </span>
-                                            <span className="text-[9px] text-gray-400 font-black uppercase tracking-widest">One-time payment</span>
+                                        <div className="mb-8 p-6 bg-gray-50/50 rounded-2xl border border-gray-50 flex flex-col gap-1">
+                                            <div className="flex items-baseline gap-2">
+                                                {selectedPackage.pricingBreakdown && selectedPackage.pricingBreakdown.discountAmount > 0 ? (
+                                                    <>
+                                                        <span className="text-4xl font-black text-primary tracking-tighter italic">
+                                                            {selectedPackage.pricingBreakdown.currency === 'USD' ? '$' : '₦'}
+                                                            {selectedPackage.pricingBreakdown.finalPrice.toLocaleString()}
+                                                        </span>
+                                                        <span className="text-sm text-gray-400 line-through font-bold">
+                                                            {selectedPackage.pricingBreakdown.currency === 'USD' ? '$' : '₦'}
+                                                            {selectedPackage.pricingBreakdown.basePrice.toLocaleString()}
+                                                        </span>
+                                                    </>
+                                                ) : (
+                                                    <span className="text-4xl font-black text-primary tracking-tighter italic">
+                                                        {selectedPackage.pricingBreakdown
+                                                            ? (selectedPackage.pricingBreakdown.currency === 'USD' ? '$' : '₦') + selectedPackage.pricingBreakdown.finalPrice.toLocaleString()
+                                                            : `₦${Number(selectedPackage.price).toLocaleString()}`
+                                                        }
+                                                    </span>
+                                                )}
+                                                <span className="text-[9px] text-gray-400 font-black uppercase tracking-widest ml-1">One-time payment</span>
+                                            </div>
+                                            {selectedPackage.pricingBreakdown && selectedPackage.pricingBreakdown.discountAmount > 0 && (
+                                                <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest mt-1">
+                                                    Saved {selectedPackage.pricingBreakdown.currency === 'USD' ? '$' : '₦'}{selectedPackage.pricingBreakdown.discountAmount.toLocaleString()} ({selectedPackage.pricingBreakdown.discountPercentage}% off)
+                                                </p>
+                                            )}
                                         </div>
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-8">

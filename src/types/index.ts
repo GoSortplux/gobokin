@@ -370,6 +370,13 @@ export interface SubscriptionPackage {
   type: string;
   isPublic: boolean;
   rules: PackageRule[];
+  pricingBreakdown?: {
+    currency: string;
+    basePrice: number;
+    discountPercentage: number;
+    discountAmount: number;
+    finalPrice: number;
+  };
 }
 
 export interface LicenseTier {
