@@ -401,9 +401,9 @@ const DownloadReportModal = ({
                 />
               </div>
               <label htmlFor="async" className="flex flex-col cursor-pointer select-none">
-                <span className="text-xs font-black text-gray-900 uppercase tracking-wider">Generate Asynchronously</span>
+                <span className="text-xs font-black text-gray-900 uppercase tracking-wider">Email me when it&apos;s ready</span>
                 <span className="text-[10px] text-gray-500 font-medium leading-relaxed mt-0.5">
-                  Highly recommended for large volume sets. The report will be compiled in the background and delivered via your email and in-app notifications.
+                  Large reports may take several minutes. We&apos;ll prepare the report in the background and send a notification when it finishes.
                 </span>
               </label>
             </div>
@@ -412,7 +412,7 @@ const DownloadReportModal = ({
             <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 flex items-start gap-3">
               <AlertCircle size={16} className="text-primary shrink-0 mt-0.5" />
               <p className="text-[10px] text-gray-500 font-medium leading-relaxed">
-                Reports exceeding 100 entries will automatically execute in asynchronous mode, even if &quot;Generate Asynchronously&quot; is unchecked.
+                Reports exceeding 100 entries will automatically execute in background mode, even if this option is unchecked.
               </p>
             </div>
 
