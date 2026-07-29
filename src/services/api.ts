@@ -44,7 +44,6 @@ api.interceptors.request.use(
     }
 
     if (!useProduction && config.url && (
-      config.url.startsWith('/events/admin/packages') ||
       config.url.startsWith('/policies') ||
       config.url.startsWith('policies')
     )) {
