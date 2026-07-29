@@ -104,7 +104,7 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, tickets, sessions, agenda
     schedule: { label: "Schedule", icon: Clock },
     speakers: { label: "Speakers", icon: User },
     tickets: { label: "Tickets", icon: Ticket },
-    registration: { label: "Form Preview", icon: FileText },
+    registration: { label: "Form", icon: FileText },
   };
 
   return (
@@ -191,7 +191,7 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, tickets, sessions, agenda
         </div>
 
         <div className="space-y-6">
-          <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-gray-50 rounded-2xl border border-gray-100 w-full sm:w-fit">
+          <div className="flex flex-nowrap items-center gap-1.5 p-1.5 bg-gray-50 rounded-2xl border border-gray-100 w-full overflow-x-auto no-scrollbar">
             {tabs.map(tab => {
               const config = tabConfig[tab as keyof typeof tabConfig];
               const Icon = config ? config.icon : Info;
