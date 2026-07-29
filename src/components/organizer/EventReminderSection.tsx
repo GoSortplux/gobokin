@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Bell, Info, Plus, Trash2, HelpCircle, Sparkles, ChevronDown } from "lucide-react";
 import api from "@/services/api";
 import { translateError } from "@/utils/errors";
+import Swal from "@/utils/sweetalert";
 
 interface EventReminderSectionProps {
   remindersEnabled: boolean;
@@ -15,6 +16,8 @@ interface EventReminderSectionProps {
     useDefaultFrequencies?: boolean;
   }) => void;
   isHostEventPage?: boolean;
+  isRestricted?: boolean;
+  uxContext?: string;
 }
 
 interface TextTemplate {
@@ -58,6 +61,8 @@ export const EventReminderSection: React.FC<EventReminderSectionProps> = ({
   useDefaultFrequencies,
   onChange,
   isHostEventPage = false,
+  isRestricted = false,
+  uxContext = "",
 }) => {
   const [loadingDefaults, setLoadingDefaults] = useState(false);
   const [defaults, setDefaults] = useState<{
@@ -104,6 +109,23 @@ export const EventReminderSection: React.FC<EventReminderSectionProps> = ({
     const nextEnabled = !remindersEnabled;
 
     if (nextEnabled) {
+      if (isRestricted) {
+        Swal.fire({
+          title: "Feature Restricted",
+          text: uxContext || "The Automated Reminders feature is not available on your current plan. Upgrade your subscription to unlock this and additional features.",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "Upgrade Now",
+          cancelButtonText: "Later",
+          confirmButtonColor: "#295FA7",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            window.location.href = "/organizer/dashboard/settings?tab=subscriptions";
+          }
+        });
+        return;
+      }
+
       setLoadingDefaults(true);
       try {
         const res = await api.get("/events/utils/reminder-defaults");
@@ -175,7 +197,14 @@ export const EventReminderSection: React.FC<EventReminderSectionProps> = ({
             <Bell size={22} className={remindersEnabled ? "animate-bounce" : ""} />
           </div>
           <div>
-            <h4 className="text-sm font-semibold text-gray-900">Automated Reminders</h4>
+            <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-1.5 flex-wrap">
+              Automated Reminders
+              {isRestricted && (
+                <span className="text-[9px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-1.5 py-0.5 rounded flex items-center gap-1 shrink-0">
+                  🔒 Premium
+                </span>
+              )}
+            </h4>
             <p className="text-xs text-gray-500 leading-tight">Send dynamic automated reminders to registered guests before the event starts.</p>
           </div>
         </div>

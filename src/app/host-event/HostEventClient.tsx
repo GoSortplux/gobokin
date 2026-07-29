@@ -40,7 +40,7 @@ import axios from "axios";
 import Image from "next/image";
 import { Reorder } from "framer-motion";
 import { useAuth, setSharedReturnUrl } from "@/context/AuthContext";
-import { EventType, RegistrationMode, RegistrationField, Speaker, TicketType, Ticket as ITicket } from "@/types";
+import { EventType, RegistrationMode, RegistrationField, Speaker, TicketType, Ticket as ITicket, OrganizerRule } from "@/types";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
 import LoginRequiredModal from "@/components/auth/LoginRequiredModal";
@@ -432,6 +432,121 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, tickets, sessions, agenda
   );
 };
 
+const DEFAULT_RULES = [
+  {
+    "key": "MAX_GUESTS",
+    "title": "Guest Capacity",
+    "value": "100",
+    "description": "Default maximum guests allowed for new organizers",
+    "isRestricted": false,
+    "uxContext": "You have full access to this feature."
+  },
+  {
+    "key": "MAX_STAFF",
+    "title": "Staff Limit",
+    "value": "5",
+    "description": "Maximum staff pool size for new organizers",
+    "isRestricted": false,
+    "uxContext": "You have full access to this feature."
+  },
+  {
+    "key": "MAX_TICKET_CATEGORIES",
+    "title": "Ticket Categories",
+    "value": "5",
+    "description": "Default maximum ticket categories per event",
+    "isRestricted": false,
+    "uxContext": "You have full access to this feature."
+  },
+  {
+    "key": "MAX_ACTIVE_EVENTS",
+    "title": "Active Events",
+    "value": "5",
+    "description": "Default maximum active/upcoming events per organizer",
+    "isRestricted": false,
+    "uxContext": "You have full access to this feature."
+  },
+  {
+    "key": "BROADCAST_ALLOWED",
+    "title": "Guest Messaging",
+    "value": false,
+    "description": "Whether guest messaging is allowed by default",
+    "isRestricted": true,
+    "uxContext": "Keep every attendee informed with announcements, reminders, and important event updates from one place.\n\n🔒 Available on Premium plans.\n\nUpgrade today to unlock Guest Messaging and other powerful event management features."
+  },
+  {
+    "key": "RESOURCES_ALLOWED",
+    "title": "Resource Sharing",
+    "value": false,
+    "description": "Whether resource sharing is allowed by default",
+    "isRestricted": true,
+    "uxContext": "The Resource Sharing feature is not available on your current plan. Upgrade your subscription to unlock this and additional features."
+  },
+  {
+    "key": "OFFLINE_CHECKIN_ALLOWED",
+    "title": "Offline Check-in",
+    "value": false,
+    "description": "Default setting for offline check-in availability",
+    "isRestricted": true,
+    "uxContext": "The Offline Check-in feature is not available on your current plan. Upgrade your subscription to unlock this and additional features."
+  },
+  {
+    "key": "BULK_IMPORT_ALLOWED",
+    "title": "Bulk Guest Import",
+    "value": false,
+    "description": "Default setting for bulk guest import availability",
+    "isRestricted": true,
+    "uxContext": "The Bulk Guest Import feature is not available on your current plan. Upgrade your subscription to unlock this and additional features."
+  },
+  {
+    "key": "WALK_IN_REGISTRATION_ALLOWED",
+    "title": "Walk-in Registration",
+    "value": false,
+    "description": "Default setting for walk-in registration availability",
+    "isRestricted": true,
+    "uxContext": "The Walk-in Registration feature is not available on your current plan. Upgrade your subscription to unlock this and additional features."
+  },
+  {
+    "key": "REMINDERS_ALLOWED",
+    "title": "Automated Reminders",
+    "value": false,
+    "description": "Whether automated guest reminders are allowed by default",
+    "isRestricted": true,
+    "uxContext": "The Automated Reminders feature is not available on your current plan. Upgrade your subscription to unlock this and additional features."
+  },
+  {
+    "key": "COMMISSION_RATE",
+    "title": "Platform Commission",
+    "value": "4",
+    "description": "Default platform commission percentage for new organizers",
+    "isRestricted": false,
+    "uxContext": "You have full access to this feature."
+  },
+  {
+    "key": "COMMISSION_CAP",
+    "title": "Commission Cap",
+    "value": "5000",
+    "description": "Maximum platform commission (NGN) per ticket",
+    "isRestricted": false,
+    "uxContext": "You have full access to this feature."
+  },
+  {
+    "key": "MIXED_TICKETING_ALLOWED",
+    "title": "Mixed Ticketing",
+    "value": false,
+    "description": null,
+    "isRestricted": true,
+    "uxContext": "The Mixed Ticketing feature is not available on your current plan. Upgrade your subscription to unlock this and additional features."
+  },
+  {
+    "key": "MIN_PAID_TICKET_PRICE",
+    "title": "Premium Threshold",
+    "value": "500",
+    "description": "Minimum price (NGN) for a ticket to be considered \"Paid\" for premium feature eligibility",
+    "isRestricted": false,
+    "uxContext": "You have full access to this feature."
+  }
+];
+
 const getLocalDateTimeString = () => {
   const d = new Date();
   const pad = (num: number) => String(num).padStart(2, '0');
@@ -441,6 +556,31 @@ const getLocalDateTimeString = () => {
 const HostEventPage = () => {
   const router = useRouter();
   const { user, updateToken, fetchUserProfile } = useAuth();
+  const [rules, setRules] = useState<OrganizerRule[]>(DEFAULT_RULES as unknown as OrganizerRule[]);
+
+  useEffect(() => {
+    const fetchRules = async () => {
+      if (!user) {
+        setRules(DEFAULT_RULES as unknown as OrganizerRule[]);
+        return;
+      }
+      try {
+        const response = await api.get('/events/my-organizer-profile/rules');
+        if (response.data?.success && Array.isArray(response.data.data)) {
+          setRules(response.data.data);
+        } else {
+          setRules(DEFAULT_RULES as unknown as OrganizerRule[]);
+        }
+      } catch (error) {
+        console.error('Failed to fetch rules, falling back to default:', error);
+        setRules(DEFAULT_RULES as unknown as OrganizerRule[]);
+      }
+    };
+    fetchRules();
+  }, [user]);
+
+  const getRule = (key: string) => rules.find(r => r.key === key);
+
   const [currentStep, setCurrentStep] = useState(1);
   const [categories, setCategories] = useState<string[]>([]);
   const hasRefreshedUser = useRef(false);
@@ -1160,6 +1300,12 @@ const HostEventPage = () => {
   };
 
   const addTicket = () => {
+    const maxTicketsRule = getRule('MAX_TICKET_CATEGORIES');
+    const limit = maxTicketsRule ? parseInt(maxTicketsRule.value as string) : 5;
+    if (limit !== -1 && formData.tickets.length >= limit) {
+      return;
+    }
+
     const currentTotal = formData.tickets.reduce((sum, t) => sum + (t.totalQuantity || 0), 0);
     const remaining = Math.max(0, formData.basicInfo.capacity - currentTotal);
     setFormData(prev => ({
@@ -1271,6 +1417,22 @@ const HostEventPage = () => {
 
   const handleNext = () => {
     if (currentStep < 4) {
+      if (currentStep === 2) {
+        // Validate Step 2 inputs before proceeding
+        const maxGuestsRule = getRule('MAX_GUESTS');
+        if (maxGuestsRule) {
+          const limit = parseInt(maxGuestsRule.value as string);
+          if (limit !== -1 && formData.basicInfo.capacity > limit) {
+            Swal.fire({
+              title: maxGuestsRule.title || "Capacity Limit Exceeded",
+              text: maxGuestsRule.uxContext || `The maximum guest capacity allowed is ${limit}.`,
+              icon: "error",
+              confirmButtonColor: "#295FA7",
+            });
+            return;
+          }
+        }
+      }
       setCurrentStep(prev => prev + 1);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else if (currentStep === 4) {
@@ -1746,7 +1908,21 @@ const HostEventPage = () => {
                           placeholder="0"
                           className="w-full px-5 py-4 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:border-primary focus:ring-1 focus:ring-primary outline-none shadow-sm"
                           value={formData.basicInfo.capacity}
-                          onChange={(e) => handleChange("basicInfo", "capacity", parseInt(e.target.value) || 0)}
+                          onChange={(e) => {
+                            let value = parseInt(e.target.value) || 0;
+                            const maxGuestsRule = getRule('MAX_GUESTS');
+                            if (maxGuestsRule) {
+                              const limit = parseInt(maxGuestsRule.value as string);
+                              if (limit !== -1 && value > limit) {
+                                value = limit;
+                                Swal.toast.fire({
+                                  icon: "warning",
+                                  title: `Capacity capped at maximum ${limit} guests.`
+                                });
+                              }
+                            }
+                            handleChange("basicInfo", "capacity", value);
+                          }}
                         />
                       </div>
                     </div>
@@ -1951,22 +2127,31 @@ const HostEventPage = () => {
                       )}
 
                       <div className="md:col-span-2 mt-4">
-                        <EventReminderSection
-                          remindersEnabled={formData.basicInfo.remindersEnabled}
-                          reminderCustomText={formData.basicInfo.reminderCustomText}
-                          reminderFrequencies={formData.basicInfo.reminderFrequencies}
-                          useDefaultFrequencies={formData.basicInfo.useDefaultFrequencies}
-                          isHostEventPage={true}
-                          onChange={(updates) => {
-                            setFormData((prev) => ({
-                              ...prev,
-                              basicInfo: {
-                                ...prev.basicInfo,
-                                ...updates,
-                              },
-                            }));
-                          }}
-                        />
+                        {(() => {
+                          const remindersRule = getRule('REMINDERS_ALLOWED');
+                          const remindersRestricted = remindersRule ? remindersRule.isRestricted : true;
+                          const remindersUxContext = remindersRule ? remindersRule.uxContext : "The Automated Reminders feature is not available on your current plan. Upgrade your subscription to unlock this and additional features.";
+                          return (
+                            <EventReminderSection
+                              remindersEnabled={formData.basicInfo.remindersEnabled}
+                              reminderCustomText={formData.basicInfo.reminderCustomText}
+                              reminderFrequencies={formData.basicInfo.reminderFrequencies}
+                              useDefaultFrequencies={formData.basicInfo.useDefaultFrequencies}
+                              isHostEventPage={true}
+                              isRestricted={remindersRestricted}
+                              uxContext={remindersUxContext}
+                              onChange={(updates) => {
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  basicInfo: {
+                                    ...prev.basicInfo,
+                                    ...updates,
+                                  },
+                                }));
+                              }}
+                            />
+                          );
+                        })()}
                       </div>
                     </div>
 
@@ -2337,13 +2522,21 @@ const HostEventPage = () => {
                           <p className="text-gray-500 font-medium">Configure access and monetization for your event.</p>
                        </div>
                        <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-                          <button
-                            onClick={addTicket}
-                            className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white font-semibold rounded-xl hover:bg-black transition-all text-sm shadow-lg shadow-gray-200"
-                          >
-                            <Plus size={18} />
-                            <span>Add Ticket Type</span>
-                          </button>
+                          {(() => {
+                            const maxTicketsRule = getRule('MAX_TICKET_CATEGORIES');
+                            const ticketsLimit = maxTicketsRule ? parseInt(maxTicketsRule.value as string) : 5;
+                            const ticketsLimitReached = ticketsLimit !== -1 && formData.tickets.length >= ticketsLimit;
+                            return (
+                              <button
+                                onClick={addTicket}
+                                disabled={ticketsLimitReached}
+                                className={`flex items-center gap-2 px-6 py-3 bg-gray-900 text-white font-semibold rounded-xl transition-all text-sm shadow-lg shadow-gray-200 ${ticketsLimitReached ? 'opacity-40 cursor-not-allowed' : 'hover:bg-black'}`}
+                              >
+                                <Plus size={18} />
+                                <span>Add Ticket Type</span>
+                              </button>
+                            );
+                          })()}
                        </div>
                     </div>
 

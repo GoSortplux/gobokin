@@ -771,13 +771,18 @@ const EditEventContent = () => {
   const handleBasicChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     if (name === "capacity") {
-      const newCapacity = parseInt(value) || 0;
+      let newCapacity = parseInt(value) || 0;
 
       // Check MAX_GUESTS rule
       const maxGuestsRule = getRule('MAX_GUESTS');
-      if (maxGuestsRule && maxGuestsRule.isRestricted) {
+      if (maxGuestsRule) {
         const limit = parseInt(maxGuestsRule.value as string);
         if (limit !== -1 && newCapacity > limit) {
+          newCapacity = limit;
+          Swal.toast.fire({
+            icon: "warning",
+            title: `Capacity capped at maximum ${limit} guests.`
+          });
           Swal.fire({
             title: maxGuestsRule.title || 'Capacity Restricted',
             text: maxGuestsRule.uxContext || `Your current plan only allows events with up to ${limit} guests.`,
@@ -791,7 +796,6 @@ const EditEventContent = () => {
               router.push('/organizer/dashboard/settings?tab=subscriptions');
             }
           });
-          return;
         }
       }
 
@@ -1490,7 +1494,7 @@ const EditEventContent = () => {
 
   const checkMaxTicketsRule = () => {
     const maxTicketsRule = getRule('MAX_TICKET_CATEGORIES');
-    if (maxTicketsRule && maxTicketsRule.isRestricted) {
+    if (maxTicketsRule) {
       const limit = parseInt(maxTicketsRule.value as string);
       if (limit !== -1 && tickets.length >= limit) {
         Swal.fire({
@@ -1891,18 +1895,27 @@ const EditEventContent = () => {
                              </div>
 
                              <div className={`pt-4 ${showPreview ? "2xl:col-span-3" : "md:col-span-2 lg:col-span-3"}`}>
-                                <EventReminderSection
-                                   remindersEnabled={basicInfo.remindersEnabled}
-                                   reminderCustomText={basicInfo.reminderCustomText}
-                                   reminderFrequencies={basicInfo.reminderFrequencies}
-                                   useDefaultFrequencies={basicInfo.useDefaultFrequencies}
-                                   onChange={(updates) => {
-                                      setBasicInfo(prev => ({
-                                         ...prev,
-                                         ...updates
-                                      }));
-                                   }}
-                                />
+                                {(() => {
+                                   const remindersRule = getRule('REMINDERS_ALLOWED');
+                                   const remindersRestricted = remindersRule ? remindersRule.isRestricted : true;
+                                   const remindersUxContext = remindersRule ? remindersRule.uxContext : "The Automated Reminders feature is not available on your current plan. Upgrade your subscription to unlock this and additional features.";
+                                   return (
+                                      <EventReminderSection
+                                         remindersEnabled={basicInfo.remindersEnabled}
+                                         reminderCustomText={basicInfo.reminderCustomText}
+                                         reminderFrequencies={basicInfo.reminderFrequencies}
+                                         useDefaultFrequencies={basicInfo.useDefaultFrequencies}
+                                         isRestricted={remindersRestricted}
+                                         uxContext={remindersUxContext}
+                                         onChange={(updates) => {
+                                            setBasicInfo(prev => ({
+                                               ...prev,
+                                               ...updates
+                                            }));
+                                         }}
+                                      />
+                                   );
+                                })()}
                              </div>
                           </div>
                           )}
@@ -2178,8 +2191,15 @@ const EditEventContent = () => {
                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 px-4">
                     <h3 className="text-3xl font-black text-gray-900 tracking-tight">Tickets</h3>
                     <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-                       <button onClick={() => {
-                         if (checkMaxTicketsRule()) return;
+                       {(() => {
+                         const maxTicketsRule = getRule('MAX_TICKET_CATEGORIES');
+                         const ticketsLimit = maxTicketsRule ? parseInt(maxTicketsRule.value as string) : 5;
+                         const ticketsLimitReached = ticketsLimit !== -1 && tickets.length >= ticketsLimit;
+                         return (
+                           <button
+                             disabled={ticketsLimitReached}
+                             onClick={() => {
+                               if (checkMaxTicketsRule()) return;
 
                          const currentTotal = tickets.reduce((sum, t) => sum + (t.totalQuantity || 0), 0);
                          const remaining = Math.max(0, basicInfo.capacity - currentTotal);
@@ -2202,9 +2222,11 @@ const EditEventContent = () => {
                            isSpecial: false,
                            quantityDiscounts: []
                          }]);
-                       }} className="flex items-center gap-3 bg-secondary text-white font-black px-6 sm:px-8 py-4 sm:py-5 rounded-2xl sm:rounded-3xl text-[9px] sm:text-[10px] uppercase tracking-[0.15em] sm:tracking-[0.2em] active:scale-95 group shadow-3xl shadow-secondary/30">
+                       }} className={`flex items-center gap-3 bg-secondary text-white font-black px-6 sm:px-8 py-4 sm:py-5 rounded-2xl sm:rounded-3xl text-[9px] sm:text-[10px] uppercase tracking-[0.15em] sm:tracking-[0.2em] active:scale-95 group shadow-3xl shadow-secondary/30 ${ticketsLimitReached ? 'opacity-40 cursor-not-allowed' : ''}`}>
                          <Plus size={18} className="group-hover:rotate-90 transition-transform duration-500" /> Add Ticket Type
                        </button>
+                         );
+                       })()}
                     </div>
                  </div>
                  <div className="grid grid-cols-1 gap-8">
