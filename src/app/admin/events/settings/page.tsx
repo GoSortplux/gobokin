@@ -42,8 +42,11 @@ const SystemSettings = () => {
     durationDays: 30,
     type: "SUBSCRIPTION",
     discountPercentage: 0,
+    isActive: true,
+    isPublic: true,
     rules: [{ ruleKey: "MAX_GUESTS", ruleValue: "1000" }]
   });
+  const [originalFormData, setOriginalFormData] = useState<unknown>(null);
 
   useEffect(() => {
     fetchData();
@@ -132,6 +135,31 @@ const SystemSettings = () => {
     }
   };
 
+  const checkIsFormChanged = () => {
+    if (!originalFormData) return false;
+    return JSON.stringify(formData) !== JSON.stringify(originalFormData);
+  };
+
+  const handleModalClose = async () => {
+    if (checkIsFormChanged()) {
+      const result = await Swal.fire({
+        title: "Discard changes?",
+        text: "You have unsaved changes. Are you sure you want to discard them?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, discard",
+        cancelButtonText: "No, keep editing",
+        confirmButtonColor: "#ef4444"
+      });
+      if (!result.isConfirmed) {
+        return;
+      }
+    }
+    setIsModalOpen(false);
+    setEditingPackageId(null);
+    setOriginalFormData(null);
+  };
+
   const handlePackageSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -145,12 +173,15 @@ const SystemSettings = () => {
       }
       setIsModalOpen(false);
       setEditingPackageId(null);
+      setOriginalFormData(null);
       setFormData({
         name: "",
         price: 0,
         durationDays: 30,
         type: "SUBSCRIPTION",
         discountPercentage: 0,
+        isActive: true,
+        isPublic: true,
         rules: [{ ruleKey: "MAX_GUESTS", ruleValue: "1000" }]
       });
       fetchData();
@@ -159,16 +190,20 @@ const SystemSettings = () => {
     }
   };
 
-  const handleEditPackage = (pkg: { id: string; name: string; price: number; durationDays: number; type?: string; discountPercentage?: number; rules?: { ruleKey: string; ruleValue: string }[] }) => {
+  const handleEditPackage = (pkg: { id: string; name: string; price: number; durationDays: number; type?: string; discountPercentage?: number; isActive?: boolean; isPublic?: boolean; rules?: { ruleKey: string; ruleValue: string }[] }) => {
     setEditingPackageId(pkg.id);
-    setFormData({
+    const initialData = {
       name: pkg.name,
       price: pkg.price,
       durationDays: pkg.durationDays,
       type: pkg.type || "SUBSCRIPTION",
       discountPercentage: pkg.discountPercentage || 0,
+      isActive: pkg.isActive ?? true,
+      isPublic: pkg.isPublic ?? true,
       rules: pkg.rules && pkg.rules.length > 0 ? pkg.rules : [{ ruleKey: "", ruleValue: "" }]
-    });
+    };
+    setFormData(initialData);
+    setOriginalFormData(initialData);
     setIsModalOpen(true);
   };
 
@@ -364,14 +399,18 @@ const SystemSettings = () => {
             <button
               onClick={() => {
                 setEditingPackageId(null);
-                setFormData({
+                const initialData = {
                   name: "",
                   price: 0,
                   durationDays: 30,
                   type: "SUBSCRIPTION",
                   discountPercentage: 0,
+                  isActive: true,
+                  isPublic: true,
                   rules: [{ ruleKey: "MAX_GUESTS", ruleValue: "1000" }]
-                });
+                };
+                setFormData(initialData);
+                setOriginalFormData(initialData);
                 setIsModalOpen(true);
               }}
               className="flex items-center justify-center gap-2 bg-primary text-white font-bold px-6 py-4 rounded-2xl hover:bg-opacity-90 transition-all shadow-xl shadow-primary/20"
@@ -386,14 +425,21 @@ const SystemSettings = () => {
               <div key={pkg.id} className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden flex flex-col hover:shadow-xl transition-all duration-500 group">
                 <div className="p-8 bg-gray-50/50 border-b border-gray-50">
                   <div className="flex items-center justify-between mb-4">
-                    <span className="px-3 py-1 bg-primary/10 text-primary rounded-lg text-[10px] font-black uppercase tracking-widest">
-                      {pkg.type}
-                    </span>
-                    {!pkg.isActive && (
-                      <span className="px-3 py-1 bg-red-100 text-red-700 rounded-lg text-[10px] font-black uppercase tracking-widest">
-                        INACTIVE
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="px-3 py-1 bg-primary/10 text-primary rounded-lg text-[10px] font-black uppercase tracking-widest">
+                        {pkg.type}
                       </span>
-                    )}
+                      {!pkg.isActive && (
+                        <span className="px-3 py-1 bg-rose-100 text-rose-700 rounded-lg text-[10px] font-black uppercase tracking-widest">
+                          INACTIVE
+                        </span>
+                      )}
+                      {!pkg.isPublic && (
+                        <span className="px-3 py-1 bg-gray-100 text-gray-700 border border-gray-200 rounded-lg text-[10px] font-black uppercase tracking-widest">
+                          PRIVATE
+                        </span>
+                      )}
+                    </div>
                     <div className="flex gap-2">
                        <button
                          onClick={() => handleEditPackage(pkg)}
@@ -438,17 +484,23 @@ const SystemSettings = () => {
           </div>
 
           {isModalOpen && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
-              <div className="bg-white w-full max-w-2xl my-8 rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-                <div className="p-8 border-b border-gray-100 flex items-center justify-between">
+            <div
+              className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto"
+              onClick={handleModalClose}
+            >
+              <div
+                className="bg-white w-full max-w-2xl my-8 rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="p-8 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
                   <h3 className="text-2xl font-black text-gray-900 tracking-tight">
                     {editingPackageId ? "Edit Subscription Package" : "New Subscription Package"}
                   </h3>
-                  <button onClick={() => { setIsModalOpen(false); setEditingPackageId(null); }} className="p-2 hover:bg-gray-100 rounded-xl transition-all">
+                  <button type="button" onClick={handleModalClose} className="p-2 hover:bg-gray-100 rounded-xl transition-all">
                     <X size={24} className="text-gray-400" />
                   </button>
                 </div>
-                <form onSubmit={handlePackageSubmit} className="p-8 space-y-6">
+                <form onSubmit={handlePackageSubmit} className="p-8 space-y-6 overflow-y-auto flex-1">
                    <div className="grid grid-cols-2 gap-6">
                      <div className="space-y-2">
                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Package Name</label>
@@ -491,6 +543,41 @@ const SystemSettings = () => {
                          value={formData.durationDays}
                          onChange={e => setFormData(prev => ({ ...prev, durationDays: Number(e.target.value) }))}
                        />
+                     </div>
+                   </div>
+
+                   {/* Active & Public Toggles (Side-by-Side Option A) */}
+                   <div className="grid grid-cols-2 gap-6">
+                     <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                       <div className="flex flex-col">
+                         <span className="text-xs font-black text-gray-900 uppercase tracking-tighter italic">Is Active</span>
+                         <span className="text-[9px] text-gray-500 font-medium">Toggle package availability</span>
+                       </div>
+                       <label className="relative inline-flex items-center cursor-pointer">
+                         <input
+                           type="checkbox"
+                           className="sr-only peer"
+                           checked={formData.isActive}
+                           onChange={e => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
+                         />
+                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                       </label>
+                     </div>
+
+                     <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                       <div className="flex flex-col">
+                         <span className="text-xs font-black text-gray-900 uppercase tracking-tighter italic">Is Public</span>
+                         <span className="text-[9px] text-gray-500 font-medium">Visible to first-time hosts</span>
+                       </div>
+                       <label className="relative inline-flex items-center cursor-pointer">
+                         <input
+                           type="checkbox"
+                           className="sr-only peer"
+                           checked={formData.isPublic}
+                           onChange={e => setFormData(prev => ({ ...prev, isPublic: e.target.checked }))}
+                         />
+                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                       </label>
                      </div>
                    </div>
 

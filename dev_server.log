@@ -1,24 +1,24 @@
-
-> gobokin-app@0.1.0 dev
-> next dev
-
    ▲ Next.js 15.5.9
    - Local:        http://localhost:3000
    - Network:      http://192.168.0.2:3000
 
  ✓ Starting...
- ✓ Ready in 2.4s
+ ✓ Ready in 2.1s
  ○ Compiling /middleware ...
- ✓ Compiled /middleware in 1125ms (114 modules)
- ○ Compiling /host-event ...
- ✓ Compiled /host-event in 15.3s (1876 modules)
- GET /host-event?test_no_revert=true 200 in 16536ms
- GET /host-event?test_no_revert=true 200 in 261ms
- GET /host-event?test_no_revert=true 200 in 232ms
- GET /host-event?test_no_revert=true 200 in 207ms
- GET /host-event?test_no_revert=true 200 in 1827ms
- GET /host-event?test_no_revert=true 200 in 515ms
- GET /host-event?test_no_revert=true 200 in 422ms
- GET /host-event?test_no_revert=true 200 in 198ms
- ✓ Compiled in 4s (1845 modules)
- ✓ Compiled in 8.1s (1845 modules)
+ ✓ Compiled /middleware in 812ms (114 modules)
+ ○ Compiling / ...
+ ✓ Compiled / in 14.4s (3787 modules)
+ GET / 200 in 16718ms
+ ○ Compiling /auth/login ...
+ ✓ Compiled /auth/login in 4.7s (3789 modules)
+ GET /auth/login 200 in 5173ms
+ GET /admin/events/settings?test_no_revert=true 200 in 5573ms
+ GET /auth/login 200 in 61ms
+ GET / 200 in 353ms
+ GET / 200 in 268ms
+ GET /admin/events/settings?test_no_revert=true 200 in 160ms
+ GET / 200 in 62ms
+ GET / 200 in 217ms
+ GET /admin/events/settings?test_no_revert=true 200 in 149ms
+ GET / 200 in 232ms
+ GET /admin/events/settings?test_no_revert=true 200 in 157ms
