@@ -656,18 +656,18 @@ const OrganizerSettings = () => {
                             {packagesLoading ? (
                                 <div className="flex justify-center py-12"><CustomLoader /></div>
                             ) : selectedPackage ? (
-                                <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-xl overflow-hidden max-w-xl mx-auto animate-in fade-in zoom-in-95 duration-500">
+                                <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-xl overflow-hidden max-w-3xl mx-auto animate-in fade-in zoom-in-95 duration-500">
                                     {/* Inline Package Toggle */}
                                     <div className="px-6 pt-6">
-                                        <div className="flex p-1 bg-gray-50 rounded-2xl overflow-x-auto no-scrollbar gap-1">
+                                        <div className="flex p-2 bg-gray-50 rounded-3xl overflow-x-auto no-scrollbar gap-3">
                                             {packages.map((pkg) => (
                                                 <button
                                                     key={pkg.id}
                                                     onClick={() => setSelectedPackageId(pkg.id)}
-                                                    className={`flex-1 min-w-[100px] px-4 py-2.5 rounded-xl text-[9px] font-black transition-all whitespace-nowrap uppercase tracking-widest ${
+                                                    className={`flex-1 min-w-[150px] px-5 py-3 rounded-2xl text-[10px] font-black transition-all whitespace-nowrap uppercase tracking-widest border ${
                                                         selectedPackageId === pkg.id
-                                                        ? 'bg-white text-primary shadow-sm border border-gray-100'
-                                                        : 'text-gray-400 hover:text-gray-600'
+                                                        ? 'bg-white text-primary shadow-md border-primary/20 ring-2 ring-primary/5'
+                                                        : 'text-gray-500 bg-white/40 border-gray-200 hover:border-gray-300 hover:bg-white hover:text-gray-800'
                                                     }`}
                                                 >
                                                     {pkg.name}

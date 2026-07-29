@@ -24,3 +24,4 @@
  GET /admin/events/settings?test_no_revert=true 200 in 157ms
  ✓ Compiled in 10.7s (1798 modules)
  ✓ Compiled in 1097ms (1798 modules)
+ ✓ Compiled in 9.5s (1798 modules)
