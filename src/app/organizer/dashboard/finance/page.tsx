@@ -85,6 +85,11 @@ const FinanceDashboardContent = () => {
   const [selectedRequest, setSelectedRequest] = useState<RefundRequest | null>(null);
   const [isBankModalOpen, setIsBankModalOpen] = useState(false);
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+  const [organizerProfile, setOrganizerProfile] = useState<{
+    commissionRate?: string | number;
+    status?: string;
+    isVerified?: boolean;
+  } | null>(null);
 
   // State for Filter Drawer
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -134,9 +139,19 @@ const FinanceDashboardContent = () => {
     }
   }, [searchParams]);
 
+  const fetchOrganizerProfile = async () => {
+    try {
+      const response = await api.get("/events/my-organizer-profile");
+      setOrganizerProfile(response.data.data);
+    } catch (error) {
+      console.error("Failed to fetch organizer profile:", error);
+    }
+  };
+
   useEffect(() => {
     fetchFinanceData();
     fetchBankAccount();
+    fetchOrganizerProfile();
   }, []);
 
   // Reactively fetch Transactions
@@ -552,7 +567,7 @@ const FinanceDashboardContent = () => {
                <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1.5">Platform Fees</p>
                <h3 className="text-3xl font-black text-gray-900 leading-tight">₦{(summary?.totals?.commission || 0).toLocaleString()}</h3>
                <p className="text-xs text-gray-400 font-bold flex items-center gap-1 mt-2">
-                  Commission: 5% (Verified)
+                  Commission: {organizerProfile?.commissionRate !== undefined && organizerProfile?.commissionRate !== null ? organizerProfile.commissionRate : 5}% {organizerProfile?.status === 'VERIFIED' || organizerProfile?.isVerified ? '(Verified)' : ''}
                </p>
             </div>
          </div>
