@@ -281,16 +281,36 @@ const SystemSettings = () => {
                     <Save size={16} />
                   </button>
                 </div>
-                <input
-                  type="text"
-                  className="w-full px-5 py-3 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all"
-                  value={item.value}
-                  onChange={(e) => {
-                    const newConfig = [...config];
-                    newConfig[i].value = e.target.value;
-                    setConfig(newConfig);
-                  }}
-                />
+                {item.key === 'BULK_IMPORT_ALLOWED' || item.key.endsWith('_ALLOWED') || item.key.endsWith('_ENABLED') || item.value === 'true' || item.value === 'false' ? (
+                  <div className="relative">
+                    <select
+                      className="w-full px-5 py-3 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all appearance-none"
+                      value={item.value}
+                      onChange={(e) => {
+                        const newConfig = [...config];
+                        newConfig[i].value = e.target.value;
+                        setConfig(newConfig);
+                      }}
+                    >
+                      <option value="true">True</option>
+                      <option value="false">False</option>
+                    </select>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                      <ChevronDown size={16} />
+                    </div>
+                  </div>
+                ) : (
+                  <input
+                    type="text"
+                    className="w-full px-5 py-3 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all"
+                    value={item.value}
+                    onChange={(e) => {
+                      const newConfig = [...config];
+                      newConfig[i].value = e.target.value;
+                      setConfig(newConfig);
+                    }}
+                  />
+                )}
                 <p className="text-[10px] text-gray-400 font-medium flex items-center gap-1">
                   <Info size={10} />
                   {item.description}
