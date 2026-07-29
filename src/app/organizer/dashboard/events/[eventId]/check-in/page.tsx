@@ -280,7 +280,20 @@ const CheckInInterface = () => {
 
     try {
       const response = await api.get(`/events/check-in/lookup?ticketNumber=${searchTerm}`);
-      setSearchResult(response.data.data);
+      const lookupData = response.data.data;
+
+      try {
+        const regResponse = await api.get(`/events/${eventId || lookupData.eventId}/registrations?search=${searchTerm}`);
+        const regData = regResponse.data.data?.[0];
+        if (regData) {
+          lookupData.dailyAttendance = regData.dailyAttendance;
+          lookupData.overallCheckInStatus = regData.overallCheckInStatus;
+        }
+      } catch (regError) {
+        console.error("Failed to fetch registration for dailyAttendance", regError);
+      }
+
+      setSearchResult(lookupData);
     } catch (error) {
       console.error("Lookup failed:", error);
       Swal.fire("Not Found", "Ticket number not valid for this event.", "error");
@@ -406,7 +419,20 @@ const CheckInInterface = () => {
       }
 
       const response = await api.get(`/events/check-in/lookup?ticketNumber=${ticketNumber}`);
-      setSearchResult(response.data.data);
+      const lookupData = response.data.data;
+
+      try {
+        const regResponse = await api.get(`/events/${eventId || lookupData.eventId}/registrations?search=${ticketNumber}`);
+        const regData = regResponse.data.data?.[0];
+        if (regData) {
+          lookupData.dailyAttendance = regData.dailyAttendance;
+          lookupData.overallCheckInStatus = regData.overallCheckInStatus;
+        }
+      } catch (regError) {
+        console.error("Failed to fetch registration for dailyAttendance", regError);
+      }
+
+      setSearchResult(lookupData);
     } catch (error) {
       console.error("Scan processing failed:", error);
       Swal.fire("Invalid QR Code", "This QR code is not recognized or contains invalid data.", "error");
@@ -540,7 +566,20 @@ const CheckInInterface = () => {
           {searchResult && (
             <div className="bg-white rounded-[3rem] border border-gray-100 shadow-[0_32px_64px_-16px_rgba(41,95,167,0.1)] overflow-hidden animate-in zoom-in slide-in-from-top-4 duration-500 relative">
                <div className={`p-2 text-center text-[10px] font-black uppercase tracking-[0.3em] ${searchResult.checkInStatus ? 'bg-amber-500 text-white' : 'bg-emerald-500 text-white'}`}>
-                  {searchResult.checkInStatus ? 'ALREADY CHECKED-IN' : 'READY FOR VALIDATION'}
+                  {searchResult.checkInStatus ? (() => {
+                    if (searchResult.dailyAttendance) {
+                      const checkedInDays = (searchResult.dailyAttendance as Array<{ day: number; attended: boolean }>)
+                        .filter((d) => d.attended)
+                        .map((d) => d.day);
+                      if (checkedInDays.length > 0) {
+                        return `ALREADY CHECKED-IN FOR DAY ${checkedInDays.join(", ")}`;
+                      }
+                    }
+                    if (searchResult.currentDay) {
+                      return `ALREADY CHECKED-IN FOR DAY ${searchResult.currentDay}`;
+                    }
+                    return 'ALREADY CHECKED-IN';
+                  })() : 'READY FOR VALIDATION'}
                </div>
 
                <div className="p-8 md:p-10 space-y-8">
