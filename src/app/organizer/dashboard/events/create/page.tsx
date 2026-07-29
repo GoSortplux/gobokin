@@ -109,6 +109,14 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, sessions, tickets, agenda
 
   const tabs = ["overview", ...(agendaEnabled ? ["schedule"] : []), "speakers", "tickets", "registration"];
 
+  const tabConfig = {
+    overview: { label: "Overview", icon: Info },
+    schedule: { label: "Schedule", icon: Clock },
+    speakers: { label: "Speakers", icon: User },
+    tickets: { label: "Tickets", icon: Ticket },
+    registration: { label: "Form Preview", icon: FileText },
+  };
+
   return (
     <div className="sticky top-8 bg-white rounded-[2.5rem] border border-gray-100 shadow-2xl shadow-gray-200/50 overflow-hidden h-[calc(100vh-4rem)] overflow-y-auto no-scrollbar transition-all duration-500 hover:shadow-gray-300/50">
       <div className="bg-white/80 backdrop-blur-md border-b border-gray-50 px-8 py-5 flex items-center justify-between sticky top-0 z-20">
@@ -202,18 +210,26 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, sessions, tickets, agenda
 
         {/* Tabs */}
         <div className="space-y-6">
-           <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-gray-50 rounded-2xl border border-gray-100 w-fit">
-              {tabs.map(tab => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
-                    activeTab === tab ? "bg-white text-primary shadow-sm border border-gray-100" : "text-gray-400 hover:text-gray-600"
-                  }`}
-                >
-                  {tab === "registration" ? "form preview" : tab}
-                </button>
-              ))}
+           <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-gray-50 rounded-2xl border border-gray-100 w-full sm:w-fit">
+              {tabs.map(tab => {
+                const config = tabConfig[tab as keyof typeof tabConfig];
+                const Icon = config ? config.icon : Info;
+                const label = config ? config.label : tab;
+                return (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all duration-300 ${
+                      activeTab === tab
+                        ? "bg-white text-primary shadow-sm border border-gray-100 scale-[1.02]"
+                        : "text-gray-400 hover:text-gray-600 hover:bg-gray-100/50"
+                    }`}
+                  >
+                    <Icon size={12} className={activeTab === tab ? "text-primary" : "text-gray-400"} />
+                    <span>{label}</span>
+                  </button>
+                );
+              })}
            </div>
 
            <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm min-h-[250px] relative">
