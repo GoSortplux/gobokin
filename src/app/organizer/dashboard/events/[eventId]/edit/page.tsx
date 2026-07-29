@@ -1287,6 +1287,7 @@ const EditEventContent = () => {
         title: basicInfo.title,
         description: basicInfo.description,
         slug: basicInfo.slug,
+        isPublic: basicInfo.isPublic,
         type: basicInfo.type,
         startDate: basicInfo.startDate ? new Date(basicInfo.startDate).toISOString() : undefined,
         endDate: basicInfo.endDate ? new Date(basicInfo.endDate).toISOString() : undefined,
