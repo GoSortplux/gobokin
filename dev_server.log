@@ -20,3 +20,4 @@
  GET /host-event?test_no_revert=true 200 in 515ms
  GET /host-event?test_no_revert=true 200 in 422ms
  GET /host-event?test_no_revert=true 200 in 198ms
+ ✓ Compiled in 4s (1845 modules)

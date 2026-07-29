@@ -1654,10 +1654,15 @@ const HostEventPage = () => {
             reminderFrequencies: formData.basicInfo.remindersEnabled ? (formData.basicInfo.useDefaultFrequencies ? [] : formData.basicInfo.reminderFrequencies) : undefined,
         };
 
-        const response = await api.post("/events", payload);
-        const eventId = response.data.data.id;
+        let eventId = formData.eventId;
+        if (eventId) {
+            await api.patch(`/events/${eventId}`, payload);
+        } else {
+            const response = await api.post("/events", payload);
+            eventId = response.data.data.id;
+        }
 
-        // Refresh token and user profile after creating the event to sync new roles (such as organizer) or permissions
+        // Refresh token and user profile after creating/updating the event to sync new roles (such as organizer) or permissions
         try {
             const refreshRes = await api.post("/auth/refresh-token");
             if (refreshRes.data?.data?.accessToken) {
@@ -1675,7 +1680,7 @@ const HostEventPage = () => {
         localStorage.setItem("gobokin_event_creation_draft_auto_resume", "true");
 
         Swal.fire({
-            title: 'Event Initialized!',
+            title: formData.eventId ? 'Event Updated!' : 'Event Initialized!',
             text: 'Now let\'s add some visuals to your event.',
             icon: 'success',
             timer: 2000,
@@ -2931,7 +2936,7 @@ const HostEventPage = () => {
                 className={`flex items-center justify-center gap-3 bg-primary text-white font-semibold px-6 sm:px-10 py-3.5 sm:py-4 rounded-xl hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95 w-full sm:w-auto ${isFinalizing || isUploading ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
                 <span>
-                    {currentStep === 4 ? (user ? "Create Event & Continue" : "Register to Finalize Event") :
+                    {currentStep === 4 ? (user ? (formData.eventId ? "Update Event & Continue" : "Create Event & Continue") : "Register to Finalize Event") :
                      (currentStep === 6 && !formData.basicInfo.agendaEnabled) || currentStep === 7 ? "Complete Setup" :
                      "Next Step"}
                 </span>
