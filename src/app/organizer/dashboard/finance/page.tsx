@@ -477,6 +477,11 @@ const FinanceDashboardContent = () => {
 
   if (loading) return <div className="h-full flex items-center justify-center"><CustomLoader /></div>;
 
+  const commissionRateValue = organizerProfile?.commissionRate !== undefined && organizerProfile?.commissionRate !== null
+    ? parseFloat(String(organizerProfile.commissionRate))
+    : 5;
+  const calculatedPlatformFees = (summary?.totals?.amount || 0) * (commissionRateValue / 100);
+
   return (
     <div className="space-y-8 pb-12 px-2 lg:px-4">
       {/* Header */}
@@ -565,9 +570,9 @@ const FinanceDashboardContent = () => {
             </div>
             <div>
                <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1.5">Platform Fees</p>
-               <h3 className="text-3xl font-black text-gray-900 leading-tight">₦{(summary?.totals?.commission || 0).toLocaleString()}</h3>
+               <h3 className="text-3xl font-black text-gray-900 leading-tight">₦{calculatedPlatformFees.toLocaleString()}</h3>
                <p className="text-xs text-gray-400 font-bold flex items-center gap-1 mt-2">
-                  Commission: {organizerProfile?.commissionRate !== undefined && organizerProfile?.commissionRate !== null ? organizerProfile.commissionRate : 5}% {organizerProfile?.status === 'VERIFIED' || organizerProfile?.isVerified ? '(Verified)' : ''}
+                  Commission: {commissionRateValue}% {organizerProfile?.status === 'VERIFIED' || organizerProfile?.isVerified ? '(Verified)' : ''}
                </p>
             </div>
          </div>
