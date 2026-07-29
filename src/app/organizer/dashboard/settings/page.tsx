@@ -664,7 +664,7 @@ const OrganizerSettings = () => {
                                                 <button
                                                     key={pkg.id}
                                                     onClick={() => setSelectedPackageId(pkg.id)}
-                                                    className={`flex-1 min-w-[150px] px-5 py-3 rounded-2xl text-[10px] font-black transition-all whitespace-nowrap uppercase tracking-widest border ${
+                                                    className={`flex-1 min-w-[180px] px-4 py-3 rounded-2xl text-[10px] font-black transition-all uppercase tracking-wide border text-center break-words ${
                                                         selectedPackageId === pkg.id
                                                         ? 'bg-white text-primary shadow-md border-primary/20 ring-2 ring-primary/5'
                                                         : 'text-gray-500 bg-white/40 border-gray-200 hover:border-gray-300 hover:bg-white hover:text-gray-800'
