@@ -1048,7 +1048,8 @@ const EditEventContent = () => {
         }
 
         newFields[index] = updatedField;
-        return { ...prev, fields: newFields };
+        const orderedFields = ensureCorrectDependencyOrder(newFields);
+        return { ...prev, fields: orderedFields };
     });
   };
 
@@ -1323,7 +1324,7 @@ const EditEventContent = () => {
         registrationMode: registration.mode,
         isGroupingEnabled: registration.isGroupingEnabled,
         enforceUniqueGroupNames: registration.enforceUniqueGroupNames,
-        registrationFields: registration.fields.map(f => ({
+        registrationFields: ensureCorrectDependencyOrder(registration.fields).map(f => ({
           name: f.name || f.label.toLowerCase().replace(/\s+/g, '-'),
           label: f.label,
           type: f.type,
@@ -2815,6 +2816,44 @@ const EditEventContent = () => {
       )}
     </div>
   );
+};
+
+const ensureCorrectDependencyOrder = (fields: RegistrationField[]): RegistrationField[] => {
+  const result = [...fields];
+
+  // Find index of countries, states, and lgas fields
+  const countryIdx = result.findIndex(f => f.source === 'COUNTRIES');
+  const stateIdx = result.findIndex(f => f.source === 'STATES');
+  const lgaIdx = result.findIndex(f => f.source === 'LGAS');
+
+  // We want: countryIdx < stateIdx < lgaIdx (for whichever are present)
+  // If state is present, and country is present, and state is before country:
+  if (stateIdx !== -1 && countryIdx !== -1 && stateIdx < countryIdx) {
+    const [countryField] = result.splice(countryIdx, 1);
+    const currentStateIdx = result.findIndex(f => f.source === 'STATES');
+    result.splice(currentStateIdx, 0, countryField);
+  }
+
+  // Find indices again since they might have shifted
+  const newStateIdx = result.findIndex(f => f.source === 'STATES');
+  const newLgaIdx = result.findIndex(f => f.source === 'LGAS');
+
+  if (newStateIdx !== -1 && newLgaIdx !== -1 && newLgaIdx < newStateIdx) {
+    const [stateField] = result.splice(newStateIdx, 1);
+    const currentLgaIdx = result.findIndex(f => f.source === 'LGAS');
+    result.splice(currentLgaIdx, 0, stateField);
+  }
+
+  // Also check if country is after lga if state is not present
+  const finalCountryIdx = result.findIndex(f => f.source === 'COUNTRIES');
+  const finalLgaIdx = result.findIndex(f => f.source === 'LGAS');
+  if (finalCountryIdx !== -1 && finalLgaIdx !== -1 && finalLgaIdx < finalCountryIdx) {
+    const [countryField] = result.splice(finalCountryIdx, 1);
+    const currentLgaIdx = result.findIndex(f => f.source === 'LGAS');
+    result.splice(currentLgaIdx, 0, countryField);
+  }
+
+  return result;
 };
 
 const EditEvent = () => {

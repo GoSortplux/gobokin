@@ -57,6 +57,10 @@ export const translateError = (error: unknown): string => {
 const translateErrorMessage = (message: string): string => {
   const lowerMessage = message.toLowerCase();
 
+  if (lowerMessage.includes('dependent field') || lowerMessage.includes('dependent field must be')) {
+    return 'Please make sure your registration fields are ordered correctly. Dependent fields (like State or LGA) must be positioned below their parent fields (like Country or State) in the list.';
+  }
+
   if (lowerMessage.includes('invalid credentials') || lowerMessage.includes('invalid email or password')) {
     return 'The email or password you entered is incorrect.';
   }
