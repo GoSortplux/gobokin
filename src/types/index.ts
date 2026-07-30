@@ -379,6 +379,19 @@ export interface SubscriptionPackage {
   };
 }
 
+export interface UserSubscription {
+  id: string;
+  organizerId: string;
+  packageId: string;
+  eventId: string | null;
+  startDate: string;
+  endDate: string;
+  status: string;
+  createdAt: string;
+  package?: SubscriptionPackage;
+  event?: Event;
+}
+
 export interface LicenseTier {
   _id: string;
   name: string;

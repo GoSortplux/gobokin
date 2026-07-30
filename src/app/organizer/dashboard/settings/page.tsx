@@ -22,7 +22,7 @@ import {
   Calendar
 } from "lucide-react";
 import api from "@/services/api";
-import { OrganizerProfile, GlobalDiscount, Event, SubscriptionPackage, PackageRule, OrganizerRule } from "@/types";
+import { OrganizerProfile, GlobalDiscount, Event, SubscriptionPackage, PackageRule, OrganizerRule, UserSubscription } from "@/types";
 import { useOrganizerRules } from "@/hooks/useOrganizerRules";
 import CustomLoader from "@/components/CustomLoader";
 import Swal from "@/utils/sweetalert";
@@ -40,7 +40,7 @@ const OrganizerSettings = () => {
   const { rules, loading: rulesLoading } = useOrganizerRules();
   const [activeTab, setActiveTab] = useState<TabType>('profile');
   const [profile, setProfile] = useState<OrganizerProfile | null>(null);
-  const [subscriptions, setSubscriptions] = useState<string[]>([]);
+  const [subscriptions, setSubscriptions] = useState<UserSubscription[]>([]);
   const [discounts, setDiscounts] = useState<GlobalDiscount[]>([]);
   const [events, setEvents] = useState<Record<string, string>>({});
   const [rawEvents, setRawEvents] = useState<Event[]>([]);
@@ -783,13 +783,50 @@ const OrganizerSettings = () => {
                             </div>
 
                             {subscriptions.length > 0 ? (
-                                <div className="flex flex-wrap gap-2">
-                                    {subscriptions.map((sub, index) => (
-                                        <div key={index} className="px-3 py-1.5 bg-white border border-gray-100 rounded-lg flex items-center gap-2 shadow-sm">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                            <span className="text-[10px] font-bold text-gray-700">{sub}</span>
-                                        </div>
-                                    ))}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    {subscriptions.map((sub, index) => {
+                                        const packageName = sub.package?.name || "Event Subscription";
+                                        const eventTitle = sub.event?.title;
+                                        const isExpired = new Date(sub.endDate) < new Date();
+                                        const isActive = sub.status === "ACTIVE" && !isExpired;
+
+                                        return (
+                                            <div key={sub.id || index} className="p-5 bg-white border border-gray-100 rounded-2xl flex flex-col justify-between gap-4 shadow-sm hover:shadow-md transition-shadow">
+                                                <div className="flex items-start justify-between">
+                                                    <div className="flex items-center gap-2.5">
+                                                        <div className={`w-2 h-2 rounded-full shrink-0 ${isActive ? 'bg-emerald-500 animate-pulse' : 'bg-gray-400'}`} />
+                                                        <span className="text-sm font-black text-gray-900 uppercase tracking-tight">
+                                                            {packageName}
+                                                        </span>
+                                                    </div>
+                                                    <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${
+                                                        isActive
+                                                        ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                                                        : 'bg-rose-50 text-rose-600 border-rose-100'
+                                                    }`}>
+                                                        {isActive ? 'Active' : sub.status || 'Inactive'}
+                                                    </span>
+                                                </div>
+
+                                                {eventTitle && (
+                                                    <div className="bg-gray-50/50 rounded-xl px-3 py-2 border border-gray-100 flex items-center gap-2">
+                                                        <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest shrink-0">Event</span>
+                                                        <span className="text-[10px] font-bold text-gray-700 truncate">{eventTitle}</span>
+                                                    </div>
+                                                )}
+
+                                                <div className="flex items-center justify-between text-[9px] text-gray-400 font-bold uppercase tracking-wider pt-2 border-t border-gray-50">
+                                                    <span className="flex items-center gap-1">
+                                                        <Calendar size={10} />
+                                                        Start: {new Date(sub.startDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                    </span>
+                                                    <span>
+                                                        Ends: {new Date(sub.endDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             ) : (
                                 <p className="text-[10px] text-gray-400 font-medium italic">No active event subscriptions.</p>
