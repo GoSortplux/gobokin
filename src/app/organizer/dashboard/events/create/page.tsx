@@ -1328,11 +1328,23 @@ const CreateEvent = () => {
                 updatedField.label = "Country";
                 updatedField.name = "country";
 
-                // Check if state/lga already exist, if not, add them
-                const hasState = newFields.some(f => f.source === 'STATES');
-                const hasLGA = newFields.some(f => f.source === 'LGAS');
+                // Check if state/lga already exist, if so, promote/re-use them to avoid duplication
+                const stateFieldIdx = newFields.findIndex(f => f.source === 'STATES' || f.name === 'state' || f.label.toLowerCase() === 'state');
+                const lgaFieldIdx = newFields.findIndex(f => f.source === 'LGAS' || f.name === 'lga' || f.label.toLowerCase() === 'lga');
 
-                if (!hasState) {
+                if (stateFieldIdx !== -1) {
+                    newFields[stateFieldIdx] = {
+                        ...newFields[stateFieldIdx],
+                        name: "state",
+                        label: "State",
+                        type: "select",
+                        source: "STATES",
+                        dependsOn: "country",
+                        required: updatedField.required,
+                        isPerAttendee: updatedField.isPerAttendee,
+                        options: []
+                    };
+                } else {
                     newFields.push({
                         id: Math.random().toString(),
                         name: "state",
@@ -1345,7 +1357,20 @@ const CreateEvent = () => {
                         options: []
                     });
                 }
-                if (!hasLGA) {
+
+                if (lgaFieldIdx !== -1) {
+                    newFields[lgaFieldIdx] = {
+                        ...newFields[lgaFieldIdx],
+                        name: "lga",
+                        label: "LGA",
+                        type: "select",
+                        source: "LGAS",
+                        dependsOn: "state",
+                        required: updatedField.required,
+                        isPerAttendee: updatedField.isPerAttendee,
+                        options: []
+                    };
+                } else {
                     newFields.push({
                         id: Math.random().toString(),
                         name: "lga",
@@ -1365,8 +1390,20 @@ const CreateEvent = () => {
                 const countryField = newFields.find(f => f.source === 'COUNTRIES');
                 if (countryField) updatedField.dependsOn = countryField.name || "country";
 
-                const hasLGA = newFields.some(f => f.source === 'LGAS');
-                if (!hasLGA) {
+                const lgaFieldIdx = newFields.findIndex(f => f.source === 'LGAS' || f.name === 'lga' || f.label.toLowerCase() === 'lga');
+                if (lgaFieldIdx !== -1) {
+                    newFields[lgaFieldIdx] = {
+                        ...newFields[lgaFieldIdx],
+                        name: "lga",
+                        label: "LGA",
+                        type: "select",
+                        source: "LGAS",
+                        dependsOn: "state",
+                        required: updatedField.required,
+                        isPerAttendee: updatedField.isPerAttendee,
+                        options: []
+                    };
+                } else {
                     newFields.push({
                         id: Math.random().toString(),
                         name: "lga",
