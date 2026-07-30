@@ -3383,7 +3383,7 @@ const CreateEvent = () => {
 };
 
 const ensureCorrectDependencyOrder = (fields: RegistrationField[]): RegistrationField[] => {
-  // First, map fields to remove dependsOn if the parent field does not exist in the list
+  // First, map fields to remove dependsOn and source if the parent field does not exist in the list
   const cleanedFields = fields.map(f => {
     if (f.dependsOn) {
       const parentFieldExists = fields.some(p =>
@@ -3392,7 +3392,32 @@ const ensureCorrectDependencyOrder = (fields: RegistrationField[]): Registration
         (f.dependsOn === 'state' && p.source === 'STATES')
       );
       if (!parentFieldExists) {
-        return { ...f, dependsOn: undefined };
+        return {
+          ...f,
+          type: 'text',
+          source: undefined,
+          dependsOn: undefined
+        };
+      }
+    } else if (f.source === 'STATES' || f.source === 'LGAS') {
+      const countryFieldExists = fields.some(p => p.source === 'COUNTRIES');
+      const stateFieldExists = fields.some(p => p.source === 'STATES');
+
+      if (f.source === 'STATES' && !countryFieldExists) {
+        return {
+          ...f,
+          type: 'text',
+          source: undefined,
+          dependsOn: undefined
+        };
+      }
+      if (f.source === 'LGAS' && !stateFieldExists) {
+        return {
+          ...f,
+          type: 'text',
+          source: undefined,
+          dependsOn: undefined
+        };
       }
     }
     return f;
