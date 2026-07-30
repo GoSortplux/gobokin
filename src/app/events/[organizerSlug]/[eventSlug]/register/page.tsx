@@ -522,6 +522,7 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
                         const countryField = (event.registrationFields || []).find(f => f.source === 'COUNTRIES');
                         const countryValue = countryField ? sharedData[countryField.name] : null;
                         const isNotNigeria = countryValue && !isNigeria(countryValue, countries);
+                        const hasCountryField = !!countryField;
 
                         let displayLabel = field.label;
                         if (isNotNigeria) {
@@ -540,7 +541,8 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
                               {field.name === 'phone' && <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />}
 
                               {((field.type === 'text' || field.type === 'number') && !field.source) ||
-                               ((field.source === 'STATES' || field.source === 'LGAS') && isNotNigeria) ? (
+                               ((field.source === 'STATES' || field.source === 'LGAS') && isNotNigeria) ||
+                               (field.source === 'STATES' && !hasCountryField) ? (
                                 <input
                                   type={field.type === 'number' ? 'number' : 'text'}
                                   name={field.name}
@@ -670,6 +672,7 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
                           const countryField = (event.registrationFields || []).find(f => f.source === 'COUNTRIES');
                           const countryValue = countryField ? (countryField.isPerAttendee ? attendees[index][countryField.name] : sharedData[countryField.name]) : null;
                           const isNotNigeria = countryValue && !isNigeria(countryValue, countries);
+                          const hasCountryField = !!countryField;
 
                           let displayLabel = field.label;
                           if (isNotNigeria) {
@@ -688,7 +691,8 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
                                 {field.name === 'phone' && <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />}
 
                                 {((field.type === 'text' || field.type === 'number') && !field.source) ||
-                                 ((field.source === 'STATES' || field.source === 'LGAS') && isNotNigeria) ? (
+                                 ((field.source === 'STATES' || field.source === 'LGAS') && isNotNigeria) ||
+                                 (field.source === 'STATES' && !hasCountryField) ? (
                                   <input
                                     type={field.type === 'number' ? 'number' : 'text'}
                                     name={field.name}
