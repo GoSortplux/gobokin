@@ -3383,7 +3383,22 @@ const CreateEvent = () => {
 };
 
 const ensureCorrectDependencyOrder = (fields: RegistrationField[]): RegistrationField[] => {
-  const result = [...fields];
+  // First, map fields to remove dependsOn if the parent field does not exist in the list
+  const cleanedFields = fields.map(f => {
+    if (f.dependsOn) {
+      const parentFieldExists = fields.some(p =>
+        p.name === f.dependsOn ||
+        (f.dependsOn === 'country' && p.source === 'COUNTRIES') ||
+        (f.dependsOn === 'state' && p.source === 'STATES')
+      );
+      if (!parentFieldExists) {
+        return { ...f, dependsOn: undefined };
+      }
+    }
+    return f;
+  });
+
+  const result = [...cleanedFields];
 
   // Find index of countries, states, and lgas fields
   const countryIdx = result.findIndex(f => f.source === 'COUNTRIES');
