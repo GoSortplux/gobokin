@@ -1368,8 +1368,8 @@ const EditEventContent = () => {
           required: f.required,
           isPerAttendee: f.isPerAttendee,
           options: (f.type === 'select' || f.type === 'checkbox') && !f.source ? f.options : undefined,
-          source: f.source,
-          dependsOn: f.dependsOn
+          source: f.source || undefined,
+          dependsOn: f.dependsOn || undefined
         })),
         bannerUrl: finalBannerUrl,
         mediaUrls: finalMediaUrls,
