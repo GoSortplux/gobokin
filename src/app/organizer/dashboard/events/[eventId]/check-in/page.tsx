@@ -350,9 +350,11 @@ const CheckInInterface = () => {
             ? new Date(checkInTimeStr).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
             : '';
 
+          const displayMessage = response.data?.message || `Duplicate Scan! Checked in at ${formattedTime || "earlier today"}.`;
+
           await Swal.fire({
             title: "Duplicate Scan!",
-            text: `Duplicate Scan! Checked in at ${formattedTime || "earlier today"}.`,
+            text: displayMessage,
             icon: "warning",
             confirmButtonColor: "#f59e0b"
           });
