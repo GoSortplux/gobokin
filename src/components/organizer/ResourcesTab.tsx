@@ -211,15 +211,34 @@ export const ResourcesTab: React.FC<ResourcesTabProps> = ({ eventId, ticketTypes
       return;
     }
 
+    const result = await Swal.fire({
+      title: 'Notify Guests?',
+      text: 'This will send an email notification to all registered guests with access links to these resources.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#10b981',
+      cancelButtonColor: '#ef4444',
+      confirmButtonText: 'Yes, Send Notification'
+    });
+
+    if (!result.isConfirmed) return;
+
     try {
+      Swal.showLoading();
       const response = await api.post(`/events/${eventId}/resources/notify`, { resourceIds });
       if (response.data.success) {
-        toast.success('Guests notified successfully');
+        Swal.fire({
+          title: 'Notified!',
+          text: 'Guests have been notified successfully.',
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
+        });
         fetchResources();
       }
     } catch (error) {
       console.error('Error notifying guests:', error);
-      toast.error('Failed to send notifications');
+      Swal.fire('Error', 'Failed to send notifications.', 'error');
     }
   };
 
