@@ -7,19 +7,9 @@
    - Network:      http://192.168.0.2:3000
 
  ✓ Starting...
- ✓ Ready in 3s
- ✓ Compiled /middleware in 453ms (114 modules)
- ○ Compiling / ...
- ✓ Compiled / in 8.2s (3723 modules)
- GET / 200 in 9794ms
- ○ Compiling /organizer/dashboard/events/create ...
- ✓ Compiled /organizer/dashboard/events/create in 3.7s (3820 modules)
- GET /organizer/dashboard/events/create?test_no_revert=true 200 in 4494ms
- GET / 200 in 457ms
- GET /organizer/dashboard/events/create?test_no_revert=true 200 in 269ms
- GET / 200 in 194ms
- GET /organizer/dashboard/events/create?test_no_revert=true 200 in 144ms
- GET / 200 in 1527ms
- GET /organizer/dashboard/events/create?test_no_revert=true 200 in 596ms
- GET / 200 in 247ms
- GET /organizer/dashboard/events/create?test_no_revert=true 200 in 168ms
+ ✓ Ready in 2s
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 828ms (114 modules)
+ ○ Compiling /events/[organizerSlug]/resources ...
+ ✓ Compiled /events/[organizerSlug]/resources in 9.6s (2019 modules)
+ GET /events/df0f427a-ca84-41eb-b8ad-0e47b2184532/resources 200 in 12989ms
