@@ -79,7 +79,7 @@ interface TrackerRegistrationDetail {
 
 const EventDetails = () => {
   const { user } = useAuth();
-  const { isRestricted, getRule, openUpgradeModal } = useOrganizerRules();
+  const { isRestricted, getRule, openUpgradeModal, refreshRules } = useOrganizerRules();
   const { eventId } = useParams();
   const router = useRouter();
   const [event, setEvent] = useState<Event | null>(null);
@@ -580,6 +580,11 @@ const EventDetails = () => {
         await api.post(`/events/${eventId}/publish`);
         triggerSuccessConfetti();
         Swal.fire('Published!', 'Your event is now live.', 'success');
+        try {
+          await refreshRules();
+        } catch (e) {
+          console.error("Failed to refresh rules on publish from details:", e);
+        }
         // Refresh event data
         const eventRes = await api.get(`/events/${eventId}`);
         setEvent(eventRes.data.data);

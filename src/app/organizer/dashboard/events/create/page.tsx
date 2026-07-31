@@ -465,7 +465,7 @@ const getLocalDateTimeString = () => {
 const CreateEvent = () => {
   const router = useRouter();
   const { updateToken } = useAuth();
-  const { getRule, openUpgradeModal } = useOrganizerRules();
+  const { getRule, openUpgradeModal, refreshRules } = useOrganizerRules();
   const [currentStep, setCurrentStep] = useState(1);
   const [subStep, setSubStep] = useState(1);
 
@@ -1580,8 +1580,14 @@ const CreateEvent = () => {
         localStorage.setItem('gobokin_show_profile_update_modal', 'true');
     }
 
+    try {
+        await refreshRules();
+    } catch (e) {
+        console.error("Failed to refresh rules on redirect:", e);
+    }
+
     router.push(`/organizer/dashboard/events/${eventId}`);
-  }, [eventId, clearDraft, router, updateToken]);
+  }, [eventId, clearDraft, router, updateToken, refreshRules]);
 
   const createTickets = async () => {
       if (!eventId) return;

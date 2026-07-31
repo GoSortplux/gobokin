@@ -464,7 +464,7 @@ const getLocalDateTimeString = () => {
 
 const EditEventContent = () => {
   const router = useRouter();
-  const { getRule, openUpgradeModal } = useOrganizerRules();
+  const { getRule, openUpgradeModal, refreshRules } = useOrganizerRules();
   const { eventId } = useParams();
   const searchParams = useSearchParams();
   const [currentStep, setCurrentStep] = useState(1);
@@ -1482,6 +1482,11 @@ const EditEventContent = () => {
       setSpeakers(finalSpeakers);
 
       if (shouldRedirect) {
+          try {
+              await refreshRules();
+          } catch (e) {
+              console.error("Failed to refresh rules on redirect from edit:", e);
+          }
           router.push(`/organizer/dashboard/events/${eventId}`);
       }
     } catch (error) {
@@ -1509,6 +1514,11 @@ const EditEventContent = () => {
         Swal.showLoading();
         await api.post(`/events/${eventId}/publish`);
         Swal.fire('Published!', 'Your event is now live.', 'success');
+        try {
+          await refreshRules();
+        } catch (e) {
+          console.error("Failed to refresh rules on publish from edit:", e);
+        }
         await fetchEvent();
       } catch (error) {
         Swal.fire('Error', translateError(error), 'error');
