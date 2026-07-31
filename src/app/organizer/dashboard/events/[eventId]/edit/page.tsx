@@ -878,7 +878,7 @@ const EditEventContent = () => {
   };
 
   const addField = (fieldType: 'custom' | 'location' | 'address' = 'custom') => {
-    const isPerAttendee = registration.isGroupingEnabled ? true : false;
+    const isPerAttendee = false;
 
     if (fieldType === 'location') {
       setRegistration(prev => {
@@ -1863,9 +1863,7 @@ const EditEventContent = () => {
                                          setRegistration(prev => ({
                                             ...prev,
                                             isGroupingEnabled: newGroupingEnabled,
-                                            fields: newGroupingEnabled
-                                               ? prev.fields
-                                               : prev.fields.map((f, _i) => ({ ...f, isPerAttendee: false }))
+                                            fields: prev.fields.map((f, _i) => ({ ...f, isPerAttendee: false }))
                                          }));
                                       }}
                                       className={`w-14 h-8 rounded-full transition-all relative shrink-0 ${registration.isGroupingEnabled ? 'bg-primary' : 'bg-gray-300'}`}

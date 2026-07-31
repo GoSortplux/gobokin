@@ -1247,7 +1247,7 @@ const CreateEvent = () => {
   };
 
   const addField = (fieldType: 'custom' | 'location' | 'address' = 'custom') => {
-    const isPerAttendee = registration.isGroupingEnabled ? true : false;
+    const isPerAttendee = false;
 
     if (fieldType === 'location') {
       setRegistration(prev => {
@@ -2171,16 +2171,7 @@ const CreateEvent = () => {
                                          setRegistration(prev => ({
                                             ...prev,
                                             isGroupingEnabled: newGroupingEnabled,
-                                            fields: newGroupingEnabled
-                                               ? prev.fields.map((f) => {
-                                                  // System location fields should be per attendee by default in group mode
-                                                  const isLocationField = f.source === 'COUNTRIES' || f.source === 'STATES' || f.source === 'LGAS';
-                                                  if (isLocationField) return { ...f, isPerAttendee: true };
-                                                  // Group name should NOT be per attendee
-                                                  if (f.source === 'GROUP_NAME') return { ...f, isPerAttendee: false };
-                                                  return f;
-                                               })
-                                               : prev.fields.map((f) => ({ ...f, isPerAttendee: false }))
+                                            fields: prev.fields.map((f) => ({ ...f, isPerAttendee: false }))
                                          }));
                                       }}
                                       className={`w-14 h-8 rounded-full transition-all relative shrink-0 ${registration.isGroupingEnabled ? 'bg-primary' : 'bg-gray-300'}`}

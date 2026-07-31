@@ -904,7 +904,7 @@ const HostEventPage = () => {
   };
 
   const addField = (fieldType: 'custom' | 'location' | 'address' = 'custom') => {
-    const isPerAttendee = formData.registration.isGroupingEnabled ? true : false;
+    const isPerAttendee = false;
 
     if (fieldType === 'location') {
       setFormData(prev => ({
@@ -2116,7 +2116,7 @@ const HostEventPage = () => {
                                 registration: {
                                     ...prev.registration,
                                     isGroupingEnabled: newGroupingEnabled,
-                                    fields: prev.registration.fields.map(f => ({ ...f, isPerAttendee: newGroupingEnabled ? f.isPerAttendee : false }))
+                                    fields: prev.registration.fields.map(f => ({ ...f, isPerAttendee: false }))
                                 }
                              }));
                           }}

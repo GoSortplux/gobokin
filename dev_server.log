@@ -7,38 +7,19 @@
    - Network:      http://192.168.0.2:3000
 
  ✓ Starting...
- ✓ Ready in 2.1s
- ○ Compiling /middleware ...
- ✓ Compiled /middleware in 804ms (114 modules)
+ ✓ Ready in 3s
+ ✓ Compiled /middleware in 453ms (114 modules)
  ○ Compiling / ...
- ✓ Compiled / in 13.2s (3787 modules)
- HEAD / 200 in 14384ms
- ○ Compiling /organizer/dashboard/settings ...
- ✓ Compiled /organizer/dashboard/settings in 2.9s (2846 modules)
- GET /organizer/dashboard/settings?test_no_revert=true 200 in 3817ms
- ○ Compiling /auth/login ...
- ✓ Compiled /auth/login in 889ms (2846 modules)
- GET /auth/login 200 in 1192ms
- GET /organizer/dashboard/settings?test_no_revert=true 200 in 420ms
- GET /auth/login 200 in 65ms
- ○ Compiling / ...
- ✓ Compiled / in 831ms (1985 modules)
- GET / 200 in 1668ms
- ✓ Compiled /organizer/dashboard/settings in 487ms (2035 modules)
- GET /organizer/dashboard/settings?test_no_revert=true 200 in 954ms
- GET /auth/login 200 in 117ms
- GET /auth/login 200 in 140ms
- GET / 200 in 288ms
- GET /auth/login 200 in 306ms
- GET /organizer/dashboard/settings?test_no_revert=true 200 in 152ms
- GET /auth/login 200 in 97ms
- GET /auth/login 200 in 122ms
- GET / 200 in 212ms
- GET /auth/login 200 in 225ms
- GET /organizer/dashboard/settings?test_no_revert=true 200 in 128ms
- GET /auth/login 200 in 81ms
- GET /auth/login 200 in 109ms
- GET / 200 in 200ms
- GET /organizer/dashboard/settings?test_no_revert=true 200 in 144ms
- GET / 200 in 227ms
- GET /organizer/dashboard/settings?test_no_revert=true 200 in 137ms
+ ✓ Compiled / in 8.2s (3723 modules)
+ GET / 200 in 9794ms
+ ○ Compiling /organizer/dashboard/events/create ...
+ ✓ Compiled /organizer/dashboard/events/create in 3.7s (3820 modules)
+ GET /organizer/dashboard/events/create?test_no_revert=true 200 in 4494ms
+ GET / 200 in 457ms
+ GET /organizer/dashboard/events/create?test_no_revert=true 200 in 269ms
+ GET / 200 in 194ms
+ GET /organizer/dashboard/events/create?test_no_revert=true 200 in 144ms
+ GET / 200 in 1527ms
+ GET /organizer/dashboard/events/create?test_no_revert=true 200 in 596ms
+ GET / 200 in 247ms
+ GET /organizer/dashboard/events/create?test_no_revert=true 200 in 168ms
