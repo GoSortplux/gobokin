@@ -843,9 +843,68 @@ const EditEventContent = () => {
     setSessions(sessions.map(s => s.id === sessionId ? { ...s, [field]: value } : s));
   };
 
+  const checkPremiumTicketLoophole = async (updatedTickets: typeof tickets) => {
+    // Check if there are no tickets with price > 500 anymore
+    const hasPremiumPaidTicket = updatedTickets.some(t => t.type === 'PAID' && t.price > 500);
+
+    if (!hasPremiumPaidTicket && (!rulesTitle || rulesTitle === 'Free Plan Account')) {
+      try {
+        // Refresh rules from the backend to get the exact non-premium rule values
+        await refreshRules();
+
+        // Check MAX_GUESTS rule after refresh
+        const maxGuestsRule = getRule('MAX_GUESTS');
+        if (maxGuestsRule) {
+          const limit = parseInt(maxGuestsRule.value as string);
+          if (limit !== -1 && basicInfo.capacity > limit) {
+            // Revert basic capacity to the limit
+            setBasicInfo(prev => ({ ...prev, capacity: limit }));
+
+            // Revert tickets sum if needed
+            setTickets(prevTickets => {
+              let currentSum = prevTickets.reduce((sum, t) => sum + (t.totalQuantity || 0), 0);
+              if (currentSum <= limit) return prevTickets;
+
+              const adjustedTickets = [...prevTickets];
+              for (let i = adjustedTickets.length - 1; i >= 0; i--) {
+                const ticket = adjustedTickets[i];
+                const excess = currentSum - limit;
+                const reduction = Math.min(ticket.totalQuantity || 0, excess);
+                adjustedTickets[i] = { ...ticket, totalQuantity: (ticket.totalQuantity || 0) - reduction };
+                currentSum -= reduction;
+                if (currentSum <= limit) break;
+              }
+              return adjustedTickets;
+            });
+
+            // Alert the user
+            Swal.fire({
+              title: 'Capacity Reverted! ⚠️',
+              html: `
+                <div class="text-center space-y-4 font-sans">
+                  <p class="text-sm text-gray-600 leading-relaxed">
+                    You have set your tickets to a free tier (or price <= ₦500). Your event capacity has been reverted to the maximum limit of <strong class="text-rose-600 font-bold">${limit} guests</strong> allowed on your account plan.
+                  </p>
+                  <p class="text-xs text-gray-400">
+                    To scale your event capacity, please upgrade your subscription or set at least one paid ticket price above ₦500.
+                  </p>
+                </div>
+              `,
+              icon: 'warning',
+              confirmButtonText: 'I Understand',
+              confirmButtonColor: '#295FA7',
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Failed to validate premium ticket loophole:", error);
+      }
+    }
+  };
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateTicket = (ticketId: string, field: string, value: any) => {
-    setTickets(tickets.map(t => {
+    const updatedTickets = tickets.map(t => {
         if (t.id === ticketId) {
             let newValue = value;
             if (field === "totalQuantity") {
@@ -891,7 +950,13 @@ const EditEventContent = () => {
             return updated;
         }
         return t;
-    }));
+    });
+
+    setTickets(updatedTickets);
+
+    if (field === 'type' || field === 'price') {
+      checkPremiumTicketLoophole(updatedTickets);
+    }
   };
 
   const addField = (fieldType: 'custom' | 'location' | 'address' = 'custom') => {
