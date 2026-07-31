@@ -9,7 +9,7 @@ import { Building2, Ticket, Settings } from "lucide-react";
 const DashboardContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState("bookings");
+  const [activeTab, setActiveTab] = useState("events");
 
   useEffect(() => {
     const tab = searchParams.get("tab");
@@ -28,8 +28,8 @@ const DashboardContent = () => {
         <nav className="mt-16 lg:mt-20 mb-8 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
           <div className="flex sm:inline-flex p-1.5 bg-white rounded-2xl shadow-sm border border-gray-100 min-w-max">
             {[
-              { id: "bookings", label: "Venue Bookings", icon: Building2, color: "bg-primary", shadow: "shadow-primary/20" },
               { id: "events", label: "My Events", icon: Ticket, color: "bg-emerald-600", shadow: "shadow-emerald-600/20", tourId: "customer-nav-events" },
+              { id: "bookings", label: "Venue Bookings", icon: Building2, color: "bg-primary", shadow: "shadow-primary/20" },
               { id: "settings", label: "Profile Settings", icon: Settings, color: "bg-gray-800", shadow: "shadow-gray-800/20" },
             ].map((tab) => (
               <button
