@@ -65,33 +65,46 @@ const RegisterPage = () => {
   };
 
   useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+    let attempts = 0;
+
     const initGoogle = () => {
-      const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-      if (typeof window !== 'undefined' && window.google?.accounts?.id && clientId) {
-        window.google.accounts.id.initialize({
-          client_id: clientId,
-          callback: handleGoogleCredentialResponse,
-        });
-        const container = document.getElementById("googleRegisterButtonDiv");
-        if (container) {
+      const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '43227771020-as4th4nq7c6lr1qim4eer7mdg8sktr53.apps.googleusercontent.com';
+      const container = document.getElementById("googleRegisterButtonDiv");
+
+      if (typeof window !== 'undefined' && window.google?.accounts?.id && container) {
+        try {
+          window.google.accounts.id.initialize({
+            client_id: clientId,
+            callback: handleGoogleCredentialResponse,
+          });
           window.google.accounts.id.renderButton(container, {
             theme: "outline",
             width: "384"
           });
+          if (intervalId) clearInterval(intervalId);
+          return true;
+        } catch (err) {
+          console.error("Error rendering Google register button:", err);
         }
       }
+      return false;
     };
 
-    // If Google object is already available
-    if (typeof window !== 'undefined' && window.google?.accounts?.id) {
-      initGoogle();
-    } else {
-      // Retry loading/initializing after a short delay if script is not fully parsed yet
-      const timer = setTimeout(() => {
-        initGoogle();
-      }, 1000);
-      return () => clearTimeout(timer);
+    const success = initGoogle();
+    if (!success) {
+      intervalId = setInterval(() => {
+        attempts += 1;
+        const ok = initGoogle();
+        if (ok || attempts > 50) { // Poll for up to 10 seconds
+          clearInterval(intervalId);
+        }
+      }, 200);
     }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -154,7 +167,7 @@ const RegisterPage = () => {
         {/* Google Register Button Container with Policy Restriction */}
         <div className="flex flex-col items-center justify-center space-y-4">
           <div className="relative w-full max-w-sm flex justify-center">
-            <div id="googleRegisterButtonDiv" className="w-full flex justify-center"></div>
+            <div id="googleRegisterButtonDiv" className="w-full flex justify-center min-h-[44px]"></div>
             {/* If policy is not accepted, overlay an absolute div to capture click & alert user */}
             {!isPolicyAccepted && (
               <div

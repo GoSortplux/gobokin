@@ -2,19 +2,18 @@
 > gobokin-app@0.1.0 dev
 > next dev
 
+ ⚠ Port 3000 is in use by an unknown process, using available port 3001 instead.
    ▲ Next.js 15.5.9
-   - Local:        http://localhost:3000
-   - Network:      http://192.168.0.2:3000
+   - Local:        http://localhost:3001
+   - Network:      http://192.168.0.2:3001
    - Environments: .env
 
  ✓ Starting...
  ✓ Ready in 2.4s
- ○ Compiling /middleware ...
- ✓ Compiled /middleware in 876ms (114 modules)
+ ✓ Compiled /middleware in 360ms (114 modules)
  ○ Compiling /auth/login ...
- ✓ Compiled /auth/login in 10.8s (1815 modules)
- HEAD /auth/login 200 in 11770ms
- GET /auth/login 200 in 168ms
+ ✓ Compiled /auth/login in 3.8s (1764 modules)
+ GET /auth/login 200 in 5451ms
  ○ Compiling /auth/register ...
- ✓ Compiled /auth/register in 1984ms (1791 modules)
- GET /auth/register 200 in 2948ms
+ ✓ Compiled /auth/register in 2.1s (1791 modules)
+ GET /auth/register 200 in 2820ms
