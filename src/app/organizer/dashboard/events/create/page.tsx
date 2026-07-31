@@ -465,7 +465,7 @@ const getLocalDateTimeString = () => {
 const CreateEvent = () => {
   const router = useRouter();
   const { updateToken } = useAuth();
-  const { getRule, openUpgradeModal, refreshRules } = useOrganizerRules();
+  const { getRule, openUpgradeModal, refreshRules, title: rulesTitle } = useOrganizerRules();
   const [currentStep, setCurrentStep] = useState(1);
   const [subStep, setSubStep] = useState(1);
 
@@ -479,6 +479,7 @@ const CreateEvent = () => {
   }, []);
   const [loading, setLoading] = useState(false);
   const [isConfigExpanded, setIsConfigExpanded] = useState(false);
+  const [hasShownPaidPremiumNotice, setHasShownPaidPremiumNotice] = useState(false);
   const [isAutosaving, setIsAutosaving] = useState(false);
   const [eventId, setEventId] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(true);
@@ -1180,6 +1181,34 @@ const CreateEvent = () => {
                     .reduce((sum, ticket) => sum + (ticket.totalQuantity || 0), 0);
                 const maxAllowed = Math.max(0, basicInfo.capacity - otherTicketsSum);
                 newValue = Math.min(parseInt(value) || 0, maxAllowed);
+            }
+
+            // Friendly popup for Paid ticket with price > N500 unlocking premium features
+            if (
+                !hasShownPaidPremiumNotice &&
+                (!rulesTitle || rulesTitle === 'Free Plan Account')
+            ) {
+                const isPaidTypeToggle = (field === 'type' && value === 'PAID' && t.price > 500);
+                const isPaidPriceChange = (field === 'price' && t.type === 'PAID' && parseFloat(value) > 500);
+                if (isPaidTypeToggle || isPaidPriceChange) {
+                    setHasShownPaidPremiumNotice(true);
+                    Swal.fire({
+                      title: 'Premium Features Unlock! 🚀',
+                      html: `
+                        <div class="text-center space-y-4 font-sans">
+                          <p class="text-sm text-gray-600 leading-relaxed">
+                            Since you're on the <strong class="text-primary font-bold">Free Plan</strong>, once you create a paid ticket with a price above <strong class="text-primary font-bold">₦500</strong>, you will unlock all the platform's <strong class="text-primary font-bold">Premium Features</strong>!
+                          </p>
+                          <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">
+                            Enjoy automated reminders, unlimited guest capacity, walk-in registrations, and more.
+                          </p>
+                        </div>
+                      `,
+                      icon: 'info',
+                      confirmButtonText: 'Got It!',
+                      confirmButtonColor: '#295FA7',
+                    });
+                }
             }
 
             const updated = { ...t, [field]: newValue };
