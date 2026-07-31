@@ -17,3 +17,37 @@
  ○ Compiling /auth/register ...
  ✓ Compiled /auth/register in 2.1s (1791 modules)
  GET /auth/register 200 in 2820ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed f ✓ Compiled in 22.9s (1783 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: incorrect header check
+ ○ Compiling / ...
+ ✓ Compiled / in 7.3s (3762 modules)
+ HEAD / 200 in 8515ms
+Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1788ms (1776 modules)
+ HEAD /auth/register 404 in 2950ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/app/.next/server/app/auth/register/page.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/app/.next/server/app/auth/register/page.js',
+  page: '/auth/register'
+}
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 4s (2116 modules)
+ HEAD /auth/register 500 in 4822ms
+ HEAD /auth/register 200 in 667ms
+ GET /auth/register 200 in 198ms
+ GET /auth/register 200 in 222ms
+ GET /auth/register 200 in 172ms
+ GET /auth/register 200 in 196ms
+ GET /auth/register 200 in 181ms
+ GET /auth/register 200 in 174ms
+ ○ Compiling / ...
+ ✓ Compiled / in 7.2s (4017 modules)
+ HEAD / 200 in 8253ms
+ GET /auth/register 200 in 241ms
+ GET /auth/register 200 in 225ms
+ GET /auth/register 200 in 179ms
+ GET /auth/register 200 in 268ms
+ GET /auth/register 200 in 179ms
+ GET /auth/register 200 in 195ms

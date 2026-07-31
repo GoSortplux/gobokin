@@ -322,6 +322,7 @@ const RegisterPage = () => {
           isOpen={isPolicyModalOpen}
           type="general"
           skipUserUpdate={true}
+          forRegister={true}
           onAccept={() => {
             setIsPolicyAccepted(true);
             setIsPolicyModalOpen(false);

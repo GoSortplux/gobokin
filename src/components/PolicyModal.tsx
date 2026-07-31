@@ -88,6 +88,7 @@ interface PolicyModalProps {
   type: 'general' | 'hall-owner';
   compact?: boolean;
   skipUserUpdate?: boolean;
+  forRegister?: boolean;
 }
 
 const PolicyModal = ({
@@ -98,11 +99,13 @@ const PolicyModal = ({
   isMandatory = false,
   type,
   compact = false,
-  skipUserUpdate = false
+  skipUserUpdate = false,
+  forRegister = false
 }: PolicyModalProps) => {
   const { user, updateUser } = useAuth();
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [checkedPolicies, setCheckedPolicies] = useState<Record<string, boolean>>({});
+  const [expandedPolicies, setExpandedPolicies] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
   const [accepting, setAccepting] = useState(false);
   const [isScrolledToEnd, setIsScrolledToEnd] = useState(false);
@@ -118,6 +121,8 @@ const PolicyModal = ({
 
       if (slug) {
         slugsToFetch = [slug];
+      } else if (forRegister) {
+        slugsToFetch = ['trust-safety-standards', 'user-agreement', 'privacy-policy', 'refund-policy'];
       } else {
         const response = await api.get('/policies');
         const policyList = response.data.data || [];
@@ -157,6 +162,13 @@ const PolicyModal = ({
       });
       setCheckedPolicies(initialChecked);
 
+      // Initialize expanded state: expand the first one by default
+      const initialExpanded: Record<string, boolean> = {};
+      sortedPolicies.forEach((p, idx) => {
+        initialExpanded[p._id] = idx === 0;
+      });
+      setExpandedPolicies(initialExpanded);
+
     } catch (err) {
       console.error('Failed to fetch policies:', err);
       Swal.toast.fire({
@@ -166,7 +178,7 @@ const PolicyModal = ({
     } finally {
       setLoading(false);
     }
-  }, [slug, type, userRole]);
+  }, [slug, type, userRole, forRegister]);
 
   useEffect(() => {
     if (isOpen) {
@@ -183,22 +195,29 @@ const PolicyModal = ({
     };
   }, [isOpen, fetchPolicies]);
 
+  const checkScrollable = useCallback(() => {
+    if (scrollableContentRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = scrollableContentRef.current;
+      if (scrollHeight <= clientHeight + 10) {
+        setIsScrolledToEnd(true);
+        setScrollProgress(100);
+      } else {
+        const totalScrollable = scrollHeight - clientHeight;
+        const currentProgress = totalScrollable > 0 ? (scrollTop / totalScrollable) * 100 : 100;
+        setScrollProgress(currentProgress);
+        if (scrollTop + clientHeight >= scrollHeight - 60) {
+          setIsScrolledToEnd(true);
+        }
+      }
+    }
+  }, []);
+
   useEffect(() => {
     if (isOpen && !loading && policies.length > 0) {
-      const checkScrollable = () => {
-        if (scrollableContentRef.current) {
-          const { scrollHeight, clientHeight } = scrollableContentRef.current;
-          if (scrollHeight <= clientHeight + 10) {
-            setIsScrolledToEnd(true);
-            setScrollProgress(100);
-          }
-        }
-      };
-
-      const timer = setTimeout(checkScrollable, 500);
+      const timer = setTimeout(checkScrollable, 300);
       return () => clearTimeout(timer);
     }
-  }, [isOpen, loading, policies]);
+  }, [isOpen, loading, policies, expandedPolicies, checkScrollable]);
 
   const handleScroll = () => {
     if (!scrollableContentRef.current) return;
@@ -215,6 +234,13 @@ const PolicyModal = ({
 
   const toggleCheckbox = (id: string) => {
     setCheckedPolicies(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
+  const toggleExpand = (id: string) => {
+    setExpandedPolicies(prev => ({
       ...prev,
       [id]: !prev[id]
     }));
@@ -339,80 +365,150 @@ const PolicyModal = ({
               <p className="text-gray-400 font-black uppercase text-[10px] tracking-[0.3em] animate-pulse">Authenticating Policies</p>
             </div>
           ) : policies.length > 0 ? (
-            <div className={compact ? "space-y-12" : "space-y-24"}>
-              {policies.map((policy) => (
-                <div key={policy._id} className="relative">
-                  <div className={compact ? "mb-6" : "mb-10"}>
-                    <h3 className={`${compact ? 'text-2xl' : 'text-4xl'} font-black text-gray-900 mb-4 tracking-tight leading-none`}>
-                      {policy.title}
-                    </h3>
-                    <div className="flex items-center space-x-3 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                      <span className="px-2 py-1 bg-gray-100 rounded text-gray-500">Version {policy.version}</span>
-                      <span className="w-1 h-1 rounded-full bg-gray-300" />
-                      <span>Effective: {new Date(policy.effectiveDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                    </div>
-                  </div>
-
-                  <div className={`prose ${compact ? 'prose-sm' : 'prose-lg'} max-w-none`}>
-                    <MarkdownRenderer content={policy.content} />
-                  </div>
-
-                  {!compact && (
-                    <div className={`mt-12 p-8 bg-gray-50/50 rounded-[2rem] border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-8 transition-all ${isScrolledToEnd ? 'hover:bg-gray-50' : 'opacity-50'}`}>
+            forRegister ? (
+              <div className="space-y-6">
+                {policies.map((policy) => {
+                  const isExpanded = !!expandedPolicies[policy._id];
+                  return (
+                    <div key={policy._id} className="border border-gray-200 rounded-[1.5rem] overflow-hidden bg-white shadow-sm transition-all duration-300">
+                      {/* Header/Toggle */}
                       <button
-                        onClick={() => toggleCheckbox(policy._id)}
-                        disabled={!isScrolledToEnd}
-                        className={`flex items-start space-x-5 text-left group ${!isScrolledToEnd ? 'cursor-not-allowed' : ''}`}
+                        type="button"
+                        onClick={() => toggleExpand(policy._id)}
+                        className="w-full flex items-center justify-between p-6 bg-gray-50/50 hover:bg-gray-50 transition-colors text-left"
                       >
-                        <div className={`mt-1 transition-all transform active:scale-90 ${checkedPolicies[policy._id] ? 'text-primary' : (isScrolledToEnd ? 'text-gray-300 group-hover:text-primary/40' : 'text-gray-200')}`}>
-                          {checkedPolicies[policy._id] ? <CheckSquare size={36} /> : <Square size={36} />}
+                        <div className="space-y-1">
+                          <h3 className="text-lg md:text-xl font-black text-gray-900 tracking-tight leading-snug">
+                            {policy.title}
+                          </h3>
+                          <div className="flex items-center space-x-3 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                            <span className="px-2 py-0.5 bg-gray-200/50 rounded text-gray-500">Version {policy.version}</span>
+                            <span className="w-1 h-1 rounded-full bg-gray-300" />
+                            <span>Effective: {new Date(policy.effectiveDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                          </div>
                         </div>
-                        <div>
-                          <span className={`block text-xl font-black transition-colors ${checkedPolicies[policy._id] ? 'text-gray-900' : 'text-gray-500 group-hover:text-gray-700'}`}>
-                            Acknowledge & Agree
-                          </span>
-                          <span className="text-sm text-gray-400 mt-1 block leading-relaxed font-medium">I have fully read and understood the terms of the {policy.title}</span>
-                        </div>
+                        <span className="text-gray-400 hover:text-gray-600 transition-colors shrink-0 ml-4">
+                          {isExpanded ? (
+                            <span className="text-xs font-bold uppercase tracking-wider text-primary">Hide ▲</span>
+                          ) : (
+                            <span className="text-xs font-bold uppercase tracking-wider text-gray-500">Show ▼</span>
+                          )}
+                        </span>
                       </button>
 
-                      {checkedPolicies[policy._id] && (
-                          <div className="flex items-center space-x-2 text-emerald-500 animate-in fade-in zoom-in duration-500">
-                              <ShieldCheck size={24} />
-                              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Verified</span>
+                      {/* Content */}
+                      {isExpanded && (
+                        <div className="p-6 md:p-8 border-t border-gray-100 bg-white animate-in fade-in slide-in-from-top-2 duration-300">
+                          <div className="prose prose-sm md:prose-base max-w-none mb-8">
+                            <MarkdownRenderer content={policy.content} />
                           </div>
+
+                          <div className="p-6 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <button
+                              type="button"
+                              onClick={() => toggleCheckbox(policy._id)}
+                              className="flex items-start space-x-4 text-left group"
+                            >
+                              <div className={`mt-0.5 transition-all transform active:scale-90 ${checkedPolicies[policy._id] ? 'text-primary' : 'text-gray-300 group-hover:text-primary/40'}`}>
+                                {checkedPolicies[policy._id] ? <CheckSquare size={24} /> : <Square size={24} />}
+                              </div>
+                              <div>
+                                <span className={`block text-base font-black transition-colors ${checkedPolicies[policy._id] ? 'text-gray-900' : 'text-gray-500 group-hover:text-gray-700'}`}>
+                                  Acknowledge & Agree
+                                </span>
+                                <span className="text-xs text-gray-400 mt-0.5 block leading-relaxed font-medium">I agree to the terms of the {policy.title}</span>
+                              </div>
+                            </button>
+
+                            {checkedPolicies[policy._id] && (
+                              <div className="flex items-center space-x-1.5 text-emerald-500 animate-in fade-in zoom-in duration-300">
+                                <ShieldCheck size={20} />
+                                <span className="text-[9px] font-black uppercase tracking-[0.15em]">Verified</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       )}
                     </div>
-                  )}
-                </div>
-              ))}
-
-              {compact && (
-                <div className={`mt-8 p-6 bg-gray-50/50 rounded-2xl border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all ${isScrolledToEnd ? 'hover:bg-gray-50' : 'opacity-50'}`}>
-                  <button
-                    onClick={toggleAllCheckboxes}
-                    disabled={!isScrolledToEnd}
-                    className={`flex items-start space-x-4 text-left group ${!isScrolledToEnd ? 'cursor-not-allowed' : ''}`}
-                  >
-                    <div className={`mt-1 transition-all transform active:scale-90 ${allChecked ? 'text-primary' : (isScrolledToEnd ? 'text-gray-300 group-hover:text-primary/40' : 'text-gray-200')}`}>
-                      {allChecked ? <CheckSquare size={28} /> : <Square size={28} />}
-                    </div>
-                    <div>
-                      <span className={`block text-lg font-black transition-colors ${allChecked ? 'text-gray-900' : 'text-gray-500 group-hover:text-gray-700'}`}>
-                        Acknowledge All Policies
-                      </span>
-                      <span className="text-xs text-gray-400 mt-1 block leading-relaxed font-medium">I have fully read and understood the terms of all policies listed above.</span>
-                    </div>
-                  </button>
-
-                  {allChecked && (
-                      <div className="flex items-center space-x-2 text-emerald-500 animate-in fade-in zoom-in duration-500">
-                          <ShieldCheck size={20} />
-                          <span className="text-[10px] font-black uppercase tracking-[0.2em]">Verified</span>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className={compact ? "space-y-12" : "space-y-24"}>
+                {policies.map((policy) => (
+                  <div key={policy._id} className="relative">
+                    <div className={compact ? "mb-6" : "mb-10"}>
+                      <h3 className={`${compact ? 'text-2xl' : 'text-4xl'} font-black text-gray-900 mb-4 tracking-tight leading-none`}>
+                        {policy.title}
+                      </h3>
+                      <div className="flex items-center space-x-3 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                        <span className="px-2 py-1 bg-gray-100 rounded text-gray-500">Version {policy.version}</span>
+                        <span className="w-1 h-1 rounded-full bg-gray-300" />
+                        <span>Effective: {new Date(policy.effectiveDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                       </div>
-                  )}
-                </div>
-              )}
-            </div>
+                    </div>
+
+                    <div className={`prose ${compact ? 'prose-sm' : 'prose-lg'} max-w-none`}>
+                      <MarkdownRenderer content={policy.content} />
+                    </div>
+
+                    {!compact && (
+                      <div className={`mt-12 p-8 bg-gray-50/50 rounded-[2rem] border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-8 transition-all ${isScrolledToEnd ? 'hover:bg-gray-50' : 'opacity-50'}`}>
+                        <button
+                          onClick={() => toggleCheckbox(policy._id)}
+                          disabled={!isScrolledToEnd}
+                          className={`flex items-start space-x-5 text-left group ${!isScrolledToEnd ? 'cursor-not-allowed' : ''}`}
+                        >
+                          <div className={`mt-1 transition-all transform active:scale-90 ${checkedPolicies[policy._id] ? 'text-primary' : (isScrolledToEnd ? 'text-gray-300 group-hover:text-primary/40' : 'text-gray-200')}`}>
+                            {checkedPolicies[policy._id] ? <CheckSquare size={36} /> : <Square size={36} />}
+                          </div>
+                          <div>
+                            <span className={`block text-xl font-black transition-colors ${checkedPolicies[policy._id] ? 'text-gray-900' : 'text-gray-500 group-hover:text-gray-700'}`}>
+                              Acknowledge & Agree
+                            </span>
+                            <span className="text-sm text-gray-400 mt-1 block leading-relaxed font-medium">I have fully read and understood the terms of the {policy.title}</span>
+                          </div>
+                        </button>
+
+                        {checkedPolicies[policy._id] && (
+                            <div className="flex items-center space-x-2 text-emerald-500 animate-in fade-in zoom-in duration-500">
+                                <ShieldCheck size={24} />
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Verified</span>
+                            </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {compact && (
+                  <div className={`mt-8 p-6 bg-gray-50/50 rounded-2xl border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all ${isScrolledToEnd ? 'hover:bg-gray-50' : 'opacity-50'}`}>
+                    <button
+                      onClick={toggleAllCheckboxes}
+                      disabled={!isScrolledToEnd}
+                      className={`flex items-start space-x-4 text-left group ${!isScrolledToEnd ? 'cursor-not-allowed' : ''}`}
+                    >
+                      <div className={`mt-1 transition-all transform active:scale-90 ${allChecked ? 'text-primary' : (isScrolledToEnd ? 'text-gray-300 group-hover:text-primary/40' : 'text-gray-200')}`}>
+                        {allChecked ? <CheckSquare size={28} /> : <Square size={28} />}
+                      </div>
+                      <div>
+                        <span className={`block text-lg font-black transition-colors ${allChecked ? 'text-gray-900' : 'text-gray-500 group-hover:text-gray-700'}`}>
+                          Acknowledge All Policies
+                        </span>
+                        <span className="text-xs text-gray-400 mt-1 block leading-relaxed font-medium">I have fully read and understood the terms of all policies listed above.</span>
+                      </div>
+                    </button>
+
+                    {allChecked && (
+                        <div className="flex items-center space-x-2 text-emerald-500 animate-in fade-in zoom-in duration-500">
+                            <ShieldCheck size={20} />
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Verified</span>
+                        </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )
           ) : (
             <div className="text-center py-24">
               <p className="text-gray-400 font-bold uppercase text-xs tracking-widest">No policies found.</p>
