@@ -779,7 +779,6 @@ const OrganizerSettings = () => {
                                                         }
                                                     </span>
                                                 )}
-                                                <span className="text-[9px] text-gray-400 font-black uppercase tracking-widest ml-1">One-time payment</span>
                                             </div>
                                             {selectedPackage.pricingBreakdown && selectedPackage.pricingBreakdown.discountAmount > 0 && (
                                                 <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest mt-1">

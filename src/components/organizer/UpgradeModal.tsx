@@ -332,7 +332,6 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, featureKey, 
                               </span>
                             )}
                           </div>
-                          <span className="text-[8px] text-gray-400 font-black uppercase tracking-widest mt-0.5">One-time payment</span>
                         </div>
 
                         {/* Rules List inside Package */}
