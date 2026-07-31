@@ -58,7 +58,7 @@ const CheckInInterface = () => {
   const { eventId } = useParams();
   const router = useRouter();
   const { user } = useAuth();
-  const { isRestricted, getRule } = useOrganizerRules();
+  const { isRestricted, getRule, openUpgradeModal } = useOrganizerRules();
   const isStaff = user?.role?.includes('organizer-staff');
   const [event, setEvent] = useState<Event | null>(null);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
@@ -102,20 +102,7 @@ const CheckInInterface = () => {
   const handleToggleOfflineMode = () => {
     if (!isOfflineMode) {
       if (isRestricted('OFFLINE_CHECKIN_ALLOWED')) {
-        const rule = getRule('OFFLINE_CHECKIN_ALLOWED');
-        Swal.fire({
-          title: rule?.title || 'Feature Restricted',
-          text: rule?.uxContext || 'Offline check-in is not available on your current plan.',
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonText: 'Upgrade Now',
-          cancelButtonText: 'Later',
-          confirmButtonColor: '#295FA7',
-        }).then((result) => {
-          if (result.isConfirmed) {
-            router.push('/organizer/dashboard/settings?tab=subscriptions');
-          }
-        });
+        openUpgradeModal('OFFLINE_CHECKIN_ALLOWED');
         return;
       }
       setIsOfflineMode(true);
@@ -142,20 +129,7 @@ const CheckInInterface = () => {
     if (offlineCheckIns.length === 0) return;
 
     if (isRestricted('OFFLINE_CHECKIN_ALLOWED')) {
-      const rule = getRule('OFFLINE_CHECKIN_ALLOWED');
-      Swal.fire({
-        title: rule?.title || 'Feature Restricted',
-        text: rule?.uxContext || 'Offline check-in is not available on your current plan.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Upgrade Now',
-        cancelButtonText: 'Later',
-        confirmButtonColor: '#295FA7',
-      }).then((result) => {
-        if (result.isConfirmed) {
-          router.push('/organizer/dashboard/settings?tab=subscriptions');
-        }
-      });
+      openUpgradeModal('OFFLINE_CHECKIN_ALLOWED');
       return;
     }
 

@@ -54,6 +54,8 @@ const SUGGESTED_TEMPLATES: TextTemplate[] = [
   },
 ];
 
+import { useOrganizerRules } from "@/hooks/useOrganizerRules";
+
 export const EventReminderSection: React.FC<EventReminderSectionProps> = ({
   remindersEnabled,
   reminderCustomText,
@@ -64,6 +66,7 @@ export const EventReminderSection: React.FC<EventReminderSectionProps> = ({
   isRestricted = false,
   uxContext = "",
 }) => {
+  const { openUpgradeModal } = useOrganizerRules();
   const [loadingDefaults, setLoadingDefaults] = useState(false);
   const [defaults, setDefaults] = useState<{
     defaultFrequencies: number[];
@@ -110,19 +113,7 @@ export const EventReminderSection: React.FC<EventReminderSectionProps> = ({
 
     if (nextEnabled) {
       if (isRestricted) {
-        Swal.fire({
-          title: "Feature Restricted",
-          text: uxContext || "The Automated Reminders feature is not available on your current plan. Upgrade your subscription to unlock this and additional features.",
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonText: "Upgrade Now",
-          cancelButtonText: "Later",
-          confirmButtonColor: "#295FA7",
-        }).then((result) => {
-          if (result.isConfirmed) {
-            window.location.href = "/organizer/dashboard/settings?tab=subscriptions";
-          }
-        });
+        openUpgradeModal('REMINDERS_ALLOWED');
         return;
       }
 

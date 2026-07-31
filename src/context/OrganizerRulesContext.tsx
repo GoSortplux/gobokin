@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, Rea
 import api from '@/services/api';
 import { OrganizerRule } from '@/types';
 import { useAuth } from '@/context/AuthContext';
+import { UpgradeModal } from '@/components/organizer/UpgradeModal';
 
 interface OrganizerRulesContextType {
   rules: OrganizerRule[];
@@ -12,6 +13,7 @@ interface OrganizerRulesContextType {
   refreshRules: () => Promise<void>;
   isRestricted: (key: string) => boolean;
   getRule: (key: string) => OrganizerRule | undefined;
+  openUpgradeModal: (featureKey: string, onCancel?: () => void) => void;
 }
 
 const OrganizerRulesContext = createContext<OrganizerRulesContextType | undefined>(undefined);
@@ -72,9 +74,31 @@ export const OrganizerRulesProvider: React.FC<{ children: ReactNode }> = ({ chil
     return rules.find(r => r.key === key);
   }, [rules]);
 
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [triggeredFeatureKey, setTriggeredFeatureKey] = useState('MAX_GUESTS');
+  const [upgradeModalCallback, setUpgradeModalCallback] = useState<(() => void) | undefined>(undefined);
+
+  const openUpgradeModal = useCallback((featureKey: string, onCancel?: () => void) => {
+    setTriggeredFeatureKey(featureKey);
+    setIsUpgradeModalOpen(true);
+    setUpgradeModalCallback(() => onCancel);
+  }, []);
+
   return (
-    <OrganizerRulesContext.Provider value={{ rules, title, loading, refreshRules: fetchRules, isRestricted, getRule }}>
+    <OrganizerRulesContext.Provider value={{ rules, title, loading, refreshRules: fetchRules, isRestricted, getRule, openUpgradeModal }}>
       {children}
+      {isUpgradeModalOpen && (
+        <UpgradeModal
+          isOpen={isUpgradeModalOpen}
+          featureKey={triggeredFeatureKey}
+          onClose={() => {
+            setIsUpgradeModalOpen(false);
+            if (upgradeModalCallback) {
+              upgradeModalCallback();
+            }
+          }}
+        />
+      )}
     </OrganizerRulesContext.Provider>
   );
 };

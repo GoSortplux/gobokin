@@ -22,7 +22,7 @@ import useOnClickOutside from "@/hooks/useOnClickOutside";
 
 const StaffPool = () => {
   const router = useRouter();
-  const { getRule } = useOrganizerRules();
+  const { getRule, openUpgradeModal } = useOrganizerRules();
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -128,19 +128,7 @@ const StaffPool = () => {
     if (maxStaffRule && maxStaffRule.isRestricted) {
       const limit = parseInt(maxStaffRule.value as string);
       if (limit !== -1 && staff.length >= limit) {
-        Swal.fire({
-          title: maxStaffRule.title || 'Staff Limit Reached',
-          text: maxStaffRule.uxContext || `You have reached the maximum number of staff members (${limit}) allowed on your current plan.`,
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonText: 'Upgrade Now',
-          cancelButtonText: 'Later',
-          confirmButtonColor: '#295FA7',
-        }).then((result) => {
-          if (result.isConfirmed) {
-            router.push('/organizer/dashboard/settings?tab=subscriptions');
-          }
-        });
+        openUpgradeModal('MAX_STAFF');
         return true;
       }
     }

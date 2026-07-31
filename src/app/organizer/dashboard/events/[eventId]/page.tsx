@@ -79,7 +79,7 @@ interface TrackerRegistrationDetail {
 
 const EventDetails = () => {
   const { user } = useAuth();
-  const { isRestricted, getRule } = useOrganizerRules();
+  const { isRestricted, getRule, openUpgradeModal } = useOrganizerRules();
   const { eventId } = useParams();
   const router = useRouter();
   const [event, setEvent] = useState<Event | null>(null);
@@ -522,33 +522,7 @@ const EventDetails = () => {
 
   const handleMessageGuest = () => {
     if (isRestricted('BROADCAST_ALLOWED')) {
-      Swal.fire({
-        title: 'Connect with Your Guests 💬',
-        html: `
-          <div class="text-center space-y-4 font-sans">
-            <p class="text-sm text-gray-600 leading-relaxed">
-              Keep your attendees informed with real-time announcements, friendly reminders, and important event updates, all sent directly from your dashboard.
-            </p>
-            <div class="flex justify-center py-1">
-              <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-xs font-semibold">
-                🔒 Premium Feature
-              </span>
-            </div>
-            <p class="text-sm text-gray-600 leading-relaxed">
-              Upgrade to a <strong class="text-primary font-bold">Premium Plan</strong> today to unlock <strong class="text-primary font-bold">Guest Messaging</strong> and access other powerful tools to manage your events effortlessly!
-            </p>
-          </div>
-        `,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Upgrade Now',
-        cancelButtonText: 'Later',
-        confirmButtonColor: '#295FA7',
-      }).then((result) => {
-        if (result.isConfirmed) {
-          router.push('/organizer/dashboard/settings?tab=subscriptions');
-        }
-      });
+      openUpgradeModal('BROADCAST_ALLOWED');
       return;
     }
     setIsBroadcastModalOpen(true);
@@ -649,20 +623,7 @@ const EventDetails = () => {
 
   const handleRestrictedAction = (key: string, defaultTitle: string, defaultText: string) => {
     if (isRestricted(key)) {
-      const rule = getRule(key);
-      Swal.fire({
-        title: rule?.title || defaultTitle,
-        text: rule?.uxContext || defaultText,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Upgrade Now',
-        cancelButtonText: 'Later',
-        confirmButtonColor: '#295FA7',
-      }).then((result) => {
-        if (result.isConfirmed) {
-          router.push('/organizer/dashboard/settings?tab=subscriptions');
-        }
-      });
+      openUpgradeModal(key);
       return true;
     }
     return false;
@@ -833,7 +794,7 @@ const EventDetails = () => {
                     {getRule('RESOURCES_ALLOWED')?.uxContext || 'Resource sharing is not available on your current plan.'}
                   </p>
                   <button
-                    onClick={() => router.push('/organizer/dashboard/settings?tab=subscriptions')}
+                    onClick={() => openUpgradeModal('RESOURCES_ALLOWED')}
                     className="mt-6 flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all font-medium"
                   >
                     Upgrade Now

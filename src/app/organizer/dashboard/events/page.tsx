@@ -36,7 +36,7 @@ import useOnClickOutside from "@/hooks/useOnClickOutside";
 const MyEvents = () => {
   const router = useRouter();
   const { user } = useAuth();
-  const { getRule } = useOrganizerRules();
+  const { getRule, openUpgradeModal } = useOrganizerRules();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -132,19 +132,7 @@ const MyEvents = () => {
   const handleWalkIn = async (event: Event) => {
     const walkInRule = getRule('WALK_IN_REGISTRATION_ALLOWED');
     if (walkInRule && walkInRule.isRestricted) {
-      Swal.fire({
-        title: walkInRule.title || 'Feature Restricted',
-        text: walkInRule.uxContext || 'Walk-in registration is not available on your current plan.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Upgrade Now',
-        cancelButtonText: 'Later',
-        confirmButtonColor: '#295FA7',
-      }).then((result) => {
-        if (result.isConfirmed) {
-          router.push('/organizer/dashboard/settings?tab=subscriptions');
-        }
-      });
+      openUpgradeModal('WALK_IN_REGISTRATION_ALLOWED');
       return;
     }
 
@@ -260,19 +248,7 @@ const MyEvents = () => {
       const limit = parseInt(maxEventsRule.value as string) || 0;
 
       if (activeCount >= limit) {
-        Swal.fire({
-          title: maxEventsRule.title || 'Event Limit Reached',
-          text: maxEventsRule.uxContext || `You have reached the maximum number of active events (${limit}) allowed on your current plan.`,
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonText: 'Upgrade Now',
-          cancelButtonText: 'Later',
-          confirmButtonColor: '#295FA7',
-        }).then((result) => {
-          if (result.isConfirmed) {
-            router.push('/organizer/dashboard/settings?tab=subscriptions');
-          }
-        });
+        openUpgradeModal('MAX_ACTIVE_EVENTS');
         return;
       }
     }

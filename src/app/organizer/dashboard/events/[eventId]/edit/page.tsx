@@ -464,7 +464,7 @@ const getLocalDateTimeString = () => {
 
 const EditEventContent = () => {
   const router = useRouter();
-  const { getRule } = useOrganizerRules();
+  const { getRule, openUpgradeModal } = useOrganizerRules();
   const { eventId } = useParams();
   const searchParams = useSearchParams();
   const [currentStep, setCurrentStep] = useState(1);
@@ -783,19 +783,7 @@ const EditEventContent = () => {
             icon: "warning",
             title: `Capacity capped at maximum ${limit} guests.`
           });
-          Swal.fire({
-            title: maxGuestsRule.title || 'Capacity Restricted',
-            text: maxGuestsRule.uxContext || `Your current plan only allows events with up to ${limit} guests.`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Upgrade Now',
-            cancelButtonText: 'Adjust Capacity',
-            confirmButtonColor: '#295FA7',
-          }).then((result) => {
-            if (result.isConfirmed) {
-              router.push('/organizer/dashboard/settings?tab=subscriptions');
-            }
-          });
+          openUpgradeModal('MAX_GUESTS');
         }
       }
 
@@ -1535,19 +1523,7 @@ const EditEventContent = () => {
     if (maxTicketsRule) {
       const limit = parseInt(maxTicketsRule.value as string);
       if (limit !== -1 && tickets.length >= limit) {
-        Swal.fire({
-          title: maxTicketsRule.title || 'Ticket Limit Reached',
-          text: maxTicketsRule.uxContext || `You have reached the maximum number of ticket categories (${limit}) allowed on your current plan.`,
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonText: 'Upgrade Now',
-          cancelButtonText: 'Later',
-          confirmButtonColor: '#295FA7',
-        }).then((result) => {
-          if (result.isConfirmed) {
-            router.push('/organizer/dashboard/settings?tab=subscriptions');
-          }
-        });
+        openUpgradeModal('MAX_TICKET_CATEGORIES');
         return true;
       }
     }

@@ -465,7 +465,7 @@ const getLocalDateTimeString = () => {
 const CreateEvent = () => {
   const router = useRouter();
   const { updateToken } = useAuth();
-  const { getRule } = useOrganizerRules();
+  const { getRule, openUpgradeModal } = useOrganizerRules();
   const [currentStep, setCurrentStep] = useState(1);
   const [subStep, setSubStep] = useState(1);
 
@@ -1004,19 +1004,7 @@ const CreateEvent = () => {
             icon: "warning",
             title: `Capacity capped at maximum ${limit} guests.`
           });
-          Swal.fire({
-            title: maxGuestsRule.title || 'Capacity Restricted',
-            text: maxGuestsRule.uxContext || `Your current plan only allows events with up to ${limit} guests.`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Upgrade Now',
-            cancelButtonText: 'Adjust Capacity',
-            confirmButtonColor: '#295FA7',
-          }).then((result) => {
-            if (result.isConfirmed) {
-              router.push('/organizer/dashboard/settings?tab=subscriptions');
-            }
-          });
+          openUpgradeModal('MAX_GUESTS');
         }
       }
 
@@ -1148,19 +1136,7 @@ const CreateEvent = () => {
     if (maxTicketsRule) {
       const limit = parseInt(maxTicketsRule.value as string);
       if (limit !== -1 && tickets.length >= limit) {
-        Swal.fire({
-          title: maxTicketsRule.title || 'Ticket Limit Reached',
-          text: maxTicketsRule.uxContext || `You have reached the maximum number of ticket categories (${limit}) allowed on your current plan.`,
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonText: 'Upgrade Now',
-          cancelButtonText: 'Later',
-          confirmButtonColor: '#295FA7',
-        }).then((result) => {
-          if (result.isConfirmed) {
-            router.push('/organizer/dashboard/settings?tab=subscriptions');
-          }
-        });
+        openUpgradeModal('MAX_TICKET_CATEGORIES');
         return;
       }
     }
@@ -1473,19 +1449,7 @@ const CreateEvent = () => {
     if (maxEventsRule && maxEventsRule.isRestricted) {
       const limit = parseInt(maxEventsRule.value as string);
       if (limit !== -1 && activeEventsCount >= limit) {
-        Swal.fire({
-          title: maxEventsRule.title || 'Event Limit Reached',
-          text: maxEventsRule.uxContext || `You have reached the maximum number of active events (${limit}) allowed on your current plan.`,
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonText: 'Upgrade Now',
-          cancelButtonText: 'Later',
-          confirmButtonColor: '#295FA7',
-        }).then((result) => {
-          if (result.isConfirmed) {
-            router.push('/organizer/dashboard/settings?tab=subscriptions');
-          }
-        });
+        openUpgradeModal('MAX_ACTIVE_EVENTS');
         return;
       }
     }
@@ -3230,12 +3194,7 @@ const CreateEvent = () => {
                           if (maxGuestsRule) {
                             const limit = parseInt(maxGuestsRule.value as string);
                             if (limit !== -1 && basicInfo.capacity > limit) {
-                              Swal.fire({
-                                title: maxGuestsRule.title || "Capacity Limit Exceeded",
-                                text: maxGuestsRule.uxContext || `The maximum guest capacity allowed is ${limit}.`,
-                                icon: "error",
-                                confirmButtonColor: "#295FA7",
-                              });
+                              openUpgradeModal('MAX_GUESTS');
                               return;
                             }
                           }
