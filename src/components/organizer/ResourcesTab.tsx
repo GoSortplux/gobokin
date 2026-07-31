@@ -20,6 +20,7 @@ import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import CustomLoader from '@/components/CustomLoader';
 import Swal from 'sweetalert2';
+import { translateError } from '@/utils/errors';
 
 interface Resource {
   id: string;
@@ -238,7 +239,8 @@ export const ResourcesTab: React.FC<ResourcesTabProps> = ({ eventId, ticketTypes
       }
     } catch (error) {
       console.error('Error notifying guests:', error);
-      Swal.fire('Error', 'Failed to send notifications.', 'error');
+      const errorMessage = translateError(error);
+      Swal.fire('Error', errorMessage, 'error');
     }
   };
 

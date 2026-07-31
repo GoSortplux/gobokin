@@ -14,3 +14,4 @@
  ✓ Compiled /events/[organizerSlug]/resources in 9.6s (2019 modules)
  GET /events/df0f427a-ca84-41eb-b8ad-0e47b2184532/resources 200 in 12989ms
  ✓ Compiled in 1404ms (830 modules)
+ ✓ Compiled in 5.7s (830 modules)
