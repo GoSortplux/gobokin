@@ -29,11 +29,28 @@ const NotificationCard = ({ notification, onMarkAsRead, onMarkAsUnread }: Notifi
 
   const organizerLink = isOrganizer ? (isTicketNotif ? '/organizer/dashboard/orders' : (isEventNotif ? '/organizer/dashboard/events' : null)) : null;
 
-  const finalLink = notification.link ||
-                    detectedLink ||
-                    (detectedBookingId ? `/booking/details/${detectedBookingId}` : null) ||
-                    (urlSlug ? `/venues/${urlSlug}/review` : null) ||
-                    organizerLink;
+  let finalLink = notification.link ||
+                  detectedLink ||
+                  (detectedBookingId ? `/booking/details/${detectedBookingId}` : null) ||
+                  (urlSlug ? `/venues/${urlSlug}/review` : null) ||
+                  organizerLink;
+
+  if (finalLink && (finalLink.includes('gobokin.com') || finalLink.startsWith('http'))) {
+    try {
+      const urlObj = new URL(finalLink);
+      if (urlObj.hostname.includes('gobokin.com') || urlObj.hostname.includes('localhost')) {
+        finalLink = urlObj.pathname + urlObj.search;
+      }
+    } catch (e) {
+      // fallback
+    }
+  }
+
+  // Intercept incorrect dashboard events resources link
+  if (finalLink && finalLink.includes('/dashboard/events/') && finalLink.endsWith('/resources')) {
+    finalLink = finalLink.replace('/dashboard/events/', '/events/').replace('/organizer/dashboard/events/', '/events/');
+  }
+
   const displayMessage = notification.message.replace(urlRegex, '').trim();
 
   return (
