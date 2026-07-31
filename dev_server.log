@@ -5,18 +5,16 @@
    ▲ Next.js 15.5.9
    - Local:        http://localhost:3000
    - Network:      http://192.168.0.2:3000
+   - Environments: .env
 
  ✓ Starting...
- ✓ Ready in 2s
+ ✓ Ready in 2.4s
  ○ Compiling /middleware ...
- ✓ Compiled /middleware in 828ms (114 modules)
- ○ Compiling /events/[organizerSlug]/resources ...
- ✓ Compiled /events/[organizerSlug]/resources in 9.6s (2019 modules)
- GET /events/df0f427a-ca84-41eb-b8ad-0e47b2184532/resources 200 in 12989ms
- ✓ Compiled in 1404ms (830 modules)
- ✓ Compiled in 5.7s (830 modules)
- ✓ Compiled in 2.1s (830 modules)
- ✓ Compiled in 6.1s (830 modules)
- ✓ Compiled in 3.6s (830 modules)
- ✓ Compiled in 697ms (830 modules)
- ✓ Compiled in 507ms (830 modules)
+ ✓ Compiled /middleware in 876ms (114 modules)
+ ○ Compiling /auth/login ...
+ ✓ Compiled /auth/login in 10.8s (1815 modules)
+ HEAD /auth/login 200 in 11770ms
+ GET /auth/login 200 in 168ms
+ ○ Compiling /auth/register ...
+ ✓ Compiled /auth/register in 1984ms (1791 modules)
+ GET /auth/register 200 in 2948ms

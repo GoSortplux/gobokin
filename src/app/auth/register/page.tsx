@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff } from 'lucide-react';
@@ -26,8 +26,73 @@ const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isPolicyModalOpen, setIsPolicyModalOpen] = useState(false);
+  const isPolicyAcceptedRef = useRef(isPolicyAccepted);
+
   const router = useRouter();
   const { login } = useAuth();
+
+  useEffect(() => {
+    isPolicyAcceptedRef.current = isPolicyAccepted;
+  }, [isPolicyAccepted]);
+
+  const handleGoogleCredentialResponse = async (response: { credential: string }) => {
+    setError('');
+    setIsLoading(true);
+    try {
+      const apiResponse = await api.post('/auth/google', { idToken: response.credential });
+      const { accessToken, user } = apiResponse.data.data || apiResponse.data;
+
+      await Swal.fire({
+        icon: 'success',
+        title: 'Registration Successful',
+        text: 'Successfully registered and logged in with Google!',
+        confirmButtonColor: '#295FA7',
+      });
+
+      if (accessToken && user) {
+        // Check for returnUrl in localStorage
+        const returnUrl = getSharedReturnUrl();
+        if (returnUrl) clearSharedReturnUrl();
+        const redirectPath = returnUrl || '/';
+        login(accessToken, user as User, redirectPath);
+      } else {
+        router.push('/auth/login');
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Google authentication failed.');
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const initGoogle = () => {
+      const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+      if (typeof window !== 'undefined' && window.google?.accounts?.id && clientId) {
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: handleGoogleCredentialResponse,
+        });
+        const container = document.getElementById("googleRegisterButtonDiv");
+        if (container) {
+          window.google.accounts.id.renderButton(container, {
+            theme: "outline",
+            width: "384"
+          });
+        }
+      }
+    };
+
+    // If Google object is already available
+    if (typeof window !== 'undefined' && window.google?.accounts?.id) {
+      initGoogle();
+    } else {
+      // Retry loading/initializing after a short delay if script is not fully parsed yet
+      const timer = setTimeout(() => {
+        initGoogle();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -85,6 +150,34 @@ const RegisterPage = () => {
     <AuthLayout>
       <div className="w-full max-w-md space-y-6">
         <h2 className="text-2xl font-bold text-center text-gray-900">Create an Account</h2>
+
+        {/* Google Register Button Container with Policy Restriction */}
+        <div className="flex flex-col items-center justify-center space-y-4">
+          <div className="relative w-full max-w-sm flex justify-center">
+            <div id="googleRegisterButtonDiv" className="w-full flex justify-center"></div>
+            {/* If policy is not accepted, overlay an absolute div to capture click & alert user */}
+            {!isPolicyAccepted && (
+              <div
+                className="absolute inset-0 cursor-pointer z-10 bg-transparent"
+                onClick={() => {
+                  setError('You must accept the Privacy Policy to continue with Google Sign-Up.');
+                  Swal.fire({
+                    icon: 'warning',
+                    title: 'Privacy Policy Required',
+                    text: 'Please accept the Privacy Policy before registering with Google.',
+                    confirmButtonColor: '#295FA7',
+                  });
+                }}
+              />
+            )}
+          </div>
+        </div>
+
+        <div className="relative flex items-center justify-center my-4">
+          <div className="border-t border-gray-300 w-full"></div>
+          <span className="absolute px-3 bg-white text-gray-500 text-sm">Or</span>
+        </div>
+
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div>
             <label className="block text-sm font-medium text-gray-700">Full Name</label>

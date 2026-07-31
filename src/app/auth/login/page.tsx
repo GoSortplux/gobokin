@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
@@ -10,6 +10,20 @@ import api from '@/services/api';
 import RoleSelectionModal from '@/components/auth/RoleSelectionModal';
 import { User } from '@/types';
 import CustomLoader from '@/components/CustomLoader';
+import Swal from '@/utils/sweetalert';
+
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (config: { client_id: string; callback: (response: { credential: string }) => void }) => void;
+          renderButton: (element: HTMLElement | null, options: { theme: string; size?: string; width?: string }) => void;
+        };
+      };
+    };
+  }
+}
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
@@ -34,6 +48,64 @@ const LoginPage = () => {
 
   const { login } = useAuth();
   const router = useRouter();
+
+  const handleGoogleCredentialResponse = async (response: { credential: string }) => {
+    setError('');
+    setIsLoading(true);
+    try {
+      const apiResponse = await api.post('/auth/google', { idToken: response.credential });
+      const { accessToken, user } = apiResponse.data.data || apiResponse.data;
+
+      // If user is not verified, redirect to verification page
+      if (user.isVerified === false || user.isEmailVerified === false) {
+        processLogin(accessToken, user, '/auth/verify-email');
+        return;
+      }
+
+      // Check if user has multiple roles
+      if (user.role && Array.isArray(user.role) && user.role.length > 1) {
+        setPendingLoginData({ accessToken, user });
+        setShowRoleModal(true);
+        setIsLoading(false);
+      } else {
+        processLogin(accessToken, user);
+      }
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Google authentication failed.';
+      setError(errorMessage);
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const initGoogle = () => {
+      const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+      if (typeof window !== 'undefined' && window.google?.accounts?.id && clientId) {
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: handleGoogleCredentialResponse,
+        });
+        const container = document.getElementById("googleButtonDiv");
+        if (container) {
+          window.google.accounts.id.renderButton(container, {
+            theme: "outline",
+            width: "384"
+          });
+        }
+      }
+    };
+
+    // If Google object is already available
+    if (typeof window !== 'undefined' && window.google?.accounts?.id) {
+      initGoogle();
+    } else {
+      // Retry loading/initializing after a short delay if script is not fully parsed yet
+      const timer = setTimeout(() => {
+        initGoogle();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -124,6 +196,18 @@ const LoginPage = () => {
       const errorMessage = err instanceof Error ? err.message : '';
       const lowerError = errorMessage.toLowerCase();
 
+      if (lowerError.includes('google sign-in') || lowerError.includes('google sign in')) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Google Account Detected',
+          text: errorMessage || "This account was created using Google Sign-In. Please sign in with Google or reset your password to log in.",
+          confirmButtonColor: '#295FA7',
+        });
+        setError(errorMessage);
+        setIsLoading(false);
+        return;
+      }
+
       if (lowerError.includes('verify') || lowerError.includes('verification')) {
         // If we have access token in the error response (depends on backend)
         const errorResponse = (err as { response?: { data?: { data?: { accessToken: string; user: Record<string, unknown> } } } }).response;
@@ -151,6 +235,16 @@ const LoginPage = () => {
       />
       <div className="w-full max-w-md space-y-6">
         <h2 className="text-2xl font-bold text-center text-gray-900">Login to your Account</h2>
+
+        {/* Google Sign-In Button Container */}
+        <div className="flex flex-col items-center justify-center space-y-4">
+          <div id="googleButtonDiv" className="w-full max-w-sm flex justify-center"></div>
+        </div>
+
+        <div className="relative flex items-center justify-center my-4">
+          <div className="border-t border-gray-300 w-full"></div>
+          <span className="absolute px-3 bg-white text-gray-500 text-sm">Or</span>
+        </div>
 
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div>
