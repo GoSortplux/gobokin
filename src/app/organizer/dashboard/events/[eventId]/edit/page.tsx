@@ -2138,6 +2138,13 @@ const EditEventContent = () => {
                                          <input type="text" placeholder="Title (e.g., CEO)" className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:border-primary transition-all shadow-sm" value={speaker.title || ""} onChange={(e) => updateSpeaker(idx, 'title', e.target.value)} />
                                       </div>
                                    </div>
+                                   <textarea
+                                      placeholder="Short bio about the speaker..."
+                                      rows={3}
+                                      className="w-full p-6 bg-white border border-gray-200 rounded-[1.5rem] text-sm font-bold outline-none focus:border-primary transition-all"
+                                      value={speaker.bio || ""}
+                                      onChange={(e) => updateSpeaker(idx, 'bio', e.target.value)}
+                                   />
                                 </div>
                              ))}
                           </div>
