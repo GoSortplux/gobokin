@@ -37,7 +37,7 @@ type TabType = 'profile' | 'subscriptions' | 'discounts';
 
 const OrganizerSettings = () => {
   const { user } = useAuth();
-  const { rules, loading: rulesLoading } = useOrganizerRules();
+  const { rules, title: rulesTitle, loading: rulesLoading } = useOrganizerRules();
   const [activeTab, setActiveTab] = useState<TabType>('profile');
   const [profile, setProfile] = useState<OrganizerProfile | null>(null);
   const [subscriptions, setSubscriptions] = useState<UserSubscription[]>([]);
@@ -646,7 +646,7 @@ const OrganizerSettings = () => {
                                     </div>
                                     <div>
                                         <div className="flex items-center gap-2">
-                                            <h3 className="text-xl font-black text-gray-900">Free Plan Account</h3>
+                                            <h3 className="text-xl font-black text-gray-900">{rulesTitle || "Free Plan Account"}</h3>
                                             <ChevronDown
                                                 size={20}
                                                 className={`text-gray-400 transition-transform duration-300 ${expandedSections.rules ? 'rotate-180' : ''}`}
