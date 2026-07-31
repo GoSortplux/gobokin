@@ -2,52 +2,18 @@
 > gobokin-app@0.1.0 dev
 > next dev
 
- ⚠ Port 3000 is in use by an unknown process, using available port 3001 instead.
    ▲ Next.js 15.5.9
-   - Local:        http://localhost:3001
-   - Network:      http://192.168.0.2:3001
-   - Environments: .env
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.2:3000
 
  ✓ Starting...
- ✓ Ready in 2.4s
- ✓ Compiled /middleware in 360ms (114 modules)
+ ✓ Ready in 2.1s
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 891ms (114 modules)
+ ○ Compiling /organizer/dashboard/events/create ...
+ ✓ Compiled /organizer/dashboard/events/create in 11.3s (1913 modules)
+ GET /organizer/dashboard/events/create?test_no_revert=true 200 in 12482ms
  ○ Compiling /auth/login ...
- ✓ Compiled /auth/login in 3.8s (1764 modules)
- GET /auth/login 200 in 5451ms
- ○ Compiling /auth/register ...
- ✓ Compiled /auth/register in 2.1s (1791 modules)
- GET /auth/register 200 in 2820ms
-<w> [webpack.cache.PackFileCacheStrategy] Caching failed f ✓ Compiled in 22.9s (1783 modules)
-<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: incorrect header check
- ○ Compiling / ...
- ✓ Compiled / in 7.3s (3762 modules)
- HEAD / 200 in 8515ms
-Compiling /_not-found ...
- ✓ Compiled /_not-found in 1788ms (1776 modules)
- HEAD /auth/register 404 in 2950ms
- ⨯ [Error: ENOENT: no such file or directory, open '/app/.next/server/app/auth/register/page.js'] {
-  errno: -2,
-  code: 'ENOENT',
-  syscall: 'open',
-  path: '/app/.next/server/app/auth/register/page.js',
-  page: '/auth/register'
-}
- ○ Compiling /_error ...
- ✓ Compiled /_error in 4s (2116 modules)
- HEAD /auth/register 500 in 4822ms
- HEAD /auth/register 200 in 667ms
- GET /auth/register 200 in 198ms
- GET /auth/register 200 in 222ms
- GET /auth/register 200 in 172ms
- GET /auth/register 200 in 196ms
- GET /auth/register 200 in 181ms
- GET /auth/register 200 in 174ms
- ○ Compiling / ...
- ✓ Compiled / in 7.2s (4017 modules)
- HEAD / 200 in 8253ms
- GET /auth/register 200 in 241ms
- GET /auth/register 200 in 225ms
- GET /auth/register 200 in 179ms
- GET /auth/register 200 in 268ms
- GET /auth/register 200 in 179ms
- GET /auth/register 200 in 195ms
+ ✓ Compiled /auth/login in 3.2s (1899 modules)
+ GET /auth/login 200 in 3458ms
+ GET /auth/login 200 in 84ms

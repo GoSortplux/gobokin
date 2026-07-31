@@ -203,10 +203,10 @@ const LivePreview = ({ basicInfo, mediaInfo, speakers, tickets, sessions, agenda
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all duration-300 ${
                     activeTab === tab
                       ? "bg-white text-primary shadow-sm border border-gray-100 scale-[1.02]"
-                      : "text-gray-400 hover:text-gray-600 hover:bg-gray-100/50"
+                      : "bg-secondary/10 text-secondary border border-secondary/20 shadow-sm shadow-secondary/5 ring-2 ring-secondary/10 animate-pulse hover:bg-secondary/20 hover:text-secondary hover:scale-[1.02]"
                   }`}
                 >
-                  <Icon size={12} className={activeTab === tab ? "text-primary" : "text-gray-400"} />
+                  <Icon size={12} className={activeTab === tab ? "text-primary" : "text-secondary"} />
                   <span>{label}</span>
                 </button>
               );
