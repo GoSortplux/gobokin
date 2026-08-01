@@ -688,6 +688,7 @@ const MyEvents = () => {
           }}
           eventId={selectedEventForWalkIn.id}
           tickets={selectedEventForWalkIn.tickets || []}
+          registrationFields={selectedEventForWalkIn.registrationFields || []}
           onSuccess={() => {
             fetchEvents();
           }}

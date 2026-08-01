@@ -2240,6 +2240,7 @@ const EventDetails = () => {
           onClose={() => setIsWalkInModalOpen(false)}
           eventId={event.id}
           tickets={event.tickets || []}
+          registrationFields={event.registrationFields || []}
           onSuccess={() => {
             // Refresh analytics if not staff
             if (!isStaff) {
