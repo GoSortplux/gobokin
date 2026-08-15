@@ -1521,6 +1521,19 @@ const HostEventPage = () => {
         return;
     }
 
+    for (let i = 0; i < validSessions.length; i++) {
+        const s = validSessions[i];
+        if (s.startTime && s.endTime) {
+            const start = new Date(s.startTime).getTime();
+            const end = new Date(s.endTime).getTime();
+            if (isNaN(start) || isNaN(end) || end < start) {
+                const name = s.title ? `"${s.title}"` : `#${i + 1}`;
+                Swal.fire("Validation Error", `Session ${name}: end time must be the same as or after start time.`, "error");
+                return;
+            }
+        }
+    }
+
     setIsFinalizing(true);
     Swal.showLoading();
     try {

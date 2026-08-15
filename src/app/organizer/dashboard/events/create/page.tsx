@@ -755,6 +755,16 @@ const CreateEvent = () => {
           // Filter out sessions without titles if agenda is not enabled
           const validSessions = sessions.filter(s => s.title.trim() !== "");
           if (validSessions.length > 0) {
+              for (const s of validSessions) {
+                  if (s.startTime && s.endTime) {
+                      const start = new Date(s.startTime).getTime();
+                      const end = new Date(s.endTime).getTime();
+                      if (isNaN(start) || isNaN(end) || end < start) {
+                          const name = s.title ? `"${s.title}"` : 'session';
+                          throw new Error(`Session ${name}: end time must be the same as or after start time.`);
+                      }
+                  }
+              }
               const sessionPayload = {
                   sessions: validSessions.map(({ id: _, ...rest }) => ({
                       title: rest.title,
@@ -1735,12 +1745,34 @@ const CreateEvent = () => {
       }
   };
 
+  const validateSessionDates = (sessionList: typeof sessions) => {
+      const validSessions = sessionList.filter(s => s.title.trim() !== "");
+      for (let i = 0; i < validSessions.length; i++) {
+          const s = validSessions[i];
+          if (s.startTime && s.endTime) {
+              const start = new Date(s.startTime).getTime();
+              const end = new Date(s.endTime).getTime();
+              if (isNaN(start) || isNaN(end) || end < start) {
+                  const name = s.title ? `"${s.title}"` : `#${i + 1}`;
+                  return `Session ${name}: end time must be the same as or after start time.`;
+              }
+          }
+      }
+      return null;
+  };
+
   const createSessions = async () => {
       if (!eventId) return;
 
       const validSessions = sessions.filter(s => s.title.trim() !== "");
       if (basicInfo.agendaEnabled && validSessions.length === 0) {
           Swal.fire("Validation Error", "At least one session is required when Agenda is enabled.", "error");
+          return;
+      }
+
+      const sessionDateError = validateSessionDates(sessions);
+      if (sessionDateError) {
+          Swal.fire("Validation Error", sessionDateError, "error");
           return;
       }
 

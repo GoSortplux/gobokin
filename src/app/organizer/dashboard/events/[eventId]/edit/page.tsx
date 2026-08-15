@@ -1293,6 +1293,16 @@ const EditEventContent = () => {
         return;
     }
 
+    if (session.startTime && session.endTime) {
+        const start = new Date(session.startTime).getTime();
+        const end = new Date(session.endTime).getTime();
+        if (isNaN(start) || isNaN(end) || end < start) {
+            const name = session.title ? `"${session.title}"` : 'session';
+            Swal.fire("Validation Error", `Session ${name}: end time must be the same as or after start time.`, "error");
+            return;
+        }
+    }
+
     try {
       Swal.showLoading();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1543,6 +1553,21 @@ const EditEventContent = () => {
       }
 
       // 3. Save Sessions (Handle both new and existing)
+      const validSessions = sessions.filter(s => s.title?.trim());
+      for (let i = 0; i < validSessions.length; i++) {
+          const s = validSessions[i];
+          if (s.startTime && s.endTime) {
+              const start = new Date(s.startTime).getTime();
+              const end = new Date(s.endTime).getTime();
+              if (isNaN(start) || isNaN(end) || end < start) {
+                  const name = s.title ? `"${s.title}"` : `#${i + 1}`;
+                  Swal.fire("Validation Error", `Session ${name}: end time must be the same as or after start time.`, "error");
+                  setLoading(false);
+                  return;
+              }
+          }
+      }
+
       const existingSessions = sessions.filter(s => s.id && !s.id.includes('.'));
       const newSessions = sessions.filter(s => !s.id || s.id.includes('.'));
 
