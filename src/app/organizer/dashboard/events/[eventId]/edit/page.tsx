@@ -1293,16 +1293,6 @@ const EditEventContent = () => {
         return;
     }
 
-    if (session.startTime && session.endTime) {
-        const start = new Date(session.startTime).getTime();
-        const end = new Date(session.endTime).getTime();
-        if (isNaN(start) || isNaN(end) || end < start) {
-            const name = session.title ? `"${session.title}"` : 'session';
-            Swal.fire("Validation Error", `Session ${name}: end time must be the same as or after start time.`, "error");
-            return;
-        }
-    }
-
     try {
       Swal.showLoading();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1368,6 +1358,16 @@ const EditEventContent = () => {
     if (!session.id || session.id.includes('.')) {
       Swal.fire("Info", "This is a new session. Please use 'Finalize & Update' to save it.", "info");
       return;
+    }
+
+    if (session.startTime && session.endTime) {
+        const start = new Date(session.startTime).getTime();
+        const end = new Date(session.endTime).getTime();
+        if (isNaN(start) || isNaN(end) || end < start) {
+            const name = session.title ? `"${session.title}"` : 'session';
+            Swal.fire("Validation Error", `Session ${name}: end time must be the same as or after start time.`, "error");
+            return;
+        }
     }
 
     try {
