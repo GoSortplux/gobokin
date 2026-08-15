@@ -2876,6 +2876,19 @@ const EditEventContent = () => {
                             </div>
                         ))}
 
+                        {sessions.length > 0 && (
+                            <div className="pt-4 flex justify-center">
+                                <button
+                                    type="button"
+                                    onClick={() => setSessions([...sessions, { id: Math.random().toString(), title: "", description: "", startTime: "", endTime: "", location: "", speakerIds: [], speakerNames: [] }])}
+                                    className="flex items-center gap-3 bg-white text-primary border-2 border-primary/20 hover:border-primary font-black px-8 py-4 rounded-3xl hover:bg-primary/5 transition-all text-[10px] uppercase tracking-[0.2em] shadow-sm active:scale-95 group"
+                                >
+                                    <Plus size={18} className="group-hover:rotate-90 transition-transform duration-500" />
+                                    Add Another Session
+                                </button>
+                            </div>
+                        )}
+
                         {sessions.length === 0 && (
                             <div className="py-20 bg-gray-50/50 rounded-[3rem] border border-gray-100 flex flex-col items-center justify-center text-center px-10">
                                 <p className="text-xs font-black text-gray-400 uppercase tracking-widest">No sessions defined yet.</p>

@@ -2551,6 +2551,17 @@ const HostEventPage = () => {
                            </div>
                         </div>
                       ))}
+
+                      <div className="pt-4 flex justify-center">
+                        <button
+                          type="button"
+                          onClick={addSession}
+                          className="flex items-center gap-2 px-6 py-3 bg-white text-primary border-2 border-primary/20 hover:border-primary font-semibold rounded-xl transition-all text-xs uppercase tracking-wider shadow-sm active:scale-95 group"
+                        >
+                          <Plus size={16} className="group-hover:rotate-90 transition-transform duration-500" />
+                          Add Another Session
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}

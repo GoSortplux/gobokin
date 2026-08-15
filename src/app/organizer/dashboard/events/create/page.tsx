@@ -3311,6 +3311,17 @@ const CreateEvent = () => {
                           </div>
                       </div>
                   ))}
+
+                  <div className="pt-4 flex justify-center">
+                    <button
+                      type="button"
+                      onClick={addSession}
+                      className="flex items-center gap-3 bg-white text-primary border-2 border-primary/20 hover:border-primary font-black px-8 py-4 rounded-[2rem] hover:bg-primary/5 transition-all text-[10px] uppercase tracking-[0.25em] shadow-sm active:scale-95 group"
+                    >
+                      <Plus size={18} className="group-hover:rotate-90 transition-transform duration-500" />
+                      Add Another Session
+                    </button>
+                  </div>
                  </div>
               </div>
             )}
