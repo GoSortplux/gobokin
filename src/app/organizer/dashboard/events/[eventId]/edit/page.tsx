@@ -1392,229 +1392,229 @@ const EditEventContent = () => {
     }
   };
 
-  // Consolidate Save Handler
+  // Save current step only
   const saveAllChanges = async (shouldRedirect = true) => {
-    // Validate Ticket Names
-    const emptyTicket = tickets.find(t => !t.name || t.name.trim() === "");
-    if (emptyTicket) {
-        Swal.fire("Validation Error", "All tickets must have a name.", "error");
-        return;
-    }
-
-    // Validate Sessions if agenda is enabled
-    if (basicInfo.agendaEnabled) {
-        const activeSessions = sessions.filter(s => s.title?.trim());
-        if (activeSessions.length === 0) {
-            Swal.fire("Validation Error", "With Agenda enabled, you must define at least one session.", "error");
-            setCurrentStep(3);
-            return;
-        }
-    }
-
     setSaving(true);
     try {
       Swal.fire({
           title: 'Saving Changes...',
-          text: 'Please wait while we process your updates and upload any new media.',
+          text: 'Please wait while we process your updates.',
           allowOutsideClick: false,
           didOpen: () => {
               Swal.showLoading();
           }
       });
 
-      // 1. Handle deferred uploads
-      let finalBannerUrl = mediaInfo.bannerUrl;
-      if (bannerFile) {
-          finalBannerUrl = await uploadMedia(bannerFile);
-      }
+      if (currentStep === 1) {
+        // Step 1: Event Details & Media
+        let finalBannerUrl = mediaInfo.bannerUrl;
+        if (bannerFile) {
+            finalBannerUrl = await uploadMedia(bannerFile);
+        }
 
-      setIsUploading(true);
-      const finalMediaUrls = await Promise.all(mediaInfo.mediaUrls.map(async (item) => {
-          if (typeof item === 'string') return item;
-          return await uploadMedia(item.file);
-      }));
+        setIsUploading(true);
+        const finalMediaUrls = await Promise.all(mediaInfo.mediaUrls.map(async (item) => {
+            if (typeof item === 'string') return item;
+            return await uploadMedia(item.file);
+        }));
 
-      const finalSpeakers = await Promise.all(speakers.map(async (s) => {
-          let imageUrl = s.imageUrl;
-          if (s.pendingFile) {
-              imageUrl = await uploadMedia(s.pendingFile);
-          }
-          return {
-              ...s,
-              imageUrl: imageUrl,
-              pendingFile: undefined,
-              previewUrl: undefined
-          };
-      }));
-      setIsUploading(false);
+        const finalSpeakers = await Promise.all(speakers.map(async (s) => {
+            let imageUrl = s.imageUrl;
+            if (s.pendingFile) {
+                imageUrl = await uploadMedia(s.pendingFile);
+            }
+            return {
+                ...s,
+                imageUrl: imageUrl,
+                pendingFile: undefined,
+                previewUrl: undefined
+            };
+        }));
+        setIsUploading(false);
 
-      // 2. Save Event Base Details
-      const basePayload = {
-        title: basicInfo.title,
-        description: basicInfo.description,
-        slug: basicInfo.slug,
-        isPublic: basicInfo.isPublic,
-        type: basicInfo.type,
-        startDate: basicInfo.startDate ? new Date(basicInfo.startDate).toISOString() : undefined,
-        endDate: basicInfo.endDate ? new Date(basicInfo.endDate).toISOString() : undefined,
-        location: basicInfo.location,
-        virtualLink: basicInfo.virtualLink,
-        capacity: basicInfo.capacity,
-        category: basicInfo.category,
-        agendaEnabled: basicInfo.agendaEnabled,
-        hideLocationDetails: basicInfo.hideLocationDetails,
-        isWaitlistEnabled: basicInfo.isWaitlistEnabled,
-        tags: basicInfo.tags,
-        speakers: finalSpeakers,
-        registrationMode: registration.mode,
-        isGroupingEnabled: registration.isGroupingEnabled,
-        enforceUniqueGroupNames: registration.enforceUniqueGroupNames,
-        registrationFields: ensureCorrectDependencyOrder(registration.fields).map(f => ({
-          name: f.name || f.label.toLowerCase().replace(/\s+/g, '-'),
-          label: f.label,
-          type: f.type,
-          required: f.required,
-          isPerAttendee: f.isPerAttendee,
-          options: (f.type === 'select' || f.type === 'checkbox') && !f.source ? f.options : undefined,
-          source: f.source || undefined,
-          dependsOn: f.dependsOn || undefined
-        })),
-        bannerUrl: finalBannerUrl,
-        mediaUrls: finalMediaUrls,
-        remindersEnabled: basicInfo.remindersEnabled || false,
-        reminderCustomText: basicInfo.remindersEnabled ? (basicInfo.reminderCustomText || undefined) : undefined,
-        reminderFrequencies: basicInfo.remindersEnabled ? (basicInfo.useDefaultFrequencies ? [] : basicInfo.reminderFrequencies) : undefined,
-      };
+        const basePayload = {
+          title: basicInfo.title,
+          description: basicInfo.description,
+          slug: basicInfo.slug,
+          isPublic: basicInfo.isPublic,
+          type: basicInfo.type,
+          startDate: basicInfo.startDate ? new Date(basicInfo.startDate).toISOString() : undefined,
+          endDate: basicInfo.endDate ? new Date(basicInfo.endDate).toISOString() : undefined,
+          location: basicInfo.location,
+          virtualLink: basicInfo.virtualLink,
+          capacity: basicInfo.capacity,
+          category: basicInfo.category,
+          agendaEnabled: basicInfo.agendaEnabled,
+          hideLocationDetails: basicInfo.hideLocationDetails,
+          isWaitlistEnabled: basicInfo.isWaitlistEnabled,
+          tags: basicInfo.tags,
+          speakers: finalSpeakers,
+          registrationMode: registration.mode,
+          isGroupingEnabled: registration.isGroupingEnabled,
+          enforceUniqueGroupNames: registration.enforceUniqueGroupNames,
+          registrationFields: ensureCorrectDependencyOrder(registration.fields).map(f => ({
+            name: f.name || f.label.toLowerCase().replace(/\s+/g, '-'),
+            label: f.label,
+            type: f.type,
+            required: f.required,
+            isPerAttendee: f.isPerAttendee,
+            options: (f.type === 'select' || f.type === 'checkbox') && !f.source ? f.options : undefined,
+            source: f.source || undefined,
+            dependsOn: f.dependsOn || undefined
+          })),
+          bannerUrl: finalBannerUrl,
+          mediaUrls: finalMediaUrls,
+          remindersEnabled: basicInfo.remindersEnabled || false,
+          reminderCustomText: basicInfo.remindersEnabled ? (basicInfo.reminderCustomText || undefined) : undefined,
+          reminderFrequencies: basicInfo.remindersEnabled ? (basicInfo.useDefaultFrequencies ? [] : basicInfo.reminderFrequencies) : undefined,
+        };
 
-      // Fix: Remove restricted fields
-      const { status: _status, ...patchPayload } = basePayload as Record<string, unknown>;
-      await api.patch(`/events/${eventId}`, patchPayload);
+        const { status: _status, ...patchPayload } = basePayload as Record<string, unknown>;
+        await api.patch(`/events/${eventId}`, patchPayload);
 
-      // 2. Save Tickets (Handle both new and existing)
-      const existingTickets = tickets.filter(t => t.id && !t.id.includes('.'));
-      const newTickets = tickets.filter(t => !t.id || t.id.includes('.'));
+        setBannerFile(null);
+        setMediaInfo(prev => ({ ...prev, bannerUrl: finalBannerUrl, mediaUrls: finalMediaUrls }));
+        setSpeakers(finalSpeakers);
 
-      for (const ticket of existingTickets) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const payload: any = {
-              name: ticket.name,
-              description: ticket.description,
-              price: ticket.type === 'FREE' ? 0 : ticket.price,
-              type: ticket.type,
-              totalQuantity: Math.max(1, ticket.totalQuantity || 1),
-              groupSize: ticket.groupSize,
-              allocationType: ticket.allocationType,
-              maxPerOrder: ticket.maxPerOrder,
-              salesStart: (ticket.salesStart ? new Date(ticket.salesStart) : new Date()).toISOString(),
-              salesEnd: ticket.salesEnd ? new Date(ticket.salesEnd).toISOString() : (basicInfo.endDate ? new Date(basicInfo.endDate).toISOString() : undefined),
-              isOffline: ticket.isOffline,
-              isSpecial: ticket.isSpecial || false,
-              quantityDiscounts: ticket.quantityDiscounts
-          };
+      } else if (currentStep === 2) {
+        // Step 2: Tickets
+        const emptyTicket = tickets.find(t => !t.name || t.name.trim() === "");
+        if (emptyTicket) {
+            Swal.fire("Validation Error", "All tickets must have a name.", "error");
+            setSaving(false);
+            return;
+        }
 
-          if (ticket.type !== 'FREE' && (ticket.earlyBirdLimit || 0) > 0 && (ticket.earlyBirdPrice || 0) > 0) {
-              payload.earlyBirdPrice = ticket.earlyBirdPrice;
-              payload.earlyBirdLimit = ticket.earlyBirdLimit;
-              payload.earlyBirdExpiry = ticket.earlyBirdExpiry ? new Date(ticket.earlyBirdExpiry).toISOString() : undefined;
-          }
-          await api.patch(`/events/${eventId}/tickets/${ticket.id}`, payload);
-      }
+        const existingTickets = tickets.filter(t => t.id && !t.id.includes('.'));
+        const newTickets = tickets.filter(t => !t.id || t.id.includes('.'));
 
-      if (newTickets.length > 0) {
-          const ticketPayload = {
-              tickets: newTickets.map(t => {
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  const item: any = {
-                      name: t.name,
-                      description: t.description,
-                      price: t.type === 'FREE' ? 0 : t.price,
-                      type: t.type,
-                      totalQuantity: Math.max(1, t.totalQuantity || 1),
-                      groupSize: t.groupSize,
-                      allocationType: t.allocationType,
-                      maxPerOrder: t.maxPerOrder,
-                      salesStart: (t.salesStart ? new Date(t.salesStart) : new Date()).toISOString(),
-                      salesEnd: t.salesEnd ? new Date(t.salesEnd).toISOString() : (basicInfo.endDate ? new Date(basicInfo.endDate).toISOString() : undefined),
-                      isOffline: t.isOffline,
-                      isSpecial: t.isSpecial || false,
-                      quantityDiscounts: t.quantityDiscounts
-                  };
+        for (const ticket of existingTickets) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const payload: any = {
+                name: ticket.name,
+                description: ticket.description,
+                price: ticket.type === 'FREE' ? 0 : ticket.price,
+                type: ticket.type,
+                totalQuantity: Math.max(1, ticket.totalQuantity || 1),
+                groupSize: ticket.groupSize,
+                allocationType: ticket.allocationType,
+                maxPerOrder: ticket.maxPerOrder,
+                salesStart: (ticket.salesStart ? new Date(ticket.salesStart) : new Date()).toISOString(),
+                salesEnd: ticket.salesEnd ? new Date(ticket.salesEnd).toISOString() : (basicInfo.endDate ? new Date(basicInfo.endDate).toISOString() : undefined),
+                isOffline: ticket.isOffline,
+                isSpecial: ticket.isSpecial || false,
+                quantityDiscounts: ticket.quantityDiscounts
+            };
 
-                  if (t.type !== 'FREE' && (t.earlyBirdLimit || 0) > 0 && (t.earlyBirdPrice || 0) > 0) {
-                      item.earlyBirdPrice = t.earlyBirdPrice;
-                      item.earlyBirdLimit = t.earlyBirdLimit;
-                      item.earlyBirdExpiry = t.earlyBirdExpiry ? new Date(t.earlyBirdExpiry).toISOString() : undefined;
-                  }
+            if (ticket.type !== 'FREE' && (ticket.earlyBirdLimit || 0) > 0 && (ticket.earlyBirdPrice || 0) > 0) {
+                payload.earlyBirdPrice = ticket.earlyBirdPrice;
+                payload.earlyBirdLimit = ticket.earlyBirdLimit;
+                payload.earlyBirdExpiry = ticket.earlyBirdExpiry ? new Date(ticket.earlyBirdExpiry).toISOString() : undefined;
+            }
+            await api.patch(`/events/${eventId}/tickets/${ticket.id}`, payload);
+        }
 
-                  return item;
-              })
-          };
-          await api.post(`/events/${eventId}/tickets`, ticketPayload);
-      }
+        if (newTickets.length > 0) {
+            const ticketPayload = {
+                tickets: newTickets.map(t => {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const item: any = {
+                        name: t.name,
+                        description: t.description,
+                        price: t.type === 'FREE' ? 0 : t.price,
+                        type: t.type,
+                        totalQuantity: Math.max(1, t.totalQuantity || 1),
+                        groupSize: t.groupSize,
+                        allocationType: t.allocationType,
+                        maxPerOrder: t.maxPerOrder,
+                        salesStart: (t.salesStart ? new Date(t.salesStart) : new Date()).toISOString(),
+                        salesEnd: t.salesEnd ? new Date(t.salesEnd).toISOString() : (basicInfo.endDate ? new Date(basicInfo.endDate).toISOString() : undefined),
+                        isOffline: t.isOffline,
+                        isSpecial: t.isSpecial || false,
+                        quantityDiscounts: t.quantityDiscounts
+                    };
 
-      // 3. Save Sessions (Handle both new and existing)
-      const validSessions = sessions.filter(s => s.title?.trim());
-      for (let i = 0; i < validSessions.length; i++) {
-          const s = validSessions[i];
-          if (s.startTime && s.endTime) {
-              const start = new Date(s.startTime).getTime();
-              const end = new Date(s.endTime).getTime();
-              if (isNaN(start) || isNaN(end) || end < start) {
-                  const name = s.title ? `"${s.title}"` : `#${i + 1}`;
-                  Swal.fire("Validation Error", `Session ${name}: end time must be the same as or after start time.`, "error");
-                  setLoading(false);
-                  return;
-              }
-          }
-      }
+                    if (t.type !== 'FREE' && (t.earlyBirdLimit || 0) > 0 && (t.earlyBirdPrice || 0) > 0) {
+                        item.earlyBirdPrice = t.earlyBirdPrice;
+                        item.earlyBirdLimit = t.earlyBirdLimit;
+                        item.earlyBirdExpiry = t.earlyBirdExpiry ? new Date(t.earlyBirdExpiry).toISOString() : undefined;
+                    }
 
-      const existingSessions = sessions.filter(s => s.id && !s.id.includes('.'));
-      const newSessions = sessions.filter(s => !s.id || s.id.includes('.'));
+                    return item;
+                })
+            };
+            await api.post(`/events/${eventId}/tickets`, ticketPayload);
+        }
 
-      for (const session of existingSessions) {
-          const payload = {
-              title: session.title,
-              description: session.description,
-              startTime: session.startTime ? new Date(session.startTime).toISOString() : undefined,
-              endTime: session.endTime ? new Date(session.endTime).toISOString() : undefined,
-              location: session.location,
-              room: session.room,
-              stage: session.stage,
-              sessionType: session.sessionType,
-              speakerIds: session.speakerIds,
-              speakerNames: session.speakerNames
-          };
-          await api.patch(`/events/${eventId}/sessions/${session.id}`, payload);
-      }
+      } else if (currentStep === 3) {
+        // Step 3: Sessions
+        if (basicInfo.agendaEnabled) {
+            const activeSessions = sessions.filter(s => s.title?.trim());
+            if (activeSessions.length === 0) {
+                Swal.fire("Validation Error", "With Agenda enabled, you must define at least one session.", "error");
+                setSaving(false);
+                return;
+            }
+        }
 
-      if (newSessions.length > 0) {
-          const filteredNewSessions = newSessions.filter(s => s.title?.trim());
-          if (filteredNewSessions.length > 0) {
-              const sessionPayload = {
-                  sessions: filteredNewSessions.map(s => ({
-                      title: s.title,
-                      description: s.description,
-                      startTime: s.startTime ? new Date(s.startTime).toISOString() : undefined,
-                      endTime: s.endTime ? new Date(s.endTime).toISOString() : undefined,
-                      location: s.location,
-                      room: s.room,
-                      stage: s.stage,
-                      sessionType: s.sessionType,
-                      speakerIds: s.speakerIds,
-                      speakerNames: s.speakerNames
-                  }))
-              };
-              await api.post(`/events/${eventId}/sessions`, sessionPayload);
-          }
+        const validSessions = sessions.filter(s => s.title?.trim());
+        for (let i = 0; i < validSessions.length; i++) {
+            const s = validSessions[i];
+            if (s.startTime && s.endTime) {
+                const start = new Date(s.startTime).getTime();
+                const end = new Date(s.endTime).getTime();
+                if (isNaN(start) || isNaN(end) || end < start) {
+                    const name = s.title ? `"${s.title}"` : `#${i + 1}`;
+                    Swal.fire("Validation Error", `Session ${name}: end time must be the same as or after start time.`, "error");
+                    setSaving(false);
+                    return;
+                }
+            }
+        }
+
+        const existingSessions = sessions.filter(s => s.id && !s.id.includes('.'));
+        const newSessions = sessions.filter(s => !s.id || s.id.includes('.'));
+
+        for (const session of existingSessions) {
+            const payload = {
+                title: session.title,
+                description: session.description,
+                startTime: session.startTime ? new Date(session.startTime).toISOString() : undefined,
+                endTime: session.endTime ? new Date(session.endTime).toISOString() : undefined,
+                location: session.location,
+                room: session.room,
+                stage: session.stage,
+                sessionType: session.sessionType,
+                speakerIds: session.speakerIds,
+                speakerNames: session.speakerNames
+            };
+            await api.patch(`/events/${eventId}/sessions/${session.id}`, payload);
+        }
+
+        if (newSessions.length > 0) {
+            const filteredNewSessions = newSessions.filter(s => s.title?.trim());
+            if (filteredNewSessions.length > 0) {
+                const sessionPayload = {
+                    sessions: filteredNewSessions.map(s => ({
+                        title: s.title,
+                        description: s.description,
+                        startTime: s.startTime ? new Date(s.startTime).toISOString() : undefined,
+                        endTime: s.endTime ? new Date(s.endTime).toISOString() : undefined,
+                        location: s.location,
+                        room: s.room,
+                        stage: s.stage,
+                        sessionType: s.sessionType,
+                        speakerIds: s.speakerIds,
+                        speakerNames: s.speakerNames
+                    }))
+                };
+                await api.post(`/events/${eventId}/sessions`, sessionPayload);
+            }
+        }
       }
 
       await fetchEvent();
-      Swal.fire("Success", "Event updated successfully", "success");
-
-      // Clear pending uploads state
-      setBannerFile(null);
-      setMediaInfo(prev => ({ ...prev, bannerUrl: finalBannerUrl, mediaUrls: finalMediaUrls }));
-      setSpeakers(finalSpeakers);
+      Swal.fire("Success", "Changes saved successfully", "success");
 
       if (shouldRedirect) {
           try {
