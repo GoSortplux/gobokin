@@ -1,7 +1,8 @@
 "use client";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { format } from "date-fns";
+import { useRouter } from "next/navigation";
 import {
   Calendar,
   MapPin,
@@ -12,7 +13,8 @@ import {
   Ticket as TicketIcon,
   Clock,
   RotateCcw,
-  CreditCard
+  CreditCard,
+  FolderDown
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "@/services/api";
@@ -29,14 +31,43 @@ interface EventTicketCardProps {
 }
 
 const EventTicketCard: React.FC<EventTicketCardProps> = ({ registration, onViewDetails }) => {
+  const router = useRouter();
   const [showCalendarOptions, setShowCalendarOptions] = useState(false);
   const [showRefundModal, setShowRefundModal] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [showBreakdownModal, setShowBreakdownModal] = useState(false);
   const [pricingBreakdown, setPricingBreakdown] = useState<PricingBreakdown | null>(null);
   const [checkoutUrl, setCheckoutUrl] = useState("");
+  const [hasResources, setHasResources] = useState(false);
   const calendarRef = useRef<HTMLDivElement>(null);
   useOnClickOutside(calendarRef, () => setShowCalendarOptions(false));
+
+  useEffect(() => {
+    let active = true;
+    const checkResources = async () => {
+      try {
+        const response = await api.get(`/events/${registration.event.id}/resources`, {
+          headers: {
+            'x-user-role': 'guest',
+            'x-guest-ticket-types': registration.ticket.id
+          }
+        });
+        if (active && response.data?.success && Array.isArray(response.data.data) && response.data.data.length > 0) {
+          setHasResources(true);
+        }
+      } catch (error) {
+        // Silently handle error if resources fetch fails or returns 403/404
+      }
+    };
+
+    if (registration?.event?.id) {
+      checkResources();
+    }
+
+    return () => {
+      active = false;
+    };
+  }, [registration.event.id, registration.ticket.id]);
 
   const handlePayNow = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -237,6 +268,20 @@ const EventTicketCard: React.FC<EventTicketCardProps> = ({ registration, onViewD
           </div>
 
           <div className="flex items-center gap-2">
+            {hasResources && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push(`/events/${registration.event.id}/resources`);
+                }}
+                className="px-3 h-10 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 transition-all flex items-center gap-1.5 border border-blue-100 text-xs font-bold"
+                title="Event Resources Available"
+              >
+                <FolderDown size={16} />
+                <span className="hidden sm:inline">Resources</span>
+              </button>
+            )}
+
             {canRequestRefund && (
                <button
                 onClick={(e) => {
