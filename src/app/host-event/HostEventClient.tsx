@@ -1622,6 +1622,11 @@ const HostEventPage = () => {
         return;
     }
 
+    if (!user.hasAcceptedOrganizerPolicy) {
+        setShowOrganizerPolicyModal(true);
+        return;
+    }
+
     setIsFinalizing(true);
     Swal.showLoading();
 
