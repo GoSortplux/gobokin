@@ -2494,21 +2494,13 @@ const HostEventPage = () => {
                               </div>
                               <div className="space-y-2">
                                  <label className="text-xs font-semibold text-gray-700 ml-1">Session Type</label>
-                                 <div className="relative">
-                                    <select
-                                       className="w-full px-5 py-3 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:border-primary outline-none appearance-none pr-10"
-                                       value={session.sessionType || ""}
-                                       onChange={(e) => updateSession(session.id!, "sessionType", e.target.value)}
-                                    >
-                                       <option value="">Unspecified</option>
-                                       <option value="keynote">Keynote</option>
-                                       <option value="workshop">Workshop</option>
-                                       <option value="panel">Panel Discussion</option>
-                                       <option value="networking">Networking</option>
-                                       <option value="break">Break/Meal</option>
-                                    </select>
-                                    <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                                 </div>
+                                 <input
+                                    type="text"
+                                    placeholder="e.g., Keynote, Workshop, Panel"
+                                    className="w-full px-5 py-3 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:border-primary outline-none"
+                                    value={session.sessionType || ""}
+                                    onChange={(e) => updateSession(session.id!, "sessionType", e.target.value)}
+                                 />
                               </div>
 
                               <div className="space-y-3 md:col-span-2">

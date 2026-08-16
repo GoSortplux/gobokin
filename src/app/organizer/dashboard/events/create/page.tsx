@@ -3246,27 +3246,19 @@ const CreateEvent = () => {
                                    </div>
                                 </div>
 
-                                <div className="space-y-3">
-                                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
+                                <div className="space-y-2 sm:space-y-3">
+                                   <label className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                                        <Zap size={12} className="text-primary" />
                                        Session Type
                                    </label>
-                                   <div className="relative">
-                                      <select
-                                         className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm appearance-none pr-12"
-                                         value={session.sessionType || ""}
-                                         onBlur={handleBlur}
-                                         onChange={(e) => updateSession(session.id, "sessionType", e.target.value)}
-                                      >
-                                         <option value="">Unspecified</option>
-                                         <option value="keynote">Keynote</option>
-                                         <option value="workshop">Workshop</option>
-                                         <option value="panel">Panel Discussion</option>
-                                         <option value="networking">Networking</option>
-                                         <option value="break">Break/Meal</option>
-                                      </select>
-                                      <ChevronDown size={18} className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                                   </div>
+                                   <input
+                                      type="text"
+                                      placeholder="e.g., Keynote, Workshop, Panel"
+                                      className="w-full p-3.5 sm:p-6 bg-white border border-gray-300 rounded-xl sm:rounded-3xl text-xs sm:text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
+                                      value={session.sessionType || ""}
+                                      onBlur={handleBlur}
+                                      onChange={(e) => updateSession(session.id, "sessionType", e.target.value)}
+                                   />
                                 </div>
 
                                 <div className={`space-y-3 ${showPreview ? "2xl:col-span-2" : "md:col-span-2"}`}>

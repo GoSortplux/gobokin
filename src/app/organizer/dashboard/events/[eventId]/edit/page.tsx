@@ -2853,17 +2853,13 @@ const EditEventContent = () => {
 
                                     <div className="space-y-2 sm:space-y-3">
                                         <label className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Session Type</label>
-                                        <div className="relative">
-                                            <select className="w-full p-3.5 sm:p-4 bg-white border border-gray-300 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold outline-none focus:border-primary transition-all appearance-none" value={session.sessionType || ""} onChange={(e) => updateSession(session.id, "sessionType", e.target.value)}>
-                                                <option value="">Unspecified</option>
-                                                <option value="keynote">Keynote</option>
-                                                <option value="workshop">Workshop</option>
-                                                <option value="panel">Panel Discussion</option>
-                                                <option value="networking">Networking</option>
-                                                <option value="break">Break/Meal</option>
-                                            </select>
-                                            <ChevronDown size={14} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                                        </div>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g., Keynote, Workshop, Panel"
+                                            className="w-full p-3.5 sm:p-4 bg-white border border-gray-300 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold outline-none focus:border-primary transition-all"
+                                            value={session.sessionType || ""}
+                                            onChange={(e) => updateSession(session.id, "sessionType", e.target.value)}
+                                        />
                                     </div>
 
                                     <div className={`space-y-5 pt-4 ${showPreview ? "2xl:col-span-3" : "md:col-span-2 lg:col-span-3"}`}>
