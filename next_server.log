@@ -19,3 +19,5 @@
  GET /organizer/dashboard/events/create?test_no_revert=true 200 in 137ms
  GET /auth/login 200 in 55ms
  ✓ Compiled in 5.7s (1855 modules)
+ ✓ Compiled in 2.8s (845 modules)
+ ✓ Compiled in 1343ms (845 modules)

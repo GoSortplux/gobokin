@@ -3141,81 +3141,81 @@ const CreateEvent = () => {
                  <div className="space-y-8">
                   {sessions.map((session, index) => (
                       <div key={session.id} className="relative group animate-in slide-in-from-left-8 duration-500" style={{ animationDelay: `${index * 100}ms` }}>
-                          <div className="bg-gray-50/50 rounded-[3rem] p-8 md:p-12 space-y-10 border border-gray-100 transition-all duration-700 hover:bg-white hover:shadow-3xl hover:shadow-gray-200/50 relative overflow-hidden group/card">
+                          <div className="bg-gray-50/50 rounded-2xl sm:rounded-[3rem] p-4 sm:p-8 md:p-12 space-y-6 sm:space-y-10 border border-gray-100 transition-all duration-700 hover:bg-white hover:shadow-3xl hover:shadow-gray-200/50 relative overflow-hidden group/card">
                              {/* Floating Index Decor */}
                              <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl opacity-0 group-hover/card:opacity-100 transition-opacity"></div>
 
-                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative z-10">
-                                <div className="flex items-center gap-5">
-                                    <div className="w-14 h-14 rounded-2xl bg-white text-primary flex items-center justify-center font-black text-xl shadow-xl shadow-gray-200/50 border border-gray-100 group-hover/card:bg-primary group-hover/card:text-white transition-all duration-500">
+                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 relative z-10">
+                                <div className="flex items-center gap-3 sm:gap-5">
+                                    <div className="w-10 h-10 sm:w-14 sm:h-14 shrink-0 rounded-xl sm:rounded-2xl bg-white text-primary flex items-center justify-center font-black text-sm sm:text-xl shadow-xl shadow-gray-200/50 border border-gray-100 group-hover/card:bg-primary group-hover/card:text-white transition-all duration-500">
                                         {index + 1}
                                     </div>
-                                    <div>
-                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-1">Session Protocol</p>
-                                        <h4 className="text-xl font-black text-gray-900 tracking-tight">{session.title || 'Draft Session'}</h4>
+                                    <div className="min-w-0">
+                                        <p className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-0.5 sm:mb-1">Session Protocol</p>
+                                        <h4 className="text-base sm:text-xl font-black text-gray-900 tracking-tight truncate">{session.title || 'Draft Session'}</h4>
                                     </div>
                                 </div>
                                 {sessions.length > 1 && (
                                    <button
                                      onClick={() => removeSession(session.id)}
-                                     className="w-14 h-14 flex items-center justify-center text-gray-300 hover:text-secondary bg-white rounded-2xl shadow-sm hover:shadow-2xl hover:scale-110 transition-all border border-gray-100 group/trash"
+                                     className="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center text-gray-300 hover:text-secondary bg-white rounded-xl sm:rounded-2xl shadow-sm hover:shadow-2xl hover:scale-110 transition-all border border-gray-100 group/trash self-end sm:self-auto shrink-0"
                                    >
-                                      <Trash2 size={20} className="group-hover/trash:rotate-12 transition-transform" />
+                                      <Trash2 size={18} className="group-hover/trash:rotate-12 transition-transform sm:w-5 sm:h-5" />
                                    </button>
                                 )}
                              </div>
 
-                             <div className={`grid grid-cols-1 gap-10 relative z-10 ${showPreview ? "2xl:grid-cols-2" : "md:grid-cols-2"}`}>
-                                <div className={`space-y-3 ${showPreview ? "2xl:col-span-2" : "md:col-span-2"}`}>
-                                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
+                             <div className={`grid grid-cols-1 gap-4 sm:gap-8 md:gap-10 relative z-10 ${showPreview ? "2xl:grid-cols-2" : "sm:grid-cols-2"}`}>
+                                <div className={`space-y-2 sm:space-y-3 ${showPreview ? "2xl:col-span-2" : "sm:col-span-2"}`}>
+                                   <label className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                                        <Type size={12} className="text-primary" />
                                        Session Title
                                    </label>
                                    <input
                                    type="text"
                                    placeholder="e.g., Welcome Keynote: Future of Gobokin"
-                                   className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
+                                   className="w-full p-3.5 sm:p-6 bg-white border border-gray-300 rounded-xl sm:rounded-3xl text-xs sm:text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
                                    value={session.title}
                                    onBlur={handleBlur} onChange={(e) => updateSession(session.id, "title", e.target.value)}
                                    />
                                 </div>
 
-                                <div className={`space-y-3 ${showPreview ? "2xl:col-span-2" : "md:col-span-2"}`}>
-                                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
+                                <div className={`space-y-2 sm:space-y-3 ${showPreview ? "2xl:col-span-2" : "sm:col-span-2"}`}>
+                                   <label className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                                        <FileText size={12} className="text-primary" />
                                        Session Description
                                    </label>
                                    <textarea
                                    rows={3}
                                    placeholder="Deep dive into the future roadmap..."
-                                   className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
+                                   className="w-full p-3.5 sm:p-6 bg-white border border-gray-300 rounded-xl sm:rounded-3xl text-xs sm:text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
                                    value={session.description}
                                    onBlur={handleBlur} onChange={(e) => updateSession(session.id, "description", e.target.value)}
                                    />
                                 </div>
 
-                                <div className="space-y-3">
-                                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
+                                <div className="space-y-2 sm:space-y-3">
+                                   <label className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                                        <History size={12} className="text-primary" />
                                        Starts At
                                    </label>
                                    <input
                                    type="datetime-local"
-                                   className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
+                                   className="w-full p-3.5 sm:p-6 bg-white border border-gray-300 rounded-xl sm:rounded-3xl text-xs sm:text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
                                    value={session.startTime}
                                    min={basicInfo.startDate}
                                    max={basicInfo.endDate}
                                    onBlur={handleBlur} onChange={(e) => updateSession(session.id, "startTime", e.target.value)}
                                    />
                                 </div>
-                                <div className="space-y-3">
-                                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
+                                <div className="space-y-2 sm:space-y-3">
+                                   <label className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                                        <History size={12} className="text-primary" />
                                        Ends At
                                    </label>
                                    <input
                                    type="datetime-local"
-                                   className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
+                                   className="w-full p-3.5 sm:p-6 bg-white border border-gray-300 rounded-xl sm:rounded-3xl text-xs sm:text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-sm"
                                    value={session.endTime}
                                    min={session.startTime || basicInfo.startDate}
                                    max={basicInfo.endDate}

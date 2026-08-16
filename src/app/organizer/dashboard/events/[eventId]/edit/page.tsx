@@ -2789,72 +2789,72 @@ const EditEventContent = () => {
                  ) : (
                     <div className="space-y-8">
                         {sessions.map((session, index) => (
-                            <div key={session.id} className="p-10 bg-gray-50/50 rounded-[3.5rem] border border-gray-100 group/session hover:bg-white hover:shadow-4xl transition-all duration-700 relative">
-                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 border-b border-gray-100 pb-8">
-                                    <div className="flex items-center gap-5">
-                                        <div className="w-14 h-14 rounded-2xl bg-white text-primary flex items-center justify-center shadow-xl shadow-gray-200/50 border border-gray-100 group-hover/session:bg-primary group-hover/session:text-white transition-all duration-500 font-black">
+                            <div key={session.id} className="p-4 sm:p-8 md:p-10 bg-gray-50/50 rounded-2xl sm:rounded-[3rem] border border-gray-100 group/session hover:bg-white hover:shadow-4xl transition-all duration-700 relative">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 mb-6 sm:mb-10 border-b border-gray-100 pb-6 sm:pb-8">
+                                    <div className="flex items-center gap-3 sm:gap-5">
+                                        <div className="w-10 h-10 sm:w-14 sm:h-14 shrink-0 rounded-xl sm:rounded-2xl bg-white text-primary flex items-center justify-center shadow-xl shadow-gray-200/50 border border-gray-100 group-hover/session:bg-primary group-hover/session:text-white transition-all duration-500 font-black text-sm sm:text-base">
                                             {index + 1}
                                         </div>
-                                        <div>
-                                            <h4 className="font-black text-gray-900 uppercase tracking-[0.3em] text-[10px]">Session Tracking</h4>
-                                            <p className="text-sm font-black text-gray-400 mt-1">{session.title || 'Untitled Session'}</p>
+                                        <div className="min-w-0">
+                                            <h4 className="font-black text-gray-900 uppercase tracking-[0.3em] text-[9px] sm:text-[10px]">Session Tracking</h4>
+                                            <p className="text-xs sm:text-sm font-black text-gray-400 mt-0.5 sm:mt-1 truncate">{session.title || 'Untitled Session'}</p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-2 sm:gap-3 self-end sm:self-auto">
                                         {session.id.length >= 10 && (
                                             <button
                                                 onClick={() => handleUpdateSession(session)}
-                                                className="text-[8px] font-black text-primary bg-primary/5 px-2 py-1 rounded-lg uppercase tracking-widest border border-primary/10 hover:bg-primary hover:text-white transition-all"
+                                                className="text-[8px] font-black text-primary bg-primary/5 px-2.5 py-1.5 rounded-lg uppercase tracking-widest border border-primary/10 hover:bg-primary hover:text-white transition-all"
                                             >
                                                 Update
                                             </button>
                                         )}
-                                        <button onClick={() => deleteSession(session.id)} className="w-10 h-10 flex items-center justify-center text-gray-300 hover:text-secondary bg-white rounded-xl shadow-sm hover:shadow-lg transition-all border border-gray-100">
+                                        <button onClick={() => deleteSession(session.id)} className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center text-gray-300 hover:text-secondary bg-white rounded-xl shadow-sm hover:shadow-lg transition-all border border-gray-100 shrink-0">
                                             <Trash2 size={16} />
                                         </button>
                                     </div>
                                 </div>
 
-                                <div className={`grid grid-cols-1 gap-8 ${showPreview ? "2xl:grid-cols-2" : "md:grid-cols-2 lg:grid-cols-3"}`}>
-                                    <div className={`space-y-3 ${showPreview ? "2xl:col-span-2" : "md:col-span-2 lg:col-span-3"}`}>
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Session Title</label>
-                                        <input type="text" placeholder="e.g., Opening Keynote" className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold outline-none focus:border-primary transition-all shadow-sm" value={session.title} onChange={(e) => updateSession(session.id, "title", e.target.value)} />
+                                <div className={`grid grid-cols-1 gap-4 sm:gap-6 md:gap-8 ${showPreview ? "2xl:grid-cols-2" : "sm:grid-cols-2 lg:grid-cols-3"}`}>
+                                    <div className={`space-y-2 sm:space-y-3 ${showPreview ? "2xl:col-span-2" : "sm:col-span-2 lg:col-span-3"}`}>
+                                        <label className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Session Title</label>
+                                        <input type="text" placeholder="e.g., Opening Keynote" className="w-full p-3.5 sm:p-5 bg-white border border-gray-300 rounded-xl sm:rounded-3xl text-xs sm:text-sm font-bold outline-none focus:border-primary transition-all shadow-sm" value={session.title} onChange={(e) => updateSession(session.id, "title", e.target.value)} />
                                     </div>
 
-                                    <div className="md:col-span-2 lg:col-span-3 space-y-3">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Event Description</label>
-                                        <textarea rows={3} placeholder="What will happen during this session?" className="w-full p-6 bg-white border border-gray-300 rounded-3xl text-sm font-bold outline-none focus:border-primary transition-all shadow-sm resize-none" value={session.description} onChange={(e) => updateSession(session.id, "description", e.target.value)} />
+                                    <div className={`space-y-2 sm:space-y-3 ${showPreview ? "2xl:col-span-2" : "sm:col-span-2 lg:col-span-3"}`}>
+                                        <label className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Event Description</label>
+                                        <textarea rows={3} placeholder="What will happen during this session?" className="w-full p-3.5 sm:p-5 bg-white border border-gray-300 rounded-xl sm:rounded-3xl text-xs sm:text-sm font-bold outline-none focus:border-primary transition-all shadow-sm resize-none" value={session.description} onChange={(e) => updateSession(session.id, "description", e.target.value)} />
                                     </div>
 
-                                    <div className="space-y-3">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Commences</label>
-                                        <input type="datetime-local" className="w-full p-5 bg-white border border-gray-300 rounded-2xl text-xs font-bold outline-none focus:border-primary transition-all" value={session.startTime} min={basicInfo.startDate} max={basicInfo.endDate} onChange={(e) => updateSession(session.id, "startTime", e.target.value)} />
+                                    <div className="space-y-2 sm:space-y-3">
+                                        <label className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Commences</label>
+                                        <input type="datetime-local" className="w-full p-3.5 sm:p-4 bg-white border border-gray-300 rounded-xl sm:rounded-2xl text-xs font-bold outline-none focus:border-primary transition-all" value={session.startTime} min={basicInfo.startDate} max={basicInfo.endDate} onChange={(e) => updateSession(session.id, "startTime", e.target.value)} />
                                     </div>
 
-                                    <div className="space-y-3">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Concludes</label>
-                                        <input type="datetime-local" className="w-full p-5 bg-white border border-gray-300 rounded-2xl text-xs font-bold outline-none focus:border-primary transition-all" value={session.endTime} min={session.startTime || basicInfo.startDate} max={basicInfo.endDate} onChange={(e) => updateSession(session.id, "endTime", e.target.value)} />
+                                    <div className="space-y-2 sm:space-y-3">
+                                        <label className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Concludes</label>
+                                        <input type="datetime-local" className="w-full p-3.5 sm:p-4 bg-white border border-gray-300 rounded-xl sm:rounded-2xl text-xs font-bold outline-none focus:border-primary transition-all" value={session.endTime} min={session.startTime || basicInfo.startDate} max={basicInfo.endDate} onChange={(e) => updateSession(session.id, "endTime", e.target.value)} />
                                     </div>
 
-                                    <div className="space-y-3">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Primary Location</label>
-                                        <input type="text" placeholder="e.g., Main Hall" className="w-full p-5 bg-white border border-gray-300 rounded-2xl text-xs font-bold outline-none focus:border-primary transition-all" value={session.location} onChange={(e) => updateSession(session.id, "location", e.target.value)} />
+                                    <div className="space-y-2 sm:space-y-3">
+                                        <label className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Primary Location</label>
+                                        <input type="text" placeholder="e.g., Main Hall" className="w-full p-3.5 sm:p-4 bg-white border border-gray-300 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold outline-none focus:border-primary transition-all" value={session.location} onChange={(e) => updateSession(session.id, "location", e.target.value)} />
                                     </div>
 
-                                    <div className="space-y-3">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Specific Room</label>
-                                        <input type="text" placeholder="e.g., Suite 402" className="w-full p-5 bg-white border border-gray-300 rounded-2xl text-xs font-bold outline-none focus:border-primary transition-all" value={session.room || ""} onChange={(e) => updateSession(session.id, "room", e.target.value)} />
+                                    <div className="space-y-2 sm:space-y-3">
+                                        <label className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Specific Room</label>
+                                        <input type="text" placeholder="e.g., Suite 402" className="w-full p-3.5 sm:p-4 bg-white border border-gray-300 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold outline-none focus:border-primary transition-all" value={session.room || ""} onChange={(e) => updateSession(session.id, "room", e.target.value)} />
                                     </div>
 
-                                    <div className="space-y-3">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Designated Stage</label>
-                                        <input type="text" placeholder="e.g., Alpha Stage" className="w-full p-5 bg-white border border-gray-300 rounded-2xl text-xs font-bold outline-none focus:border-primary transition-all" value={session.stage || ""} onChange={(e) => updateSession(session.id, "stage", e.target.value)} />
+                                    <div className="space-y-2 sm:space-y-3">
+                                        <label className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Designated Stage</label>
+                                        <input type="text" placeholder="e.g., Alpha Stage" className="w-full p-3.5 sm:p-4 bg-white border border-gray-300 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold outline-none focus:border-primary transition-all" value={session.stage || ""} onChange={(e) => updateSession(session.id, "stage", e.target.value)} />
                                     </div>
 
-                                    <div className="space-y-3">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Session Type</label>
+                                    <div className="space-y-2 sm:space-y-3">
+                                        <label className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Session Type</label>
                                         <div className="relative">
-                                            <select className="w-full p-5 bg-white border border-gray-300 rounded-2xl text-xs font-bold outline-none focus:border-primary transition-all appearance-none" value={session.sessionType || ""} onChange={(e) => updateSession(session.id, "sessionType", e.target.value)}>
+                                            <select className="w-full p-3.5 sm:p-4 bg-white border border-gray-300 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold outline-none focus:border-primary transition-all appearance-none" value={session.sessionType || ""} onChange={(e) => updateSession(session.id, "sessionType", e.target.value)}>
                                                 <option value="">Unspecified</option>
                                                 <option value="keynote">Keynote</option>
                                                 <option value="workshop">Workshop</option>
