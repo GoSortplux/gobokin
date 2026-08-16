@@ -15,7 +15,8 @@ import {
   Filter,
   Users,
   PauseCircle,
-  PlayCircle
+  PlayCircle,
+  Edit
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -451,6 +452,13 @@ const AllEventsAdmin = () => {
                               >
                                   <Eye size={16} />
                                   Manage
+                              </Link>
+                              <Link
+                                  href={`/organizer/dashboard/events/${event.id}/edit`}
+                                  className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-blue-50 text-primary hover:bg-primary hover:text-white transition-all shadow-sm"
+                                  title="Edit Event"
+                              >
+                                  <Edit size={16} />
                               </Link>
                               {event.publishLockedByAdmin ? (
                                 <button

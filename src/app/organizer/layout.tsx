@@ -59,4 +59,4 @@ const OrganizerLayout = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export default withAuth(OrganizerLayout, ["organizer", "organizer-staff", "user"]);
+export default withAuth(OrganizerLayout, ["organizer", "organizer-staff", "user", "super-admin"]);

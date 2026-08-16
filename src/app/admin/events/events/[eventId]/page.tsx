@@ -759,6 +759,14 @@ const AdminEventDetails = () => {
             Message Guests
           </button>
 
+          <Link
+            href={`/organizer/dashboard/events/${eventId}/edit`}
+            className="flex items-center gap-2 bg-primary text-white font-bold px-4 sm:px-5 py-2.5 rounded-xl hover:bg-opacity-90 transition-all shadow-lg shadow-primary/20 whitespace-nowrap shrink-0"
+          >
+            <Settings size={18} />
+            Edit Event
+          </Link>
+
           <button
             onClick={deleteEvent}
             className="flex items-center gap-2 bg-rose-50 text-rose-600 font-bold px-4 sm:px-5 py-2.5 rounded-xl hover:bg-rose-600 hover:text-white transition-all border border-rose-100 whitespace-nowrap shrink-0"
