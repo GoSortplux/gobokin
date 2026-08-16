@@ -1806,7 +1806,7 @@ const CreateEvent = () => {
           <p className="text-gray-500 font-medium text-base md:text-lg">Bring your vision to life in a few simple steps.</p>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="hidden sm:flex items-center gap-4">
           <button
             onClick={() => {
               if (isMobile) {
@@ -1818,8 +1818,7 @@ const CreateEvent = () => {
             className="flex items-center gap-2.5 bg-white text-gray-500 font-black px-5 md:px-6 py-3.5 md:py-4 rounded-2xl border border-gray-100 shadow-sm hover:bg-gray-50 hover:text-primary transition-all text-[10px] uppercase tracking-[0.2em]"
           >
             <Eye size={16} />
-            <span className="hidden sm:inline">{isPreviewActive ? "Hide Preview" : "Show Preview"}</span>
-            <span className="sm:hidden">Preview</span>
+            <span>{isPreviewActive ? "Hide Preview" : "Show Preview"}</span>
           </button>
 
           <button
@@ -1827,8 +1826,7 @@ const CreateEvent = () => {
             className="flex items-center gap-2 bg-primary/10 text-primary font-black px-5 md:px-6 py-3.5 md:py-4 rounded-2xl border border-primary/20 shadow-sm hover:bg-primary hover:text-white transition-all text-[10px] uppercase tracking-[0.2em] whitespace-nowrap"
           >
             <FileText size={16} />
-            <span className="hidden sm:inline">Preview Event Form</span>
-            <span className="sm:hidden">Form</span>
+            <span>Preview Event Form</span>
           </button>
 
           {/* Step Indicator Desktop */}
@@ -1855,6 +1853,52 @@ const CreateEvent = () => {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Floating Vertical Control Widget for Mobile (Option B: Middle-Right Floating) */}
+        <div className="fixed right-3 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-2 bg-white/95 backdrop-blur-md p-2 rounded-2xl border border-gray-200/80 shadow-2xl sm:hidden items-center">
+          <button
+            onClick={() => {
+              if (isMobile) setIsPreviewModalOpen(!isPreviewModalOpen);
+              else setShowPreview(!showPreview);
+            }}
+            title={isPreviewActive ? "Hide Preview" : "Show Preview"}
+            className="w-10 h-10 flex items-center justify-center bg-white text-gray-700 rounded-xl border border-gray-100 shadow-sm active:scale-95 transition-all"
+          >
+            <Eye size={18} className={isPreviewActive ? "text-primary" : "text-gray-500"} />
+          </button>
+
+          <button
+            onClick={() => setIsFormPreviewModalOpen(true)}
+            title="Preview Event Form"
+            className="w-10 h-10 flex items-center justify-center bg-primary/10 text-primary rounded-xl border border-primary/20 shadow-sm active:scale-95 transition-all"
+          >
+            <FileText size={18} />
+          </button>
+
+          <div className="w-6 h-[1px] bg-gray-200 my-0.5" />
+
+          {visibleSteps.map((step) => (
+            <button
+              key={step.id}
+              onClick={() => setCurrentStep(step.id)}
+              title={step.title}
+              className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all relative ${
+                currentStep === step.id
+                  ? "bg-primary text-white shadow-md shadow-primary/30 scale-105"
+                  : currentStep > step.id
+                  ? "text-secondary bg-secondary/10 border border-secondary/20"
+                  : "text-gray-400 bg-gray-50"
+              }`}
+            >
+              <step.icon size={16} strokeWidth={currentStep === step.id ? 3 : 2} />
+              {currentStep > step.id && (
+                <div className="absolute -top-0.5 -right-0.5 bg-secondary text-white rounded-full p-0.5 border border-white">
+                  <CheckCircle2 size={8} strokeWidth={4} />
+                </div>
+              )}
+            </button>
+          ))}
         </div>
       </div>
 
