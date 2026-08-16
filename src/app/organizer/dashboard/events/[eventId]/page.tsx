@@ -662,9 +662,11 @@ const EventDetails = () => {
         <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto no-scrollbar pb-1 sm:pb-0 w-full sm:w-auto">
           <button
             onClick={handleShare}
-            className="p-2.5 sm:p-3 text-gray-400 hover:text-primary hover:bg-blue-50 rounded-xl transition-all border border-gray-100 sm:border-none shrink-0"
+            title="Share Event"
+            className="flex items-center gap-2 bg-primary/10 text-primary font-bold px-4 sm:px-5 py-2.5 rounded-xl hover:bg-primary hover:text-white transition-all border border-primary/20 shadow-sm whitespace-nowrap shrink-0"
           >
-            <Share2 size={20} />
+            <Share2 size={18} />
+            <span>Share Event</span>
           </button>
 
           {!isStaff && (
