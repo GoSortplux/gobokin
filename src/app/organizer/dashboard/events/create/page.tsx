@@ -42,6 +42,7 @@ import api from "@/services/api";
 import { RegistrationFieldItem } from "@/components/organizer/RegistrationFieldItem";
 import { EventReminderSection } from "@/components/organizer/EventReminderSection";
 import PolicyModal from "@/components/PolicyModal";
+import EventFormPreviewModal from "@/components/organizer/EventFormPreviewModal";
 import axios from "axios";
 import Swal from "@/utils/sweetalert";
 import { triggerSuccessConfetti } from "@/utils/confetti";
@@ -484,6 +485,7 @@ const CreateEvent = () => {
   const [eventId, setEventId] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(true);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [isFormPreviewModalOpen, setIsFormPreviewModalOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [showOrganizerPolicyModal, setShowOrganizerPolicyModal] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
@@ -1818,6 +1820,15 @@ const CreateEvent = () => {
             <Eye size={16} />
             <span className="hidden sm:inline">{isPreviewActive ? "Hide Preview" : "Show Preview"}</span>
             <span className="sm:hidden">Preview</span>
+          </button>
+
+          <button
+            onClick={() => setIsFormPreviewModalOpen(true)}
+            className="flex items-center gap-2 bg-primary/10 text-primary font-black px-5 md:px-6 py-3.5 md:py-4 rounded-2xl border border-primary/20 shadow-sm hover:bg-primary hover:text-white transition-all text-[10px] uppercase tracking-[0.2em] whitespace-nowrap"
+          >
+            <FileText size={16} />
+            <span className="hidden sm:inline">Preview Event Form</span>
+            <span className="sm:hidden">Form</span>
           </button>
 
           {/* Step Indicator Desktop */}
@@ -3479,6 +3490,15 @@ const CreateEvent = () => {
           </div>
         </div>
       )}
+
+      <EventFormPreviewModal
+        isOpen={isFormPreviewModalOpen}
+        onClose={() => setIsFormPreviewModalOpen(false)}
+        eventTitle={basicInfo.title}
+        isGroupingEnabled={registration.isGroupingEnabled}
+        registrationFields={registration.fields}
+        tickets={tickets}
+      />
 
       {showOrganizerPolicyModal && (
         <PolicyModal

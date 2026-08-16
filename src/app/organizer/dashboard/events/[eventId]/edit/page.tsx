@@ -38,6 +38,7 @@ import {
 import api from "@/services/api";
 import { RegistrationFieldItem } from "@/components/organizer/RegistrationFieldItem";
 import { EventReminderSection } from "@/components/organizer/EventReminderSection";
+import EventFormPreviewModal from "@/components/organizer/EventFormPreviewModal";
 import axios from "axios";
 import Swal from "@/utils/sweetalert";
 import { translateError } from "@/utils/errors";
@@ -497,6 +498,7 @@ const EditEventContent = () => {
   const [saving, setSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [isFormPreviewModalOpen, setIsFormPreviewModalOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
   const [organizerSlug, setOrganizerSlug] = useState<string>("");
@@ -1717,6 +1719,15 @@ const EditEventContent = () => {
             <span className="sm:hidden">Preview</span>
           </button>
 
+          <button
+            onClick={() => setIsFormPreviewModalOpen(true)}
+            className="flex items-center gap-2 bg-primary/10 text-primary font-black px-5 md:px-6 py-3.5 md:py-4 rounded-2xl border border-primary/20 shadow-sm hover:bg-primary hover:text-white transition-all text-[10px] uppercase tracking-[0.2em] whitespace-nowrap"
+          >
+            <FileText size={16} />
+            <span className="hidden sm:inline">Preview Event Form</span>
+            <span className="sm:hidden">Form</span>
+          </button>
+
           <div className={`hidden items-center gap-1.5 bg-gray-50 p-2 rounded-[2.5rem] border border-gray-100 ${showPreview ? "2xl:flex" : "xl:flex"}`}>
             {visibleSteps.map((step) => (
               <button
@@ -1754,6 +1765,15 @@ const EditEventContent = () => {
           </div>
         </div>
       )}
+
+      <EventFormPreviewModal
+        isOpen={isFormPreviewModalOpen}
+        onClose={() => setIsFormPreviewModalOpen(false)}
+        eventTitle={basicInfo.title}
+        isGroupingEnabled={registration.isGroupingEnabled}
+        registrationFields={registration.fields}
+        tickets={tickets}
+      />
 
       <div className="flex flex-col lg:flex-row gap-10 items-start px-2">
         {/* Main Form Container */}

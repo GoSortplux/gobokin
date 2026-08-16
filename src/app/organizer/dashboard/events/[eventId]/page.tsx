@@ -37,7 +37,8 @@ import {
   MousePointer2,
   Percent,
   Search,
-  XCircle
+  XCircle,
+  FileText
 } from "lucide-react";
 import Image from "next/image";
 import api from "@/services/api";
@@ -54,6 +55,7 @@ import SuspendModal from "@/components/organizer/SuspendModal";
 import MessageGuestModal from "@/components/organizer/MessageGuestModal";
 import { ResourcesTab } from "@/components/organizer/ResourcesTab";
 import RegistrationDetailsModal from "@/components/organizer/RegistrationDetailsModal";
+import EventFormPreviewModal from "@/components/organizer/EventFormPreviewModal";
 
 interface TrackerDailyAttendance {
   day: number;
@@ -126,6 +128,7 @@ const EventDetails = () => {
   const [isWalkInModalOpen, setIsWalkInModalOpen] = useState(false);
   const [isSuspendModalOpen, setIsSuspendModalOpen] = useState(false);
   const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState(false);
+  const [isFormPreviewModalOpen, setIsFormPreviewModalOpen] = useState(false);
   const [suspendConfig, setSuspendConfig] = useState<{ type: "event" | "ticket"; title: string; ticketId?: string }>({ type: "event", title: "" });
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
@@ -687,6 +690,14 @@ const EventDetails = () => {
                   Unpublish
                 </button>
               )}
+
+              <button
+                onClick={() => setIsFormPreviewModalOpen(true)}
+                className="flex items-center gap-2 bg-purple-50 text-purple-600 font-bold px-4 sm:px-5 py-2.5 rounded-xl hover:bg-purple-600 hover:text-white transition-all border border-purple-100 whitespace-nowrap shrink-0"
+              >
+                <FileText size={18} />
+                Preview Event Form
+              </button>
 
               <button onClick={handleMessageGuest} className="flex items-center gap-2 bg-blue-50 text-primary font-bold px-4 sm:px-5 py-2.5 rounded-xl hover:bg-blue-100 transition-all border border-blue-100 whitespace-nowrap shrink-0">
                 <Mail size={18} />
@@ -2324,6 +2335,15 @@ const EventDetails = () => {
           }}
         />
       )}
+
+      <EventFormPreviewModal
+        isOpen={isFormPreviewModalOpen}
+        onClose={() => setIsFormPreviewModalOpen(false)}
+        eventTitle={event.title}
+        isGroupingEnabled={event.isGroupingEnabled}
+        registrationFields={event.registrationFields}
+        tickets={event.tickets}
+      />
 
       {selectedTicketNumberForModal && (
         <RegistrationDetailsModal
