@@ -718,6 +718,8 @@ export interface Event {
   };
   slug: string;
   isPublished: boolean;
+  publishLockedByAdmin?: boolean;
+  suspensionReason?: string;
   isPublic: boolean;
   isFeatured: boolean;
   isPromoted: boolean;

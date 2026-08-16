@@ -148,6 +148,7 @@ const AdminEventDetails = () => {
   });
 
   const getEffectiveStatus = (event: Event) => {
+    if (event.publishLockedByAdmin) return "SUSPENDED BY ADMIN";
     if (!event.isPublished) return "DRAFT";
     if (event.status === "CANCELLED") return "CANCELLED";
 
@@ -538,6 +539,68 @@ const AdminEventDetails = () => {
     }
   };
 
+  const handleAdminSuspendEvent = async () => {
+    const { value: reason, isConfirmed } = await Swal.fire({
+      title: 'Suspend Event (Super Admin)',
+      text: 'This will unpublish the event, lock publishing, and pause ticket sales and registrations platform-wide.',
+      input: 'textarea',
+      inputPlaceholder: 'Enter administrative reason for suspension...',
+      inputAttributes: {
+        'aria-label': 'Administrative reason for suspension'
+      },
+      showCancelButton: true,
+      confirmButtonText: 'Suspend Event',
+      confirmButtonColor: '#ef4444',
+      inputValidator: (value) => {
+        if (!value || !value.trim()) {
+          return 'Reason for administrative suspension is mandatory!';
+        }
+      }
+    });
+
+    if (isConfirmed && reason) {
+      try {
+        setIsActionLoading(true);
+        Swal.showLoading();
+        await api.post(`/events/admin/events/${eventId}/suspend`, { reason: reason.trim() });
+        Swal.fire('Suspended!', 'The event has been administratively suspended.', 'success');
+        const eventRes = await api.get(`/events/${eventId}`);
+        setEvent(eventRes.data.data);
+      } catch (error) {
+        Swal.fire('Error', translateError(error), 'error');
+      } finally {
+        setIsActionLoading(false);
+      }
+    }
+  };
+
+  const handleAdminResumeEvent = async () => {
+    const result = await Swal.fire({
+      title: 'Reinstate Event (Super Admin)?',
+      text: 'This will lift administrative publish locks and reopen event registrations.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Reinstate Event',
+      confirmButtonColor: '#10b981',
+    });
+
+    if (result.isConfirmed) {
+      try {
+        setIsActionLoading(true);
+        Swal.showLoading();
+        await api.post(`/events/admin/events/${eventId}/resume`);
+        triggerSuccessConfetti();
+        Swal.fire('Reinstated!', 'The event lock has been lifted and registrations reopened.', 'success');
+        const eventRes = await api.get(`/events/${eventId}`);
+        setEvent(eventRes.data.data);
+      } catch (error) {
+        Swal.fire('Error', translateError(error), 'error');
+      } finally {
+        setIsActionLoading(false);
+      }
+    }
+  };
+
   const handlePublish = async () => {
     const result = await Swal.fire({
       title: 'Publish Event Platform-wide?',
@@ -649,11 +712,32 @@ const AdminEventDetails = () => {
             <Share2 size={20} />
           </button>
 
+          {event.publishLockedByAdmin ? (
+            <button
+              onClick={handleAdminResumeEvent}
+              disabled={isActionLoading}
+              className="flex items-center gap-2 bg-emerald-600 text-white font-bold px-4 sm:px-5 py-2.5 rounded-xl hover:bg-emerald-700 transition-all border border-emerald-600 whitespace-nowrap shrink-0 shadow-sm"
+            >
+              <PlayCircle size={18} />
+              Reinstate Event
+            </button>
+          ) : (
+            <button
+              onClick={handleAdminSuspendEvent}
+              disabled={isActionLoading}
+              className="flex items-center gap-2 bg-rose-50 text-rose-600 font-bold px-4 sm:px-5 py-2.5 rounded-xl hover:bg-rose-600 hover:text-white transition-all border border-rose-100 whitespace-nowrap shrink-0"
+            >
+              <PauseCircle size={18} />
+              Suspend Event
+            </button>
+          )}
+
           {!event.isPublished ? (
             <button
               onClick={handlePublish}
-              disabled={isActionLoading}
-              className="flex items-center gap-2 bg-emerald-50 text-emerald-600 font-bold px-4 sm:px-5 py-2.5 rounded-xl hover:bg-emerald-600 hover:text-white transition-all border border-emerald-100 whitespace-nowrap shrink-0"
+              disabled={isActionLoading || event.publishLockedByAdmin}
+              title={event.publishLockedByAdmin ? "Publishing is locked by Super Admin" : ""}
+              className="flex items-center gap-2 bg-emerald-50 text-emerald-600 font-bold px-4 sm:px-5 py-2.5 rounded-xl hover:bg-emerald-600 hover:text-white transition-all border border-emerald-100 whitespace-nowrap shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <CheckCircle2 size={18} />
               Publish
@@ -661,8 +745,9 @@ const AdminEventDetails = () => {
           ) : (
             <button
               onClick={handleUnpublish}
-              disabled={isActionLoading}
-              className="flex items-center gap-2 bg-amber-50 text-amber-600 font-bold px-4 sm:px-5 py-2.5 rounded-xl hover:bg-amber-600 hover:text-white transition-all border border-amber-100 whitespace-nowrap shrink-0"
+              disabled={isActionLoading || event.publishLockedByAdmin}
+              title={event.publishLockedByAdmin ? "Publishing is locked by Super Admin" : ""}
+              className="flex items-center gap-2 bg-amber-50 text-amber-600 font-bold px-4 sm:px-5 py-2.5 rounded-xl hover:bg-amber-600 hover:text-white transition-all border border-amber-100 whitespace-nowrap shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <EyeOff size={18} />
               Unpublish
@@ -683,6 +768,36 @@ const AdminEventDetails = () => {
           </button>
         </div>
       </div>
+
+      {/* Super Admin Suspension Banner */}
+      {event.publishLockedByAdmin && (
+        <div className="p-5 bg-rose-50 border-2 border-rose-200 rounded-3xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-in fade-in duration-300">
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 rounded-2xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-md">
+              <AlertCircle size={22} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h4 className="text-sm font-black text-rose-900 uppercase tracking-wider">Event Suspended by Super Admin</h4>
+                <span className="px-2.5 py-0.5 rounded-md bg-rose-200 text-rose-800 text-[9px] font-black uppercase tracking-widest">LOCKED</span>
+              </div>
+              <p className="text-xs text-rose-700 font-medium mt-1 leading-relaxed">
+                Reason: {event.suspensionReason || "Administrative review"}
+              </p>
+              <p className="text-[11px] text-rose-500 font-medium mt-0.5">
+                Event is unpublished and publishing is locked. Ticket sales and registrations are paused.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={handleAdminResumeEvent}
+            disabled={isActionLoading}
+            className="px-4 py-2 bg-rose-600 text-white font-black text-xs uppercase tracking-wider rounded-xl hover:bg-rose-700 transition-all shadow-sm shrink-0 self-end sm:self-center"
+          >
+            Reinstate Event
+          </button>
+        </div>
+      )}
 
       {/* Header Profile Section */}
       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden p-6 lg:p-8">

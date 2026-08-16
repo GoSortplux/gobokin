@@ -470,6 +470,8 @@ const EditEventContent = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [subStep, setSubStep] = useState(1);
   const [isPublished, setIsPublished] = useState(false);
+  const [publishLockedByAdmin, setPublishLockedByAdmin] = useState(false);
+  const [suspensionReason, setSuspensionReason] = useState("");
   const [isPublishing, setIsPublishing] = useState(false);
 
   // Deep linking to steps and subSteps
@@ -622,6 +624,8 @@ const EditEventContent = () => {
       const formatDate = (dateStr: string) => dateStr ? new Date(dateStr).toISOString().slice(0, 16) : "";
 
       setIsPublished(!!event.isPublished);
+      setPublishLockedByAdmin(!!event.publishLockedByAdmin);
+      setSuspensionReason(event.suspensionReason || "");
 
       setBasicInfo({
         title: event.title || "",
@@ -1692,8 +1696,9 @@ const EditEventContent = () => {
           {!isPublished && (
             <button
               onClick={handlePublish}
-              disabled={isPublishing}
-              className="flex items-center gap-2 bg-emerald-50 text-emerald-600 font-bold px-5 py-3.5 rounded-2xl border border-emerald-100 hover:bg-emerald-600 hover:text-white transition-all text-[10px] uppercase tracking-[0.2em] whitespace-nowrap shrink-0 shadow-sm"
+              disabled={isPublishing || publishLockedByAdmin}
+              title={publishLockedByAdmin ? "Publishing is locked by Super Admin" : ""}
+              className="flex items-center gap-2 bg-emerald-50 text-emerald-600 font-bold px-5 py-3.5 rounded-2xl border border-emerald-100 hover:bg-emerald-600 hover:text-white transition-all text-[10px] uppercase tracking-[0.2em] whitespace-nowrap shrink-0 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <CheckCircle2 size={16} />
               Publish
@@ -1729,6 +1734,26 @@ const EditEventContent = () => {
           </div>
         </div>
       </div>
+
+      {publishLockedByAdmin && (
+        <div className="mb-8 p-5 bg-rose-50 border-2 border-rose-200 rounded-3xl flex items-start gap-4 shadow-sm animate-in fade-in duration-300 mx-2">
+          <div className="w-10 h-10 rounded-2xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-md">
+            <XCircle size={22} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h4 className="text-sm font-black text-rose-900 uppercase tracking-wider">Event Suspended by Super Admin</h4>
+              <span className="px-2.5 py-0.5 rounded-md bg-rose-200 text-rose-800 text-[9px] font-black uppercase tracking-widest">PUBLISH LOCKED</span>
+            </div>
+            <p className="text-xs text-rose-700 font-medium mt-1 leading-relaxed">
+              Reason: {suspensionReason || "Administrative review"}
+            </p>
+            <p className="text-[11px] text-rose-500 font-medium mt-0.5">
+              Publishing is locked by Super Admin. You can edit event details, but the event cannot be published until reinstated by Super Admin.
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-col lg:flex-row gap-10 items-start px-2">
         {/* Main Form Container */}

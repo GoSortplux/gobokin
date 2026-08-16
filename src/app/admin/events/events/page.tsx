@@ -13,7 +13,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Filter,
-  Users
+  Users,
+  PauseCircle,
+  PlayCircle
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -94,6 +96,56 @@ const AllEventsAdmin = () => {
     fetchEvents();
   }, [fetchEvents]);
 
+  const suspendEvent = async (eventId: string) => {
+    const { value: reason, isConfirmed } = await Swal.fire({
+      title: "Suspend Event",
+      text: "This will unpublish the event, lock publishing, and pause ticket sales and registrations platform-wide.",
+      input: "textarea",
+      inputPlaceholder: "Enter administrative reason for suspension...",
+      showCancelButton: true,
+      confirmButtonText: "Suspend Event",
+      confirmButtonColor: "#ef4444",
+      inputValidator: (value) => {
+        if (!value || !value.trim()) {
+          return "Reason for administrative suspension is mandatory!";
+        }
+      }
+    });
+
+    if (isConfirmed && reason) {
+      try {
+        Swal.showLoading();
+        await api.post(`/events/admin/events/${eventId}/suspend`, { reason: reason.trim() });
+        Swal.fire("Suspended!", "The event has been administratively suspended.", "success");
+        fetchEvents();
+      } catch (error) {
+        Swal.fire("Error", translateError(error), "error");
+      }
+    }
+  };
+
+  const resumeEvent = async (eventId: string) => {
+    const result = await Swal.fire({
+      title: "Reinstate Event?",
+      text: "This will lift administrative publish locks and reopen event registrations.",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Yes, Reinstate Event",
+      confirmButtonColor: "#10b981"
+    });
+
+    if (result.isConfirmed) {
+      try {
+        Swal.showLoading();
+        await api.post(`/events/admin/events/${eventId}/resume`);
+        Swal.fire("Reinstated!", "The event lock has been lifted and registrations reopened.", "success");
+        fetchEvents();
+      } catch (error) {
+        Swal.fire("Error", translateError(error), "error");
+      }
+    }
+  };
+
   const deleteEvent = async (eventId: string) => {
     const result = await Swal.fire({
       title: "Are you sure?",
@@ -124,13 +176,25 @@ const AllEventsAdmin = () => {
     return matchesSearch && matchesFilter;
   });
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "UPCOMING": return "bg-blue-50 text-blue-600 border border-blue-100";
-      case "ONGOING": return "bg-emerald-50 text-emerald-600 border border-emerald-100";
-      case "COMPLETED": return "bg-gray-50 text-gray-600 border border-gray-100";
-      case "CANCELLED": return "bg-rose-50 text-rose-600 border border-rose-100";
-      default: return "bg-gray-50 text-gray-600 border border-gray-100";
+  const getStatusBadge = (event: Event) => {
+    if (event.publishLockedByAdmin) {
+      return (
+        <span className="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-600 border border-rose-100">
+          SUSPENDED
+        </span>
+      );
+    }
+    switch (event.status) {
+      case "UPCOMING":
+        return <span className="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-600 border border-blue-100">UPCOMING</span>;
+      case "ONGOING":
+        return <span className="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-100">ONGOING</span>;
+      case "COMPLETED":
+        return <span className="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider bg-gray-50 text-gray-600 border border-gray-100">COMPLETED</span>;
+      case "CANCELLED":
+        return <span className="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-600 border border-rose-100">CANCELLED</span>;
+      default:
+        return <span className="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider bg-gray-50 text-gray-600 border border-gray-100">{event.status}</span>;
     }
   };
 
@@ -238,9 +302,7 @@ const AllEventsAdmin = () => {
                         </div>
                       )}
                       <div className="absolute top-4 left-4">
-                        <span className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider ${getStatusColor(event.status)}`}>
-                          {event.status}
-                        </span>
+                        {getStatusBadge(event)}
                       </div>
                     </div>
 
@@ -290,7 +352,7 @@ const AllEventsAdmin = () => {
                     </div>
                   </div>
 
-                  <div className="p-6 pt-0 flex items-center gap-3">
+                  <div className="p-6 pt-0 flex items-center gap-2">
                     <Link
                         href={`/admin/events/events/${event.id}`}
                         className="flex-1 bg-gray-50 text-gray-900 font-black py-3.5 rounded-2xl hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-2 group/btn shadow-sm text-xs uppercase tracking-widest"
@@ -298,9 +360,27 @@ const AllEventsAdmin = () => {
                         Manage Event
                         <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
                     </Link>
+                    {event.publishLockedByAdmin ? (
+                      <button
+                          onClick={() => resumeEvent(event.id)}
+                          className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-all shadow-sm shrink-0"
+                          title="Reinstate Event"
+                      >
+                          <PlayCircle size={18} />
+                      </button>
+                    ) : (
+                      <button
+                          onClick={() => suspendEvent(event.id)}
+                          className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center hover:bg-amber-600 hover:text-white transition-all shadow-sm shrink-0"
+                          title="Suspend Event"
+                      >
+                          <PauseCircle size={18} />
+                      </button>
+                    )}
                     <button
                         onClick={() => deleteEvent(event.id)}
                         className="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all shadow-sm shrink-0"
+                        title="Delete Event"
                     >
                         <Trash2 size={18} />
                     </button>
@@ -353,9 +433,7 @@ const AllEventsAdmin = () => {
                           )}
                         </td>
                         <td className="px-6 py-5">
-                          <span className={`px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider ${getStatusColor(event.status)}`}>
-                            {event.status}
-                          </span>
+                          {getStatusBadge(event)}
                         </td>
                         <td className="px-6 py-6">
                           <p className="text-sm font-black text-gray-900">{new Date(event.startDate).toLocaleDateString()}</p>
@@ -366,7 +444,7 @@ const AllEventsAdmin = () => {
                            </div>
                         </td>
                         <td className="px-6 py-5 text-right">
-                          <div className="flex items-center justify-end gap-3">
+                          <div className="flex items-center justify-end gap-2">
                               <Link
                                   href={`/admin/events/events/${event.id}`}
                                   className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-50 text-gray-900 font-bold text-xs hover:bg-primary hover:text-white transition-all shadow-sm"
@@ -374,9 +452,27 @@ const AllEventsAdmin = () => {
                                   <Eye size={16} />
                                   Manage
                               </Link>
+                              {event.publishLockedByAdmin ? (
+                                <button
+                                    onClick={() => resumeEvent(event.id)}
+                                    className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
+                                    title="Reinstate Event"
+                                >
+                                    <PlayCircle size={16} />
+                                </button>
+                              ) : (
+                                <button
+                                    onClick={() => suspendEvent(event.id)}
+                                    className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white transition-all shadow-sm"
+                                    title="Suspend Event"
+                                >
+                                    <PauseCircle size={16} />
+                                </button>
+                              )}
                               <button
                                   onClick={() => deleteEvent(event.id)}
                                   className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white transition-all shadow-sm"
+                                  title="Delete Event"
                               >
                                   <Trash2 size={16} />
                               </button>
