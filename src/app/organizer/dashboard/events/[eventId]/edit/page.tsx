@@ -1726,18 +1726,24 @@ const EditEventContent = () => {
             <span>Preview Event Form</span>
           </button>
 
-          <div className={`hidden items-center gap-1.5 bg-gray-50 p-2 rounded-[2.5rem] border border-gray-100 ${showPreview ? "2xl:flex" : "xl:flex"}`}>
+          <div className="hidden lg:flex items-center gap-1 sm:gap-1.5 bg-gray-50 p-1.5 sm:p-2 rounded-[2.5rem] border border-gray-100">
             {visibleSteps.map((step) => (
               <button
                 key={step.id}
+                type="button"
                 onClick={() => setCurrentStep(step.id)}
-                className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-500 relative group ${
+                className={`flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 xl:w-12 xl:h-12 rounded-full transition-all duration-500 relative group cursor-pointer ${
                   currentStep === step.id
                   ? "bg-primary text-white shadow-xl shadow-primary/30 scale-110"
-                  : "text-gray-300 hover:text-gray-400"
+                  : currentStep > step.id ? "text-secondary bg-white border border-secondary/20" : "text-gray-300 hover:text-gray-400"
                 }`}
               >
-                <step.icon size={16} strokeWidth={currentStep === step.id ? 3 : 2} />
+                <step.icon size={15} strokeWidth={currentStep === step.id ? 3 : 2} />
+                {currentStep > step.id && (
+                    <div className="absolute -top-1 -right-1 bg-secondary text-white rounded-full p-0.5 border-2 border-white">
+                        <CheckCircle2 size={10} strokeWidth={4} />
+                    </div>
+                )}
               </button>
             ))}
           </div>

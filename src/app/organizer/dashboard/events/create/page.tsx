@@ -1830,17 +1830,19 @@ const CreateEvent = () => {
           </button>
 
           {/* Step Indicator Desktop */}
-          <div id="event-creation-steps" className={`hidden items-center gap-1.5 bg-gray-50 p-2 rounded-[2.5rem] border border-gray-100 ${showPreview ? "2xl:flex" : "xl:flex"}`}>
+          <div id="event-creation-steps" className="hidden lg:flex items-center gap-1 sm:gap-1.5 bg-gray-50 p-1.5 sm:p-2 rounded-[2.5rem] border border-gray-100">
             {visibleSteps.map((step) => (
-              <div
+              <button
                 key={step.id}
-                className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-500 relative group cursor-help ${
+                type="button"
+                onClick={() => setCurrentStep(step.id)}
+                className={`flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 xl:w-12 xl:h-12 rounded-full transition-all duration-500 relative group cursor-pointer ${
                   currentStep === step.id
                   ? "bg-primary text-white shadow-xl shadow-primary/30 scale-110"
                   : currentStep > step.id ? "text-secondary bg-white border border-secondary/20" : "text-gray-300 hover:text-gray-400"
                 }`}
               >
-                <step.icon size={16} strokeWidth={currentStep === step.id ? 3 : 2} />
+                <step.icon size={15} strokeWidth={currentStep === step.id ? 3 : 2} />
                 {currentStep > step.id && (
                     <div className="absolute -top-1 -right-1 bg-secondary text-white rounded-full p-0.5 border-2 border-white">
                         <CheckCircle2 size={10} strokeWidth={4} />
@@ -1850,7 +1852,7 @@ const CreateEvent = () => {
                 <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[8px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50 shadow-xl">
                     {step.title}
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         </div>
