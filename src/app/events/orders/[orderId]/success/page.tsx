@@ -53,6 +53,24 @@ const EventPaymentSuccessContent = () => {
         };
       };
 
+      // Attempt 0: Check sessionStorage for guest/recent checkout order data
+      if (typeof window !== "undefined") {
+        try {
+          const cached = sessionStorage.getItem(`gobokin_latest_order_${orderId}`);
+          if (cached) {
+            const parsed = JSON.parse(cached);
+            const normalized = normalizeOrder(parsed);
+            if (normalized) {
+              setOrderData(normalized);
+              setLoading(false);
+              return;
+            }
+          }
+        } catch (e) {
+          console.error("Failed to read order from sessionStorage:", e);
+        }
+      }
+
       // Attempt 1: Fetch via authenticated order details endpoint (if user is logged in)
       if (user) {
         try {

@@ -420,6 +420,14 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
       const refParam = firstReg?.ticketNumber || firstReg?.transactionId || orderData.order?.transactionId || orderData.transactionId;
       const queryString = refParam ? `&reference=${encodeURIComponent(refParam)}` : "";
 
+      if (orderId && typeof window !== "undefined") {
+        try {
+          sessionStorage.setItem(`gobokin_latest_order_${orderId}`, JSON.stringify(orderData));
+        } catch (e) {
+          console.error("Failed to save order to sessionStorage:", e);
+        }
+      }
+
       // If order is successful, check if it's a free ticket or needs payment
       if (getTicketEffectivePrice(ticket) === 0) {
         await Swal.fire({
