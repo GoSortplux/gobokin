@@ -173,18 +173,19 @@ export const RegistrationFieldItem = ({
                 ) : (
                   <>
                     {(field.options || []).map((opt, oIdx) => (
-                      <div key={oIdx} className="flex items-center gap-3 bg-white px-5 py-3 rounded-xl border border-gray-200 shadow-sm group/opt transition-all hover:border-primary/30">
+                      <div key={oIdx} className="flex items-center gap-3 bg-white px-4 py-2.5 rounded-xl border border-gray-200 shadow-sm group/opt transition-all hover:border-primary/30 flex-1 min-w-[200px] max-w-full">
                         <input
                           type="text"
                           value={opt}
                           onBlur={onBlur}
                           onChange={(e) => updateFieldOption(idx, oIdx, e.target.value)}
                           placeholder="Option Name"
-                          className="bg-transparent border-none outline-none text-sm font-bold text-gray-700 w-40 sm:w-32"
+                          className="bg-transparent border-none outline-none text-sm font-bold text-gray-700 w-full min-w-0"
                         />
                         <button
+                          type="button"
                           onClick={() => removeFieldOption(idx, oIdx)}
-                          className="w-7 h-7 rounded-lg flex items-center justify-center bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-600 transition-all cursor-pointer"
+                          className="w-7 h-7 shrink-0 rounded-lg flex items-center justify-center bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-600 transition-all cursor-pointer"
                         >
                           <X size={14} strokeWidth={3} />
                         </button>
