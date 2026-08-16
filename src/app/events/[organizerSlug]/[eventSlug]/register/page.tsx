@@ -413,6 +413,13 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
       const response = await api.post(`/events/${event?.id}/orders`, payload);
       const orderData = response.data.data;
 
+      const orderId = orderData.order?.id || orderData.id;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const registrations: any[] = orderData.registrations || orderData.order?.registrations || [];
+      const firstReg = registrations[0];
+      const refParam = firstReg?.ticketNumber || firstReg?.transactionId || orderData.order?.transactionId || orderData.transactionId;
+      const queryString = refParam ? `&reference=${encodeURIComponent(refParam)}` : "";
+
       // If order is successful, check if it's a free ticket or needs payment
       if (getTicketEffectivePrice(ticket) === 0) {
         await Swal.fire({
@@ -421,10 +428,10 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
           icon: "success",
           confirmButtonColor: "#295FA7",
         });
-        router.push(`/payment-success/event?orderId=${orderData.id}`);
+        router.push(`/payment-success/event?orderId=${orderId}${queryString}`);
       } else {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const registrationIds = orderData.registrations.map((reg: any) => reg.id);
+        const registrationIds = registrations.map((reg: any) => reg.id);
         const paymentRes = await api.post("/events/payments/initialize", {
           registrationIds: registrationIds
         });

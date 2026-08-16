@@ -25,7 +25,7 @@ const EventPaymentSuccessContent = () => {
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
-      if (!orderId) {
+      if (!orderId || orderId === "undefined") {
         router.push("/");
         return;
       }
@@ -33,12 +33,32 @@ const EventPaymentSuccessContent = () => {
       setLoading(true);
       setError(null);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const normalizeOrder = (data: any) => {
+        if (!data) return null;
+        const rawOrder = data.order || data;
+        const registrations = data.registrations || rawOrder.registrations || [];
+        const buyerInfo = rawOrder.buyerInfo || {
+          fullName: registrations[0]?.attendeeData?.fullName || rawOrder.user?.fullName || "Guest",
+          email: registrations[0]?.attendeeData?.email || rawOrder.user?.email || ""
+        };
+        return {
+          id: rawOrder.id || rawOrder._id || orderId,
+          event: rawOrder.event || data.event || {},
+          registrations: registrations,
+          buyerInfo: buyerInfo,
+          amountPaid: rawOrder.amountPaid !== undefined ? Number(rawOrder.amountPaid) : (data.pricingBreakdown?.totalPayable || 0),
+          paymentStatus: rawOrder.paymentStatus || "PAID",
+          createdAt: rawOrder.createdAt || new Date().toISOString(),
+        };
+      };
+
       // Attempt 1: Fetch via authenticated order details endpoint (if user is logged in)
       if (user) {
         try {
           const response = await api.get(`/events/orders/${orderId}`);
           if (response.data && response.data.data) {
-            setOrderData(response.data.data);
+            setOrderData(normalizeOrder(response.data.data));
             setLoading(false);
             return;
           }
@@ -52,27 +72,7 @@ const EventPaymentSuccessContent = () => {
         try {
           const response = await api.get(`/events/payments/verify?reference=${reference}`);
           if (response.data && response.data.data) {
-            let order = response.data.data;
-            // Handle possible nested order structure
-            if (order && !order.registrations && order.order) {
-              order = order.order;
-            }
-
-            // Normalize order object for EventTicketReceipt safely
-            const normalizedOrder = {
-              id: order.id || order._id || orderId,
-              event: order.event || {},
-              registrations: order.registrations || [],
-              buyerInfo: order.buyerInfo || {
-                fullName: order.user?.fullName || "Guest",
-                email: order.user?.email || ""
-              },
-              amountPaid: order.amountPaid !== undefined ? order.amountPaid : (order.pricingBreakdown?.totalPayable || 0),
-              paymentStatus: order.paymentStatus || "PAID",
-              createdAt: order.createdAt || new Date().toISOString(),
-            };
-
-            setOrderData(normalizedOrder);
+            setOrderData(normalizeOrder(response.data.data));
             setLoading(false);
             return;
           }
@@ -85,7 +85,7 @@ const EventPaymentSuccessContent = () => {
       try {
         const response = await api.get(`/events/orders/${orderId}`);
         if (response.data && response.data.data) {
-          setOrderData(response.data.data);
+          setOrderData(normalizeOrder(response.data.data));
           setLoading(false);
           return;
         }
