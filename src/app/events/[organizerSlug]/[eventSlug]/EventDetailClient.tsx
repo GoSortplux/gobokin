@@ -23,7 +23,8 @@ import {
   BookmarkPlus,
   ChevronDown,
   ChevronUp,
-  User
+  User,
+  ArrowUpDown
 } from "lucide-react";
 import api from "@/services/api";
 import { Event, Ticket as TicketType, Session, Registration, Speaker } from "@/types";
@@ -116,15 +117,34 @@ const SessionCard = ({ session }: { session: Session }) => {
 
   const startTime = new Date(session.startTime);
   const endTime = session.endTime ? new Date(session.endTime) : null;
+  const now = new Date();
+
+  // Determine if session has ended (current time > session end time or start time if no end time)
+  const isEnded = endTime ? (now > endTime) : (now > startTime);
+
+  const formattedDate = startTime.toLocaleDateString(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
 
   return (
-    <div className="bg-gray-50 rounded-2xl border border-transparent hover:bg-white hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 transition-all duration-500 group overflow-hidden">
+    <div className={`rounded-2xl border border-transparent transition-all duration-500 group overflow-hidden ${
+      isEnded
+        ? "bg-gray-100/70 opacity-60 hover:opacity-85"
+        : "bg-gray-50 hover:bg-white hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5"
+    }`}>
       <div className="p-6">
         <div className="flex flex-col md:flex-row gap-6">
-          {/* Time & Type Column */}
-          <div className="flex-shrink-0 md:w-32 flex md:flex-col items-center md:items-start justify-between md:justify-start gap-2">
+          {/* Time & Date Column */}
+          <div className="flex-shrink-0 md:w-44 flex md:flex-col items-center md:items-start justify-between md:justify-start gap-2">
             <div className="space-y-1">
-              <p className="text-sm font-semibold text-primary uppercase tracking-widest leading-none">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-gray-700 uppercase tracking-wider">
+                <Calendar size={13} className="text-primary flex-shrink-0" />
+                <span>{formattedDate}</span>
+              </div>
+              <p className="text-sm font-semibold text-primary uppercase tracking-widest leading-none pt-0.5">
                 {startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </p>
               {endTime && (
@@ -133,11 +153,18 @@ const SessionCard = ({ session }: { session: Session }) => {
                 </p>
               )}
             </div>
-            {session.sessionType && (
-              <span className="px-2 py-1 rounded-lg bg-primary/10 text-primary text-[9px] font-bold uppercase tracking-wider">
-                {session.sessionType}
-              </span>
-            )}
+            <div className="flex flex-wrap gap-1.5 items-center">
+              {isEnded && (
+                <span className="px-2 py-0.5 rounded-md bg-gray-200 text-gray-700 text-[9px] font-black uppercase tracking-wider border border-gray-300">
+                  ENDED
+                </span>
+              )}
+              {session.sessionType && (
+                <span className="px-2 py-1 rounded-lg bg-primary/10 text-primary text-[9px] font-bold uppercase tracking-wider">
+                  {session.sessionType}
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Main Info Column */}
@@ -256,6 +283,50 @@ const EventDetailClient = () => {
   // New state for banner full-screen media viewer
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
   const [isMediaViewerOpen, setIsMediaViewerOpen] = useState(false);
+
+  // Schedule state: sorting & date filtering
+  const [sessionSortOrder, setSessionSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [sessionDateFilter, setSessionDateFilter] = useState<string>('ALL');
+
+  const availableDates = useMemo(() => {
+    if (!event?.sessions || event.sessions.length === 0) return [];
+    const dateMap = new Map<string, { key: string; label: string; dateObj: Date }>();
+
+    event.sessions.forEach(session => {
+      if (!session.startTime) return;
+      const d = new Date(session.startTime);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      if (!dateMap.has(key)) {
+        const label = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+        dateMap.set(key, { key, label, dateObj: d });
+      }
+    });
+
+    return Array.from(dateMap.values()).sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
+  }, [event?.sessions]);
+
+  const processedSessions = useMemo(() => {
+    if (!event?.sessions || event.sessions.length === 0) return [];
+
+    let filtered = [...event.sessions];
+
+    if (sessionDateFilter !== 'ALL') {
+      filtered = filtered.filter(session => {
+        if (!session.startTime) return false;
+        const d = new Date(session.startTime);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        return key === sessionDateFilter;
+      });
+    }
+
+    filtered.sort((a, b) => {
+      const timeA = new Date(a.startTime).getTime();
+      const timeB = new Date(b.startTime).getTime();
+      return sessionSortOrder === 'asc' ? timeA - timeB : timeB - timeA;
+    });
+
+    return filtered;
+  }, [event?.sessions, sessionDateFilter, sessionSortOrder]);
 
   useEffect(() => {
     const interacted = localStorage.getItem("has_interacted_ticket_selector") === "true";
@@ -865,34 +936,84 @@ const EventDetailClient = () => {
                   )}
 
                   {activeTab === "schedule" && (
-                    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10">
-                      <div className="flex items-center justify-between gap-4">
+                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-6">
                         <h3 className="text-2xl font-semibold text-gray-900 tracking-tighter flex items-center gap-3">
                           <div className="w-1.5 h-8 bg-primary rounded-full"></div>
                           The Schedule
                         </h3>
+
                         {event.sessions && event.sessions.length > 0 && (
-                          <span className="px-4 py-1.5 bg-gray-50 rounded-full text-[10px] font-bold text-gray-400 uppercase tracking-widest border border-gray-100">
-                             {event.sessions.length} Sessions
-                          </span>
+                          <div className="flex flex-wrap items-center gap-3">
+                            {/* Sort Order Toggle */}
+                            <button
+                              onClick={() => setSessionSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+                              className="flex items-center gap-2 px-3.5 py-1.5 bg-white text-gray-700 text-xs font-bold rounded-xl border border-gray-200 shadow-sm hover:bg-gray-50 transition-all"
+                              title="Toggle Session Sort Direction"
+                            >
+                              <ArrowUpDown size={14} className="text-primary" />
+                              <span>Date: {sessionSortOrder === 'asc' ? 'Earliest First' : 'Latest First'}</span>
+                            </button>
+
+                            <span className="px-4 py-1.5 bg-gray-50 rounded-full text-[10px] font-bold text-gray-400 uppercase tracking-widest border border-gray-100">
+                              {processedSessions.length} {processedSessions.length === 1 ? 'Session' : 'Sessions'}
+                            </span>
+                          </div>
                         )}
                       </div>
 
-                      {event.sessions && event.sessions.length > 0 ? (
-                        <div className="grid grid-cols-1 gap-6">
-                          {[...event.sessions]
-                            .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
-                            .map((session, i) => (
-                              <SessionCard key={session.id || i} session={session} />
+                      {/* Day Filter Tabs for Multi-Day Events */}
+                      {availableDates.length > 1 && (
+                        <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
+                          <button
+                            onClick={() => setSessionDateFilter('ALL')}
+                            className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                              sessionDateFilter === 'ALL'
+                                ? "bg-primary text-white shadow-md shadow-primary/20"
+                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                            }`}
+                          >
+                            All Days ({availableDates.length})
+                          </button>
+                          {availableDates.map((d, index) => (
+                            <button
+                              key={d.key}
+                              onClick={() => setSessionDateFilter(d.key)}
+                              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                                sessionDateFilter === d.key
+                                  ? "bg-primary text-white shadow-md shadow-primary/20"
+                                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                              }`}
+                            >
+                              Day {index + 1} ({d.label})
+                            </button>
                           ))}
                         </div>
+                      )}
+
+                      {event.sessions && event.sessions.length > 0 ? (
+                        processedSessions.length > 0 ? (
+                          <div className="grid grid-cols-1 gap-6">
+                            {processedSessions.map((session, i) => (
+                              <SessionCard key={session.id || i} session={session} />
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="py-20 text-center">
+                            <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-gray-300">
+                              <Clock size={32} />
+                            </div>
+                            <h4 className="text-lg font-semibold text-gray-900 mb-1">No sessions for this day</h4>
+                            <p className="text-xs text-gray-500 font-medium">Select another day or view all days.</p>
+                          </div>
+                        )
                       ) : (
                         <div className="py-32 text-center">
-                           <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-6 text-gray-300">
-                             <Clock size={40} />
-                           </div>
-                           <h4 className="text-xl font-semibold text-gray-900 mb-2">Timeline being finalized</h4>
-                           <p className="text-gray-500 font-medium">The organizer is putting the final touches on the schedule.</p>
+                          <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-6 text-gray-300">
+                            <Clock size={40} />
+                          </div>
+                          <h4 className="text-xl font-semibold text-gray-900 mb-2">Timeline being finalized</h4>
+                          <p className="text-gray-500 font-medium">The organizer is putting the final touches on the schedule.</p>
                         </div>
                       )}
                     </div>
