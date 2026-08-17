@@ -109,6 +109,12 @@ const EventDetails = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [attendeeSubTab, setAttendeeSubTab] = useState<"list" | "attendance">("list");
 
+  // Registered Attendees Pagination States
+  const [registeredPage, setRegisteredPage] = useState(1);
+  const [registeredLimit] = useState(10);
+  const [registeredTotal, setRegisteredTotal] = useState(0);
+  const [registeredPages, setRegisteredPages] = useState(1);
+
   // Attendance Tracker States
   const [trackerRegistrations, setTrackerRegistrations] = useState<TrackerRegistrationDetail[]>([]);
   const [trackerLoading, setTrackerLoading] = useState(false);
@@ -232,68 +238,77 @@ const EventDetails = () => {
     }
   }, [activeTab, eventId]);
 
-  useEffect(() => {
-    if (activeTab === "attendees" && eventId) {
-      const fetchAttendees = async () => {
-        try {
-          setAttendeesLoading(true);
-          // Correct endpoint according to requirements
-          const response = await api.get(`/events/${eventId}/orders`);
+  const fetchAttendees = useCallback(async () => {
+    if (!eventId || activeTab !== "attendees" || attendeeSubTab !== "list") return;
+    try {
+      setAttendeesLoading(true);
+      const params: Record<string, string | number> = {
+        page: registeredPage,
+        limit: registeredLimit,
+      };
+      if (attendeeSearchTerm.trim()) {
+        params.search = attendeeSearchTerm.trim();
+      }
+      const response = await api.get(`/events/${eventId}/orders`, { params });
 
-          // Orders typically contain nested registration/attendee data
-          // If the API returns orders, we may need to flatten them for the attendees list
-          const orders = response.data.data || [];
+      const orders = response.data.data || [];
 
-          // Based on common patterns in this repo, if orders have registrations:
-          let flattenedAttendees = [];
-          if (Array.isArray(orders)) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            flattenedAttendees = orders.flatMap((order: any) => {
-              const registrations = order.registrations || [];
-              if (registrations.length === 0) {
-                 return [{
-                   ...order,
-                   attendeeName: order.buyerInfo?.fullName || "Guest",
-                   attendeeEmail: order.buyerInfo?.email || "N/A",
-                   ticketName: order.ticketName || "Standard Entry",
-                   ticketNumber: `ORD-${order.id?.slice(0, 8)}`,
-                   status: order.status || "PENDING",
-                   createdAt: order.createdAt
-                 }];
-              }
-
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              return registrations.map((reg: any) => ({
-                ...reg,
-                orderId: order.id,
-                attendeeName: reg.attendeeData?.fullName || reg.attendeeData?.['full-name'] || order.buyerInfo?.fullName || "Guest",
-                attendeeEmail: reg.attendeeData?.email || order.buyerInfo?.email || "N/A",
-                ticketName: reg.ticketId?.name || order.ticketName || "Standard Entry",
-                ticketNumber: reg.ticketNumber || `ORD-${order.id?.slice(0, 8)}`,
-                status: reg.paymentStatus || order.status || "PAID",
-                createdAt: reg.createdAt || order.createdAt,
-                checkedInBy: reg.checkedInBy
-              }));
-            });
+      let flattenedAttendees = [];
+      if (Array.isArray(orders)) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        flattenedAttendees = orders.flatMap((order: any) => {
+          const registrations = order.registrations || [];
+          if (registrations.length === 0) {
+             return [{
+               ...order,
+               attendeeName: order.buyerInfo?.fullName || "Guest",
+               attendeeEmail: order.buyerInfo?.email || "N/A",
+               ticketName: order.ticketName || "Standard Entry",
+               ticketNumber: `ORD-${order.id?.slice(0, 8)}`,
+               status: order.status || "PENDING",
+               createdAt: order.createdAt
+             }];
           }
 
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const filteredAttendeesList = flattenedAttendees.filter((attendee: any) => {
-            const s = String(attendee.status || "").toUpperCase();
-            return s !== "PENDING" && s !== "FAILED";
-          });
+          return registrations.map((reg: any) => ({
+            ...reg,
+            orderId: order.id,
+            attendeeName: reg.attendeeData?.fullName || reg.attendeeData?.['full-name'] || order.buyerInfo?.fullName || "Guest",
+            attendeeEmail: reg.attendeeData?.email || order.buyerInfo?.email || "N/A",
+            ticketName: reg.ticketId?.name || order.ticketName || "Standard Entry",
+            ticketNumber: reg.ticketNumber || `ORD-${order.id?.slice(0, 8)}`,
+            status: reg.paymentStatus || order.status || "PAID",
+            createdAt: reg.createdAt || order.createdAt,
+            checkedInBy: reg.checkedInBy
+          }));
+        });
+      }
 
-          setAttendees(filteredAttendeesList);
-        } catch (error) {
-          console.error("Failed to fetch attendees/orders:", error);
-          setAttendees([]);
-        } finally {
-          setAttendeesLoading(false);
-        }
-      };
-      fetchAttendees();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const filteredAttendeesList = flattenedAttendees.filter((attendee: any) => {
+        const s = String(attendee.status || "").toUpperCase();
+        return s !== "PENDING" && s !== "FAILED";
+      });
+
+      setAttendees(filteredAttendeesList);
+
+      const pagination = response.data.pagination;
+      const total = pagination?.total ?? pagination?.totalResults ?? (Array.isArray(orders) ? orders.length : 0);
+      const pages = pagination?.pages ?? pagination?.totalPages ?? (Math.ceil(total / registeredLimit) || 1);
+      setRegisteredTotal(total);
+      setRegisteredPages(pages);
+    } catch (error) {
+      console.error("Failed to fetch attendees/orders:", error);
+      setAttendees([]);
+    } finally {
+      setAttendeesLoading(false);
     }
-  }, [activeTab, eventId]);
+  }, [eventId, activeTab, attendeeSubTab, registeredPage, registeredLimit, attendeeSearchTerm]);
+
+  useEffect(() => {
+    fetchAttendees();
+  }, [fetchAttendees]);
 
   const fetchTrackerRegistrations = useCallback(async () => {
     if (!eventId || activeTab !== "attendees" || attendeeSubTab !== "attendance") return;
@@ -1710,7 +1725,10 @@ const EventDetails = () => {
                                placeholder="Search attendees..."
                                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold focus:ring-4 focus:ring-primary/10 transition-all outline-none"
                                value={attendeeSearchTerm}
-                               onChange={(e) => setAttendeeSearchTerm(e.target.value)}
+                               onChange={(e) => {
+                                 setAttendeeSearchTerm(e.target.value);
+                                 setRegisteredPage(1);
+                               }}
                              />
                           </div>
 
@@ -1919,44 +1937,7 @@ const EventDetails = () => {
                                                             if (!isStaff) {
                                                               api.get(`/events/${eventId}/analytics`).then(res => setAnalytics(res.data.data));
                                                             }
-                                                            const response = await api.get(`/events/${eventId}/orders`);
-                                                            const orders = response.data.data || [];
-                                                            let flattenedAttendees = [];
-                                                            if (Array.isArray(orders)) {
-                                                              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                                              flattenedAttendees = orders.flatMap((order: any) => {
-                                                                const registrations = order.registrations || [];
-                                                                if (registrations.length === 0) {
-                                                                  return [{
-                                                                    ...order,
-                                                                    attendeeName: order.buyerInfo?.fullName || "Guest",
-                                                                    attendeeEmail: order.buyerInfo?.email || "N/A",
-                                                                    ticketName: order.ticketName || "Standard Entry",
-                                                                    ticketNumber: `ORD-${order.id?.slice(0, 8)}`,
-                                                                    status: order.status || "PENDING",
-                                                                    createdAt: order.createdAt
-                                                                  }];
-                                                                }
-                                                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                                                return registrations.map((reg: any) => ({
-                                                                  ...reg,
-                                                                  orderId: order.id,
-                                                                  attendeeName: reg.attendeeData?.fullName || reg.attendeeData?.['full-name'] || order.buyerInfo?.fullName || "Guest",
-                                                                  attendeeEmail: reg.attendeeData?.email || order.buyerInfo?.email || "N/A",
-                                                                  ticketName: reg.ticketId?.name || order.ticketName || "Standard Entry",
-                                                                  ticketNumber: reg.ticketNumber || `ORD-${order.id?.slice(0, 8)}`,
-                                                                  status: reg.paymentStatus || order.status || "PAID",
-                                                                  createdAt: reg.createdAt || order.createdAt,
-                                                                  checkedInBy: reg.checkedInBy
-                                                                }));
-                                                              });
-                                                            }
-                                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                                            const filteredAttendeesList = flattenedAttendees.filter((attendee: any) => {
-                                                              const s = String(attendee.status || "").toUpperCase();
-                                                              return s !== "PENDING" && s !== "FAILED";
-                                                            });
-                                                            setAttendees(filteredAttendeesList);
+                                                            fetchAttendees();
                                                           }
                                                         } catch (error) {
                                                           Swal.fire('Error', translateError(error), 'error');
@@ -2003,6 +1984,71 @@ const EventDetails = () => {
                                   </tbody>
                                </table>
                             </div>
+
+                            {/* Registered List Pagination Controls */}
+                            {registeredPages > 1 && (
+                               <div className="p-6 bg-gray-50/50 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+                                  <p className="text-xs text-gray-500 font-bold">
+                                     Showing Page {registeredPage} of {registeredPages} ({registeredTotal} Total Attendees)
+                                  </p>
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                     <button
+                                       onClick={() => setRegisteredPage(p => Math.max(1, p - 1))}
+                                       disabled={registeredPage === 1}
+                                       className="px-3 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-50 transition-all disabled:opacity-50 disabled:hover:bg-white cursor-pointer"
+                                     >
+                                        Previous
+                                     </button>
+
+                                     {(() => {
+                                       const pages: (number | string)[] = [];
+                                       if (registeredPages <= 7) {
+                                         for (let i = 1; i <= registeredPages; i++) pages.push(i);
+                                       } else {
+                                         pages.push(1);
+                                         if (registeredPage > 3) pages.push("...");
+                                         const start = Math.max(2, registeredPage - 1);
+                                         const end = Math.min(registeredPages - 1, registeredPage + 1);
+                                         for (let i = start; i <= end; i++) pages.push(i);
+                                         if (registeredPage < registeredPages - 2) pages.push("...");
+                                         pages.push(registeredPages);
+                                       }
+
+                                       return pages.map((p, idx) => {
+                                         if (p === "...") {
+                                           return (
+                                             <span key={`ellipsis-${idx}`} className="px-2 text-xs font-bold text-gray-400">
+                                               ...
+                                             </span>
+                                           );
+                                         }
+                                         const isCurrent = p === registeredPage;
+                                         return (
+                                           <button
+                                             key={`page-${p}`}
+                                             onClick={() => setRegisteredPage(Number(p))}
+                                             className={`w-8 h-8 rounded-xl text-xs font-bold transition-all flex items-center justify-center cursor-pointer ${
+                                               isCurrent
+                                                 ? "bg-primary text-white shadow-sm"
+                                                 : "bg-white border border-gray-100 text-gray-700 hover:bg-gray-50"
+                                             }`}
+                                           >
+                                             {p}
+                                           </button>
+                                         );
+                                       });
+                                     })()}
+
+                                     <button
+                                       onClick={() => setRegisteredPage(p => Math.min(registeredPages, p + 1))}
+                                       disabled={registeredPage === registeredPages}
+                                       className="px-3 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-50 transition-all disabled:opacity-50 disabled:hover:bg-white cursor-pointer"
+                                     >
+                                        Next
+                                     </button>
+                                  </div>
+                               </div>
+                            )}
                          </div>
                        )}
                     </div>
@@ -2285,53 +2331,6 @@ const EventDetails = () => {
             }
             // Refresh attendees if on that tab
             if (activeTab === "attendees") {
-              const fetchAttendees = async () => {
-                try {
-                  setAttendeesLoading(true);
-                  const response = await api.get(`/events/${eventId}/orders`);
-                  const orders = response.data.data || [];
-                  let flattenedAttendees = [];
-                  if (Array.isArray(orders)) {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    flattenedAttendees = orders.flatMap((order: any) => {
-                      const registrations = order.registrations || [];
-                      if (registrations.length === 0) {
-                        return [{
-                          ...order,
-                          attendeeName: order.buyerInfo?.fullName || "Guest",
-                          attendeeEmail: order.buyerInfo?.email || "N/A",
-                          ticketName: order.ticketName || "Standard Entry",
-                          ticketNumber: `ORD-${order.id?.slice(0, 8)}`,
-                          status: order.status || "PENDING",
-                          createdAt: order.createdAt
-                        }];
-                      }
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      return registrations.map((reg: any) => ({
-                        ...reg,
-                        orderId: order.id,
-                        attendeeName: reg.attendeeData?.fullName || reg.attendeeData?.['full-name'] || order.buyerInfo?.fullName || "Guest",
-                        attendeeEmail: reg.attendeeData?.email || order.buyerInfo?.email || "N/A",
-                        ticketName: reg.ticketId?.name || order.ticketName || "Standard Entry",
-                        ticketNumber: reg.ticketNumber || `ORD-${order.id?.slice(0, 8)}`,
-                        status: reg.paymentStatus || order.status || "PAID",
-                        createdAt: reg.createdAt || order.createdAt,
-                        checkedInBy: reg.checkedInBy
-                      }));
-                    });
-                  }
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  const filteredAttendeesList = flattenedAttendees.filter((attendee: any) => {
-                     const s = String(attendee.status || "").toUpperCase();
-                     return s !== "PENDING" && s !== "FAILED";
-                  });
-                  setAttendees(filteredAttendeesList);
-                } catch (error) {
-                  console.error("Failed to fetch attendees:", error);
-                } finally {
-                  setAttendeesLoading(false);
-                }
-              };
               fetchAttendees();
             }
           }}
