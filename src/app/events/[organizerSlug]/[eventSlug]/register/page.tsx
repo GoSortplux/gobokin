@@ -390,20 +390,55 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
       // Find the key used for full name (could be 'full-name' or 'fullName')
       const fullNameKey = (event?.registrationFields || []).find(f => f.name === 'fullName' || f.name === 'full-name')?.name || 'fullName';
 
-      // Map attendees to ensure both 'fullName' (for backend structure) and original dynamic key exist
-      const mappedAttendees = attendees.map(att => ({
-        ...att,
-        fullName: att[fullNameKey],
-      }));
+      // Robust fallback resolution chain for primary buyer contact details:
+      // 1. First attendee input value
+      // 2. Group/sharedData input value
+      // 3. Logged-in user profile details
+      // 4. Fallback empty string
+      const resolvedFullName =
+        attendees[0]?.[fullNameKey] ||
+        sharedData[fullNameKey] ||
+        sharedData["fullName"] ||
+        sharedData["full-name"] ||
+        user?.fullName ||
+        "";
+
+      const resolvedEmail =
+        attendees[0]?.["email"] ||
+        sharedData["email"] ||
+        user?.email ||
+        "";
+
+      const resolvedPhone =
+        attendees[0]?.["phone"] ||
+        sharedData["phone"] ||
+        user?.phone ||
+        "";
+
+      // Map attendees to ensure both 'fullName', 'email', and 'phone' are populated for backend validation
+      const mappedAttendees = attendees.map((att, idx) => {
+        const attFullName = att[fullNameKey] || att["fullName"] || att["full-name"] || (idx === 0 ? resolvedFullName : (resolvedFullName ? `${resolvedFullName} (Attendee #${idx + 1})` : ""));
+        const attEmail = att["email"] || resolvedEmail;
+        const attPhone = att["phone"] || resolvedPhone;
+
+        return {
+          ...att,
+          [fullNameKey]: attFullName,
+          fullName: attFullName,
+          email: attEmail,
+          phone: attPhone,
+        };
+      });
 
       const payload = {
         ticketId: ticketId,
         quantity: quantity,
         buyerInfo: {
+          ...sharedData,
           ...attendees[0],
-          fullName: attendees[0][fullNameKey],
-          email: attendees[0]["email"],
-          phone: attendees[0]["phone"],
+          fullName: resolvedFullName,
+          email: resolvedEmail,
+          phone: resolvedPhone,
         },
         attendees: mappedAttendees,
         sharedData: sharedData,
