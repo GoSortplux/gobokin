@@ -104,7 +104,7 @@ const AdminEventDetails = () => {
 
   // Registered Attendees Pagination States
   const [registeredPage, setRegisteredPage] = useState(1);
-  const [registeredLimit] = useState(10);
+  const [registeredLimit] = useState(100);
   const [registeredTotal, setRegisteredTotal] = useState(0);
   const [registeredPages, setRegisteredPages] = useState(1);
 
@@ -115,7 +115,7 @@ const AdminEventDetails = () => {
   const [trackerDay, setTrackerDay] = useState<string>("");
   const [trackerStatus, setTrackerStatus] = useState<string>("");
   const [trackerPage, setTrackerPage] = useState(1);
-  const [trackerLimit] = useState(10);
+  const [trackerLimit] = useState(100);
   const [trackerTotal, setTrackerTotal] = useState(0);
   const [trackerPages, setTrackerPages] = useState(1);
   const [trackerEventDays, setTrackerEventDays] = useState(0);
