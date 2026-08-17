@@ -53,10 +53,10 @@ const EventPaymentSuccessContent = () => {
         };
       };
 
-      // Attempt 0: Check sessionStorage for guest/recent checkout order data
+      // Attempt 0: Check sessionStorage and localStorage for guest/recent checkout order data
       if (typeof window !== "undefined") {
         try {
-          const cached = sessionStorage.getItem(`gobokin_latest_order_${orderId}`);
+          const cached = sessionStorage.getItem(`gobokin_latest_order_${orderId}`) || localStorage.getItem(`gobokin_latest_order_${orderId}`);
           if (cached) {
             const parsed = JSON.parse(cached);
             const normalized = normalizeOrder(parsed);
@@ -67,7 +67,7 @@ const EventPaymentSuccessContent = () => {
             }
           }
         } catch (e) {
-          console.error("Failed to read order from sessionStorage:", e);
+          console.error("Failed to read order from storage:", e);
         }
       }
 

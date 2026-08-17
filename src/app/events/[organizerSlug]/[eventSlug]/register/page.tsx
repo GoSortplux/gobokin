@@ -423,8 +423,9 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
       if (orderId && typeof window !== "undefined") {
         try {
           sessionStorage.setItem(`gobokin_latest_order_${orderId}`, JSON.stringify(orderData));
+          localStorage.setItem(`gobokin_latest_order_${orderId}`, JSON.stringify(orderData));
         } catch (e) {
-          console.error("Failed to save order to sessionStorage:", e);
+          console.error("Failed to save order to storage:", e);
         }
       }
 
@@ -436,7 +437,8 @@ const RegistrationFormContent = ({ ticketId, quantity }: { ticketId: string | nu
           icon: "success",
           confirmButtonColor: "#295FA7",
         });
-        router.push(`/payment-success/event?orderId=${orderId}${queryString}`);
+        const refQuery = queryString ? `?${queryString.slice(1)}` : "";
+        router.push(`/events/orders/${orderId}/success${refQuery}`);
       } else {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const registrationIds = registrations.map((reg: any) => reg.id);
