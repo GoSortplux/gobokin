@@ -1,11 +1,11 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Ticket,
   Search,
-  Filter,
   Eye,
-  Hash
+  Hash,
+  Users
 } from "lucide-react";
 import api from "@/services/api";
 import CustomLoader from "@/components/CustomLoader";
@@ -24,20 +24,60 @@ interface AdminOrderFlattened {
   ticketCount: number;
 }
 
+interface AdminEvent {
+  id: string;
+  title: string;
+  soldQuantity?: number;
+  _count?: { registrations?: number };
+}
+
 const AllOrdersAdmin = () => {
   const [orders, setOrders] = useState<AdminOrderFlattened[]>([]);
+  const [events, setEvents] = useState<AdminEvent[]>([]);
+  const [selectedEventId, setSelectedEventId] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Pagination States
+  const [ordersPage, setOrdersPage] = useState(1);
+  const [ordersLimit] = useState(10);
+  const [ordersTotal, setOrdersTotal] = useState(0);
+  const [ordersPages, setOrdersPages] = useState(1);
+
   useEffect(() => {
-    fetchOrders();
+    const fetchEvents = async () => {
+      try {
+        const response = await api.get("/events/my-events");
+        setEvents(response.data.data || []);
+      } catch {
+        try {
+          const fallbackRes = await api.get("/events");
+          setEvents(fallbackRes.data.data || []);
+        } catch {
+          setEvents([]);
+        }
+      }
+    };
+    fetchEvents();
   }, []);
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
       setLoading(true);
-      // Using /events/orders to get all orders across organizer scope
-      const response = await api.get("/events/orders");
+      const endpoint = selectedEventId
+        ? `/events/${selectedEventId}/orders`
+        : "/events/orders";
+
+      const params: Record<string, string | number> = {
+        page: ordersPage,
+        limit: ordersLimit,
+      };
+
+      if (searchTerm.trim()) {
+        params.search = searchTerm.trim();
+      }
+
+      const response = await api.get(endpoint, { params });
       const rawData = response.data.data;
       const orderList = Array.isArray(rawData) ? rawData : (Array.isArray(rawData?.data) ? rawData.data : []);
 
@@ -77,13 +117,23 @@ const AllOrdersAdmin = () => {
       });
 
       setOrders(flattened);
+
+      const pagination = response.data.pagination;
+      const total = pagination?.total ?? pagination?.totalResults ?? (Array.isArray(orderList) ? orderList.length : 0);
+      const pages = pagination?.pages ?? pagination?.totalPages ?? (Math.ceil(total / ordersLimit) || 1);
+      setOrdersTotal(total);
+      setOrdersPages(pages);
     } catch (error) {
       console.error("Failed to fetch orders:", error);
       setOrders([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedEventId, ordersPage, ordersLimit, searchTerm]);
+
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
 
   const filteredOrders = orders.filter(order =>
     order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -94,11 +144,21 @@ const AllOrdersAdmin = () => {
 
   if (loading) return <div className="h-full flex items-center justify-center"><CustomLoader /></div>;
 
+  const selectedEvent = events.find(e => e.id === selectedEventId);
+
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-black text-gray-900 tracking-tight">Platform Orders</h1>
-        <p className="text-gray-500 font-medium mt-1">Track and manage all ticket sales and registrations platform-wide.</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-black text-gray-900 tracking-tight">Platform Orders</h1>
+          <p className="text-gray-500 font-medium mt-1">Track and manage all ticket sales and registrations platform-wide.</p>
+        </div>
+        {selectedEventId && (
+          <div className="bg-primary/10 border border-primary/20 text-primary px-4 py-2.5 rounded-2xl flex items-center gap-2 font-black text-xs uppercase tracking-wider shrink-0 w-fit shadow-sm">
+            <Users size={16} />
+            <span>{selectedEvent?._count?.registrations ?? selectedEvent?.soldQuantity ?? ordersTotal} Registered</span>
+          </div>
+        )}
       </div>
 
       <div className="bg-white p-3 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col md:flex-row items-center gap-4">
@@ -109,13 +169,28 @@ const AllOrdersAdmin = () => {
             placeholder="Search orders by ID, buyer, or event..."
             className="w-full pl-12 pr-6 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setOrdersPage(1);
+            }}
           />
         </div>
-        <button className="flex items-center gap-2 px-6 py-4 bg-gray-50 text-gray-600 font-bold rounded-2xl hover:bg-gray-100 transition-all">
-          <Filter size={18} />
-          Filters
-        </button>
+
+        <div className="w-full md:w-64">
+          <select
+            value={selectedEventId}
+            onChange={(e) => {
+              setSelectedEventId(e.target.value);
+              setOrdersPage(1);
+            }}
+            className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all outline-none cursor-pointer"
+          >
+            <option value="">All Events</option>
+            {events.map(event => (
+              <option key={event.id} value={event.id}>{event.title}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
@@ -180,6 +255,71 @@ const AllOrdersAdmin = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Controls */}
+        {ordersPages > 1 && (
+           <div className="p-6 bg-gray-50/50 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <p className="text-xs text-gray-500 font-bold">
+                 Showing Page {ordersPage} of {ordersPages} ({ordersTotal} Total Orders/Registrations)
+              </p>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                 <button
+                   onClick={() => setOrdersPage(p => Math.max(1, p - 1))}
+                   disabled={ordersPage === 1}
+                   className="px-3 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-50 transition-all disabled:opacity-50 disabled:hover:bg-white cursor-pointer"
+                 >
+                    Previous
+                 </button>
+
+                 {(() => {
+                   const pages: (number | string)[] = [];
+                   if (ordersPages <= 7) {
+                     for (let i = 1; i <= ordersPages; i++) pages.push(i);
+                   } else {
+                     pages.push(1);
+                     if (ordersPage > 3) pages.push("...");
+                     const start = Math.max(2, ordersPage - 1);
+                     const end = Math.min(ordersPages - 1, ordersPage + 1);
+                     for (let i = start; i <= end; i++) pages.push(i);
+                     if (ordersPage < ordersPages - 2) pages.push("...");
+                     pages.push(ordersPages);
+                   }
+
+                   return pages.map((p, idx) => {
+                     if (p === "...") {
+                       return (
+                         <span key={`ellipsis-${idx}`} className="px-2 text-xs font-bold text-gray-400">
+                           ...
+                         </span>
+                       );
+                     }
+                     const isCurrent = p === ordersPage;
+                     return (
+                       <button
+                         key={`page-${p}`}
+                         onClick={() => setOrdersPage(Number(p))}
+                         className={`w-8 h-8 rounded-xl text-xs font-bold transition-all flex items-center justify-center cursor-pointer ${
+                           isCurrent
+                             ? "bg-primary text-white shadow-sm"
+                             : "bg-white border border-gray-100 text-gray-700 hover:bg-gray-50"
+                         }`}
+                       >
+                         {p}
+                       </button>
+                     );
+                   });
+                 })()}
+
+                 <button
+                   onClick={() => setOrdersPage(p => Math.min(ordersPages, p + 1))}
+                   disabled={ordersPage === ordersPages}
+                   className="px-3 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-50 transition-all disabled:opacity-50 disabled:hover:bg-white cursor-pointer"
+                 >
+                    Next
+                 </button>
+              </div>
+           </div>
+        )}
       </div>
     </div>
   );
