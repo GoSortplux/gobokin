@@ -7,6 +7,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import useOnClickOutside from "@/hooks/useOnClickOutside";
 import { getDashboardPath } from "@/utils/redirects";
+import { getInitials } from "@/utils/format";
 import api from "@/services/api";
 import Swal from "@/utils/sweetalert";
 import AccountSwitchModal from "../shared/AccountSwitchModal";
@@ -93,7 +94,7 @@ const OrganizerHeader = () => {
             className="flex items-center gap-3 pl-2 cursor-pointer group hover:bg-gray-50 p-1 rounded-2xl transition-all"
           >
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-black text-gray-900 group-hover:text-primary transition-colors">{user?.fullName}</p>
+              <p className="text-sm font-black text-gray-900 group-hover:text-primary transition-colors">{getInitials(user?.fullName)}</p>
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{formatRole(user?.activeRole || '')}</p>
             </div>
             <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-gray-100 border-2 border-transparent group-hover:border-primary transition-all shadow-sm">

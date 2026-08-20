@@ -9,6 +9,7 @@ import NotificationDropdown from "../notifications/NotificationDropdown";
 import { getDashboardPath } from "@/utils/redirects";
 import api from "@/services/api";
 import { translateError } from "@/utils/errors";
+import { getInitials } from "@/utils/format";
 import Swal from "@/utils/sweetalert";
 import AccountSwitchModal from "../shared/AccountSwitchModal";
 import { useUI } from "@/context/UIContext";
@@ -255,7 +256,7 @@ const AdminHeader = () => {
             </div>
             {user && (
               <div className="hidden lg:block text-left">
-                <p className="font-bold text-sm text-gray-900 leading-tight">{user.fullName}</p>
+                <p className="font-bold text-sm text-gray-900 leading-tight">{getInitials(user.fullName)}</p>
                 <div className="flex items-center mt-0.5">
                    <p className="text-[10px] font-black text-primary uppercase tracking-widest">{formatRole(user.activeRole || user.role[0] || '')}</p>
                    <ChevronDown size={12} className={`ml-1 text-gray-400 transition-transform duration-200 ${userDropdownOpen ? 'rotate-180' : ''}`} />

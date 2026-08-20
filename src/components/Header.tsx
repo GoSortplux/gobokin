@@ -15,6 +15,7 @@ import NotificationIcon from "./notifications/NotificationIcon";
 import NotificationDropdown from "./notifications/NotificationDropdown";
 import Swal from "@/utils/sweetalert";
 import { getDashboardPath } from "@/utils/redirects";
+import { getInitials } from "@/utils/format";
 
 const formatRole = (role: string) => {
   if (role === 'user') return 'Customer';
@@ -205,7 +206,7 @@ const Header = () => {
                       </div>
                       {user && (
                         <div className="text-left hidden md:block">
-                          <p className="font-semibold text-sm text-gray-700">{user.fullName}</p>
+                          <p className="font-semibold text-sm text-gray-700">{getInitials(user.fullName)}</p>
                           <div className="flex items-center">
                             <p className="text-xs text-gray-500">{formatRole(user.activeRole || user.role[0] || '')}</p>
                             <ChevronDown size={14} className="ml-1 text-gray-400" />
@@ -380,7 +381,7 @@ const Header = () => {
                       </div>
                       <div className="overflow-hidden">
                         <p className="font-bold text-gray-900 truncate">
-                          {user.fullName || "User"}
+                          {getInitials(user.fullName)}
                         </p>
                         <p className="text-xs text-gray-500 truncate">{user.email}</p>
                       </div>
