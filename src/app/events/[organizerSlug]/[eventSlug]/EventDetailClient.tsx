@@ -24,8 +24,10 @@ import {
   ChevronDown,
   ChevronUp,
   User,
-  ArrowUpDown
+  ArrowUpDown,
+  Star
 } from "lucide-react";
+import SessionRatingModal from "@/components/events/SessionRatingModal";
 import api from "@/services/api";
 import { Event, Ticket as TicketType, Session, Registration, Speaker } from "@/types";
 import { eventTracking } from "@/services/eventTracking";
@@ -105,9 +107,20 @@ const SpeakerCard = ({ speaker }: { speaker: Speaker }) => {
 };
 
 const SessionCard = ({ session }: { session: Session }) => {
+  const { user } = useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
   const descriptionRef = useRef<HTMLParagraphElement>(null);
   const [isTruncated, setIsTruncated] = useState(false);
+
+  // Rating State
+  const [ratingEligibility, setRatingEligibility] = useState<{
+    eligible: boolean;
+    hasRated: boolean;
+    reason?: string | null;
+    myRating?: { rating?: number; feedback?: string };
+  } | null>(null);
+  const [myRating, setMyRating] = useState<{ rating: number; feedback?: string } | null>(null);
+  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
 
   useEffect(() => {
     if (descriptionRef.current) {
@@ -122,6 +135,38 @@ const SessionCard = ({ session }: { session: Session }) => {
   // Determine if session has ended (current time > session end time or start time if no end time)
   const isEnded = endTime ? (now > endTime) : (now > startTime);
 
+  useEffect(() => {
+    if (isEnded && user && session.id) {
+      const checkEligibility = async () => {
+        try {
+          const res = await api.get(`/events/sessions/${session.id}/rating/eligibility`);
+          const data = res.data?.data || res.data;
+          setRatingEligibility(data);
+
+          if (data?.hasRated) {
+            if (data.myRating && typeof data.myRating.rating === 'number') {
+              setMyRating(data.myRating);
+            } else {
+              // Fetch guest's explicit rating if not fully populated in eligibility
+              try {
+                const ratingRes = await api.get(`/events/sessions/${session.id}/rating`);
+                const ratingData = ratingRes.data?.data || ratingRes.data;
+                if (ratingData?.rating) {
+                  setMyRating(ratingData);
+                }
+              } catch (_e) {
+                // Ignore error if specific rating fetch fails
+              }
+            }
+          }
+        } catch (_err) {
+          console.error("Failed to fetch session rating eligibility:", _err);
+        }
+      };
+      checkEligibility();
+    }
+  }, [isEnded, user, session.id]);
+
   const formattedDate = startTime.toLocaleDateString(undefined, {
     weekday: 'short',
     month: 'short',
@@ -132,9 +177,22 @@ const SessionCard = ({ session }: { session: Session }) => {
   return (
     <div className={`rounded-2xl border border-transparent transition-all duration-500 group overflow-hidden ${
       isEnded
-        ? "bg-gray-100/70 opacity-60 hover:opacity-85"
+        ? "bg-gray-100/70 hover:opacity-100"
         : "bg-gray-50 hover:bg-white hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5"
     }`}>
+      {isEnded && user && (
+        <SessionRatingModal
+          sessionId={session.id!}
+          sessionTitle={session.title}
+          isOpen={isRatingModalOpen}
+          onClose={() => setIsRatingModalOpen(false)}
+          onRatingSubmitted={(rating, feedback) => {
+            setRatingEligibility(prev => prev ? { ...prev, hasRated: true } : { eligible: true, hasRated: true });
+            setMyRating({ rating, feedback });
+          }}
+        />
+      )}
+
       <div className="p-6">
         <div className="flex flex-col md:flex-row gap-6">
           {/* Time & Date Column */}
@@ -206,9 +264,9 @@ const SessionCard = ({ session }: { session: Session }) => {
               )}
             </div>
 
-            {/* Speakers & Metadata */}
-            {(session.speakerNames && session.speakerNames.length > 0) && (
-              <div className="flex flex-wrap items-center gap-4 pt-2">
+            {/* Speakers, Metadata & Session Rating Widget */}
+            <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-gray-100/80">
+              {(session.speakerNames && session.speakerNames.length > 0) ? (
                 <div className="flex items-center gap-2">
                    <div className="flex -space-x-2">
                       {session.speakerNames.slice(0, 3).map((_, i) => (
@@ -221,8 +279,28 @@ const SessionCard = ({ session }: { session: Session }) => {
                       {session.speakerNames.join(", ")}
                    </p>
                 </div>
-              </div>
-            )}
+              ) : <div />}
+
+              {/* Concluded Session Rating Actions for Logged-In Guest */}
+              {isEnded && user && (
+                <div className="flex items-center gap-2 ml-auto">
+                  {ratingEligibility?.hasRated ? (
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-amber-700 bg-amber-50 px-3.5 py-1.5 rounded-xl border border-amber-200/80 shadow-sm">
+                      <Star size={14} className="fill-amber-400 text-amber-400" />
+                      <span>Your Rating: {myRating?.rating || ratingEligibility.myRating?.rating || 5} / 5</span>
+                    </div>
+                  ) : ratingEligibility?.eligible ? (
+                    <button
+                      onClick={() => setIsRatingModalOpen(true)}
+                      className="flex items-center gap-1.5 text-xs font-bold text-white bg-amber-500 hover:bg-amber-600 active:scale-95 px-4 py-2 rounded-xl transition-all shadow-md shadow-amber-500/20"
+                    >
+                      <Star size={14} className="fill-white text-white" />
+                      <span>Rate Session</span>
+                    </button>
+                  ) : null}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

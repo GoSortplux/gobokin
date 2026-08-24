@@ -39,8 +39,11 @@ import {
   Search,
   XCircle,
   FileText,
-  ArrowUpDown
+  ArrowUpDown,
+  Star,
+  MessageSquare
 } from "lucide-react";
+import SessionRatingsModal from "@/components/organizer/SessionRatingsModal";
 import Image from "next/image";
 import api from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
@@ -144,6 +147,52 @@ const EventDetails = () => {
   // Schedule tab state: sorting & date filtering
   const [sessionSortOrder, setSessionSortOrder] = useState<'asc' | 'desc'>('asc');
   const [sessionDateFilter, setSessionDateFilter] = useState<string>('ALL');
+
+  // Session Ratings Analytics Modal State
+  const [selectedSessionForRatings, setSelectedSessionForRatings] = useState<{ id: string; title: string } | null>(null);
+  const [isRatingsModalOpen, setIsRatingsModalOpen] = useState(false);
+  const [sessionSummaries, setSessionSummaries] = useState<Record<string, {
+    averageRating: number;
+    totalRatings: number;
+    responseRate: number;
+    relevantAttendees: number;
+    ratingDistribution?: {
+      "1": number;
+      "2": number;
+      "3": number;
+      "4": number;
+      "5": number;
+    };
+  }>>({});
+
+  // Fetch rating summaries for sessions when Schedule tab is active
+  useEffect(() => {
+    if (activeTab === "schedule" && event?.sessions && event.sessions.length > 0) {
+      event.sessions.forEach((session) => {
+        if (session.id && !sessionSummaries[session.id]) {
+          api.get(`/events/organizer/sessions/${session.id}/ratings/summary`)
+            .then((res) => {
+              const data = res.data?.data || res.data;
+              if (data) {
+                setSessionSummaries((prev) => ({
+                  ...prev,
+                  [session.id!]: {
+                    averageRating: data.averageRating || 0,
+                    totalRatings: data.totalRatings || 0,
+                    responseRate: data.responseRate || 0,
+                    relevantAttendees: data.relevantAttendees || 0,
+                    ratingDistribution: data.ratingDistribution
+                  }
+                }));
+              }
+            })
+            .catch((_err) => {
+              // Ignore summary fetch failure for individual session
+            });
+        }
+      });
+    }
+  }, [activeTab, event?.sessions, sessionSummaries]);
 
   const availableSessionDates = useMemo(() => {
     if (!event?.sessions || event.sessions.length === 0) return [];
@@ -1337,11 +1386,40 @@ const EventDetails = () => {
                                              <span>{session.location}</span>
                                           </div>
                                         )}
-                                        {session.sessionType && (
-                                          <span className="px-2.5 py-1 rounded-lg bg-primary/10 text-primary text-[10px]">
-                                            {session.sessionType}
-                                          </span>
-                                        )}
+                                        <div className="flex items-center gap-2 ml-auto flex-wrap">
+                                           {/* Rating Summary Widget for Organizer */}
+                                           {sessionSummaries[session.id!] ? (
+                                             <button
+                                               onClick={() => {
+                                                 setSelectedSessionForRatings({ id: session.id!, title: session.title });
+                                                 setIsRatingsModalOpen(true);
+                                               }}
+                                               className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-50 text-amber-700 border border-amber-200/80 hover:bg-amber-100 transition-all font-bold text-[11px] cursor-pointer"
+                                               title="Click to view detailed session ratings and feedback"
+                                             >
+                                               <Star size={13} className="fill-amber-400 text-amber-400" />
+                                               <span>{sessionSummaries[session.id!].averageRating.toFixed(1)}</span>
+                                               <span className="text-gray-400 font-medium">({sessionSummaries[session.id!].totalRatings})</span>
+                                             </button>
+                                           ) : (
+                                             <button
+                                               onClick={() => {
+                                                 setSelectedSessionForRatings({ id: session.id!, title: session.title });
+                                                 setIsRatingsModalOpen(true);
+                                               }}
+                                               className="flex items-center gap-1 px-3 py-1 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all font-bold text-[11px] cursor-pointer"
+                                             >
+                                               <MessageSquare size={12} className="text-primary" />
+                                               <span>Ratings Analytics</span>
+                                             </button>
+                                           )}
+
+                                           {session.sessionType && (
+                                             <span className="px-2.5 py-1 rounded-lg bg-primary/10 text-primary text-[10px]">
+                                               {session.sessionType}
+                                             </span>
+                                           )}
+                                        </div>
                                      </div>
                                   </div>
                                </div>
@@ -2489,6 +2567,29 @@ const EventDetails = () => {
         registrationFields={event.registrationFields}
         tickets={event.tickets}
       />
+
+      {selectedSessionForRatings && (
+        <SessionRatingsModal
+          sessionId={selectedSessionForRatings.id}
+          sessionTitle={selectedSessionForRatings.title}
+          isOpen={isRatingsModalOpen}
+          onClose={() => {
+            setIsRatingsModalOpen(false);
+            setSelectedSessionForRatings(null);
+          }}
+          summary={sessionSummaries[selectedSessionForRatings.id] ? {
+            sessionId: selectedSessionForRatings.id,
+            sessionTitle: selectedSessionForRatings.title,
+            averageRating: sessionSummaries[selectedSessionForRatings.id].averageRating,
+            totalRatings: sessionSummaries[selectedSessionForRatings.id].totalRatings,
+            relevantAttendees: sessionSummaries[selectedSessionForRatings.id].relevantAttendees,
+            eventTotalAttendees: event.capacity || 0,
+            responseRate: sessionSummaries[selectedSessionForRatings.id].responseRate,
+            attendanceBasis: "SESSION_CHECKIN",
+            ratingDistribution: sessionSummaries[selectedSessionForRatings.id].ratingDistribution || { "1": 0, "2": 0, "3": 0, "4": 0, "5": 0 }
+          } : null}
+        />
+      )}
 
       {selectedTicketNumberForModal && (
         <RegistrationDetailsModal
