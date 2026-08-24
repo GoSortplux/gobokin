@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import useOnClickOutside from "@/hooks/useOnClickOutside";
 import {
@@ -85,6 +85,7 @@ const EventDetails = () => {
   const { isRestricted, getRule, openUpgradeModal, refreshRules } = useOrganizerRules();
   const { eventId } = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [event, setEvent] = useState<Event | null>(null);
 
   const getEventDays = (startDateStr: string, endDateStr: string) => {
@@ -110,18 +111,22 @@ const EventDetails = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [attendeeSubTab, setAttendeeSubTab] = useState<"list" | "attendance">("list");
 
-  // Registered Attendees Pagination States
+  // Registered Attendees Pagination States & Filters
   const [registeredPage, setRegisteredPage] = useState(1);
   const [registeredLimit] = useState(100);
   const [registeredTotal, setRegisteredTotal] = useState(0);
   const [registeredPages, setRegisteredPages] = useState(1);
+  const [registeredSessionFilter, setRegisteredSessionFilter] = useState<string>(searchParams.get("session") || "");
+  const [registeredStateFilter, setRegisteredStateFilter] = useState<string>(searchParams.get("state") || "");
 
-  // Attendance Tracker States
+  // Attendance Tracker States & Filters
   const [trackerRegistrations, setTrackerRegistrations] = useState<TrackerRegistrationDetail[]>([]);
   const [trackerLoading, setTrackerLoading] = useState(false);
   const [trackerSearch, setTrackerSearch] = useState("");
   const [trackerDay, setTrackerDay] = useState<string>("");
   const [trackerStatus, setTrackerStatus] = useState<string>("");
+  const [trackerSessionFilter, setTrackerSessionFilter] = useState<string>(searchParams.get("session") || "");
+  const [trackerStateFilter, setTrackerStateFilter] = useState<string>(searchParams.get("state") || "");
   const [trackerPage, setTrackerPage] = useState(1);
   const [trackerLimit] = useState(100);
   const [trackerTotal, setTrackerTotal] = useState(0);
@@ -294,6 +299,12 @@ const EventDetails = () => {
       if (attendeeSearchTerm.trim()) {
         params.search = attendeeSearchTerm.trim();
       }
+      if (registeredSessionFilter.trim()) {
+        params.session = registeredSessionFilter.trim();
+      }
+      if (registeredStateFilter.trim()) {
+        params.state = registeredStateFilter.trim();
+      }
       const response = await api.get(`/events/${eventId}/orders`, { params });
 
       const orders = response.data.data || [];
@@ -349,7 +360,7 @@ const EventDetails = () => {
     } finally {
       setAttendeesLoading(false);
     }
-  }, [eventId, activeTab, attendeeSubTab, registeredPage, registeredLimit, attendeeSearchTerm]);
+  }, [eventId, activeTab, attendeeSubTab, registeredPage, registeredLimit, attendeeSearchTerm, registeredSessionFilter, registeredStateFilter]);
 
   useEffect(() => {
     fetchAttendees();
@@ -372,6 +383,12 @@ const EventDetails = () => {
           params.day = parseInt(trackerDay);
         }
       }
+      if (trackerSessionFilter.trim()) {
+        params.session = trackerSessionFilter.trim();
+      }
+      if (trackerStateFilter.trim()) {
+        params.state = trackerStateFilter.trim();
+      }
       const response = await api.get(`/events/${eventId}/registrations`, { params });
       setTrackerRegistrations(response.data.data || []);
       setTrackerTotal(response.data.pagination?.total || 0);
@@ -382,7 +399,7 @@ const EventDetails = () => {
     } finally {
       setTrackerLoading(false);
     }
-  }, [eventId, activeTab, attendeeSubTab, trackerPage, trackerLimit, trackerSearch, trackerDay, trackerStatus]);
+  }, [eventId, activeTab, attendeeSubTab, trackerPage, trackerLimit, trackerSearch, trackerDay, trackerStatus, trackerSessionFilter, trackerStateFilter]);
 
   useEffect(() => {
     fetchTrackerRegistrations();
@@ -1877,6 +1894,73 @@ const EventDetails = () => {
                           </div>
 
                           <div className="flex items-center gap-3">
+                             <select
+                               value={registeredSessionFilter}
+                               onChange={(e) => {
+                                 const val = e.target.value;
+                                 setRegisteredSessionFilter(val);
+                                 setRegisteredPage(1);
+                                 const p = new URLSearchParams(window.location.search);
+                                 if (val) p.set("session", val);
+                                 else p.delete("session");
+                                 router.push(`?${p.toString()}`);
+                               }}
+                               className="px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold focus:ring-4 focus:ring-primary/10 transition-all outline-none cursor-pointer"
+                             >
+                               <option value="">Session: All</option>
+                               {event?.sessions && event.sessions.map((s, idx) => (
+                                 <option key={idx} value={s.title}>{s.title}</option>
+                               ))}
+                               {!event?.sessions?.length && (
+                                 <>
+                                   <option value="Primary">Primary</option>
+                                   <option value="Secondary">Secondary</option>
+                                 </>
+                               )}
+                             </select>
+
+                             <select
+                               value={registeredStateFilter}
+                               onChange={(e) => {
+                                 const val = e.target.value;
+                                 setRegisteredStateFilter(val);
+                                 setRegisteredPage(1);
+                                 const p = new URLSearchParams(window.location.search);
+                                 if (val) p.set("state", val);
+                                 else p.delete("state");
+                                 router.push(`?${p.toString()}`);
+                               }}
+                               className="px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold focus:ring-4 focus:ring-primary/10 transition-all outline-none cursor-pointer"
+                             >
+                               <option value="">State: All</option>
+                               <option value="Lagos">Lagos</option>
+                               <option value="Abuja">Abuja</option>
+                               <option value="Rivers">Rivers</option>
+                               <option value="Oyo">Oyo</option>
+                               <option value="Kano">Kano</option>
+                               <option value="Enugu">Enugu</option>
+                               <option value="Edo">Edo</option>
+                               <option value="Kaduna">Kaduna</option>
+                             </select>
+
+                             {(registeredSessionFilter || registeredStateFilter || attendeeSearchTerm) && (
+                               <button
+                                 onClick={() => {
+                                   setRegisteredSessionFilter("");
+                                   setRegisteredStateFilter("");
+                                   setAttendeeSearchTerm("");
+                                   setRegisteredPage(1);
+                                   const p = new URLSearchParams(window.location.search);
+                                   p.delete("session");
+                                   p.delete("state");
+                                   router.push(`?${p.toString()}`);
+                                 }}
+                                 className="flex items-center gap-1.5 px-3 py-2 bg-rose-50 text-rose-600 font-bold text-xs rounded-xl hover:bg-rose-100 transition-all border border-rose-100"
+                               >
+                                 Clear
+                               </button>
+                             )}
+
                              <button
                                onClick={async () => {
                                  try {
@@ -1889,7 +1973,11 @@ const EventDetails = () => {
                                      }
                                    });
 
-                                   const response = await api.get(`/events/${eventId}/export-attendance`, {
+                                   const exportParams = new URLSearchParams({ format: 'excel' });
+                                   if (registeredSessionFilter) exportParams.set('session', registeredSessionFilter);
+                                   if (registeredStateFilter) exportParams.set('state', registeredStateFilter);
+
+                                   const response = await api.get(`/events/${eventId}/reports/attendance?${exportParams.toString()}`, {
                                      responseType: 'blob',
                                    });
 
@@ -2248,13 +2336,68 @@ const EventDetails = () => {
                                ))}
                              </select>
 
-                             {(trackerSearch || trackerStatus || trackerDay) && (
+                             <select
+                               value={trackerSessionFilter}
+                               onChange={(e) => {
+                                 const val = e.target.value;
+                                 setTrackerSessionFilter(val);
+                                 setTrackerPage(1);
+                                 const p = new URLSearchParams(window.location.search);
+                                 if (val) p.set("session", val);
+                                 else p.delete("session");
+                                 router.push(`?${p.toString()}`);
+                               }}
+                               className="px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold focus:ring-4 focus:ring-primary/10 transition-all outline-none cursor-pointer"
+                             >
+                               <option value="">Session: All</option>
+                               {event?.sessions && event.sessions.map((s, idx) => (
+                                 <option key={idx} value={s.title}>{s.title}</option>
+                               ))}
+                               {!event?.sessions?.length && (
+                                 <>
+                                   <option value="Primary">Primary</option>
+                                   <option value="Secondary">Secondary</option>
+                                 </>
+                               )}
+                             </select>
+
+                             <select
+                               value={trackerStateFilter}
+                               onChange={(e) => {
+                                 const val = e.target.value;
+                                 setTrackerStateFilter(val);
+                                 setTrackerPage(1);
+                                 const p = new URLSearchParams(window.location.search);
+                                 if (val) p.set("state", val);
+                                 else p.delete("state");
+                                 router.push(`?${p.toString()}`);
+                               }}
+                               className="px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold focus:ring-4 focus:ring-primary/10 transition-all outline-none cursor-pointer"
+                             >
+                               <option value="">State: All</option>
+                               <option value="Lagos">Lagos</option>
+                               <option value="Abuja">Abuja</option>
+                               <option value="Rivers">Rivers</option>
+                               <option value="Oyo">Oyo</option>
+                               <option value="Kano">Kano</option>
+                               <option value="Enugu">Enugu</option>
+                               <option value="Edo">Edo</option>
+                               <option value="Kaduna">Kaduna</option>
+                             </select>
+
+                             {(trackerSearch || trackerStatus || trackerDay || trackerSessionFilter || trackerStateFilter) && (
                                <button
                                  onClick={() => {
                                    setTrackerSearch("");
                                    setTrackerStatus("");
                                    setTrackerDay("");
+                                   setTrackerSessionFilter("");
+                                   setTrackerStateFilter("");
                                    setTrackerPage(1);
+                                   const p = new URLSearchParams(window.location.search);
+                                   p.delete("session");
+                                   p.delete("state");
+                                   router.push(`?${p.toString()}`);
                                  }}
                                  className="flex items-center gap-1.5 px-4 py-2.5 bg-rose-50 text-rose-600 font-bold text-xs rounded-xl hover:bg-rose-100 transition-all border border-rose-100"
                                >

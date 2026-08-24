@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Ticket,
   Search,
@@ -18,11 +19,14 @@ import RegistrationDetailsModal from "@/components/organizer/RegistrationDetails
 
 const OrdersView = () => {
   const { user } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [orders, setOrders] = useState<any[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [events, setEvents] = useState<any[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<string>("");
+  const [sectionFilter, setSectionFilter] = useState<string>(searchParams.get("Section") || searchParams.get("section") || "");
   const [loading, setLoading] = useState(true);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -85,6 +89,11 @@ const OrdersView = () => {
         params.search = searchTerm.trim();
       }
 
+      if (sectionFilter.trim()) {
+        params.Section = sectionFilter.trim();
+        params.section = sectionFilter.trim();
+      }
+
       const response = await api.get(endpoint, { params });
       const rawData = response.data.data;
       const orderList = Array.isArray(rawData) ? rawData : (Array.isArray(rawData?.data) ? rawData.data : []);
@@ -141,7 +150,7 @@ const OrdersView = () => {
     } finally {
       setOrdersLoading(false);
     }
-  }, [selectedEventId, ordersPage, ordersLimit, searchTerm]);
+  }, [selectedEventId, ordersPage, ordersLimit, searchTerm, sectionFilter]);
 
   useEffect(() => {
     fetchOrders();
@@ -283,6 +292,48 @@ const OrdersView = () => {
                 ))}
                 {events.length === 0 && isStaff && <option value="">No events assigned</option>}
             </select>
+        </div>
+
+        <div className="w-full lg:w-48 flex items-center gap-2">
+            <select
+                value={sectionFilter}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setSectionFilter(val);
+                  setOrdersPage(1);
+                  const p = new URLSearchParams(window.location.search);
+                  if (val) {
+                    p.set("Section", val);
+                    p.set("section", val);
+                  } else {
+                    p.delete("Section");
+                    p.delete("section");
+                  }
+                  router.push(`?${p.toString()}`);
+                }}
+                className="w-full px-4 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all outline-none cursor-pointer"
+            >
+                <option value="">Section: All</option>
+                <option value="Primary">Primary</option>
+                <option value="Secondary">Secondary</option>
+                <option value="VIP">VIP</option>
+                <option value="General">General</option>
+            </select>
+            {sectionFilter && (
+              <button
+                onClick={() => {
+                  setSectionFilter("");
+                  setOrdersPage(1);
+                  const p = new URLSearchParams(window.location.search);
+                  p.delete("Section");
+                  p.delete("section");
+                  router.push(`?${p.toString()}`);
+                }}
+                className="px-3 py-4 bg-rose-50 text-rose-600 font-bold text-xs rounded-2xl hover:bg-rose-100 transition-all border border-rose-100 shrink-0"
+              >
+                Clear
+              </button>
+            )}
         </div>
       </div>
 
