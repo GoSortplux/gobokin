@@ -2,6 +2,21 @@
 
 import { useEffect } from 'react';
 
+const isChunkLoadError = (error: Error & { digest?: string }) => {
+  if (!error) return false;
+  const message = (error.message || '').toLowerCase();
+  const name = (error.name || '').toLowerCase();
+
+  return (
+    name.includes('chunkloaderror') ||
+    message.includes('loading chunk') ||
+    message.includes('chunkloaderror') ||
+    message.includes('failed to fetch dynamically imported module') ||
+    message.includes('css_chunk_load_failed') ||
+    message.includes('unexpected token')
+  );
+};
+
 export default function Error({
   error,
   reset,
@@ -9,10 +24,36 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const isChunkError = isChunkLoadError(error);
+
   useEffect(() => {
-    // Log the error to an error reporting service
-    console.error('Unhandled error:', error);
-  }, [error]);
+    // Log the error
+    console.error('Unhandled error caught by boundary:', error);
+
+    // Auto-recover from chunk load errors caused by deployments or stale assets
+    if (isChunkError) {
+      try {
+        const lastReload = sessionStorage.getItem('last-chunk-reload');
+        const now = Date.now();
+        // Prevent infinite reload loops: auto-reload at most once every 10 seconds
+        if (!lastReload || now - parseInt(lastReload, 10) > 10000) {
+          sessionStorage.setItem('last-chunk-reload', now.toString());
+          window.location.reload();
+        }
+      } catch (e) {
+        window.location.reload();
+      }
+    }
+  }, [error, isChunkError]);
+
+  const handleAction = () => {
+    if (isChunkError) {
+      // For chunk/asset loading failures, reset() won't help; force a hard refresh
+      window.location.reload();
+    } else {
+      reset();
+    }
+  };
 
   const handleHardReset = () => {
     // Force a full page reload to clear any stale state/assets
@@ -39,23 +80,29 @@ export default function Error({
               ></path>
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Something went wrong</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            {isChunkError ? 'Update Available' : 'Something went wrong'}
+          </h2>
           <p className="text-gray-600 mb-8">
-            We encountered an unexpected error. This might be due to a recent update.
+            {isChunkError
+              ? 'A recent update or network change occurred. Please refresh the page to load the latest version.'
+              : 'We encountered an unexpected error. This might be due to a recent update.'}
           </p>
           <div className="space-y-3">
             <button
-              onClick={() => reset()}
+              onClick={handleAction}
               className="w-full bg-blue-600 text-white py-3 px-4 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
             >
-              Try again
+              {isChunkError ? 'Refresh Page' : 'Try again'}
             </button>
-            <button
-              onClick={handleHardReset}
-              className="w-full bg-gray-100 text-gray-700 py-3 px-4 rounded-xl font-semibold hover:bg-gray-200 transition-colors"
-            >
-              Refresh page
-            </button>
+            {!isChunkError && (
+              <button
+                onClick={handleHardReset}
+                className="w-full bg-gray-100 text-gray-700 py-3 px-4 rounded-xl font-semibold hover:bg-gray-200 transition-colors"
+              >
+                Refresh page
+              </button>
+            )}
           </div>
         </div>
         <p className="mt-6 text-sm text-gray-400">
