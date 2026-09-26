@@ -114,11 +114,8 @@ const EventHeaderContent = () => {
       const response = await api.post('/auth/switch-role', { role }, { timeout: 15000 });
       const { accessToken } = response.data.data;
 
+      // updateToken handles redirection cleanly using window.location.href
       updateToken(accessToken);
-
-      // Redirect based on the new role
-      const redirectPath = getDashboardPath(role);
-      router.push(redirectPath);
     } catch (error: unknown) {
       Swal.toast.fire({
         icon: 'error',
