@@ -24,34 +24,16 @@ const HomePageClient = () => {
   const router = useRouter();
   const [discoveryData, setDiscoveryData] = useState<DiscoveryData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [retryStatus, setRetryStatus] = useState<{ retrying: boolean; retryCount: number; maxRetries: number } | null>(null);
   const [error, setError] = useState('');
   const [isSearchActive, setIsSearchActive] = useState(false);
   const scrolled = useScroll(100);
 
   const shouldHideSearch = scrolled && !isSearchActive;
 
-  useEffect(() => {
-    const handleRetry = (event: Event) => {
-      const customEvent = event as CustomEvent<{ retryCount: number; maxRetries: number }>;
-      setRetryStatus({
-        retrying: true,
-        retryCount: customEvent.detail.retryCount,
-        maxRetries: customEvent.detail.maxRetries,
-      });
-    };
-
-    window.addEventListener('api-retry-in-progress', handleRetry);
-    return () => {
-      window.removeEventListener('api-retry-in-progress', handleRetry);
-    };
-  }, []);
-
   const fetchVenues = useCallback(async (coords?: { latitude: number; longitude: number }) => {
     try {
       setLoading(true);
       setError('');
-      setRetryStatus(null);
 
       const params = new URLSearchParams();
       if (coords && coords.latitude != null && coords.longitude != null) {
@@ -103,7 +85,6 @@ const HomePageClient = () => {
       setError(translateError(err));
     } finally {
       setLoading(false);
-      setRetryStatus(null);
     }
   }, []);
 
@@ -220,24 +201,17 @@ const HomePageClient = () => {
         </div>
 
         {loading && (
-          <div className="space-y-8">
-            {retryStatus?.retrying && (
-              <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl p-4 text-center text-sm font-medium flex items-center justify-center gap-2 animate-pulse">
-                <span>Connecting to server... Attempt {retryStatus.retryCount} of {retryStatus.maxRetries}</span>
-              </div>
-            )}
-            <div className="space-y-16 md:space-y-20">
-              {[1, 2].map((section) => (
-                <section key={section}>
-                  <div className="h-8 bg-gray-200 rounded-lg w-48 mb-4 md:mb-6 animate-pulse"></div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {[1, 2, 3, 4].map((i) => (
-                      <SkeletonCard key={i} />
-                    ))}
-                  </div>
-                </section>
-              ))}
-            </div>
+          <div className="space-y-16 md:space-y-20">
+            {[1, 2].map((section) => (
+              <section key={section}>
+                <div className="h-8 bg-gray-200 rounded-lg w-48 mb-4 md:mb-6 animate-pulse"></div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {[1, 2, 3, 4].map((i) => (
+                    <SkeletonCard key={i} />
+                  ))}
+                </div>
+              </section>
+            ))}
           </div>
         )}
 
