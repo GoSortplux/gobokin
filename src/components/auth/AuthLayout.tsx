@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import Image from 'next/image';
 import Link from 'next/link';
+import api from '@/services/api';
 
 
 interface Venue {
@@ -16,7 +16,7 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const fetchHallImages = async () => {
       try {
-        const response = await axios.get('https://api.gobokin.com/api/v1/halls');
+        const response = await api.get('/halls');
         const venues = response.data.data;
         if (venues && venues.length > 0) {
           const allImages = venues
